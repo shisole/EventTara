@@ -1,10 +1,14 @@
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24">
-      <h1 className="text-4xl font-bold">EventTara</h1>
-      <p className="mt-4 text-lg text-gray-600">
-        Adventure event booking platform
-      </p>
+    <main className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="text-center space-y-6">
+        <h1 className="text-5xl font-bold text-coral-500">EventTara</h1>
+        <p className="text-xl text-gray-600">Tara na! — Book Your Next Adventure</p>
+        <div className="flex gap-4 justify-center">
+          <button className="btn-primary">Explore Events</button>
+          <button className="btn-secondary">List Your Event</button>
+        </div>
+      </div>
     </main>
   );
 }
