@@ -40,6 +40,7 @@ export interface Database {
           is_guest?: boolean
           created_at?: string
         }
+        Relationships: []
       }
       organizer_profiles: {
         Row: {
@@ -69,6 +70,7 @@ export interface Database {
           payment_info?: Json
           created_at?: string
         }
+        Relationships: []
       }
       events: {
         Row: {
@@ -116,6 +118,7 @@ export interface Database {
           cover_image_url?: string | null
           created_at?: string
         }
+        Relationships: []
       }
       event_photos: {
         Row: {
@@ -142,6 +145,7 @@ export interface Database {
           sort_order?: number
           uploaded_at?: string
         }
+        Relationships: []
       }
       bookings: {
         Row: {
@@ -174,6 +178,7 @@ export interface Database {
           qr_code?: string | null
           booked_at?: string
         }
+        Relationships: []
       }
       badges: {
         Row: {
@@ -200,6 +205,7 @@ export interface Database {
           image_url?: string | null
           created_at?: string
         }
+        Relationships: []
       }
       user_badges: {
         Row: {
@@ -220,6 +226,7 @@ export interface Database {
           badge_id?: string
           awarded_at?: string
         }
+        Relationships: []
       }
       event_checkins: {
         Row: {
@@ -243,6 +250,7 @@ export interface Database {
           checked_in_at?: string
           method?: 'qr' | 'manual'
         }
+        Relationships: []
       }
     }
     Views: {
