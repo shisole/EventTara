@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import StoreProvider from "@/lib/store/provider";
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -27,7 +29,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${plusJakarta.variable}`}>
       <body className="font-sans">
-          <StoreProvider>{children}</StoreProvider>
+          <StoreProvider>
+            <Navbar />
+            {children}
+            <Footer />
+          </StoreProvider>
         </body>
     </html>
   );
