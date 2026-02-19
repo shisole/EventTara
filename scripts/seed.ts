@@ -7,6 +7,13 @@
  * Usage: npm run seed
  */
 
+import { loadEnvConfig } from "@next/env";
+import { resolve, dirname } from "path";
+import { fileURLToPath } from "url";
+
+const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+loadEnvConfig(projectRoot);
+
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 // ---------------------------------------------------------------------------
@@ -76,6 +83,7 @@ const TEST_USERS: TestUser[] = [
     full_name: "Marco Santos",
     username: "marco_trails",
     role: "organizer",
+    avatar_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
   },
   {
     email: `organizer2${TEST_EMAIL_DOMAIN}`,
@@ -83,6 +91,7 @@ const TEST_USERS: TestUser[] = [
     full_name: "Ana Reyes",
     username: "ana_pedal",
     role: "organizer",
+    avatar_url: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=face",
   },
   {
     email: `participant1${TEST_EMAIL_DOMAIN}`,
@@ -120,6 +129,7 @@ interface OrgProfile {
   ownerEmail: string;
   org_name: string;
   description: string;
+  logo_url: string;
 }
 
 const ORGANIZER_PROFILES: OrgProfile[] = [
@@ -128,12 +138,16 @@ const ORGANIZER_PROFILES: OrgProfile[] = [
     org_name: "Trail Masters PH",
     description:
       "Leading hiking and trail running events across the Philippines. We organize unforgettable outdoor adventures from easy day hikes to challenging multi-day expeditions through the country's most scenic mountains and trails.",
+    logo_url:
+      "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=200&h=200&fit=crop",
   },
   {
     ownerEmail: `organizer2${TEST_EMAIL_DOMAIN}`,
     org_name: "Pedal Republic",
     description:
       "Mountain biking and road cycling events for riders of all levels. From scenic road loops to adrenaline-pumping MTB trails, we bring the cycling community together for epic rides and races.",
+    logo_url:
+      "https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=200&h=200&fit=crop",
   },
 ];
 
@@ -390,6 +404,7 @@ async function createOrganizerProfiles(
         user_id: userId,
         org_name: profile.org_name,
         description: profile.description,
+        logo_url: profile.logo_url,
         payment_info: {
           gcash: { name: profile.org_name, number: "0917-XXX-XXXX" },
           maya: { name: profile.org_name, number: "0918-XXX-XXXX" },
