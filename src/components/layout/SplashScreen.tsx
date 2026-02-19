@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 export default function SplashScreen() {
   const [visible, setVisible] = useState(true);
@@ -31,7 +32,14 @@ export default function SplashScreen() {
         fadeOut ? "opacity-0" : "opacity-100"
       }`}
     >
-      <div className="flex flex-col items-center gap-3">
+      <div className="flex flex-col items-center gap-4">
+        <Image
+          src="/favicon-192x192.png"
+          alt="EventTara"
+          width={80}
+          height={80}
+          priority
+        />
         <span className="text-4xl font-heading font-bold text-lime-500">
           EventTara
         </span>
