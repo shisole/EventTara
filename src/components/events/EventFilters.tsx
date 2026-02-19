@@ -38,7 +38,7 @@ export default function EventFilters() {
           key={type.value}
           variant={currentType === type.value ? "primary" : "ghost"}
           size="sm"
-          className="whitespace-nowrap shrink-0 sm:shrink"
+          className="whitespace-nowrap shrink-0 sm:shrink min-h-[44px]"
           onClick={() => handleTypeChange(type.value)}
         >
           {type.label}

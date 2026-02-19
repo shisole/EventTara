@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button, Avatar } from "@/components/ui";
@@ -8,6 +9,7 @@ import type { User } from "@supabase/supabase-js";
 
 export default function Navbar() {
   const supabase = createClient();
+  const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -32,7 +34,7 @@ export default function Navbar() {
   // Close menu on route change
   useEffect(() => {
     setMenuOpen(false);
-  }, []);
+  }, [pathname]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
