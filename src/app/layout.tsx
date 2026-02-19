@@ -16,10 +16,47 @@ const plusJakarta = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta",
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://eventtara.com";
+
 export const metadata: Metadata = {
-  title: "EventTara — Tara na! Book Your Next Adventure",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "EventTara — Tara na! Book Your Next Adventure",
+    template: "%s — EventTara",
+  },
   description:
-    "EventTara is an adventure event booking platform for hiking, mountain biking, road biking, running, and more.",
+    "EventTara is an adventure event booking platform for hiking, mountain biking, road biking, running, and more. Tara na!",
+  keywords: [
+    "events",
+    "adventure",
+    "hiking",
+    "mountain biking",
+    "road biking",
+    "running",
+    "trail running",
+    "Philippines",
+    "outdoor",
+    "booking",
+  ],
+  authors: [{ name: "EventTara" }],
+  openGraph: {
+    type: "website",
+    siteName: "EventTara",
+    title: "EventTara — Tara na! Book Your Next Adventure",
+    description:
+      "Discover and book outdoor adventures — hiking, biking, running, and more. Tara na!",
+    locale: "en_PH",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "EventTara — Tara na! Book Your Next Adventure",
+    description:
+      "Discover and book outdoor adventures — hiking, biking, running, and more. Tara na!",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({

@@ -17,13 +17,42 @@ const typeLabels: Record<string, string> = {
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();
-  const { data: event } = await supabase.from("events").select("title, description").eq("id", id).single();
+  const { data: event } = await supabase
+    .from("events")
+    .select("title, description, cover_image_url, type, date, price, location")
+    .eq("id", id)
+    .single();
 
-  if (!event) return { title: "Event Not Found — EventTara" };
+  if (!event) return { title: "Event Not Found" };
+
+  const description = event.description
+    ? event.description.slice(0, 160)
+    : `Join this ${typeLabels[event.type] || event.type} adventure on EventTara!`;
 
   return {
-    title: `${event.title} — EventTara`,
-    description: event.description || "Join this adventure on EventTara!",
+    title: event.title,
+    description,
+    openGraph: {
+      title: event.title,
+      description,
+      type: "article",
+      ...(event.cover_image_url && {
+        images: [
+          {
+            url: event.cover_image_url,
+            width: 1200,
+            height: 630,
+            alt: event.title,
+          },
+        ],
+      }),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: event.title,
+      description,
+      ...(event.cover_image_url && { images: [event.cover_image_url] }),
+    },
   };
 }
 

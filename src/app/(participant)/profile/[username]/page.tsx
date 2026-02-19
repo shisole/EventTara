@@ -9,16 +9,43 @@ import BadgeGrid from "@/components/badges/BadgeGrid";
 export async function generateMetadata({ params }: { params: Promise<{ username: string }> }) {
   const { username } = await params;
   const supabase = await createClient();
+
   const { data: user } = await supabase
     .from("users")
-    .select("full_name")
+    .select("id, full_name, avatar_url")
     .eq("username", username)
     .single();
 
-  if (!user) return { title: "Profile Not Found — EventTara" };
+  if (!user) return { title: "Profile Not Found" };
+
+  const { count: badgeCount } = await supabase
+    .from("user_badges")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", user.id);
+
+  const title = `${user.full_name}'s Adventure Profile`;
+  const description =
+    badgeCount && badgeCount > 0
+      ? `${user.full_name} has earned ${badgeCount} badge${badgeCount !== 1 ? "s" : ""} on EventTara. Check out their adventure profile!`
+      : `Check out ${user.full_name}'s adventure profile on EventTara!`;
+
   return {
-    title: `${user.full_name} — EventTara Adventurer`,
-    description: `Check out ${user.full_name}'s adventure profile and badges on EventTara!`,
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "profile",
+      ...(user.avatar_url && {
+        images: [{ url: user.avatar_url, width: 400, height: 400, alt: user.full_name }],
+      }),
+    },
+    twitter: {
+      card: "summary",
+      title,
+      description,
+      ...(user.avatar_url && { images: [user.avatar_url] }),
+    },
   };
 }
 

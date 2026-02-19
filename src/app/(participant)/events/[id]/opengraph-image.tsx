@@ -1,0 +1,173 @@
+import { ImageResponse } from "next/og";
+import { createClient } from "@/lib/supabase/server";
+
+export const alt = "Event on EventTara";
+export const size = { width: 1200, height: 630 };
+export const contentType = "image/png";
+
+const typeLabels: Record<string, string> = {
+  hiking: "Hiking",
+  mtb: "Mountain Biking",
+  road_bike: "Road Biking",
+  running: "Running",
+  trail_run: "Trail Running",
+};
+
+const typeColors: Record<string, string> = {
+  hiking: "#166534",
+  mtb: "#92400e",
+  road_bike: "#1e40af",
+  running: "#f97316",
+  trail_run: "#7c3aed",
+};
+
+export default async function Image({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const supabase = await createClient();
+
+  const { data: event } = await supabase
+    .from("events")
+    .select("title, type, date, price, location")
+    .eq("id", id)
+    .single();
+
+  if (!event) {
+    return new ImageResponse(
+      (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "100%",
+            height: "100%",
+            background: "#166534",
+            color: "white",
+            fontSize: 48,
+            fontFamily: "sans-serif",
+          }}
+        >
+          Event Not Found
+        </div>
+      ),
+      { ...size }
+    );
+  }
+
+  const typeBadgeColor = typeColors[event.type] || "#166534";
+  const formattedDate = new Date(event.date).toLocaleDateString("en-PH", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+  const price =
+    Number(event.price) === 0 ? "Free" : `\u20B1${Number(event.price).toLocaleString()}`;
+
+  return new ImageResponse(
+    (
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          width: "100%",
+          height: "100%",
+          background: "linear-gradient(135deg, #166534 0%, #15803d 50%, #ca8a04 100%)",
+          fontFamily: "sans-serif",
+          padding: 60,
+        }}
+      >
+        {/* Type badge */}
+        <div
+          style={{
+            display: "flex",
+            alignSelf: "flex-start",
+            padding: "8px 24px",
+            borderRadius: 9999,
+            backgroundColor: typeBadgeColor,
+            color: "white",
+            fontSize: 22,
+            fontWeight: 600,
+            marginBottom: 24,
+          }}
+        >
+          {typeLabels[event.type] || event.type}
+        </div>
+
+        {/* Title */}
+        <div
+          style={{
+            display: "flex",
+            fontSize: 56,
+            fontWeight: 800,
+            color: "white",
+            lineHeight: 1.2,
+            marginBottom: 24,
+            maxWidth: "90%",
+          }}
+        >
+          {event.title.length > 60 ? event.title.slice(0, 57) + "..." : event.title}
+        </div>
+
+        {/* Spacer */}
+        <div style={{ display: "flex", flex: 1 }} />
+
+        {/* Bottom info row */}
+        <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
+          {/* Date */}
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <div style={{ fontSize: 16, color: "rgba(255,255,255,0.7)" }}>Date</div>
+            <div style={{ fontSize: 24, color: "white", fontWeight: 600 }}>{formattedDate}</div>
+          </div>
+
+          {/* Location */}
+          {event.location && (
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <div style={{ fontSize: 16, color: "rgba(255,255,255,0.7)" }}>Location</div>
+              <div style={{ fontSize: 24, color: "white", fontWeight: 600 }}>
+                {event.location.length > 30
+                  ? event.location.slice(0, 27) + "..."
+                  : event.location}
+              </div>
+            </div>
+          )}
+
+          {/* Price */}
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <div style={{ fontSize: 16, color: "rgba(255,255,255,0.7)" }}>Price</div>
+            <div style={{ fontSize: 24, color: "white", fontWeight: 600 }}>{price}</div>
+          </div>
+        </div>
+
+        {/* Branding footer */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            marginTop: 32,
+            gap: 12,
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: 36,
+              height: 36,
+              borderRadius: 18,
+              backgroundColor: "rgba(255,255,255,0.3)",
+              fontSize: 16,
+              fontWeight: 700,
+              color: "white",
+            }}
+          >
+            ET
+          </div>
+          <div style={{ fontSize: 20, color: "rgba(255,255,255,0.8)" }}>EventTara</div>
+        </div>
+      </div>
+    ),
+    { ...size }
+  );
+}
