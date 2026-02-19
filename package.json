@@ -9,7 +9,7 @@
     "lint": "next lint",
     "seed": "npx tsx scripts/seed.ts",
     "unseed": "npx tsx scripts/unseed.ts",
-    "docs:sync": "ts-node scripts/sync-docs/index.ts"
+    "docs:sync": "ts-node --compiler-options {\\\"module\\\":\\\"commonjs\\\"} scripts/sync-docs/index.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.77.0",
