@@ -32,7 +32,7 @@ export function bookingConfirmationHtml({
         <table width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
           <!-- Header -->
           <tr>
-            <td style="background: linear-gradient(135deg, #E8614D, #D4503F);padding:32px;text-align:center;">
+            <td style="background: linear-gradient(135deg, #0891b2, #0e7490);padding:32px;text-align:center;">
               <h1 style="color:#ffffff;margin:0;font-size:24px;font-weight:700;">EventTara</h1>
               <p style="color:rgba(255,255,255,0.9);margin:8px 0 0;font-size:14px;">Adventure Awaits</p>
             </td>
@@ -50,13 +50,13 @@ export function bookingConfirmationHtml({
                   <td style="padding:20px;">
                     <p style="margin:0 0 12px;color:#333;font-size:16px;font-weight:600;">${eventTitle}</p>
                     <p style="margin:0 0 8px;color:#666;font-size:14px;">
-                      <span style="color:#E8614D;font-weight:600;">Date:</span> ${eventDate}
+                      <span style="color:#0891b2;font-weight:600;">Date:</span> ${eventDate}
                     </p>
                     <p style="margin:0 0 8px;color:#666;font-size:14px;">
-                      <span style="color:#E8614D;font-weight:600;">Location:</span> ${eventLocation}
+                      <span style="color:#0891b2;font-weight:600;">Location:</span> ${eventLocation}
                     </p>
                     <p style="margin:0;color:#666;font-size:14px;">
-                      <span style="color:#E8614D;font-weight:600;">Booking ID:</span> ${bookingId}
+                      <span style="color:#0891b2;font-weight:600;">Booking ID:</span> ${bookingId}
                     </p>
                   </td>
                 </tr>

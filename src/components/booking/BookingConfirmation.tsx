@@ -18,14 +18,14 @@ export default function BookingConfirmation({
     <div className="text-center space-y-6">
       <div className="text-5xl">{"\u{1F389}"}</div>
       <h2 className="text-2xl font-heading font-bold">You&apos;re In!</h2>
-      <p className="text-gray-600">Your spot for <span className="font-semibold">{eventTitle}</span> is confirmed.</p>
+      <p className="text-gray-600 dark:text-gray-400">Your spot for <span className="font-semibold">{eventTitle}</span> is confirmed.</p>
 
-      <div className="bg-white rounded-2xl shadow-md p-6 inline-block">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-6 inline-block">
         <QRCodeSVG value={qrCode} size={200} />
-        <p className="text-xs text-gray-400 mt-3">Show this QR code at check-in</p>
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-3">Show this QR code at check-in</p>
       </div>
 
-      <div className="text-sm text-gray-500">
+      <div className="text-sm text-gray-500 dark:text-gray-400">
         <p>{"\u{1F4C5}"} {new Date(eventDate).toLocaleDateString("en-PH", {
           weekday: "long", month: "long", day: "numeric", year: "numeric",
         })}</p>

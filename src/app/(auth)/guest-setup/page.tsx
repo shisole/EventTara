@@ -49,10 +49,10 @@ export default function GuestSetupPage() {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-md p-8 space-y-6">
+    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md p-8 space-y-6">
       <div className="text-center">
         <h2 className="text-2xl font-heading font-bold">Choose Your Adventure Avatar</h2>
-        <p className="text-gray-500 mt-1">Pick an avatar and a display name to get started</p>
+        <p className="text-gray-500 dark:text-gray-400 mt-1">Pick an avatar and a display name to get started</p>
       </div>
 
       <form onSubmit={handleContinue} className="space-y-6">
@@ -65,14 +65,14 @@ export default function GuestSetupPage() {
               className={cn(
                 "flex flex-col items-center gap-1 p-3 rounded-xl border-2 transition-all",
                 selectedAvatar === avatar.id
-                  ? "border-coral-500 bg-coral-50 scale-105"
-                  : "border-gray-200 hover:border-gray-300"
+                  ? "border-lime-500 bg-lime-50 dark:bg-lime-950 scale-105"
+                  : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
               )}
             >
               <span className={cn("w-12 h-12 rounded-full flex items-center justify-center text-2xl", avatar.color)}>
                 {avatar.emoji}
               </span>
-              <span className="text-xs text-gray-600">{avatar.label}</span>
+              <span className="text-xs text-gray-600 dark:text-gray-400">{avatar.label}</span>
             </button>
           ))}
         </div>
@@ -91,7 +91,7 @@ export default function GuestSetupPage() {
           {loading ? "Setting up..." : "Tara na! Let's Go!"}
         </Button>
 
-        <p className="text-center text-xs text-gray-400">
+        <p className="text-center text-xs text-gray-400 dark:text-gray-500">
           Create a full account anytime to save your badges permanently
         </p>
       </form>

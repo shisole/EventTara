@@ -28,8 +28,8 @@ export default function DashboardSidebar() {
             className={cn(
               "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors min-h-[44px]",
               isActive
-                ? "bg-coral-50 text-coral-600"
-                : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                ? "bg-lime-50 dark:bg-lime-900/30 text-lime-600 dark:text-lime-400"
+                : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
             )}
           >
             <span>{item.icon}</span>
@@ -45,7 +45,7 @@ export default function DashboardSidebar() {
       {/* Mobile toggle button */}
       <button
         onClick={() => setDrawerOpen(true)}
-        className="md:hidden fixed bottom-20 left-4 z-40 bg-coral-500 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-coral-600 transition-colors"
+        className="md:hidden fixed bottom-20 left-4 z-40 bg-lime-500 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-lime-400 transition-colors"
         aria-label="Open dashboard menu"
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
@@ -60,16 +60,16 @@ export default function DashboardSidebar() {
           onClick={() => setDrawerOpen(false)}
         >
           <aside
-            className="absolute top-0 left-0 h-full w-64 bg-white shadow-xl p-4 animate-slide-in-left"
+            className="absolute top-0 left-0 h-full w-64 bg-white dark:bg-gray-900 shadow-xl dark:shadow-gray-950/30 p-4 animate-slide-in-left"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
-              <span className="text-lg font-heading font-bold text-coral-500">
+              <span className="text-lg font-heading font-bold text-lime-500">
                 Dashboard
               </span>
               <button
                 onClick={() => setDrawerOpen(false)}
-                className="w-11 h-11 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100"
+                className="w-11 h-11 flex items-center justify-center rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
                 aria-label="Close menu"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -83,7 +83,7 @@ export default function DashboardSidebar() {
       )}
 
       {/* Desktop sidebar */}
-      <aside className="w-64 bg-white border-r border-gray-100 min-h-[calc(100vh-4rem)] p-4 hidden md:block">
+      <aside className="w-64 bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 min-h-[calc(100vh-4rem)] p-4 hidden md:block">
         {navContent}
       </aside>
     </>

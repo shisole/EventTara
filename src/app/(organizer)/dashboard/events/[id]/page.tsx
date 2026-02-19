@@ -60,16 +60,16 @@ export default async function ManageEventPage({ params }: { params: Promise<{ id
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
-        <div className="bg-white rounded-xl p-4 shadow-sm">
-          <p className="text-sm text-gray-500">Bookings</p>
+        <div className="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm dark:shadow-gray-950/30">
+          <p className="text-sm text-gray-500 dark:text-gray-400">Bookings</p>
           <p className="text-2xl font-bold">{bookings?.length || 0}/{event.max_participants}</p>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm">
-          <p className="text-sm text-gray-500">Checked In</p>
+        <div className="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm dark:shadow-gray-950/30">
+          <p className="text-sm text-gray-500 dark:text-gray-400">Checked In</p>
           <p className="text-2xl font-bold">{checkinCount || 0}</p>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm">
-          <p className="text-sm text-gray-500">Revenue</p>
+        <div className="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm dark:shadow-gray-950/30">
+          <p className="text-sm text-gray-500 dark:text-gray-400">Revenue</p>
           <p className="text-2xl font-bold">PHP {((bookings?.length || 0) * Number(event.price)).toLocaleString()}</p>
         </div>
       </div>
@@ -78,17 +78,17 @@ export default async function ManageEventPage({ params }: { params: Promise<{ id
       <div>
         <h2 className="text-xl font-heading font-bold mb-4">Participants</h2>
         {bookings && bookings.length > 0 ? (
-          <div className="bg-white rounded-2xl shadow-md overflow-hidden">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 overflow-hidden">
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50 dark:bg-gray-800">
                 <tr>
-                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Name</th>
-                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Status</th>
-                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Payment</th>
-                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Booked</th>
+                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">Name</th>
+                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">Status</th>
+                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">Payment</th>
+                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">Booked</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                 {bookings.map((booking: any) => (
                   <tr key={booking.id}>
                     <td className="px-6 py-4 font-medium">{booking.users?.full_name || "Guest"}</td>
@@ -97,8 +97,8 @@ export default async function ManageEventPage({ params }: { params: Promise<{ id
                         {booking.status}
                       </UIBadge>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{booking.payment_method?.toUpperCase()}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
+                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">{booking.payment_method?.toUpperCase()}</td>
+                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                       {new Date(booking.booked_at).toLocaleDateString("en-PH")}
                     </td>
                   </tr>
@@ -107,7 +107,7 @@ export default async function ManageEventPage({ params }: { params: Promise<{ id
             </table>
           </div>
         ) : (
-          <p className="text-gray-500">No participants yet.</p>
+          <p className="text-gray-500 dark:text-gray-400">No participants yet.</p>
         )}
       </div>
     </div>

@@ -17,7 +17,7 @@ export function badgeAwardedHtml({
 }: BadgeAwardedProps): string {
   const badgeImage = badgeImageUrl
     ? `<img src="${badgeImageUrl}" alt="${badgeTitle}" width="120" height="120" style="border-radius:50%;border:4px solid #DAA520;margin-bottom:16px;" />`
-    : `<div style="width:120px;height:120px;border-radius:50%;background:linear-gradient(135deg,#DAA520,#E8614D);display:inline-flex;align-items:center;justify-content:center;margin-bottom:16px;border:4px solid #DAA520;">
+    : `<div style="width:120px;height:120px;border-radius:50%;background:linear-gradient(135deg,#DAA520,#0891b2);display:inline-flex;align-items:center;justify-content:center;margin-bottom:16px;border:4px solid #DAA520;">
         <span style="font-size:48px;">&#127942;</span>
       </div>`;
 
@@ -40,7 +40,7 @@ export function badgeAwardedHtml({
         <table width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
           <!-- Header -->
           <tr>
-            <td style="background:linear-gradient(135deg,#DAA520,#E8614D);padding:32px;text-align:center;">
+            <td style="background:linear-gradient(135deg,#DAA520,#0891b2);padding:32px;text-align:center;">
               <h1 style="color:#ffffff;margin:0;font-size:24px;font-weight:700;">EventTara</h1>
               <p style="color:rgba(255,255,255,0.9);margin:8px 0 0;font-size:14px;">Achievement Unlocked!</p>
             </td>

@@ -18,7 +18,7 @@ export default async function BookEventPage({ params }: { params: Promise<{ id: 
   return (
     <div className="max-w-lg mx-auto px-4 py-12">
       <h1 className="text-2xl font-heading font-bold mb-8 text-center">Book Your Spot</h1>
-      <div className="bg-white rounded-2xl shadow-md p-5 sm:p-8">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-5 sm:p-8">
         <BookingForm
           eventId={event.id}
           eventTitle={event.title}

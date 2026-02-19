@@ -29,8 +29,8 @@ export default function ProfileHeader({ fullName, username, avatarUrl, createdAt
       <Avatar src={avatarUrl} alt={fullName} size="xl" className="mx-auto" />
       <div>
         <h1 className="text-2xl font-heading font-bold">{fullName}</h1>
-        {username && <p className="text-gray-500">@{username}</p>}
-        <p className="text-sm text-gray-400 mt-1">Adventurer since {memberSince}</p>
+        {username && <p className="text-gray-500 dark:text-gray-400">@{username}</p>}
+        <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Adventurer since {memberSince}</p>
       </div>
       <Button variant="outline" size="sm" onClick={handleShare}>
         {copied ? "Link Copied!" : "Share Profile"}

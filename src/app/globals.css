@@ -4,7 +4,7 @@
 
 @layer base {
   body {
-    @apply bg-white text-gray-900 antialiased;
+    @apply bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-100 antialiased;
   }
 }
 
@@ -37,15 +37,15 @@
 
 @layer components {
   .btn-primary {
-    @apply bg-coral-500 hover:bg-coral-600 text-white font-semibold py-3 px-6 rounded-xl transition-colors;
+    @apply bg-lime-500 hover:bg-lime-400 text-gray-900 font-semibold py-3 px-6 rounded-xl transition-colors;
   }
   .btn-secondary {
     @apply bg-forest-500 hover:bg-forest-600 text-white font-semibold py-3 px-6 rounded-xl transition-colors;
   }
   .btn-outline {
-    @apply border-2 border-coral-500 text-coral-500 hover:bg-coral-50 font-semibold py-3 px-6 rounded-xl transition-colors;
+    @apply border-2 border-lime-500 text-lime-600 dark:text-lime-400 hover:bg-lime-50 dark:hover:bg-lime-950 font-semibold py-3 px-6 rounded-xl transition-colors;
   }
   .card {
-    @apply bg-white rounded-2xl shadow-md hover:shadow-lg transition-shadow;
+    @apply bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 hover:shadow-lg transition-shadow;
   }
 }

@@ -58,7 +58,7 @@ export function eventReminderHtml({
           <!-- Body -->
           <tr>
             <td style="padding:32px;">
-              <h2 style="color:#E8614D;margin:0 0 8px;font-size:20px;">Your Event is Tomorrow!</h2>
+              <h2 style="color:#0891b2;margin:0 0 8px;font-size:20px;">Your Event is Tomorrow!</h2>
               <p style="color:#555;margin:0 0 24px;font-size:15px;line-height:1.5;">
                 Hey ${userName}, just a friendly reminder that your adventure is coming up soon. Get ready!
               </p>

@@ -1,7 +1,7 @@
 export const PRESET_AVATARS = [
   { id: "mountain-goat", label: "Mountain Goat", emoji: "\u{1F410}", color: "bg-amber-100" },
   { id: "eagle", label: "Eagle", emoji: "\u{1F985}", color: "bg-blue-100" },
-  { id: "biker", label: "Biker", emoji: "\u{1F6B4}", color: "bg-coral-100" },
+  { id: "biker", label: "Biker", emoji: "\u{1F6B4}", color: "bg-teal-100" },
   { id: "runner", label: "Runner", emoji: "\u{1F3C3}", color: "bg-green-100" },
   { id: "hiker", label: "Hiker", emoji: "\u{1F97E}", color: "bg-forest-100" },
   { id: "climber", label: "Climber", emoji: "\u{1F9D7}", color: "bg-purple-100" },

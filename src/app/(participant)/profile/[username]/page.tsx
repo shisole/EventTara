@@ -113,8 +113,8 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
         <BadgeGrid badges={badges} />
       </div>
 
-      <div className="text-center pt-6 border-t border-gray-100">
-        <p className="text-gray-500 mb-3">Want to earn badges too?</p>
+      <div className="text-center pt-6 border-t border-gray-100 dark:border-gray-800">
+        <p className="text-gray-500 dark:text-gray-400 mb-3">Want to earn badges too?</p>
         <Link href="/signup">
           <Button>Join EventTara</Button>
         </Link>

@@ -8,6 +8,13 @@
  * Usage: npm run unseed
  */
 
+import { loadEnvConfig } from "@next/env";
+import { resolve, dirname } from "path";
+import { fileURLToPath } from "url";
+
+const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+loadEnvConfig(projectRoot);
+
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 // ---------------------------------------------------------------------------

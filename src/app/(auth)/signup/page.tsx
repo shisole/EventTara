@@ -49,7 +49,7 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-md p-8 space-y-6">
+    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md p-8 space-y-6">
       <h2 className="text-2xl font-heading font-bold text-center">Join the Adventure!</h2>
 
       <Button onClick={handleFacebookLogin} className="w-full bg-[#1877F2] hover:bg-[#166FE5]" size="lg">
@@ -58,10 +58,10 @@ export default function SignupPage() {
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-200" />
+          <div className="w-full border-t border-gray-200 dark:border-gray-700" />
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="bg-white px-4 text-gray-400">or</span>
+          <span className="bg-white dark:bg-gray-900 px-4 text-gray-400 dark:text-gray-500">or</span>
         </div>
       </div>
 
@@ -99,9 +99,9 @@ export default function SignupPage() {
         </Button>
       </form>
 
-      <p className="text-center text-sm text-gray-500">
+      <p className="text-center text-sm text-gray-500 dark:text-gray-400">
         Already have an account?{" "}
-        <Link href="/login" className="text-coral-500 hover:text-coral-600 font-medium">
+        <Link href="/login" className="text-lime-600 dark:text-lime-400 hover:text-lime-600 dark:hover:text-lime-400 font-medium">
           Sign In
         </Link>
       </p>

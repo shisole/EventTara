@@ -60,14 +60,14 @@ export default function BookingForm({ eventId, eventTitle, eventDate, price }: B
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="bg-gray-50 rounded-xl p-4">
+      <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
         <h3 className="font-heading font-bold">{eventTitle}</h3>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
           {new Date(eventDate).toLocaleDateString("en-PH", {
             weekday: "long", month: "long", day: "numeric",
           })}
         </p>
-        <p className="text-lg font-bold text-coral-500 mt-2">
+        <p className="text-lg font-bold text-lime-600 dark:text-lime-400 mt-2">
           {price === 0 ? "Free" : `\u20B1${price.toLocaleString()}`}
         </p>
       </div>

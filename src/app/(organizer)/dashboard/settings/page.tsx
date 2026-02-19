@@ -22,7 +22,7 @@ export default async function SettingsPage() {
 
       <section>
         <h2 className="text-xl font-heading font-bold mb-4">Organizer Profile</h2>
-        <div className="bg-white rounded-2xl shadow-md p-6">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-6">
           <OrganizerProfileForm
             profile={profile ? {
               id: profile.id,
@@ -37,7 +37,7 @@ export default async function SettingsPage() {
       {profile && (
         <section>
           <h2 className="text-xl font-heading font-bold mb-4">Payment Settings</h2>
-          <div className="bg-white rounded-2xl shadow-md p-6">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-6">
             <PaymentSettingsForm
               profileId={profile.id}
               paymentInfo={(profile.payment_info as any) || {}}

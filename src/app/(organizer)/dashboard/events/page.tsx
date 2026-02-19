@@ -41,34 +41,34 @@ export default async function EventsListPage() {
       </div>
 
       {events.length === 0 ? (
-        <div className="text-center py-20 bg-white rounded-2xl shadow-md">
+        <div className="text-center py-20 bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30">
           <h2 className="text-lg font-heading font-bold mb-2">No events yet</h2>
-          <p className="text-gray-500 mb-4">Create your first adventure event!</p>
+          <p className="text-gray-500 dark:text-gray-400 mb-4">Create your first adventure event!</p>
           <Link href="/dashboard/events/new">
             <Button>Create Event</Button>
           </Link>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl shadow-md overflow-hidden">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 overflow-hidden">
           <table className="w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-gray-50 dark:bg-gray-800">
               <tr>
-                <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Event</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Date</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Status</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Bookings</th>
-                <th className="text-right px-6 py-3 text-sm font-medium text-gray-500">Actions</th>
+                <th className="text-left px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">Event</th>
+                <th className="text-left px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">Date</th>
+                <th className="text-left px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">Status</th>
+                <th className="text-left px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">Bookings</th>
+                <th className="text-right px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
               {events.map((event: any) => (
-                <tr key={event.id} className="hover:bg-gray-50">
+                <tr key={event.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
                   <td className="px-6 py-4">
-                    <Link href={`/dashboard/events/${event.id}`} className="font-medium hover:text-coral-500">
+                    <Link href={`/dashboard/events/${event.id}`} className="font-medium hover:text-lime-600 dark:hover:text-lime-400">
                       {event.title}
                     </Link>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
+                  <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                     {new Date(event.date).toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" })}
                   </td>
                   <td className="px-6 py-4">

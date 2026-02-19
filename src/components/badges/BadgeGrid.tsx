@@ -12,7 +12,7 @@ export default function BadgeGrid({ badges }: { badges: Badge[] }) {
     return (
       <div className="text-center py-8">
         <p className="text-3xl mb-2">&#127941;</p>
-        <p className="text-gray-500">No badges yet. Join events to earn badges!</p>
+        <p className="text-gray-500 dark:text-gray-400">No badges yet. Join events to earn badges!</p>
       </div>
     );
   }

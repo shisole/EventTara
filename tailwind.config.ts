@@ -1,6 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
+  darkMode: "class",
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -9,17 +10,17 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        coral: {
-          50: "#fff5f2",
-          100: "#ffe8e0",
-          200: "#ffd0c2",
-          300: "#ffab94",
-          400: "#ff7f5c",
-          500: "#ff5a2d",
-          600: "#e84420",
-          700: "#c13416",
-          800: "#9c2c15",
-          900: "#7e2816",
+        teal: {
+          50: "#f0fdfa",
+          100: "#ccfbf1",
+          200: "#99f6e4",
+          300: "#5eead4",
+          400: "#2dd4bf",
+          500: "#0891b2",
+          600: "#0e7490",
+          700: "#155e75",
+          800: "#164e63",
+          900: "#134e4a",
         },
         forest: {
           50: "#f0faf4",

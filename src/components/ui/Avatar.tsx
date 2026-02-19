@@ -29,7 +29,7 @@ export default function Avatar({ src, alt, size = "md", className }: AvatarProps
     return (
       <div
         className={cn(
-          "rounded-full bg-coral-100 text-coral-600 flex items-center justify-center font-semibold",
+          "rounded-full bg-lime-100 dark:bg-lime-900 text-lime-600 dark:text-lime-300 flex items-center justify-center font-semibold",
           sizeMap[size],
           className
         )}

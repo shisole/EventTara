@@ -27,7 +27,7 @@ export default function UpcomingBookings({ bookings }: { bookings: Booking[] }) 
     return (
       <div className="text-center py-12">
         <p className="text-4xl mb-3">🗓️</p>
-        <p className="text-gray-500 mb-4">No upcoming events.</p>
+        <p className="text-gray-500 dark:text-gray-400 mb-4">No upcoming events.</p>
         <Link href="/events"><Button>Browse Events</Button></Link>
       </div>
     );
@@ -41,25 +41,25 @@ export default function UpcomingBookings({ bookings }: { bookings: Booking[] }) 
             <div className="space-y-1">
               <UIBadge variant={b.eventType as any}>{typeLabels[b.eventType] || b.eventType}</UIBadge>
               <Link href={`/events/${b.eventId}`}>
-                <h3 className="font-heading font-bold text-lg hover:text-coral-500">{b.eventTitle}</h3>
+                <h3 className="font-heading font-bold text-lg hover:text-lime-600 dark:hover:text-lime-400">{b.eventTitle}</h3>
               </Link>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 📅 {new Date(b.eventDate).toLocaleDateString("en-PH", { weekday: "short", month: "short", day: "numeric" })}
               </p>
-              <p className="text-sm text-gray-500">📍 {b.eventLocation}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">📍 {b.eventLocation}</p>
             </div>
             <button
               onClick={() => setExpandedQR(expandedQR === b.id ? null : b.id)}
-              className="text-sm text-coral-500 font-medium hover:text-coral-600"
+              className="text-sm text-lime-600 dark:text-lime-400 font-medium hover:text-lime-600"
             >
               {expandedQR === b.id ? "Hide QR" : "Show QR"}
             </button>
           </div>
           {expandedQR === b.id && (
             <div className="mt-4 flex justify-center">
-              <div className="bg-white p-4 rounded-xl border">
+              <div className="bg-white dark:bg-gray-900 p-4 rounded-xl border dark:border-gray-700">
                 <QRCodeSVG value={b.qrCode} size={160} />
-                <p className="text-xs text-gray-400 text-center mt-2">Show at check-in</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 text-center mt-2">Show at check-in</p>
               </div>
             </div>
           )}

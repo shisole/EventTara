@@ -56,7 +56,7 @@ export default async function Image({ params }: { params: Promise<{ username: st
           flexDirection: "column",
           width: "100%",
           height: "100%",
-          background: "linear-gradient(135deg, #f97316 0%, #ca8a04 50%, #166534 100%)",
+          background: "linear-gradient(135deg, #0891b2 0%, #ca8a04 50%, #166534 100%)",
           fontFamily: "sans-serif",
           padding: 60,
         }}

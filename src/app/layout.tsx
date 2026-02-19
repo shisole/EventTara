@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import StoreProvider from "@/lib/store/provider";
+import ThemeProvider from "@/components/layout/ThemeProvider";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import MobileNav from "@/components/layout/MobileNav";
+import SplashScreen from "@/components/layout/SplashScreen";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -65,16 +67,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${plusJakarta.variable}`}>
+    <html lang="en" className={`${inter.variable} ${plusJakarta.variable}`} suppressHydrationWarning>
       <body className="font-sans">
-          <StoreProvider>
-            <Navbar />
-            <div className="pb-16 md:pb-0">
-              {children}
-            </div>
-            <Footer />
-            <MobileNav />
-          </StoreProvider>
+          <ThemeProvider>
+            <StoreProvider>
+              <SplashScreen />
+              <Navbar />
+              <div className="pb-16 md:pb-0">
+                {children}
+              </div>
+              <Footer />
+              <MobileNav />
+            </StoreProvider>
+          </ThemeProvider>
         </body>
     </html>
   );

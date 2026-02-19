@@ -42,12 +42,12 @@ export default function PhotoUploader({ bucket, path, value, onChange, label }: 
 
   return (
     <div className="space-y-2">
-      {label && <label className="block text-sm font-medium text-gray-700">{label}</label>}
+      {label && <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{label}</label>}
       <div
         onClick={() => inputRef.current?.click()}
         className={cn(
           "border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-colors",
-          value ? "border-forest-300 bg-forest-50" : "border-gray-300 hover:border-coral-300"
+          value ? "border-forest-300 bg-forest-50" : "border-gray-300 dark:border-gray-600 hover:border-lime-300"
         )}
       >
         {value ? (
@@ -56,7 +56,7 @@ export default function PhotoUploader({ bucket, path, value, onChange, label }: 
           </div>
         ) : (
           <div className="py-8">
-            <p className="text-gray-500">{uploading ? "Uploading..." : "Click to upload image"}</p>
+            <p className="text-gray-500 dark:text-gray-400">{uploading ? "Uploading..." : "Click to upload image"}</p>
           </div>
         )}
       </div>

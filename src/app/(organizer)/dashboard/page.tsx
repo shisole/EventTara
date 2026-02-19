@@ -73,7 +73,7 @@ export default async function DashboardPage() {
       {!profile && (
         <div className="bg-golden-50 border border-golden-200 rounded-2xl p-6 text-center">
           <h2 className="text-lg font-heading font-bold mb-2">Set Up Your Organizer Profile</h2>
-          <p className="text-gray-600 mb-4">Complete your profile to start creating events.</p>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">Complete your profile to start creating events.</p>
           <Link href="/dashboard/settings">
             <Button variant="secondary">Complete Profile</Button>
           </Link>

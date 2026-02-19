@@ -91,22 +91,22 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
       />
 
       <div className="space-y-1">
-        <label className="block text-sm font-medium text-gray-700">Description</label>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={4}
-          className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-coral-500 focus:ring-2 focus:ring-coral-200 outline-none transition-colors"
+          className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600"
           placeholder="Describe your event..."
         />
       </div>
 
       <div className="space-y-1">
-        <label className="block text-sm font-medium text-gray-700">Event Type</label>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Event Type</label>
         <select
           value={type}
           onChange={(e) => setType(e.target.value)}
-          className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-coral-500 focus:ring-2 focus:ring-coral-200 outline-none transition-colors"
+          className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600"
         >
           {EVENT_TYPES.map((t) => (
             <option key={t.value} value={t.value}>{t.label}</option>

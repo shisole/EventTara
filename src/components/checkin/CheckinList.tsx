@@ -57,7 +57,7 @@ export default function CheckinList({
     <div>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-heading font-bold">Participants</h2>
-        <span className="text-sm text-gray-500">
+        <span className="text-sm text-gray-500 dark:text-gray-400">
           {checkedInCount}/{participants.length} checked in
         </span>
       </div>
@@ -67,7 +67,7 @@ export default function CheckinList({
             key={p.userId}
             className={cn(
               "flex items-center justify-between p-3 rounded-xl",
-              p.checkedIn ? "bg-forest-50" : "bg-white"
+              p.checkedIn ? "bg-forest-50" : "bg-white dark:bg-gray-900"
             )}
           >
             <div className="flex items-center gap-3">
@@ -77,7 +77,7 @@ export default function CheckinList({
             <span
               className={cn(
                 "text-sm font-medium",
-                p.checkedIn ? "text-forest-600" : "text-gray-400"
+                p.checkedIn ? "text-forest-600" : "text-gray-400 dark:text-gray-500"
               )}
             >
               {p.checkedIn ? "Checked In" : "Not yet"}

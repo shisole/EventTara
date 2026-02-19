@@ -52,7 +52,7 @@ export default async function CheckinPage({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div>
           <h2 className="text-xl font-heading font-bold mb-4">QR Scanner</h2>
-          <div className="bg-white rounded-2xl shadow-md p-6">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-6">
             <QRScanner eventId={id} onCheckin={() => {}} />
           </div>
         </div>

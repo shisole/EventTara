@@ -17,7 +17,7 @@ const typeColors: Record<string, string> = {
   hiking: "#166534",
   mtb: "#92400e",
   road_bike: "#1e40af",
-  running: "#f97316",
+  running: "#0891b2",
   trail_run: "#7c3aed",
 };
 
