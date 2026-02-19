@@ -45,7 +45,7 @@ export async function POST(request: Request) {
 
       const { data: users } = await supabase
         .from("users")
-        .select("email, full_name")
+        .select("email, full_name, username")
         .in("id", user_ids);
 
       if (users) {
@@ -60,6 +60,7 @@ export async function POST(request: Request) {
                 badgeDescription: badge.description,
                 badgeImageUrl: badge.image_url,
                 eventTitle: event?.title || "an EventTara event",
+                username: u.username ?? undefined,
               }),
             }).catch((err) => console.error("[Email] Badge notification failed:", err));
           }

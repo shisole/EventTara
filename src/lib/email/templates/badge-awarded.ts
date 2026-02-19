@@ -4,6 +4,7 @@ interface BadgeAwardedProps {
   badgeDescription: string | null;
   badgeImageUrl: string | null;
   eventTitle: string;
+  username?: string;
 }
 
 export function badgeAwardedHtml({
@@ -12,12 +13,17 @@ export function badgeAwardedHtml({
   badgeDescription,
   badgeImageUrl,
   eventTitle,
+  username,
 }: BadgeAwardedProps): string {
   const badgeImage = badgeImageUrl
     ? `<img src="${badgeImageUrl}" alt="${badgeTitle}" width="120" height="120" style="border-radius:50%;border:4px solid #DAA520;margin-bottom:16px;" />`
     : `<div style="width:120px;height:120px;border-radius:50%;background:linear-gradient(135deg,#DAA520,#E8614D);display:inline-flex;align-items:center;justify-content:center;margin-bottom:16px;border:4px solid #DAA520;">
         <span style="font-size:48px;">&#127942;</span>
       </div>`;
+
+  const badgesUrl = username
+    ? `https://eventtara.com/profile/${username}`
+    : `https://eventtara.com/my-events`;
 
   return `
 <!DOCTYPE html>
@@ -51,7 +57,7 @@ export function badgeAwardedHtml({
               <h3 style="color:#333;margin:0 0 8px;font-size:18px;">${badgeTitle}</h3>
               ${badgeDescription ? `<p style="color:#666;font-size:14px;margin:0 0 24px;line-height:1.5;">${badgeDescription}</p>` : ""}
               <!-- CTA -->
-              <a href="#" style="display:inline-block;background-color:#2D5A3D;color:#ffffff;text-decoration:none;padding:12px 32px;border-radius:8px;font-size:14px;font-weight:600;">
+              <a href="${badgesUrl}" style="display:inline-block;background-color:#2D5A3D;color:#ffffff;text-decoration:none;padding:12px 32px;border-radius:8px;font-size:14px;font-weight:600;">
                 View Your Badges
               </a>
             </td>

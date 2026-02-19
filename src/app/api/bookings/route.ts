@@ -83,7 +83,9 @@ export async function POST(request: Request) {
       .eq("id", user.id)
       .single();
 
-    if (userProfile?.email) {
+    const emailAddress = user.email ?? userProfile?.email;
+
+    if (emailAddress) {
       const eventDate = new Date(event.date).toLocaleDateString("en-US", {
         weekday: "long",
         year: "numeric",
@@ -94,10 +96,10 @@ export async function POST(request: Request) {
       });
 
       sendEmail({
-        to: userProfile.email,
+        to: emailAddress,
         subject: `Booking Confirmed: ${event.title}`,
         html: bookingConfirmationHtml({
-          userName: userProfile.full_name,
+          userName: userProfile?.full_name ?? "",
           eventTitle: event.title,
           eventDate,
           eventLocation: event.location,

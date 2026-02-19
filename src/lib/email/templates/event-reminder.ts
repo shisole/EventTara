@@ -1,3 +1,15 @@
+// Cron integration note: eventReminderHtml() is intended to be called from a
+// scheduled job (e.g. Supabase Edge Function via pg_cron, Vercel Cron Job, or
+// any external cron service). The job should query events happening in the next
+// 24 hours, fetch confirmed bookings and their user emails, then send reminders
+// via sendEmail(). Example pg_cron schedule:
+//   select cron.schedule('event-reminders', '0 8 * * *', $$
+//     select net.http_post(
+//       url := 'https://your-app.com/api/cron/event-reminders',
+//       headers := '{"Authorization": "Bearer YOUR_CRON_SECRET"}'::jsonb
+//     );
+//   $$);
+
 interface EventReminderProps {
   userName: string;
   eventTitle: string;
@@ -91,31 +103,4 @@ export function eventReminderHtml({
   </table>
 </body>
 </html>`;
-}
-
-/**
- * Utility: Send event reminders for events happening in the next 24 hours.
- *
- * This function is designed to be called from a scheduled job, such as:
- * - A Supabase Edge Function triggered by pg_cron
- * - A Vercel Cron Job
- * - Any external cron service calling an API endpoint
- *
- * Example Supabase Edge Function cron setup:
- *   select cron.schedule('event-reminders', '0 8 * * *', $$
- *     select net.http_post(
- *       url := 'https://your-app.com/api/cron/event-reminders',
- *       headers := '{"Authorization": "Bearer YOUR_CRON_SECRET"}'::jsonb
- *     );
- *   $$);
- */
-export async function sendEventReminders() {
-  // This is a utility function meant to be called from a cron endpoint.
-  // Implementation would:
-  // 1. Query events happening in the next 24 hours
-  // 2. Get all confirmed bookings for those events
-  // 3. Get user emails for those bookings
-  // 4. Send reminder emails using sendEmail() and eventReminderHtml()
-  //
-  // See the task description for integration details.
 }
