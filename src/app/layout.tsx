@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
-import StoreProvider from "@/lib/store/provider";
 import ThemeProvider from "@/components/layout/ThemeProvider";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -70,15 +69,13 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${plusJakarta.variable}`} suppressHydrationWarning>
       <body className="font-sans min-h-screen flex flex-col">
           <ThemeProvider>
-            <StoreProvider>
-              <SplashScreen />
-              <Navbar />
-              <div className="flex-1 pb-16 md:pb-0">
-                {children}
-              </div>
-              <Footer />
-              <MobileNav />
-            </StoreProvider>
+            <SplashScreen />
+            <Navbar />
+            <div className="flex-1 pb-16 md:pb-0">
+              {children}
+            </div>
+            <Footer />
+            <MobileNav />
           </ThemeProvider>
         </body>
     </html>
