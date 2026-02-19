@@ -1,14 +1,17 @@
 import Image from "next/image";
+import Link from "next/link";
 
 interface BadgeCardProps {
+  id: string;
   title: string;
   eventName: string;
   imageUrl: string | null;
   awardedAt: string;
 }
 
-export default function BadgeCard({ title, eventName, imageUrl, awardedAt }: BadgeCardProps) {
+export default function BadgeCard({ id, title, eventName, imageUrl, awardedAt }: BadgeCardProps) {
   return (
+    <Link href={`/badges/${id}`} className="block">
     <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-4 text-center hover:shadow-lg transition-shadow">
       <div className="w-20 h-20 mx-auto mb-3 rounded-full bg-golden-100 flex items-center justify-center overflow-hidden">
         {imageUrl ? (
@@ -23,5 +26,6 @@ export default function BadgeCard({ title, eventName, imageUrl, awardedAt }: Bad
         {new Date(awardedAt).toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" })}
       </p>
     </div>
+    </Link>
   );
 }

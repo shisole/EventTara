@@ -168,6 +168,12 @@ const COVER_IMAGES = {
     "https://images.unsplash.com/photo-1510227272981-87123e259b17?w=1200&h=630&fit=crop",
   mtb_alt:
     "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=1200&h=630&fit=crop",
+  hiking_alt2:
+    "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=630&fit=crop",
+  road_bike_alt:
+    "https://images.unsplash.com/photo-1534787238916-9ba6764efd4f?w=1200&h=630&fit=crop",
+  running_alt:
+    "https://images.unsplash.com/photo-1513593771513-7b58b6c4af38?w=1200&h=630&fit=crop",
 };
 
 interface TestEvent {
@@ -289,6 +295,87 @@ const TEST_EVENTS: TestEvent[] = [
     price: 700,
     status: "cancelled",
     cover_image_url: COVER_IMAGES.mtb_alt,
+  },
+  // ---- Past / Completed Events ----
+  // Trail Masters PH
+  {
+    orgProfileName: "Trail Masters PH",
+    title: "Mt. Pinatubo Crater Hike",
+    description:
+      "Trek through the lahar-covered landscapes of Mt. Pinatubo and gaze into one of the world's most dramatic volcanic craters. The turquoise crater lake at the summit is an unforgettable sight. Includes 4x4 ride, guide, lunch, and crater fee.",
+    type: "hiking",
+    date: daysFromNow(-30),
+    location: "Mt. Pinatubo, Tarlac",
+    max_participants: 35,
+    price: 650,
+    status: "completed",
+    cover_image_url: COVER_IMAGES.hiking_alt2,
+  },
+  {
+    orgProfileName: "Trail Masters PH",
+    title: "Bataan Death March Trail Run",
+    description:
+      "A historic 21K trail run along the routes of the Bataan Death March. Pay tribute to heroes while pushing your limits through jungle terrain and rolling hills. A deeply meaningful race that combines history and athleticism. Finisher medal included.",
+    type: "trail_run",
+    date: daysFromNow(-60),
+    location: "Mt. Samat, Bataan",
+    max_participants: 40,
+    price: 750,
+    status: "completed",
+    cover_image_url: COVER_IMAGES.trail_run_alt,
+  },
+  {
+    orgProfileName: "Trail Masters PH",
+    title: "Mt. Apo Summit Trek",
+    description:
+      "Stand on the highest point in the Philippines! This 3-day guided trek to the summit of Mt. Apo takes you through cloud forest, sulfuric vents, and stunning ridgelines. All-inclusive package: guide, porter, meals, and camping gear provided.",
+    type: "hiking",
+    date: daysFromNow(-90),
+    location: "Mt. Apo, Davao del Sur",
+    max_participants: 15,
+    price: 4500,
+    status: "completed",
+    cover_image_url: COVER_IMAGES.hiking,
+  },
+  // Pedal Republic
+  {
+    orgProfileName: "Pedal Republic",
+    title: "Clark-Subic Gran Fondo",
+    description:
+      "A classic 120km road cycling gran fondo from Clark Freeport to Subic Bay. Rolling terrain through Bataan's scenic countryside with fully supported aid stations every 20km. Chip timing, SAG wagons, and a post-ride barbecue feast await finishers.",
+    type: "road_bike",
+    date: daysFromNow(-30),
+    location: "Clark Freeport Zone, Pampanga",
+    max_participants: 60,
+    price: 1100,
+    status: "completed",
+    cover_image_url: COVER_IMAGES.road_bike_alt,
+  },
+  {
+    orgProfileName: "Pedal Republic",
+    title: "Corregidor Island MTB Ride",
+    description:
+      "Explore the historic island fortress of Corregidor on mountain bikes. Winding trails through WWII ruins, bunkers, and coastal cliffs create an unforgettable riding experience. Ferry ride and island entrance fee included.",
+    type: "mtb",
+    date: daysFromNow(-60),
+    location: "Corregidor Island, Manila Bay",
+    max_participants: 20,
+    price: 1800,
+    status: "completed",
+    cover_image_url: COVER_IMAGES.mtb,
+  },
+  {
+    orgProfileName: "Pedal Republic",
+    title: "Quezon City Fun Run 5K",
+    description:
+      "A beginner-friendly 5K fun run through the tree-lined streets of Quezon City Memorial Circle. Perfect for first-time runners and families. Includes race bib, finisher medal, and free breakfast at the finish line.",
+    type: "running",
+    date: daysFromNow(-90),
+    location: "QC Memorial Circle, Quezon City",
+    max_participants: 200,
+    price: 250,
+    status: "completed",
+    cover_image_url: COVER_IMAGES.running_alt,
   },
 ];
 
@@ -547,6 +634,97 @@ async function createBookings(
       payment_status: "paid",
       payment_method: "gcash",
     },
+    // ---- Past event bookings ----
+    // Mt. Pinatubo Crater Hike (-30 days)
+    {
+      userEmail: `participant1${TEST_EMAIL_DOMAIN}`,
+      eventTitle: "Mt. Pinatubo Crater Hike",
+      status: "confirmed",
+      payment_status: "paid",
+      payment_method: "gcash",
+    },
+    {
+      userEmail: `participant2${TEST_EMAIL_DOMAIN}`,
+      eventTitle: "Mt. Pinatubo Crater Hike",
+      status: "confirmed",
+      payment_status: "paid",
+      payment_method: "maya",
+    },
+    // Bataan Death March Trail Run (-60 days)
+    {
+      userEmail: `participant1${TEST_EMAIL_DOMAIN}`,
+      eventTitle: "Bataan Death March Trail Run",
+      status: "confirmed",
+      payment_status: "paid",
+      payment_method: "gcash",
+    },
+    {
+      userEmail: `participant3${TEST_EMAIL_DOMAIN}`,
+      eventTitle: "Bataan Death March Trail Run",
+      status: "confirmed",
+      payment_status: "paid",
+      payment_method: "gcash",
+    },
+    // Mt. Apo Summit Trek (-90 days)
+    {
+      userEmail: `participant3${TEST_EMAIL_DOMAIN}`,
+      eventTitle: "Mt. Apo Summit Trek",
+      status: "confirmed",
+      payment_status: "paid",
+      payment_method: "maya",
+    },
+    {
+      userEmail: `participant2${TEST_EMAIL_DOMAIN}`,
+      eventTitle: "Mt. Apo Summit Trek",
+      status: "confirmed",
+      payment_status: "paid",
+      payment_method: "gcash",
+    },
+    // Clark-Subic Gran Fondo (-30 days)
+    {
+      userEmail: `participant1${TEST_EMAIL_DOMAIN}`,
+      eventTitle: "Clark-Subic Gran Fondo",
+      status: "confirmed",
+      payment_status: "paid",
+      payment_method: "maya",
+    },
+    {
+      userEmail: `participant2${TEST_EMAIL_DOMAIN}`,
+      eventTitle: "Clark-Subic Gran Fondo",
+      status: "confirmed",
+      payment_status: "paid",
+      payment_method: "gcash",
+    },
+    // Corregidor Island MTB Ride (-60 days)
+    {
+      userEmail: `participant3${TEST_EMAIL_DOMAIN}`,
+      eventTitle: "Corregidor Island MTB Ride",
+      status: "confirmed",
+      payment_status: "paid",
+      payment_method: "gcash",
+    },
+    {
+      userEmail: `participant1${TEST_EMAIL_DOMAIN}`,
+      eventTitle: "Corregidor Island MTB Ride",
+      status: "confirmed",
+      payment_status: "paid",
+      payment_method: "gcash",
+    },
+    // Quezon City Fun Run 5K (-90 days)
+    {
+      userEmail: `participant2${TEST_EMAIL_DOMAIN}`,
+      eventTitle: "Quezon City Fun Run 5K",
+      status: "confirmed",
+      payment_status: "paid",
+      payment_method: "gcash",
+    },
+    {
+      userEmail: `guest${TEST_EMAIL_DOMAIN}`,
+      eventTitle: "Quezon City Fun Run 5K",
+      status: "confirmed",
+      payment_status: "paid",
+      payment_method: "gcash",
+    },
   ];
 
   for (const booking of bookings) {
@@ -584,38 +762,204 @@ async function createBookings(
   }
 }
 
-/** Create badges for the completed event. */
+interface BadgeDef {
+  eventTitle: string;
+  title: string;
+  description: string;
+  image_url: string;
+}
+
+const BADGE_DEFS: BadgeDef[] = [
+  // Completed event — Taal Volcano Day Hike
+  {
+    eventTitle: "Taal Volcano Day Hike",
+    title: "Taal Volcano Summit Badge",
+    description:
+      "Awarded to participants who completed the Taal Volcano Day Hike and reached the crater rim.",
+    image_url:
+      "https://images.unsplash.com/photo-1600298881974-6be191ceeda1?w=200&h=200&fit=crop",
+  },
+  // Published events — pre-created by organizers
+  {
+    eventTitle: "Mt. Pulag Sunrise Hike",
+    title: "Sea of Clouds Chaser",
+    description:
+      "Awarded to those who conquered Mt. Pulag and witnessed the legendary sunrise above the sea of clouds.",
+    image_url:
+      "https://images.unsplash.com/photo-1551632811-561732d1e306?w=200&h=200&fit=crop",
+  },
+  {
+    eventTitle: "Masungi Georeserve Trail Run",
+    title: "Masungi Trailblazer",
+    description:
+      "You ran through the karst limestone landscape of Masungi Georeserve. Nature's obstacle course conquered!",
+    image_url:
+      "https://images.unsplash.com/photo-1452626038306-9aae5e071dd3?w=200&h=200&fit=crop",
+  },
+  {
+    eventTitle: "BGC Night Run 10K",
+    title: "BGC Night Runner",
+    description:
+      "Finished the BGC Night Run 10K in the city lights of Bonifacio Global City. You owned the night!",
+    image_url:
+      "https://images.unsplash.com/photo-1571008887538-b36bb32f4571?w=200&h=200&fit=crop",
+  },
+  {
+    eventTitle: "Tagaytay Road Bike Loop",
+    title: "Tagaytay Road Warrior",
+    description:
+      "Completed the scenic 80km Tagaytay loop with views of Taal Lake. Your legs earned this one.",
+    image_url:
+      "https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=200&h=200&fit=crop",
+  },
+  {
+    eventTitle: "Mt. Banahaw MTB Adventure",
+    title: "Banahaw MTB Crusher",
+    description:
+      "Conquered the technical single tracks and river crossings of the mystical Mt. Banahaw on two wheels.",
+    image_url:
+      "https://images.unsplash.com/photo-1544191696-102dbdaeeaa0?w=200&h=200&fit=crop",
+  },
+  // Past event badges
+  {
+    eventTitle: "Mt. Pinatubo Crater Hike",
+    title: "Pinatubo Crater Explorer",
+    description:
+      "You hiked through volcanic lahar fields and reached the legendary turquoise crater lake of Mt. Pinatubo.",
+    image_url:
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=200&h=200&fit=crop",
+  },
+  {
+    eventTitle: "Bataan Death March Trail Run",
+    title: "Bataan Trailblazer",
+    description:
+      "Completed the historic 21K Bataan Death March Trail Run — honoring heroes through every step.",
+    image_url:
+      "https://images.unsplash.com/photo-1510227272981-87123e259b17?w=200&h=200&fit=crop",
+  },
+  {
+    eventTitle: "Mt. Apo Summit Trek",
+    title: "Mt. Apo Summiteer",
+    description:
+      "You stood on the highest point in the Philippines. The roof of the archipelago is yours.",
+    image_url:
+      "https://images.unsplash.com/photo-1551632811-561732d1e306?w=200&h=200&fit=crop",
+  },
+  {
+    eventTitle: "Clark-Subic Gran Fondo",
+    title: "Gran Fondo Finisher",
+    description:
+      "Pedaled 120km from Clark to Subic Bay through the hills of Bataan. Your legs are legends.",
+    image_url:
+      "https://images.unsplash.com/photo-1534787238916-9ba6764efd4f?w=200&h=200&fit=crop",
+  },
+  {
+    eventTitle: "Corregidor Island MTB Ride",
+    title: "Corregidor Island Rider",
+    description:
+      "Rode through WWII ruins and coastal cliffs on the historic island fortress of Corregidor.",
+    image_url:
+      "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=200&h=200&fit=crop",
+  },
+  {
+    eventTitle: "Quezon City Fun Run 5K",
+    title: "QC Fun Runner",
+    description:
+      "Crossed the finish line at the QC Memorial Circle 5K. Every adventure starts with the first stride!",
+    image_url:
+      "https://images.unsplash.com/photo-1513593771513-7b58b6c4af38?w=200&h=200&fit=crop",
+  },
+];
+
+interface BadgeAwardDef {
+  badgeTitle: string;
+  userEmails: string[];
+}
+
+const BADGE_AWARDS: BadgeAwardDef[] = [
+  {
+    badgeTitle: "Taal Volcano Summit Badge",
+    userEmails: [
+      `participant1${TEST_EMAIL_DOMAIN}`, // Jake
+      `participant3${TEST_EMAIL_DOMAIN}`, // Carlos
+    ],
+  },
+  {
+    badgeTitle: "Pinatubo Crater Explorer",
+    userEmails: [
+      `participant1${TEST_EMAIL_DOMAIN}`, // Jake
+      `participant2${TEST_EMAIL_DOMAIN}`, // Maria
+    ],
+  },
+  {
+    badgeTitle: "Bataan Trailblazer",
+    userEmails: [
+      `participant1${TEST_EMAIL_DOMAIN}`, // Jake
+      `participant3${TEST_EMAIL_DOMAIN}`, // Carlos
+    ],
+  },
+  {
+    badgeTitle: "Mt. Apo Summiteer",
+    userEmails: [
+      `participant3${TEST_EMAIL_DOMAIN}`, // Carlos
+      `participant2${TEST_EMAIL_DOMAIN}`, // Maria
+    ],
+  },
+  {
+    badgeTitle: "Gran Fondo Finisher",
+    userEmails: [
+      `participant1${TEST_EMAIL_DOMAIN}`, // Jake
+      `participant2${TEST_EMAIL_DOMAIN}`, // Maria
+    ],
+  },
+  {
+    badgeTitle: "Corregidor Island Rider",
+    userEmails: [
+      `participant3${TEST_EMAIL_DOMAIN}`, // Carlos
+      `participant1${TEST_EMAIL_DOMAIN}`, // Jake
+    ],
+  },
+  {
+    badgeTitle: "QC Fun Runner",
+    userEmails: [
+      `participant2${TEST_EMAIL_DOMAIN}`, // Maria
+      `guest${TEST_EMAIL_DOMAIN}`,        // Guest
+    ],
+  },
+];
+
+/** Create badges for events. */
 async function createBadges(
   eventMap: Map<string, string>
 ): Promise<Map<string, string>> {
   log("🏅", "Creating badges...");
 
   const badgeMap = new Map<string, string>();
-  const taalEventId = eventMap.get("Taal Volcano Day Hike");
 
-  if (!taalEventId) {
-    console.error("  Taal Volcano event not found, skipping badges.");
-    return badgeMap;
-  }
+  for (const badge of BADGE_DEFS) {
+    const eventId = eventMap.get(badge.eventTitle);
+    if (!eventId) {
+      console.error(`  Event not found for badge "${badge.title}", skipping.`);
+      continue;
+    }
 
-  const { data, error } = await supabase
-    .from("badges")
-    .insert({
-      event_id: taalEventId,
-      title: "Taal Volcano Summit Badge",
-      description:
-        "Awarded to participants who completed the Taal Volcano Day Hike and reached the crater rim.",
-      image_url:
-        "https://images.unsplash.com/photo-1600298881974-6be191ceeda1?w=200&h=200&fit=crop",
-    })
-    .select("id")
-    .single();
+    const { data, error } = await supabase
+      .from("badges")
+      .insert({
+        event_id: eventId,
+        title: badge.title,
+        description: badge.description,
+        image_url: badge.image_url,
+      })
+      .select("id")
+      .single();
 
-  if (error) {
-    console.error(`  Failed to create badge: ${error.message}`);
-  } else {
-    badgeMap.set("Taal Volcano Summit Badge", data.id);
-    log("  ✅", "Taal Volcano Summit Badge");
+    if (error) {
+      console.error(`  Failed to create badge "${badge.title}": ${error.message}`);
+    } else {
+      badgeMap.set(badge.title, data.id);
+      log("  ✅", `${badge.title} (${badge.eventTitle})`);
+    }
   }
 
   return badgeMap;
@@ -628,78 +972,83 @@ async function awardBadges(
 ) {
   log("🎖️", "Awarding badges...");
 
-  const taalBadgeId = badgeMap.get("Taal Volcano Summit Badge");
-  if (!taalBadgeId) {
-    console.error("  Badge not found, skipping awards.");
-    return;
-  }
+  for (const award of BADGE_AWARDS) {
+    const badgeId = badgeMap.get(award.badgeTitle);
+    if (!badgeId) {
+      console.error(`  Badge "${award.badgeTitle}" not found, skipping.`);
+      continue;
+    }
 
-  const awardees = [
-    `participant1${TEST_EMAIL_DOMAIN}`, // Jake
-    `participant3${TEST_EMAIL_DOMAIN}`, // Carlos
-  ];
+    for (const email of award.userEmails) {
+      const userId = userMap.get(email);
+      if (!userId) continue;
 
-  for (const email of awardees) {
-    const userId = userMap.get(email);
-    if (!userId) continue;
+      const { error } = await supabase.from("user_badges").insert({
+        user_id: userId,
+        badge_id: badgeId,
+      });
 
-    const { error } = await supabase.from("user_badges").insert({
-      user_id: userId,
-      badge_id: taalBadgeId,
-    });
-
-    if (error) {
-      console.error(
-        `  Failed to award badge to ${email}: ${error.message}`
-      );
-    } else {
-      const name = TEST_USERS.find((u) => u.email === email)?.full_name;
-      log("  ✅", `${name} received "Taal Volcano Summit Badge"`);
+      if (error) {
+        console.error(`  Failed to award "${award.badgeTitle}" to ${email}: ${error.message}`);
+      } else {
+        const name = TEST_USERS.find((u) => u.email === email)?.full_name;
+        log("  ✅", `${name} received "${award.badgeTitle}"`);
+      }
     }
   }
 }
 
-/** Create check-ins for the completed event. */
+interface CheckinDef {
+  eventTitle: string;
+  daysAgo: number;
+  userEmails: string[];
+}
+
+const CHECKIN_DEFS: CheckinDef[] = [
+  { eventTitle: "Taal Volcano Day Hike",         daysAgo: 14, userEmails: [`participant1${TEST_EMAIL_DOMAIN}`, `participant3${TEST_EMAIL_DOMAIN}`] },
+  { eventTitle: "Mt. Pinatubo Crater Hike",       daysAgo: 30, userEmails: [`participant1${TEST_EMAIL_DOMAIN}`, `participant2${TEST_EMAIL_DOMAIN}`] },
+  { eventTitle: "Bataan Death March Trail Run",   daysAgo: 60, userEmails: [`participant1${TEST_EMAIL_DOMAIN}`, `participant3${TEST_EMAIL_DOMAIN}`] },
+  { eventTitle: "Mt. Apo Summit Trek",            daysAgo: 90, userEmails: [`participant3${TEST_EMAIL_DOMAIN}`, `participant2${TEST_EMAIL_DOMAIN}`] },
+  { eventTitle: "Clark-Subic Gran Fondo",         daysAgo: 30, userEmails: [`participant1${TEST_EMAIL_DOMAIN}`, `participant2${TEST_EMAIL_DOMAIN}`] },
+  { eventTitle: "Corregidor Island MTB Ride",     daysAgo: 60, userEmails: [`participant3${TEST_EMAIL_DOMAIN}`, `participant1${TEST_EMAIL_DOMAIN}`] },
+  { eventTitle: "Quezon City Fun Run 5K",         daysAgo: 90, userEmails: [`participant2${TEST_EMAIL_DOMAIN}`, `guest${TEST_EMAIL_DOMAIN}`] },
+];
+
+/** Create check-ins for all completed events. */
 async function createCheckins(
   userMap: Map<string, string>,
   eventMap: Map<string, string>
 ) {
   log("📋", "Creating check-ins...");
 
-  const taalEventId = eventMap.get("Taal Volcano Day Hike");
-  if (!taalEventId) {
-    console.error("  Taal Volcano event not found, skipping check-ins.");
-    return;
-  }
+  for (const def of CHECKIN_DEFS) {
+    const eventId = eventMap.get(def.eventTitle);
+    if (!eventId) {
+      console.error(`  Event not found for check-ins: "${def.eventTitle}", skipping.`);
+      continue;
+    }
 
-  const checkinUsers = [
-    `participant1${TEST_EMAIL_DOMAIN}`, // Jake
-    `participant3${TEST_EMAIL_DOMAIN}`, // Carlos
-  ];
+    const checkinDate = new Date();
+    checkinDate.setDate(checkinDate.getDate() - def.daysAgo);
+    checkinDate.setHours(7, 30, 0, 0);
 
-  // Check-in time was during the event (past date)
-  const checkinDate = new Date();
-  checkinDate.setDate(checkinDate.getDate() - 14);
-  checkinDate.setHours(7, 30, 0, 0);
+    for (const email of def.userEmails) {
+      const userId = userMap.get(email);
+      if (!userId) continue;
 
-  for (const email of checkinUsers) {
-    const userId = userMap.get(email);
-    if (!userId) continue;
+      const { error } = await supabase.from("event_checkins").insert({
+        event_id: eventId,
+        user_id: userId,
+        checked_in_at: checkinDate.toISOString(),
+        method: "manual",
+      });
 
-    const { error } = await supabase.from("event_checkins").insert({
-      event_id: taalEventId,
-      user_id: userId,
-      checked_in_at: checkinDate.toISOString(),
-      method: "manual",
-    });
-
-    if (error) {
-      console.error(
-        `  Failed to create check-in for ${email}: ${error.message}`
-      );
-    } else {
-      const name = TEST_USERS.find((u) => u.email === email)?.full_name;
-      log("  ✅", `${name} checked in at Taal Volcano Day Hike`);
+      if (error) {
+        console.error(`  Failed to create check-in for ${email} at "${def.eventTitle}": ${error.message}`);
+      } else {
+        const name = TEST_USERS.find((u) => u.email === email)?.full_name;
+        log("  ✅", `${name} checked in at ${def.eventTitle}`);
+      }
     }
   }
 }

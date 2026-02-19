@@ -15,10 +15,10 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) router.replace("/");
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user && !user.is_anonymous) router.replace("/");
     });
-  }, [router, supabase.auth]);
+  }, [supabase, router]);
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();

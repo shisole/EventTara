@@ -40,7 +40,7 @@ export default function Footer() {
             <h4 className="text-gray-900 dark:text-white font-medium mb-3">For Organizers</h4>
             <div className="space-y-2 text-sm">
               <Link href="/signup" className="block hover:text-gray-900 dark:hover:text-white">
-                List Your Event
+                Host Your Event
               </Link>
               <Link href="/dashboard" className="block hover:text-gray-900 dark:hover:text-white">
                 Organizer Dashboard

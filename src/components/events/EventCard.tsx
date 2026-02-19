@@ -4,6 +4,8 @@ import { Card, UIBadge } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import OrganizerLink from "./OrganizerLink";
 
+type EventStatus = "upcoming" | "happening_now" | "past";
+
 interface EventCardProps {
   id: string;
   title: string;
@@ -14,7 +16,7 @@ interface EventCardProps {
   cover_image_url: string | null;
   max_participants: number;
   booking_count: number;
-  upcoming?: boolean;
+  status?: EventStatus;
   organizer_name?: string;
   organizer_id?: string;
 }
@@ -37,7 +39,7 @@ export default function EventCard({
   cover_image_url,
   max_participants,
   booking_count,
-  upcoming,
+  status,
   organizer_name,
   organizer_id,
 }: EventCardProps) {
@@ -51,7 +53,10 @@ export default function EventCard({
 
   return (
     <Link href={`/events/${id}`}>
-      <Card className="overflow-hidden cursor-pointer">
+      <Card className={cn(
+        "overflow-hidden cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700",
+        status === "past" && "opacity-60"
+      )}>
         <div className="relative h-48 bg-gradient-to-br from-lime-100 to-forest-100 dark:from-lime-900 dark:to-forest-900">
           {cover_image_url && (
             <Image
@@ -61,7 +66,18 @@ export default function EventCard({
               className="object-cover"
             />
           )}
-          {upcoming && (
+          {status === "happening_now" && (
+            <div className="absolute top-3 left-3">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-500 text-white shadow-sm">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
+                </span>
+                Happening Now
+              </span>
+            </div>
+          )}
+          {status === "upcoming" && (
             <div className="absolute top-3 left-3">
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-lime-500 text-gray-900">
                 Upcoming

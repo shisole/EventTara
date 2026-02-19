@@ -68,12 +68,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${plusJakarta.variable}`} suppressHydrationWarning>
-      <body className="font-sans">
+      <body className="font-sans min-h-screen flex flex-col">
           <ThemeProvider>
             <StoreProvider>
               <SplashScreen />
               <Navbar />
-              <div className="pb-16 md:pb-0">
+              <div className="flex-1 pb-16 md:pb-0">
                 {children}
               </div>
               <Footer />

@@ -7,9 +7,18 @@ interface BookingButtonProps {
   eventId: string;
   spotsLeft: number;
   price: number;
+  isPast?: boolean;
 }
 
-export default function BookingButton({ eventId, spotsLeft, price }: BookingButtonProps) {
+export default function BookingButton({ eventId, spotsLeft, price, isPast }: BookingButtonProps) {
+  if (isPast) {
+    return (
+      <Button disabled className="w-full" size="lg">
+        Event Ended
+      </Button>
+    );
+  }
+
   if (spotsLeft <= 0) {
     return (
       <Button disabled className="w-full" size="lg">

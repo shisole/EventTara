@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { UIBadge } from "@/components/ui";
 import EventGallery from "@/components/events/EventGallery";
@@ -67,7 +68,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
     .eq("id", id)
     .single();
 
-  if (!event || event.status !== "published") {
+  if (!event || (event.status !== "published" && event.status !== "completed")) {
     notFound();
   }
 
@@ -91,6 +92,31 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
     .select("*", { count: "exact", head: true })
     .eq("organizer_id", event.organizer_id)
     .eq("status", "published");
+
+  // Check if current user earned badges for this event
+  const {
+    data: { user: authUser },
+  } = await supabase.auth.getUser();
+
+  let earnedBadges: { id: string; title: string; image_url: string | null }[] = [];
+  if (authUser) {
+    const { data: badgeData } = await supabase
+      .from("badges")
+      .select("id, title, image_url")
+      .eq("event_id", id);
+
+    if (badgeData && badgeData.length > 0) {
+      const badgeIds = badgeData.map((b) => b.id);
+      const { data: userBadgeData } = await supabase
+        .from("user_badges")
+        .select("badge_id")
+        .eq("user_id", authUser.id)
+        .in("badge_id", badgeIds);
+
+      const earnedIds = new Set((userBadgeData || []).map((ub) => ub.badge_id));
+      earnedBadges = badgeData.filter((b) => earnedIds.has(b.id));
+    }
+  }
 
   const spotsLeft = event.max_participants - (bookingCount || 0);
   const formattedDate = new Date(event.date).toLocaleDateString("en-PH", {
@@ -136,8 +162,8 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-6">
-          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-5 sm:p-6 space-y-4 lg:sticky lg:top-24">
+        <div className="lg:sticky lg:top-24 space-y-8">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-5 sm:p-6 space-y-4 mb-4">
             <div className="text-center">
               <span className="text-3xl font-bold text-lime-600 dark:text-lime-400">
                 {Number(event.price) === 0 ? "Free" : `\u20B1${Number(event.price).toLocaleString()}`}
@@ -152,7 +178,9 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
               </span>
             </div>
 
-            <BookingButton eventId={id} spotsLeft={spotsLeft} price={Number(event.price)} />
+            <div className="pt-2">
+              <BookingButton eventId={id} spotsLeft={spotsLeft} price={Number(event.price)} isPast={event.status === "completed"} />
+            </div>
           </div>
 
           {organizer && (
@@ -162,6 +190,32 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
               logoUrl={organizer.logo_url}
               eventCount={orgEventCount || 0}
             />
+          )}
+
+          {earnedBadges.length > 0 && (
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-5 sm:p-6">
+              <h3 className="font-heading font-bold mb-3 flex items-center gap-2">
+                <span>&#127942;</span> Your Badge{earnedBadges.length !== 1 ? "s" : ""}
+              </h3>
+              <div className="space-y-3">
+                {earnedBadges.map((badge) => (
+                  <Link
+                    key={badge.id}
+                    href={`/badges/${badge.id}`}
+                    className="flex items-center gap-3 rounded-xl p-2 -mx-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden flex-shrink-0">
+                      {badge.image_url ? (
+                        <Image src={badge.image_url} alt={badge.title} width={40} height={40} className="object-cover" />
+                      ) : (
+                        <span className="text-xl">&#127942;</span>
+                      )}
+                    </div>
+                    <span className="font-medium text-sm">{badge.title}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
           )}
         </div>
       </div>

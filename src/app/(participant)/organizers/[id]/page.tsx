@@ -1,11 +1,14 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { Button } from "@/components/ui";
 import OrganizerProfileHeader from "@/components/organizers/OrganizerProfileHeader";
 import OrganizerStats from "@/components/organizers/OrganizerStats";
 import EventCard from "@/components/events/EventCard";
 import BadgeGrid from "@/components/badges/BadgeGrid";
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -45,12 +48,20 @@ export default async function OrganizerProfilePage({ params }: { params: Promise
 
   if (!profile) notFound();
 
-  // Fetch published events with booking counts
-  const { data: events } = await supabase
+  // Use service-role client to bypass RLS so completed events are visible publicly.
+  // (RLS policy currently only exposes 'published' rows to anon users.)
+  const adminSupabase = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  );
+
+  // Fetch published and completed events with booking counts
+  const { data: events } = await adminSupabase
     .from("events")
     .select("*, bookings(count)")
     .eq("organizer_id", id)
-    .eq("status", "published")
+    .in("status", ["published", "completed"])
     .order("date", { ascending: true });
 
   const allEvents = events || [];
@@ -68,7 +79,7 @@ export default async function OrganizerProfilePage({ params }: { params: Promise
   }
 
   // Fetch badges for organizer's events
-  let badges: { title: string; eventName: string; imageUrl: string | null; awardedAt: string }[] = [];
+  let badges: { id: string; title: string; eventName: string; imageUrl: string | null; awardedAt: string }[] = [];
   let totalBadgesAwarded = 0;
 
   if (eventIds.length > 0) {
@@ -89,6 +100,7 @@ export default async function OrganizerProfilePage({ params }: { params: Promise
     }
 
     badges = allBadges.map((b: any) => ({
+      id: b.id,
       title: b.title,
       eventName: b.events?.title || "Event",
       imageUrl: b.image_url,
@@ -103,6 +115,12 @@ export default async function OrganizerProfilePage({ params }: { params: Promise
 
   const user = profile.users as any;
 
+  // Check if the viewer is the organizer
+  const {
+    data: { user: authUser },
+  } = await supabase.auth.getUser();
+  const isOwnProfile = authUser?.id === profile.user_id;
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-12 space-y-10">
       <OrganizerProfileHeader
@@ -110,6 +128,7 @@ export default async function OrganizerProfilePage({ params }: { params: Promise
         logoUrl={profile.logo_url}
         description={profile.description}
         createdAt={user?.created_at || profile.created_at}
+        isOwnProfile={isOwnProfile}
       />
 
       <OrganizerStats
@@ -135,7 +154,7 @@ export default async function OrganizerProfilePage({ params }: { params: Promise
                 cover_image_url={event.cover_image_url}
                 max_participants={event.max_participants}
                 booking_count={event.bookings?.[0]?.count || 0}
-                upcoming
+                status="upcoming"
               />
             ))}
           </div>
@@ -164,6 +183,7 @@ export default async function OrganizerProfilePage({ params }: { params: Promise
                 cover_image_url={event.cover_image_url}
                 max_participants={event.max_participants}
                 booking_count={event.bookings?.[0]?.count || 0}
+                status="past"
               />
             ))}
           </div>

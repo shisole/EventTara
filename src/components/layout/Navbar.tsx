@@ -121,6 +121,12 @@ export default function Navbar() {
                         Dashboard
                       </Link>
                       <Link
+                        href="/profile"
+                        className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                      >
+                        Profile
+                      </Link>
+                      <Link
                         href="/my-events"
                         className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                       >
@@ -183,6 +189,13 @@ export default function Navbar() {
             </Link>
             {user ? (
               <>
+                <Link
+                  href="/profile"
+                  onClick={() => setMenuOpen(false)}
+                  className="block px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium min-h-[44px] flex items-center"
+                >
+                  Profile
+                </Link>
                 <Link
                   href="/my-events"
                   onClick={() => setMenuOpen(false)}

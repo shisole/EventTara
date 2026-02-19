@@ -132,9 +132,9 @@ CREATE POLICY "Organizer profiles are viewable by everyone" ON public.organizer_
 CREATE POLICY "Organizers can manage own profile" ON public.organizer_profiles
   FOR ALL USING (auth.uid() = user_id);
 
--- Events: published events visible to all, organizers manage their own
+-- Events: published and completed events visible to all, organizers manage their own
 CREATE POLICY "Published events are viewable by everyone" ON public.events
-  FOR SELECT USING (status = 'published' OR organizer_id IN (
+  FOR SELECT USING (status IN ('published', 'completed') OR organizer_id IN (
     SELECT id FROM public.organizer_profiles WHERE user_id = auth.uid()
   ));
 CREATE POLICY "Organizers can manage own events" ON public.events
@@ -142,10 +142,10 @@ CREATE POLICY "Organizers can manage own events" ON public.events
     SELECT id FROM public.organizer_profiles WHERE user_id = auth.uid()
   ));
 
--- Event photos: viewable if event is published, organizer can manage
+-- Event photos: viewable if event is published or completed, organizer can manage
 CREATE POLICY "Event photos viewable with event" ON public.event_photos
   FOR SELECT USING (event_id IN (
-    SELECT id FROM public.events WHERE status = 'published'
+    SELECT id FROM public.events WHERE status IN ('published', 'completed')
   ));
 CREATE POLICY "Organizers can manage event photos" ON public.event_photos
   FOR ALL USING (event_id IN (

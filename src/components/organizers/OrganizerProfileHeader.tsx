@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Avatar, Button } from "@/components/ui";
 import { useState } from "react";
 
@@ -8,6 +9,7 @@ interface OrganizerProfileHeaderProps {
   logoUrl: string | null;
   description: string | null;
   createdAt: string;
+  isOwnProfile?: boolean;
 }
 
 export default function OrganizerProfileHeader({
@@ -15,6 +17,7 @@ export default function OrganizerProfileHeader({
   logoUrl,
   description,
   createdAt,
+  isOwnProfile,
 }: OrganizerProfileHeaderProps) {
   const [copied, setCopied] = useState(false);
 
@@ -41,9 +44,18 @@ export default function OrganizerProfileHeader({
           Organizing since {organizingSince}
         </p>
       </div>
-      <Button variant="outline" size="sm" onClick={handleShare}>
-        {copied ? "Link Copied!" : "Share Profile"}
-      </Button>
+      <div className="flex items-center justify-center gap-2">
+        {isOwnProfile && (
+          <Link href="/dashboard/settings">
+            <Button variant="outline" size="sm">
+              Edit Profile
+            </Button>
+          </Link>
+        )}
+        <Button variant="outline" size="sm" onClick={handleShare}>
+          {copied ? "Link Copied!" : "Share Profile"}
+        </Button>
+      </div>
     </div>
   );
 }

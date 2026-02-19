@@ -61,10 +61,16 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
 
   if (!user) notFound();
 
+  // Check if the viewer is the profile owner
+  const {
+    data: { user: authUser },
+  } = await supabase.auth.getUser();
+  const isOwnProfile = authUser?.id === user.id;
+
   // Get user badges with event info
   const { data: userBadges } = await supabase
     .from("user_badges")
-    .select("awarded_at, badges(title, image_url, events(title))")
+    .select("badge_id, awarded_at, badges(title, image_url, events(title))")
     .eq("user_id", user.id)
     .order("awarded_at", { ascending: false });
 
@@ -87,6 +93,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
 
   // Format badges for BadgeGrid
   const badges = (userBadges || []).map((ub: any) => ({
+    id: ub.badge_id,
     title: ub.badges?.title || "Badge",
     eventName: ub.badges?.events?.title || "Event",
     imageUrl: ub.badges?.image_url || null,
@@ -100,6 +107,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
         username={user.username}
         avatarUrl={user.avatar_url}
         createdAt={user.created_at}
+        isOwnProfile={isOwnProfile}
       />
 
       <ProfileStats

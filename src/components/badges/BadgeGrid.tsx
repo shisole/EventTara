@@ -1,6 +1,7 @@
 import BadgeCard from "./BadgeCard";
 
 interface Badge {
+  id: string;
   title: string;
   eventName: string;
   imageUrl: string | null;
@@ -20,7 +21,7 @@ export default function BadgeGrid({ badges }: { badges: Badge[] }) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
       {badges.map((badge, i) => (
-        <BadgeCard key={i} {...badge} />
+        <BadgeCard key={badge.id} {...badge} />
       ))}
     </div>
   );
