@@ -16,8 +16,6 @@ export default async function MyEventsPage() {
   // Check if guest
   const { data: profile } = await supabase.from("users").select("is_guest").eq("id", user.id).single();
 
-  const now = new Date().toISOString();
-
   // Upcoming bookings
   const { data: upcomingData } = await supabase
     .from("bookings")

@@ -17,7 +17,7 @@ const categories = [
   {
     emoji: "\u{1F6B4}",
     name: "Road Biking",
-    slug: "road-biking",
+    slug: "road_bike",
     description: "Ride long-distance routes through stunning countryside.",
   },
   {
@@ -29,7 +29,7 @@ const categories = [
   {
     emoji: "\u26F0\uFE0F",
     name: "Trail Running",
-    slug: "trail-running",
+    slug: "trail_run",
     description: "Hit the dirt trails for an off-road running adventure.",
   },
 ];

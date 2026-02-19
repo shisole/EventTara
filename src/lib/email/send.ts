@@ -23,7 +23,7 @@ export async function sendEmail({ to, subject, html }: SendEmailOptions) {
 
   // Skip sending if no API key is configured
   if (!resend) {
-    console.log("[Email] RESEND_API_KEY not set, skipping email send:", {
+    console.warn("[Email] RESEND_API_KEY not set, skipping email send:", {
       to,
       subject,
     });
