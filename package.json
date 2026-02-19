@@ -9,7 +9,7 @@
     "lint": "next lint",
     "seed": "npx tsx scripts/seed.ts",
     "unseed": "npx tsx scripts/unseed.ts",
-    "docs:sync": "ts-node --compiler-options {\\\"module\\\":\\\"commonjs\\\"} scripts/sync-docs/index.ts"
+    "docs:sync": "ts-node --compiler-options {\\\"module\\\":\\\"commonjs\\\",\\\"target\\\":\\\"ES2017\\\"} scripts/sync-docs/index.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.77.0",
@@ -19,6 +19,7 @@
     "clsx": "^2.1.1",
     "html5-qrcode": "^2.3.8",
     "next": "14.2.15",
+    "next-themes": "^0.4.6",
     "qrcode.react": "^4.2.0",
     "react": "^18",
     "react-dom": "^18",

@@ -41,7 +41,7 @@ export function extractSchema(): string {
 
   return migrationFiles.map(file => {
     const content = fs.readFileSync(file, 'utf-8');
-    const tables = [...content.matchAll(/CREATE TABLE (?:IF NOT EXISTS )?(\w+)/gi)]
+    const tables = Array.from(content.matchAll(/CREATE TABLE (?:IF NOT EXISTS )?(\w+)/gi))
       .map(m => m[1]);
     return tables.length > 0 ? `${path.basename(file)}: tables [${tables.join(', ')}]` : null;
   }).filter(Boolean).join('\n');
