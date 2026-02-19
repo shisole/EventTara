@@ -54,6 +54,14 @@ export const metadata: Metadata = {
     description:
       "Discover and book outdoor adventures — hiking, biking, running, and more. Tara na!",
   },
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "16x16 32x32 48x48" },
+      { url: "/favicon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/favicon-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+  },
   robots: {
     index: true,
     follow: true,
