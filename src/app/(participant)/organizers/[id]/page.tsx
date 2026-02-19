@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { Button } from "@/components/ui";
 import OrganizerProfileHeader from "@/components/organizers/OrganizerProfileHeader";
 import OrganizerStats from "@/components/organizers/OrganizerStats";
@@ -48,16 +47,8 @@ export default async function OrganizerProfilePage({ params }: { params: Promise
 
   if (!profile) notFound();
 
-  // Use service-role client to bypass RLS so completed events are visible publicly.
-  // (RLS policy currently only exposes 'published' rows to anon users.)
-  const adminSupabase = createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } }
-  );
-
   // Fetch published and completed events with booking counts
-  const { data: events } = await adminSupabase
+  const { data: events } = await supabase
     .from("events")
     .select("*, bookings(count)")
     .eq("organizer_id", id)
