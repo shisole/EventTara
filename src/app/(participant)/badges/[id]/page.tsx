@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
+import { resolvePresetImage } from "@/lib/constants/avatars";
 
 const typeLabels: Record<string, string> = {
   hiking: "Hiking",
@@ -27,6 +28,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const title = `${badge.title} — EventTara Badge`;
   const description = badge.description || `Badge earned at ${event?.title || "an event"} on EventTara.`;
 
+  const hasRealImage = badge.image_url && !badge.image_url.startsWith("preset:");
+
   return {
     title,
     description,
@@ -34,7 +37,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       title,
       description,
       type: "article",
-      ...(badge.image_url && {
+      ...(hasRealImage && {
         images: [{ url: badge.image_url, width: 400, height: 400, alt: badge.title }],
       }),
     },
@@ -42,7 +45,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       card: "summary",
       title,
       description,
-      ...(badge.image_url && { images: [badge.image_url] }),
+      ...(hasRealImage && { images: [badge.image_url] }),
     },
   };
 }
@@ -84,19 +87,24 @@ export default async function BadgeDetailPage({ params }: { params: Promise<{ id
     <div className="max-w-2xl mx-auto px-4 py-12 space-y-8">
       {/* Badge Hero */}
       <div className="flex flex-col items-center text-center space-y-4">
-        <div className="w-32 h-32 rounded-full bg-golden-100 flex items-center justify-center overflow-hidden shadow-lg">
-          {badge.image_url ? (
-            <Image
-              src={badge.image_url}
-              alt={badge.title}
-              width={128}
-              height={128}
-              className="object-cover"
-            />
-          ) : (
-            <span className="text-6xl">&#127942;</span>
-          )}
-        </div>
+        {(() => {
+          const resolved = resolvePresetImage(badge.image_url);
+          return (
+            <div className={`w-32 h-32 rounded-full ${resolved?.type === "emoji" ? resolved.color : "bg-golden-100"} flex items-center justify-center overflow-hidden shadow-lg`}>
+              {resolved?.type === "url" ? (
+                <Image
+                  src={resolved.url}
+                  alt={badge.title}
+                  width={128}
+                  height={128}
+                  className="object-cover"
+                />
+              ) : (
+                <span className="text-6xl">{resolved?.type === "emoji" ? resolved.emoji : "\u{1F3C6}"}</span>
+              )}
+            </div>
+          );
+        })()}
 
         <h1 className="text-2xl font-heading font-bold">{badge.title}</h1>
 

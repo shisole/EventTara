@@ -1,3 +1,12 @@
+export function resolvePresetImage(imageUrl: string | null): { type: "url"; url: string } | { type: "emoji"; emoji: string; color: string } | null {
+  if (!imageUrl) return null;
+  if (!imageUrl.startsWith("preset:")) return { type: "url", url: imageUrl };
+  const presetId = imageUrl.replace("preset:", "");
+  const preset = PRESET_AVATARS.find((a) => a.id === presetId);
+  if (!preset) return null;
+  return { type: "emoji", emoji: preset.emoji, color: preset.color };
+}
+
 export const PRESET_AVATARS = [
   { id: "mountain-goat", label: "Mountain Goat", emoji: "\u{1F410}", color: "bg-amber-100" },
   { id: "eagle", label: "Eagle", emoji: "\u{1F985}", color: "bg-blue-100" },

@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { UIBadge } from "@/components/ui";
+import { resolvePresetImage } from "@/lib/constants/avatars";
 import EventGallery from "@/components/events/EventGallery";
 import OrganizerCard from "@/components/events/OrganizerCard";
 import BookingButton from "@/components/events/BookingButton";
@@ -93,29 +94,27 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
     .eq("organizer_id", event.organizer_id)
     .eq("status", "published");
 
-  // Check if current user earned badges for this event
+  // Fetch badges for this event
+  const { data: badgeData } = await supabase
+    .from("badges")
+    .select("id, title, image_url")
+    .eq("event_id", id);
+
   const {
     data: { user: authUser },
   } = await supabase.auth.getUser();
 
-  let earnedBadges: { id: string; title: string; image_url: string | null }[] = [];
-  if (authUser) {
-    const { data: badgeData } = await supabase
-      .from("badges")
-      .select("id, title, image_url")
-      .eq("event_id", id);
+  let eventBadges = badgeData || [];
+  let earnedBadgeIds = new Set<string>();
 
-    if (badgeData && badgeData.length > 0) {
-      const badgeIds = badgeData.map((b) => b.id);
-      const { data: userBadgeData } = await supabase
-        .from("user_badges")
-        .select("badge_id")
-        .eq("user_id", authUser.id)
-        .in("badge_id", badgeIds);
+  if (authUser && eventBadges.length > 0) {
+    const { data: userBadgeData } = await supabase
+      .from("user_badges")
+      .select("badge_id")
+      .eq("user_id", authUser.id)
+      .in("badge_id", eventBadges.map((b) => b.id));
 
-      const earnedIds = new Set((userBadgeData || []).map((ub) => ub.badge_id));
-      earnedBadges = badgeData.filter((b) => earnedIds.has(b.id));
-    }
+    earnedBadgeIds = new Set((userBadgeData || []).map((ub) => ub.badge_id));
   }
 
   const spotsLeft = event.max_participants - (bookingCount || 0);
@@ -192,28 +191,35 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
             />
           )}
 
-          {earnedBadges.length > 0 && (
+          {eventBadges.length > 0 && (
             <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-5 sm:p-6">
               <h3 className="font-heading font-bold mb-3 flex items-center gap-2">
-                <span>&#127942;</span> Your Badge{earnedBadges.length !== 1 ? "s" : ""}
+                <span>&#127942;</span> Badge{eventBadges.length !== 1 ? "s" : ""}
               </h3>
               <div className="space-y-3">
-                {earnedBadges.map((badge) => (
-                  <Link
-                    key={badge.id}
-                    href={`/badges/${badge.id}`}
-                    className="flex items-center gap-3 rounded-xl p-2 -mx-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                  >
-                    <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden flex-shrink-0">
-                      {badge.image_url ? (
-                        <Image src={badge.image_url} alt={badge.title} width={40} height={40} className="object-cover" />
-                      ) : (
-                        <span className="text-xl">&#127942;</span>
+                {eventBadges.map((badge) => {
+                  const resolved = resolvePresetImage(badge.image_url);
+                  const earned = earnedBadgeIds.has(badge.id);
+                  return (
+                    <Link
+                      key={badge.id}
+                      href={`/badges/${badge.id}`}
+                      className="flex items-center gap-3 rounded-xl p-2 -mx-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    >
+                      <div className={`w-10 h-10 rounded-full ${resolved?.type === "emoji" ? resolved.color : "bg-gray-100 dark:bg-gray-800"} flex items-center justify-center overflow-hidden flex-shrink-0`}>
+                        {resolved?.type === "url" ? (
+                          <Image src={resolved.url} alt={badge.title} width={40} height={40} className="object-cover" />
+                        ) : (
+                          <span className="text-xl">{resolved?.type === "emoji" ? resolved.emoji : "\u{1F3C6}"}</span>
+                        )}
+                      </div>
+                      <span className="font-medium text-sm">{badge.title}</span>
+                      {authUser && earned && (
+                        <span className="ml-auto text-xs text-teal-600 dark:text-teal-400 font-medium">Earned</span>
                       )}
-                    </div>
-                    <span className="font-medium text-sm">{badge.title}</span>
-                  </Link>
-                ))}
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           )}
