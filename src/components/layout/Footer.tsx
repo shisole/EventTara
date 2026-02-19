@@ -48,8 +48,14 @@ export default function Footer() {
             </div>
           </div>
         </div>
-        <div className="border-t border-gray-200 dark:border-gray-800 mt-8 pt-8 text-sm text-center">
-          &copy; {new Date().getFullYear()} EventTara. All rights reserved.
+        <div className="border-t border-gray-200 dark:border-gray-800 mt-8 pt-8 text-sm text-center flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4">
+          <span>&copy; {new Date().getFullYear()} EventTara. All rights reserved.</span>
+          <Link href="/privacy-policy" className="hover:text-gray-900 dark:hover:text-white">
+            Privacy Policy
+          </Link>
+          <Link href="/data-deletion" className="hover:text-gray-900 dark:hover:text-white">
+            Data Deletion
+          </Link>
         </div>
       </div>
     </footer>
