@@ -21,7 +21,7 @@ export default async function EventsPage({
 
   let query = supabase
     .from("events")
-    .select("*, bookings(count)")
+    .select("*, bookings(count), organizer_profiles!inner(org_name)")
     .eq("status", "published")
     .order("date", { ascending: true });
 
@@ -54,16 +54,18 @@ export default async function EventsPage({
               cover_image_url={event.cover_image_url}
               max_participants={event.max_participants}
               booking_count={event.bookings?.[0]?.count || 0}
+              organizer_name={event.organizer_profiles?.org_name}
+              organizer_id={event.organizer_id}
             />
           ))}
         </div>
       ) : (
         <div className="text-center py-20">
           <p className="text-5xl mb-4">&#x1F3D4;&#xFE0F;</p>
-          <h2 className="text-xl font-heading font-bold text-gray-700 mb-2">
+          <h2 className="text-xl font-heading font-bold text-gray-700 dark:text-gray-300 mb-2">
             No events found
           </h2>
-          <p className="text-gray-500">
+          <p className="text-gray-500 dark:text-gray-400">
             Check back soon — new adventures are being planned!
           </p>
         </div>

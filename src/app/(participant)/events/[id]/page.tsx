@@ -105,7 +105,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Hero Image */}
-      <div className="relative h-64 md:h-96 rounded-2xl overflow-hidden bg-gradient-to-br from-coral-100 to-forest-100 mb-8">
+      <div className="relative h-64 md:h-96 rounded-2xl overflow-hidden bg-gradient-to-br from-lime-100 to-forest-100 dark:from-lime-900 dark:to-forest-900 mb-8">
         {event.cover_image_url && (
           <Image src={event.cover_image_url} alt={event.title} fill className="object-cover" />
         )}
@@ -119,7 +119,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
               {typeLabels[event.type] || event.type}
             </UIBadge>
             <h1 className="text-3xl md:text-4xl font-heading font-bold mb-4">{event.title}</h1>
-            <div className="flex flex-wrap gap-4 text-gray-600">
+            <div className="flex flex-wrap gap-4 text-gray-600 dark:text-gray-400">
               <span>{formattedDate} at {formattedTime}</span>
               <span>{event.location}</span>
             </div>
@@ -128,7 +128,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
           {event.description && (
             <div>
               <h2 className="text-xl font-heading font-bold mb-3">About This Event</h2>
-              <p className="text-gray-600 whitespace-pre-wrap">{event.description}</p>
+              <p className="text-gray-600 dark:text-gray-400 whitespace-pre-wrap">{event.description}</p>
             </div>
           )}
 
@@ -137,15 +137,15 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
 
         {/* Sidebar */}
         <div className="space-y-6">
-          <div className="bg-white rounded-2xl shadow-md p-5 sm:p-6 space-y-4 lg:sticky lg:top-24">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-5 sm:p-6 space-y-4 lg:sticky lg:top-24">
             <div className="text-center">
-              <span className="text-3xl font-bold text-coral-500">
+              <span className="text-3xl font-bold text-lime-600 dark:text-lime-400">
                 {Number(event.price) === 0 ? "Free" : `\u20B1${Number(event.price).toLocaleString()}`}
               </span>
             </div>
 
-            <div className="text-center text-sm text-gray-500">
-              <span className="font-medium text-gray-700">{bookingCount || 0}</span> adventurer{(bookingCount || 0) !== 1 ? "s" : ""} joined
+            <div className="text-center text-sm text-gray-500 dark:text-gray-400">
+              <span className="font-medium text-gray-700 dark:text-gray-300">{bookingCount || 0}</span> adventurer{(bookingCount || 0) !== 1 ? "s" : ""} joined
               {" \u00B7 "}
               <span className={spotsLeft <= 5 ? "text-red-500 font-medium" : ""}>
                 {spotsLeft <= 0 ? "Fully booked" : `${spotsLeft} spots left`}
@@ -157,6 +157,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
 
           {organizer && (
             <OrganizerCard
+              organizerId={event.organizer_id}
               orgName={organizer.org_name}
               logoUrl={organizer.logo_url}
               eventCount={orgEventCount || 0}
