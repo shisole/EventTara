@@ -9,6 +9,7 @@ import type { User } from "@supabase/supabase-js";
 export default function Navbar() {
   const supabase = createClient();
   const [user, setUser] = useState<User | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const getUser = async () => {
@@ -28,6 +29,11 @@ export default function Navbar() {
     return () => subscription.unsubscribe();
   }, [supabase]);
 
+  // Close menu on route change
+  useEffect(() => {
+    setMenuOpen(false);
+  }, []);
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     window.location.href = "/";
@@ -46,6 +52,7 @@ export default function Navbar() {
             </span>
           </Link>
 
+          {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-6">
             <Link
               href="/events"
@@ -88,8 +95,78 @@ export default function Navbar() {
               </div>
             )}
           </div>
+
+          {/* Mobile hamburger button */}
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="md:hidden flex items-center justify-center w-11 h-11 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+          >
+            {menuOpen ? (
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+              </svg>
+            )}
+          </button>
         </div>
       </div>
+
+      {/* Mobile menu dropdown */}
+      {menuOpen && (
+        <div className="md:hidden border-t border-gray-100 bg-white">
+          <div className="px-4 py-4 space-y-2">
+            <Link
+              href="/events"
+              onClick={() => setMenuOpen(false)}
+              className="block px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 font-medium min-h-[44px] flex items-center"
+            >
+              Explore Events
+            </Link>
+            {user ? (
+              <>
+                <Link
+                  href="/my-events"
+                  onClick={() => setMenuOpen(false)}
+                  className="block px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 font-medium min-h-[44px] flex items-center"
+                >
+                  My Events
+                </Link>
+                <Link
+                  href="/dashboard"
+                  onClick={() => setMenuOpen(false)}
+                  className="block px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 font-medium min-h-[44px] flex items-center"
+                >
+                  Dashboard
+                </Link>
+                <button
+                  onClick={() => {
+                    setMenuOpen(false);
+                    handleLogout();
+                  }}
+                  className="w-full text-left px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 font-medium min-h-[44px] flex items-center"
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <div className="flex flex-col gap-2 pt-2">
+                <Link href="/login" onClick={() => setMenuOpen(false)}>
+                  <Button variant="ghost" className="w-full min-h-[44px]">
+                    Sign In
+                  </Button>
+                </Link>
+                <Link href="/signup" onClick={() => setMenuOpen(false)}>
+                  <Button className="w-full min-h-[44px]">Get Started</Button>
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </nav>
   );
 }

@@ -4,6 +4,7 @@ import "./globals.css";
 import StoreProvider from "@/lib/store/provider";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import MobileNav from "@/components/layout/MobileNav";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -31,8 +32,11 @@ export default function RootLayout({
       <body className="font-sans">
           <StoreProvider>
             <Navbar />
-            {children}
+            <div className="pb-16 md:pb-0">
+              {children}
+            </div>
             <Footer />
+            <MobileNav />
           </StoreProvider>
         </body>
     </html>

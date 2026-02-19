@@ -32,12 +32,13 @@ export default function EventFilters() {
   );
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap sm:overflow-visible scrollbar-hide">
       {EVENT_TYPES.map((type) => (
         <Button
           key={type.value}
           variant={currentType === type.value ? "primary" : "ghost"}
           size="sm"
+          className="whitespace-nowrap shrink-0 sm:shrink"
           onClick={() => handleTypeChange(type.value)}
         >
           {type.label}

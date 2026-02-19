@@ -108,7 +108,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
 
         {/* Sidebar */}
         <div className="space-y-6">
-          <div className="bg-white rounded-2xl shadow-md p-6 space-y-4 sticky top-24">
+          <div className="bg-white rounded-2xl shadow-md p-5 sm:p-6 space-y-4 lg:sticky lg:top-24">
             <div className="text-center">
               <span className="text-3xl font-bold text-coral-500">
                 {Number(event.price) === 0 ? "Free" : `\u20B1${Number(event.price).toLocaleString()}`}
