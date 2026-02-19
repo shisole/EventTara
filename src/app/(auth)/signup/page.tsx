@@ -20,7 +20,7 @@ export default function SignupPage() {
     setLoading(true);
     setError("");
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -29,11 +29,14 @@ export default function SignupPage() {
       },
     });
 
-    if (error) {
-      setError(error.message);
+    if (signUpError) {
+      setError(signUpError.message);
+      setLoading(false);
+    } else if (data.user && data.user.identities?.length === 0) {
+      setError("This email is already registered.");
       setLoading(false);
     } else {
-      router.push("/events");
+      router.push(`/check-email?email=${encodeURIComponent(email)}`);
       router.refresh();
     }
   };
