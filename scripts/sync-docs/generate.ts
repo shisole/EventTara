@@ -1,6 +1,10 @@
 import Anthropic from '@anthropic-ai/sdk';
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const MODEL = 'claude-sonnet-4-5-20250929';
+
+const apiKey = process.env.ANTHROPIC_API_KEY;
+if (!apiKey) throw new Error('Missing required environment variable: ANTHROPIC_API_KEY');
+const client = new Anthropic({ apiKey });
 
 export async function generateChangelog(params: {
   commitMessages: string;
@@ -8,7 +12,7 @@ export async function generateChangelog(params: {
   date: string;
 }): Promise<string> {
   const message = await client.messages.create({
-    model: 'claude-sonnet-4-5-20250929',
+    model: MODEL,
     max_tokens: 1024,
     messages: [{
       role: 'user',
@@ -34,7 +38,7 @@ export async function generateTechnicalReference(params: {
   pages: string;
 }): Promise<string> {
   const message = await client.messages.create({
-    model: 'claude-sonnet-4-5-20250929',
+    model: MODEL,
     max_tokens: 2048,
     messages: [{
       role: 'user',

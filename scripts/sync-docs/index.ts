@@ -30,6 +30,6 @@ async function main() {
 }
 
 main().catch(err => {
-  console.error('[docs-sync] Error:', err.message);
+  console.error('[docs-sync] Error:', err);
   process.exit(1);
 });
