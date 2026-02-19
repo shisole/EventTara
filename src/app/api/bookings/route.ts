@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { sendEmail } from "@/lib/email/send";
+import { bookingConfirmationHtml } from "@/lib/email/templates/booking-confirmation";
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -71,6 +73,42 @@ export async function POST(request: Request) {
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  // Send booking confirmation email (non-blocking)
+  try {
+    const { data: userProfile } = await supabase
+      .from("users")
+      .select("full_name, email")
+      .eq("id", user.id)
+      .single();
+
+    if (userProfile?.email) {
+      const eventDate = new Date(event.date).toLocaleDateString("en-US", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      });
+
+      sendEmail({
+        to: userProfile.email,
+        subject: `Booking Confirmed: ${event.title}`,
+        html: bookingConfirmationHtml({
+          userName: userProfile.full_name,
+          eventTitle: event.title,
+          eventDate,
+          eventLocation: event.location,
+          bookingId: booking.id,
+          qrCode: qrCode,
+        }),
+      }).catch((err) => console.error("[Email] Booking confirmation failed:", err));
+    }
+  } catch (emailErr) {
+    // Don't fail the booking if email fails
+    console.error("[Email] Error preparing booking confirmation:", emailErr);
   }
 
   return NextResponse.json({ booking });
