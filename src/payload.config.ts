@@ -1,6 +1,7 @@
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import { Media } from './payload/collections/media'
 import { Pages } from './payload/collections/pages'
+import { HeroCarousel } from './payload/globals/hero-carousel'
 import { Navigation } from './payload/globals/navigation'
 import { SiteSettings } from './payload/globals/site-settings'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
@@ -31,7 +32,7 @@ export default buildConfig({
     Pages,
     Media,
   ],
-  globals: [SiteSettings, Navigation],
+  globals: [SiteSettings, Navigation, HeroCarousel],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || 'CHANGE-ME-IN-PRODUCTION',
   typescript: {
