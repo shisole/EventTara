@@ -2,6 +2,16 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Branch Workflow
+
+Before making any code changes, check the current branch. If on `main`, create a new descriptive branch based on the task:
+
+```bash
+git checkout -b <type>/<short-description>
+```
+
+Use these prefixes: `feat/`, `fix/`, `refactor/`, `chore/`, `docs/`. Keep the description short and kebab-cased (e.g., `feat/explore-dropdown`, `fix/dashboard-auth-guard`). Do NOT commit directly to `main`.
+
 ## Commands
 
 ```bash
