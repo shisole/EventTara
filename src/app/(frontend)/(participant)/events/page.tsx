@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
-import EventCard from "@/components/events/EventCard";
 import EventFilters from "@/components/events/EventFilters";
+import EventsGrid from "@/components/events/EventsGrid";
 
 type EventType = Database["public"]["Tables"]["events"]["Row"]["type"];
 
@@ -85,6 +85,27 @@ export default async function EventsPage({
       })()
     : events;
 
+  const gridEvents = (sortedEvents || []).map((event: any) => {
+    const stats = reviewStats[event.id];
+    return {
+      id: event.id,
+      title: event.title,
+      type: event.type,
+      date: event.date,
+      location: event.location,
+      price: Number(event.price),
+      cover_image_url: event.cover_image_url,
+      max_participants: event.max_participants,
+      booking_count: event.bookings?.[0]?.count || 0,
+      status: getEventStatus(event.date, today),
+      organizer_name: event.organizer_profiles?.org_name,
+      organizer_id: event.organizer_id,
+      coordinates: event.coordinates as { lat: number; lng: number } | null,
+      avg_rating: stats?.avg,
+      review_count: stats?.count,
+    };
+  });
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
@@ -94,36 +115,8 @@ export default async function EventsPage({
         <EventFilters />
       </div>
 
-      {sortedEvents && sortedEvents.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sortedEvents.map((event: any, i: number) => {
-            const stats = reviewStats[event.id];
-            return (
-              <div
-                key={event.id}
-                className="opacity-0 animate-fade-up"
-                style={{ animationDelay: `${i * 60}ms` }}
-              >
-                <EventCard
-                  id={event.id}
-                  title={event.title}
-                  type={event.type}
-                  date={event.date}
-                  location={event.location}
-                  price={Number(event.price)}
-                  cover_image_url={event.cover_image_url}
-                  max_participants={event.max_participants}
-                  booking_count={event.bookings?.[0]?.count || 0}
-                  status={getEventStatus(event.date, today)}
-                  organizer_name={event.organizer_profiles?.org_name}
-                  organizer_id={event.organizer_id}
-                  avg_rating={stats?.avg}
-                  review_count={stats?.count}
-                />
-              </div>
-            );
-          })}
-        </div>
+      {gridEvents.length > 0 ? (
+        <EventsGrid events={gridEvents} />
       ) : (
         <div className="text-center py-20 opacity-0 animate-fade-up">
           <p className="text-5xl mb-4">&#x1F3D4;&#xFE0F;</p>

@@ -1,9 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { Button, Input } from "@/components/ui";
 import PhotoUploader from "./PhotoUploader";
+import { findProvinceFromLocation } from "@/lib/constants/philippine-provinces";
+
+const MapPicker = dynamic(() => import("@/components/maps/MapPicker"), { ssr: false });
 
 interface EventFormProps {
   mode: "create" | "edit";
@@ -14,6 +18,7 @@ interface EventFormProps {
     type: string;
     date: string;
     location: string;
+    coordinates?: { lat: number; lng: number } | null;
     max_participants: number;
     price: number;
     cover_image_url: string | null;
@@ -42,6 +47,13 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
   const [maxParticipants, setMaxParticipants] = useState(initialData?.max_participants || 50);
   const [price, setPrice] = useState(initialData?.price || 0);
   const [coverImage, setCoverImage] = useState<string | null>(initialData?.cover_image_url || null);
+  const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(
+    initialData?.coordinates || null
+  );
+  const [showMap, setShowMap] = useState(!!initialData?.coordinates);
+  const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | undefined>(
+    initialData?.coordinates || undefined
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,6 +66,7 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
       type,
       date: new Date(date).toISOString(),
       location,
+      coordinates,
       max_participants: maxParticipants,
       price,
       cover_image_url: coverImage,
@@ -127,10 +140,43 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
         id="location"
         label="Location"
         value={location}
-        onChange={(e) => setLocation(e.target.value)}
+        onChange={(e) => {
+          const val = e.target.value;
+          setLocation(val);
+          // Try to recenter map based on province lookup
+          const province = findProvinceFromLocation(val);
+          if (province) {
+            setMapCenter({ lat: province.lat, lng: province.lng });
+          }
+        }}
         placeholder="Mt. Pulag, Benguet"
         required
       />
+
+      {/* Optional map pin section */}
+      <div className="space-y-2">
+        <button
+          type="button"
+          onClick={() => setShowMap(!showMap)}
+          className="flex items-center gap-2 text-sm font-medium text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 transition-colors"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+          </svg>
+          {showMap ? "Hide map" : "Pin on map (optional)"}
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={`w-3 h-3 transition-transform ${showMap ? "rotate-180" : ""}`}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+          </svg>
+        </button>
+        {showMap && (
+          <MapPicker
+            value={coordinates}
+            onChange={setCoordinates}
+            center={mapCenter}
+          />
+        )}
+      </div>
 
       <div className="grid grid-cols-2 gap-4">
         <Input

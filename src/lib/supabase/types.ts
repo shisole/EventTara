@@ -81,7 +81,7 @@ export interface Database {
           type: 'hiking' | 'mtb' | 'road_bike' | 'running' | 'trail_run'
           date: string
           location: string
-          coordinates: unknown | null
+          coordinates: { lat: number; lng: number } | null
           max_participants: number
           price: number
           status: 'draft' | 'published' | 'completed' | 'cancelled'
@@ -96,7 +96,7 @@ export interface Database {
           type: 'hiking' | 'mtb' | 'road_bike' | 'running' | 'trail_run'
           date: string
           location: string
-          coordinates?: unknown | null
+          coordinates?: { lat: number; lng: number } | null
           max_participants?: number
           price?: number
           status?: 'draft' | 'published' | 'completed' | 'cancelled'
@@ -111,7 +111,7 @@ export interface Database {
           type?: 'hiking' | 'mtb' | 'road_bike' | 'running' | 'trail_run'
           date?: string
           location?: string
-          coordinates?: unknown | null
+          coordinates?: { lat: number; lng: number } | null
           max_participants?: number
           price?: number
           status?: 'draft' | 'published' | 'completed' | 'cancelled'
