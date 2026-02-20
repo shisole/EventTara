@@ -21,10 +21,20 @@ export default function Navbar() {
   const supabase = createClient();
   const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
+  const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [exploreOpen, setExploreOpen] = useState(false);
+
+  const fetchRole = async (userId: string) => {
+    const { data } = await supabase
+      .from("users")
+      .select("role")
+      .eq("id", userId)
+      .single();
+    setRole(data?.role ?? null);
+  };
 
   useEffect(() => {
     const getUser = async () => {
@@ -32,6 +42,7 @@ export default function Navbar() {
         data: { user },
       } = await supabase.auth.getUser();
       setUser(user);
+      if (user) await fetchRole(user.id);
       setLoading(false);
     };
     getUser();
@@ -40,6 +51,11 @@ export default function Navbar() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchRole(session.user.id);
+      } else {
+        setRole(null);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -168,12 +184,14 @@ export default function Navbar() {
                         </p>
                         <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
                       </div>
-                      <Link
-                        href="/dashboard"
-                        className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-                      >
-                        Dashboard
-                      </Link>
+                      {role === "organizer" && (
+                        <Link
+                          href="/dashboard"
+                          className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                        >
+                          Dashboard
+                        </Link>
+                      )}
                       <Link
                         href="/profile"
                         className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
@@ -290,13 +308,15 @@ export default function Navbar() {
                 >
                   My Events
                 </Link>
-                <Link
-                  href="/dashboard"
-                  onClick={() => setMenuOpen(false)}
-                  className="block px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium min-h-[44px] flex items-center"
-                >
-                  Dashboard
-                </Link>
+                {role === "organizer" && (
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setMenuOpen(false)}
+                    className="block px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium min-h-[44px] flex items-center"
+                  >
+                    Dashboard
+                  </Link>
+                )}
                 <button
                   onClick={() => {
                     setMenuOpen(false);
