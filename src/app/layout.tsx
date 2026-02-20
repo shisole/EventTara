@@ -1,24 +1,9 @@
 import type { Metadata } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
-import dynamic from "next/dynamic";
 import "./globals.css";
 import ThemeProvider from "@/components/layout/ThemeProvider";
 import Footer from "@/components/layout/Footer";
-
-const Navbar = dynamic(() => import("@/components/layout/Navbar"), {
-  ssr: false,
-  loading: () => (
-    <nav className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <span className="text-2xl font-heading font-bold text-lime-500">EventTara</span>
-        </div>
-      </div>
-    </nav>
-  ),
-});
-const MobileNav = dynamic(() => import("@/components/layout/MobileNav"), { ssr: false });
-const SplashScreen = dynamic(() => import("@/components/layout/SplashScreen"), { ssr: false });
+import ClientShell from "@/components/layout/ClientShell";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -90,13 +75,10 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${plusJakarta.variable}`} suppressHydrationWarning>
       <body className="font-sans min-h-screen flex flex-col">
           <ThemeProvider>
-            <SplashScreen />
-            <Navbar />
-            <div className="flex-1 pb-16 md:pb-0">
+            <ClientShell>
               {children}
-            </div>
+            </ClientShell>
             <Footer />
-            <MobileNav />
           </ThemeProvider>
         </body>
     </html>
