@@ -5,6 +5,7 @@ interface BadgeAwardedProps {
   badgeImageUrl: string | null;
   eventTitle: string;
   username?: string;
+  badgeId: string;
 }
 
 export function badgeAwardedHtml({
@@ -14,6 +15,7 @@ export function badgeAwardedHtml({
   badgeImageUrl,
   eventTitle,
   username,
+  badgeId,
 }: BadgeAwardedProps): string {
   const badgeImage = badgeImageUrl
     ? `<img src="${badgeImageUrl}" alt="${badgeTitle}" width="120" height="120" style="border-radius:50%;border:4px solid #DAA520;margin-bottom:16px;" />`
@@ -60,6 +62,11 @@ export function badgeAwardedHtml({
               <a href="${badgesUrl}" style="display:inline-block;background-color:#2D5A3D;color:#ffffff;text-decoration:none;padding:12px 32px;border-radius:8px;font-size:14px;font-weight:600;">
                 View Your Badges
               </a>
+              <div style="margin-top:16px;">
+                <a href="https://eventtara.com/badges/${badgeId}" style="display:inline-block;background-color:transparent;color:#2D5A3D;text-decoration:none;padding:10px 24px;border-radius:8px;font-size:14px;font-weight:600;border:2px solid #2D5A3D;">
+                  Leave a Review
+                </a>
+              </div>
             </td>
           </tr>
           <!-- Footer -->

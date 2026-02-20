@@ -61,6 +61,7 @@ export async function POST(request: Request) {
                 badgeImageUrl: badge.image_url,
                 eventTitle: event?.title || "an EventTara event",
                 username: u.username ?? undefined,
+                badgeId: badge_id,
               }),
             }).catch((err) => console.error("[Email] Badge notification failed:", err));
           }
