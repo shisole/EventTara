@@ -493,8 +493,8 @@ async function createOrganizerProfiles(
         description: profile.description,
         logo_url: profile.logo_url,
         payment_info: {
-          gcash: { name: profile.org_name, number: "0917-XXX-XXXX" },
-          maya: { name: profile.org_name, number: "0918-XXX-XXXX" },
+          gcash_number: "09171234567",
+          maya_number: "09181234567",
         },
       })
       .select("id")
@@ -569,8 +569,8 @@ async function createBookings(
     userEmail: string;
     eventTitle: string;
     status: "pending" | "confirmed" | "cancelled";
-    payment_status: "pending" | "paid" | "refunded";
-    payment_method: "gcash" | "maya" | null;
+    payment_status: "pending" | "paid" | "rejected" | "refunded";
+    payment_method: "gcash" | "maya" | "cash" | null;
   }
 
   const bookings: BookingDef[] = [
@@ -624,7 +624,23 @@ async function createBookings(
       eventTitle: "Masungi Georeserve Trail Run",
       status: "pending",
       payment_status: "pending",
-      payment_method: null,
+      payment_method: "gcash",
+    },
+    // Cash booking — pending, pays on event day
+    {
+      userEmail: `participant3${TEST_EMAIL_DOMAIN}`,
+      eventTitle: "BGC Night Run 10K",
+      status: "pending",
+      payment_status: "pending",
+      payment_method: "cash",
+    },
+    // Rejected payment — needs re-upload
+    {
+      userEmail: `participant2${TEST_EMAIL_DOMAIN}`,
+      eventTitle: "Tagaytay Road Bike Loop",
+      status: "pending",
+      payment_status: "rejected",
+      payment_method: "maya",
     },
     // Guest's booking
     {
@@ -737,7 +753,10 @@ async function createBookings(
       continue;
     }
 
-    const qrCode = `eventtara:checkin:${eventId}:${userId}`;
+    // QR code: issued for paid, cash, and confirmed bookings; not for pending e-wallet
+    const isEwallet = booking.payment_method === "gcash" || booking.payment_method === "maya";
+    const isPendingEwallet = isEwallet && booking.payment_status !== "paid";
+    const qrCode = isPendingEwallet ? null : `eventtara:checkin:${eventId}:${userId}`;
 
     const { error } = await supabase.from("bookings").insert({
       event_id: eventId,
