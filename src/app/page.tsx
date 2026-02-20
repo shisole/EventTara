@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { Avatar } from "@/components/ui";
 import EventCard from "@/components/events/EventCard";
@@ -8,27 +9,27 @@ const categories = [
   {
     name: "Hiking",
     slug: "hiking",
-    image: "https://images.unsplash.com/photo-1551632811-561732d1e306?w=600&h=900&fit=crop",
+    image: "https://images.unsplash.com/photo-1551632811-561732d1e306?w=1280&h=320&fit=crop",
   },
   {
     name: "Mountain Biking",
     slug: "mtb",
-    image: "https://images.unsplash.com/photo-1544191696-102dbdaeeaa0?w=600&h=900&fit=crop",
+    image: "https://images.unsplash.com/photo-1544191696-102dbdaeeaa0?w=1280&h=320&fit=crop",
   },
   {
     name: "Road Biking",
     slug: "road_bike",
-    image: "https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=600&h=900&fit=crop",
+    image: "https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=1280&h=320&fit=crop",
   },
   {
     name: "Running",
     slug: "running",
-    image: "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=600&h=900&fit=crop",
+    image: "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=1280&h=320&fit=crop",
   },
   {
     name: "Trail Running",
     slug: "trail_run",
-    image: "https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=600&h=900&fit=crop",
+    image: "https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=1280&h=320&fit=crop",
   },
 ];
 
@@ -52,28 +53,35 @@ const steps = [
 
 export default async function Home() {
   const supabase = await createClient();
-  const { count: totalUpcoming } = await supabase
-    .from("events")
-    .select("*", { count: "exact", head: true })
-    .eq("status", "published")
-    .gte("date", new Date().toISOString());
+  const now = new Date().toISOString();
 
-  const { data: upcomingEvents } = await supabase
-    .from("events")
-    .select("*, bookings(count), organizer_profiles!inner(org_name)")
-    .eq("status", "published")
-    .gte("date", new Date().toISOString())
-    .order("date", { ascending: true })
-    .limit(5);
+  const [
+    { data: { user: authUser } },
+    { count: totalUpcoming },
+    { data: upcomingEvents },
+    { data: organizers },
+  ] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase
+      .from("events")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "published")
+      .gte("date", now),
+    supabase
+      .from("events")
+      .select("*, bookings(count), organizer_profiles!inner(org_name)")
+      .eq("status", "published")
+      .gte("date", now)
+      .order("date", { ascending: true })
+      .limit(5),
+    supabase
+      .from("organizer_profiles")
+      .select("id, org_name, logo_url, events!inner(id)")
+      .eq("events.status", "published")
+      .limit(12),
+  ]);
 
   const remainingCount = (totalUpcoming || 0) - (upcomingEvents?.length || 0);
-
-  // Fetch organizers who have at least 1 published event, ordered by event count
-  const { data: organizers } = await supabase
-    .from("organizer_profiles")
-    .select("id, org_name, logo_url, events!inner(id)")
-    .eq("events.status", "published")
-    .limit(12);
 
   // Dedupe (inner join can return multiples) and sort by event count
   const uniqueOrganizers = organizers
@@ -113,7 +121,7 @@ export default async function Home() {
               Explore Events
             </Link>
             <Link
-              href="/signup"
+              href={!authUser || authUser.is_anonymous ? "/signup" : "/events"}
               className="inline-flex items-center justify-center font-semibold rounded-xl text-lg py-4 px-8 border-2 border-gray-300 dark:border-slate-600 text-gray-600 dark:text-gray-300 hover:border-lime-500 hover:text-lime-600 dark:hover:text-lime-400 transition-colors"
             >
               Host Your Event
@@ -209,9 +217,12 @@ export default async function Home() {
                 href={`/events?type=${cat.slug}`}
                 className="relative h-32 sm:h-40 rounded-2xl overflow-hidden group"
               >
-                <div
-                  className="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-110"
-                  style={{ backgroundImage: `url(${cat.image})` }}
+                <Image
+                  src={cat.image}
+                  alt={cat.name}
+                  fill
+                  sizes="(max-width: 1280px) 100vw, 1280px"
+                  className="object-cover transition-transform duration-300 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-colors" />
                 <div className="absolute inset-0 flex items-center px-6">
