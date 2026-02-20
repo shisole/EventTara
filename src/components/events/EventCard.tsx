@@ -19,6 +19,7 @@ interface EventCardProps {
   status?: EventStatus;
   organizer_name?: string;
   organizer_id?: string;
+  distance?: number;
 }
 
 const typeLabels: Record<string, string> = {
@@ -42,6 +43,7 @@ export default function EventCard({
   status,
   organizer_name,
   organizer_id,
+  distance,
 }: EventCardProps) {
   const spotsLeft = max_participants - booking_count;
   const formattedDate = new Date(date).toLocaleDateString("en-PH", {
@@ -99,7 +101,14 @@ export default function EventCard({
             <p className="text-xs text-gray-400 dark:text-gray-500">by {organizer_name}</p>
           ) : null}
           <p className="text-sm text-gray-500 dark:text-gray-400">{formattedDate}</p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{location}</p>
+          <div className="flex items-center gap-2">
+            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{location}</p>
+            {distance != null && (
+              <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300">
+                {distance < 1 ? '<1km' : `~${Math.round(distance)}km`}
+              </span>
+            )}
+          </div>
           <div className="flex items-center justify-between pt-2">
             <span className="font-bold text-lime-600 dark:text-lime-400">
               {price === 0 ? "Free" : `\u20B1${price.toLocaleString()}`}

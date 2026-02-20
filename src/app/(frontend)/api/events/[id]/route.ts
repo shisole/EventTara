@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { findProvinceFromLocation } from "@/lib/constants/philippine-provinces";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -29,6 +30,15 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
   const body = await request.json();
 
+  // Use provided coordinates, or fall back to province centroid lookup
+  let coordinates = body.coordinates !== undefined ? body.coordinates : undefined;
+  if (coordinates === undefined && body.location) {
+    const province = findProvinceFromLocation(body.location);
+    if (province) {
+      coordinates = { lat: province.lat, lng: province.lng };
+    }
+  }
+
   const { data: event, error } = await supabase
     .from("events")
     .update({
@@ -37,6 +47,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       type: body.type,
       date: body.date,
       location: body.location,
+      ...(coordinates !== undefined && { coordinates }),
       max_participants: body.max_participants,
       price: body.price,
       cover_image_url: body.cover_image_url,

@@ -8,6 +8,7 @@ import EventGallery from "@/components/events/EventGallery";
 import OrganizerCard from "@/components/events/OrganizerCard";
 import BookingButton from "@/components/events/BookingButton";
 import ShareButtons from "@/components/events/ShareButtons";
+import EventLocationMap from "@/components/maps/EventLocationMap";
 
 const typeLabels: Record<string, string> = {
   hiking: "Hiking",
@@ -161,6 +162,14 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
           )}
 
           <EventGallery photos={photos || []} />
+
+          {event.coordinates && typeof event.coordinates === 'object' && 'lat' in event.coordinates && (
+            <EventLocationMap
+              lat={(event.coordinates as { lat: number; lng: number }).lat}
+              lng={(event.coordinates as { lat: number; lng: number }).lng}
+              label={event.location}
+            />
+          )}
         </div>
 
         {/* Sidebar */}
