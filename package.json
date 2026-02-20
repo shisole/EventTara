@@ -10,7 +10,8 @@
     "seed": "npx tsx scripts/seed.ts",
     "unseed": "npx tsx scripts/unseed.ts",
     "seed:cms": "node --import tsx scripts/seed-cms-pages.ts",
-    "docs:sync": "ts-node --compiler-options {\\\"module\\\":\\\"commonjs\\\",\\\"target\\\":\\\"ES2017\\\"} scripts/sync-docs/index.ts"
+    "docs:sync": "ts-node --compiler-options {\\\"module\\\":\\\"commonjs\\\",\\\"target\\\":\\\"ES2017\\\"} scripts/sync-docs/index.ts",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.77.0",
@@ -35,6 +36,7 @@
     "tailwind-merge": "^3.4.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "@types/node": "^20",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
