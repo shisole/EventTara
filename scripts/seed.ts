@@ -1204,10 +1204,34 @@ const REVIEW_DEFS: ReviewDef[] = [
     text: "Best gran fondo I've done in the PH. Perfect organization and the post-ride BBQ was amazing!",
   },
   {
+    eventTitle: "Bataan Death March Trail Run",
+    userEmail: `participant3${TEST_EMAIL_DOMAIN}`,
+    rating: 4,
+    text: "Tough but rewarding. The trail markers were clear and the water stations were well-placed. Would definitely do it again.",
+  },
+  {
+    eventTitle: "Mt. Apo Summit Trek",
+    userEmail: `participant3${TEST_EMAIL_DOMAIN}`,
+    rating: 5,
+    text: "The highest peak in the Philippines — bucket list checked! Three days of breathtaking scenery. The guides were top-notch and the campsite views were unreal.",
+  },
+  {
+    eventTitle: "Mt. Apo Summit Trek",
+    userEmail: `participant2${TEST_EMAIL_DOMAIN}`,
+    rating: 5,
+    text: "Life-changing experience. Waking up above the clouds at the summit camp is something I'll never forget. Worth every peso.",
+  },
+  {
     eventTitle: "Corregidor Island MTB Ride",
     userEmail: `participant3${TEST_EMAIL_DOMAIN}`,
     rating: 5,
     text: "Riding through WWII ruins on a mountain bike — what an experience! Highly recommend.",
+  },
+  {
+    eventTitle: "Corregidor Island MTB Ride",
+    userEmail: `participant1${TEST_EMAIL_DOMAIN}`,
+    rating: 4,
+    text: "Unique combination of history and mountain biking. The ferry ride and island trails made for an unforgettable day.",
   },
   {
     eventTitle: "Quezon City Fun Run 5K",

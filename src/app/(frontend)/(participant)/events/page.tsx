@@ -53,6 +53,29 @@ export default async function EventsPage({
 
   const { data: events } = await query;
 
+  // Fetch review stats for completed events
+  const completedIds = (events || []).filter((e) => e.status === "completed").map((e) => e.id);
+  const reviewStats: Record<string, { avg: number; count: number }> = {};
+
+  if (completedIds.length > 0) {
+    const { data: allRatings } = await supabase
+      .from("event_reviews")
+      .select("rating, event_id")
+      .in("event_id", completedIds);
+
+    if (allRatings) {
+      const perEvent: Record<string, { sum: number; count: number }> = {};
+      for (const r of allRatings) {
+        if (!perEvent[r.event_id]) perEvent[r.event_id] = { sum: 0, count: 0 };
+        perEvent[r.event_id].sum += r.rating;
+        perEvent[r.event_id].count++;
+      }
+      for (const [eid, stats] of Object.entries(perEvent)) {
+        reviewStats[eid] = { avg: stats.sum / stats.count, count: stats.count };
+      }
+    }
+  }
+
   // When showing all events (no "when" filter), put upcoming first then past
   const sortedEvents = !params.when && events
     ? (() => {
@@ -73,28 +96,33 @@ export default async function EventsPage({
 
       {sortedEvents && sortedEvents.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sortedEvents.map((event: any, i: number) => (
-            <div
-              key={event.id}
-              className="opacity-0 animate-fade-up"
-              style={{ animationDelay: `${i * 60}ms` }}
-            >
-              <EventCard
-                id={event.id}
-                title={event.title}
-                type={event.type}
-                date={event.date}
-                location={event.location}
-                price={Number(event.price)}
-                cover_image_url={event.cover_image_url}
-                max_participants={event.max_participants}
-                booking_count={event.bookings?.[0]?.count || 0}
-                status={getEventStatus(event.date, today)}
-                organizer_name={event.organizer_profiles?.org_name}
-                organizer_id={event.organizer_id}
-              />
-            </div>
-          ))}
+          {sortedEvents.map((event: any, i: number) => {
+            const stats = reviewStats[event.id];
+            return (
+              <div
+                key={event.id}
+                className="opacity-0 animate-fade-up"
+                style={{ animationDelay: `${i * 60}ms` }}
+              >
+                <EventCard
+                  id={event.id}
+                  title={event.title}
+                  type={event.type}
+                  date={event.date}
+                  location={event.location}
+                  price={Number(event.price)}
+                  cover_image_url={event.cover_image_url}
+                  max_participants={event.max_participants}
+                  booking_count={event.bookings?.[0]?.count || 0}
+                  status={getEventStatus(event.date, today)}
+                  organizer_name={event.organizer_profiles?.org_name}
+                  organizer_id={event.organizer_id}
+                  avg_rating={stats?.avg}
+                  review_count={stats?.count}
+                />
+              </div>
+            );
+          })}
         </div>
       ) : (
         <div className="text-center py-20 opacity-0 animate-fade-up">

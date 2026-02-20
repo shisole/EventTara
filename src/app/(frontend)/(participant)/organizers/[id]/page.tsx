@@ -104,16 +104,28 @@ export default async function OrganizerProfilePage({ params }: { params: Promise
   let avgRating = 0;
   let totalReviews = 0;
   let recentReviews: any[] = [];
+  const eventReviewStats: Record<string, { avg: number; count: number }> = {};
 
   if (eventIds.length > 0) {
     const { data: allRatings } = await supabase
       .from("event_reviews")
-      .select("rating")
+      .select("rating, event_id")
       .in("event_id", eventIds);
 
     if (allRatings && allRatings.length > 0) {
       totalReviews = allRatings.length;
       avgRating = allRatings.reduce((sum, r) => sum + r.rating, 0) / allRatings.length;
+
+      // Build per-event stats
+      const perEvent: Record<string, { sum: number; count: number }> = {};
+      for (const r of allRatings) {
+        if (!perEvent[r.event_id]) perEvent[r.event_id] = { sum: 0, count: 0 };
+        perEvent[r.event_id].sum += r.rating;
+        perEvent[r.event_id].count++;
+      }
+      for (const [eid, stats] of Object.entries(perEvent)) {
+        eventReviewStats[eid] = { avg: stats.sum / stats.count, count: stats.count };
+      }
     }
 
     if (totalReviews > 0) {
@@ -192,21 +204,26 @@ export default async function OrganizerProfilePage({ params }: { params: Promise
         <div>
           <h2 className="text-xl font-heading font-bold mb-4">Past Events</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {pastEvents.map((event: any) => (
-              <EventCard
-                key={event.id}
-                id={event.id}
-                title={event.title}
-                type={event.type}
-                date={event.date}
-                location={event.location}
-                price={Number(event.price)}
-                cover_image_url={event.cover_image_url}
-                max_participants={event.max_participants}
-                booking_count={event.bookings?.[0]?.count || 0}
-                status="past"
-              />
-            ))}
+            {pastEvents.map((event: any) => {
+              const stats = eventReviewStats[event.id];
+              return (
+                <EventCard
+                  key={event.id}
+                  id={event.id}
+                  title={event.title}
+                  type={event.type}
+                  date={event.date}
+                  location={event.location}
+                  price={Number(event.price)}
+                  cover_image_url={event.cover_image_url}
+                  max_participants={event.max_participants}
+                  booking_count={event.bookings?.[0]?.count || 0}
+                  status="past"
+                  avg_rating={stats?.avg}
+                  review_count={stats?.count}
+                />
+              );
+            })}
           </div>
         </div>
       )}
