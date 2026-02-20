@@ -108,6 +108,11 @@ export default function UpcomingBookings({ bookings }: { bookings: Booking[] }) 
               <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                 {b.eventPrice > 0 ? `₱${b.eventPrice.toLocaleString()}` : "Free"}
               </p>
+              {b.companions && b.companions.length > 0 && (
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  👥 {b.companions.length} companion{b.companions.length > 1 ? "s" : ""} booked
+                </p>
+              )}
               {b.paymentStatus === "pending" && b.paymentMethod !== "cash" && (
                 <p className="text-sm text-yellow-600 dark:text-yellow-400">Waiting for payment verification</p>
               )}
@@ -141,10 +146,11 @@ export default function UpcomingBookings({ bookings }: { bookings: Booking[] }) 
               </div>
               {b.companions && b.companions.length > 0 && (
                 <div className="space-y-2">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 text-center font-medium">Companions (booked for friends)</p>
                   {b.companions.map((comp, i) => (
                     <div key={i} className="flex justify-center">
                       <div className="bg-white dark:bg-gray-900 p-4 rounded-xl border dark:border-gray-700">
-                        <p className="text-xs text-gray-500 dark:text-gray-400 text-center mb-2 font-medium">{comp.full_name}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 text-center mb-2 font-medium">👤 {comp.full_name}</p>
                         {comp.qr_code ? (
                           <>
                             <QRCodeSVG value={comp.qr_code} size={140} />
