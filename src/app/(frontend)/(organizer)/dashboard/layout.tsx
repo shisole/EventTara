@@ -10,6 +10,16 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect("/login");
   }
 
+  const { data: profile } = await supabase
+    .from("users")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile || profile.role !== "organizer") {
+    redirect("/events");
+  }
+
   return (
     <div className="flex">
       <DashboardSidebar />
