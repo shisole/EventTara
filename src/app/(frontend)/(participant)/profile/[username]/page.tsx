@@ -77,7 +77,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
   if (isOwnProfile) {
     const { data: bookingData } = await supabase
       .from("bookings")
-      .select("id, qr_code, payment_status, payment_method, payment_proof_url, events(id, title, type, date, location)")
+      .select("id, qr_code, payment_status, payment_method, payment_proof_url, events(id, title, type, date, location, price)")
       .eq("user_id", user.id)
       .in("status", ["confirmed", "pending"])
       .order("booked_at", { ascending: false });
@@ -110,6 +110,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
       eventDate: b.events.date,
       eventLocation: b.events.location,
       eventId: b.events.id,
+      eventPrice: b.events.price,
       paymentStatus: b.payment_status,
       paymentMethod: b.payment_method,
       paymentProofUrl: b.payment_proof_url,

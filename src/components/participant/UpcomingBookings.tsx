@@ -19,6 +19,7 @@ interface Booking {
   eventDate: string;
   eventLocation: string;
   eventId: string;
+  eventPrice: number;
   paymentStatus: string;
   paymentMethod: string;
   paymentProofUrl: string | null;
@@ -104,6 +105,9 @@ export default function UpcomingBookings({ bookings }: { bookings: Booking[] }) 
                 📅 {new Date(b.eventDate).toLocaleDateString("en-PH", { weekday: "short", month: "short", day: "numeric" })}
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400">📍 {b.eventLocation}</p>
+              <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                {b.eventPrice > 0 ? `₱${b.eventPrice.toLocaleString()}` : "Free"}
+              </p>
               {b.paymentStatus === "pending" && b.paymentMethod !== "cash" && (
                 <p className="text-sm text-yellow-600 dark:text-yellow-400">Waiting for payment verification</p>
               )}
