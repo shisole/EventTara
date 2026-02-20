@@ -558,12 +558,14 @@ async function createEvents(
   return eventMap;
 }
 
-/** Create bookings with QR codes. */
+/** Create bookings with QR codes. Returns map of "userEmail:eventTitle" -> bookingId. */
 async function createBookings(
   userMap: Map<string, string>,
   eventMap: Map<string, string>
-) {
+): Promise<Map<string, string>> {
   log("🎫", "Creating bookings...");
+
+  const bookingMap = new Map<string, string>();
 
   interface BookingDef {
     userEmail: string;
@@ -758,20 +760,21 @@ async function createBookings(
     const isPendingEwallet = isEwallet && booking.payment_status !== "paid";
     const qrCode = isPendingEwallet ? null : `eventtara:checkin:${eventId}:${userId}`;
 
-    const { error } = await supabase.from("bookings").insert({
+    const { data, error } = await supabase.from("bookings").insert({
       event_id: eventId,
       user_id: userId,
       status: booking.status,
       payment_status: booking.payment_status,
       payment_method: booking.payment_method,
       qr_code: qrCode,
-    });
+    }).select("id").single();
 
     if (error) {
       console.error(
         `  Failed to create booking (${booking.userEmail} -> ${booking.eventTitle}): ${error.message}`
       );
     } else {
+      bookingMap.set(`${booking.userEmail}:${booking.eventTitle}`, data.id);
       const userName = booking.userEmail.split("@")[0];
       log(
         "  ✅",
@@ -779,6 +782,8 @@ async function createBookings(
       );
     }
   }
+
+  return bookingMap;
 }
 
 interface BadgeDef {
@@ -1072,6 +1077,108 @@ async function createCheckins(
   }
 }
 
+interface CompanionDef {
+  userEmail: string;
+  eventTitle: string;
+  companions: { full_name: string; phone: string }[];
+}
+
+const COMPANION_DEFS: CompanionDef[] = [
+  // Jake brought 2 friends to Mt. Pulag (confirmed/paid — companions get QR codes)
+  {
+    userEmail: `participant1${TEST_EMAIL_DOMAIN}`,
+    eventTitle: "Mt. Pulag Sunrise Hike",
+    companions: [
+      { full_name: "Rico Dela Cruz", phone: "09171112233" },
+      { full_name: "Jen Villanueva", phone: "09181234567" },
+    ],
+  },
+  // Maria brought 1 friend to BGC Night Run (confirmed/paid)
+  {
+    userEmail: `participant2${TEST_EMAIL_DOMAIN}`,
+    eventTitle: "BGC Night Run 10K",
+    companions: [
+      { full_name: "Sofia Reyes", phone: "09199876543" },
+    ],
+  },
+  // Carlos has a pending booking to Masungi with 1 companion (pending e-wallet — no QR yet)
+  {
+    userEmail: `participant3${TEST_EMAIL_DOMAIN}`,
+    eventTitle: "Masungi Georeserve Trail Run",
+    companions: [
+      { full_name: "Daniel Torres", phone: "09201234567" },
+    ],
+  },
+  // Carlos brought a friend to BGC Night Run (cash/pending — companions get QR codes)
+  {
+    userEmail: `participant3${TEST_EMAIL_DOMAIN}`,
+    eventTitle: "BGC Night Run 10K",
+    companions: [
+      { full_name: "Andrea Santos", phone: "" },
+    ],
+  },
+];
+
+/** Create booking companions with QR codes. */
+async function createCompanions(
+  bookingMap: Map<string, string>,
+  eventMap: Map<string, string>
+) {
+  log("👥", "Creating booking companions...");
+
+  for (const def of COMPANION_DEFS) {
+    const key = `${def.userEmail}:${def.eventTitle}`;
+    const bookingId = bookingMap.get(key);
+    const eventId = eventMap.get(def.eventTitle);
+    if (!bookingId || !eventId) {
+      console.error(`  Booking not found for companion: ${key}`);
+      continue;
+    }
+
+    // Look up the booking to determine if companions should get QR codes
+    const { data: booking } = await supabase
+      .from("bookings")
+      .select("payment_status, payment_method")
+      .eq("id", bookingId)
+      .single();
+
+    if (!booking) continue;
+
+    const isEwallet = booking.payment_method === "gcash" || booking.payment_method === "maya";
+    const isPendingEwallet = isEwallet && booking.payment_status !== "paid";
+
+    for (const comp of def.companions) {
+      const { data, error } = await supabase
+        .from("booking_companions")
+        .insert({
+          booking_id: bookingId,
+          full_name: comp.full_name,
+          phone: comp.phone || null,
+          qr_code: null, // set below if applicable
+        })
+        .select("id")
+        .single();
+
+      if (error) {
+        console.error(`  Failed to create companion "${comp.full_name}": ${error.message}`);
+        continue;
+      }
+
+      // Generate QR code for paid or cash bookings (not pending e-wallet)
+      if (!isPendingEwallet) {
+        const qrCode = `eventtara:checkin:${eventId}:companion:${data.id}`;
+        await supabase
+          .from("booking_companions")
+          .update({ qr_code: qrCode })
+          .eq("id", data.id);
+      }
+
+      const userName = def.userEmail.split("@")[0];
+      log("  ✅", `${comp.full_name} (companion of ${userName}) -> ${def.eventTitle}`);
+    }
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
@@ -1103,7 +1210,11 @@ async function main() {
     console.log();
 
     // Step 5: Create bookings
-    await createBookings(userMap, eventMap);
+    const bookingMap = await createBookings(userMap, eventMap);
+    console.log();
+
+    // Step 5b: Create booking companions
+    await createCompanions(bookingMap, eventMap);
     console.log();
 
     // Step 6: Create badges
