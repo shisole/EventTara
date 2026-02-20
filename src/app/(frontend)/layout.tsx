@@ -4,6 +4,7 @@ import "./globals.css";
 import ThemeProvider from "@/components/layout/ThemeProvider";
 import Footer from "@/components/layout/Footer";
 import ClientShell from "@/components/layout/ClientShell";
+import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import { getPayloadClient } from "@/lib/payload/client";
 
 const inter = Inter({
@@ -77,6 +78,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${plusJakarta.variable}`} suppressHydrationWarning>
+      <GoogleAnalytics />
       <body className="font-sans min-h-screen flex flex-col">
           <ThemeProvider>
             <ClientShell>
