@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const supabase = await createClient();
   const { data: event } = await supabase
     .from("events")
-    .select("title, description, type")
+    .select("title, description, type, cover_image_url, date, location")
     .eq("id", id)
     .single();
 
@@ -35,6 +35,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     ? event.description.slice(0, 160)
     : `Join this ${typeLabels[event.type] || event.type} adventure on EventTara!`;
 
+  const images = event.cover_image_url
+    ? [{ url: event.cover_image_url, width: 1200, height: 630, alt: event.title }]
+    : undefined;
+
   return {
     title: event.title,
     description,
@@ -42,11 +46,15 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       title: event.title,
       description,
       type: "article",
+      siteName: "EventTara",
+      url: `/events/${id}`,
+      ...(images && { images }),
     },
     twitter: {
       card: "summary_large_image",
       title: event.title,
       description,
+      ...(images && { images }),
     },
   };
 }
