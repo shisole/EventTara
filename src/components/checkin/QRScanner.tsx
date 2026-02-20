@@ -24,7 +24,9 @@ export default function QRScanner({ eventId, onCheckin }: QRScannerProps) {
         { facingMode: "environment" },
         { fps: 10, qrbox: 250 },
         async (decodedText: string) => {
-          // Expected format: eventtara:checkin:{eventId}:{userId}
+          // Expected formats:
+          // User:      eventtara:checkin:{eventId}:{userId}
+          // Companion: eventtara:checkin:{eventId}:companion:{companionId}
           const parts = decodedText.split(":");
           if (parts[0] !== "eventtara" || parts[1] !== "checkin") {
             onCheckin({ success: false, message: "Invalid QR code" });
@@ -32,18 +34,27 @@ export default function QRScanner({ eventId, onCheckin }: QRScannerProps) {
           }
 
           const qrEventId = parts[2];
-          const userId = parts[3];
 
           if (qrEventId !== eventId) {
             onCheckin({ success: false, message: "QR code is for a different event" });
             return;
           }
 
+          // Determine if this is a companion or user QR
+          const isCompanion = parts[3] === "companion";
+          const body: Record<string, string> = { event_id: eventId };
+
+          if (isCompanion) {
+            body.companion_id = parts[4];
+          } else {
+            body.user_id = parts[3];
+          }
+
           // Call check-in API
           const res = await fetch("/api/checkins", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ event_id: eventId, user_id: userId }),
+            body: JSON.stringify(body),
           });
 
           const data = await res.json();

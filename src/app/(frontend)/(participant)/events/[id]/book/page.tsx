@@ -79,6 +79,8 @@ export default async function BookEventPage({
           eventDate={event.date}
           price={Number(event.price)}
           organizerPaymentInfo={organizerPaymentInfo}
+          spotsLeft={spotsLeft}
+          mode={mode}
         />
       </div>
     </div>

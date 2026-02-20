@@ -189,6 +189,39 @@ export interface Database {
         }
         Relationships: []
       }
+      booking_companions: {
+        Row: {
+          id: string
+          booking_id: string
+          full_name: string
+          phone: string | null
+          qr_code: string | null
+          checked_in: boolean
+          checked_in_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          booking_id: string
+          full_name: string
+          phone?: string | null
+          qr_code?: string | null
+          checked_in?: boolean
+          checked_in_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          booking_id?: string
+          full_name?: string
+          phone?: string | null
+          qr_code?: string | null
+          checked_in?: boolean
+          checked_in_at?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
       badges: {
         Row: {
           id: string
@@ -266,7 +299,10 @@ export interface Database {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_total_participants: {
+        Args: { p_event_id: string }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never

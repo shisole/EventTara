@@ -129,6 +129,7 @@ export default function BookingForm({
         qrCode={booking.qr_code}
         paymentStatus={booking.payment_status}
         paymentMethod={booking.payment_method}
+        companions={booking.companions}
       />
     );
   }

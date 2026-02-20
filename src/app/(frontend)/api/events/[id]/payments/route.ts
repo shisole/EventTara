@@ -33,20 +33,51 @@ export async function GET(
     .order("booked_at", { ascending: false });
 
   const allBookings = bookings || [];
+  const bookingIds = allBookings.map((b) => b.id);
+
+  // Fetch companion counts per booking
+  let companionCounts: Record<string, number> = {};
+  if (bookingIds.length > 0) {
+    const { data: companions } = await supabase
+      .from("booking_companions")
+      .select("booking_id")
+      .in("booking_id", bookingIds);
+
+    if (companions) {
+      for (const c of companions) {
+        companionCounts[c.booking_id] = (companionCounts[c.booking_id] || 0) + 1;
+      }
+    }
+  }
+
+  // Add companion_count to each booking
+  const bookingsWithCompanions = allBookings.map((b) => ({
+    ...b,
+    companion_count: companionCounts[b.id] || 0,
+  }));
+
   const paidCount = allBookings.filter((b) => b.payment_status === "paid").length;
   const pendingCount = allBookings.filter((b) => b.payment_status === "pending").length;
   const rejectedCount = allBookings.filter((b) => b.payment_status === "rejected").length;
   const cashCount = allBookings.filter((b) => b.payment_method === "cash").length;
 
+  // Revenue accounts for companions: (1 + companion_count) * price for paid bookings
+  const revenue = allBookings
+    .filter((b) => b.payment_status === "paid")
+    .reduce((sum, b) => {
+      const compCount = companionCounts[b.id] || 0;
+      return sum + (1 + compCount) * Number(event.price);
+    }, 0);
+
   return NextResponse.json({
-    bookings: allBookings,
+    bookings: bookingsWithCompanions,
     stats: {
       total: allBookings.length,
       paid: paidCount,
       pending: pendingCount,
       rejected: rejectedCount,
       cash: cashCount,
-      revenue: paidCount * Number(event.price),
+      revenue,
     },
   });
 }

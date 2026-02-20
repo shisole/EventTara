@@ -6,6 +6,11 @@ import { useState, useRef } from "react";
 import { Card, UIBadge, Button } from "@/components/ui";
 import PaymentStatusBadge from "@/components/ui/PaymentStatusBadge";
 
+interface BookingCompanion {
+  full_name: string;
+  qr_code: string | null;
+}
+
 interface Booking {
   id: string;
   qrCode: string;
@@ -17,6 +22,7 @@ interface Booking {
   paymentStatus: string;
   paymentMethod: string;
   paymentProofUrl: string | null;
+  companions?: BookingCompanion[];
 }
 
 const typeLabels: Record<string, string> = {
@@ -121,11 +127,33 @@ export default function UpcomingBookings({ bookings }: { bookings: Booking[] }) 
             )}
           </div>
           {expandedQR === b.id && b.qrCode && (
-            <div className="mt-4 flex justify-center">
-              <div className="bg-white dark:bg-gray-900 p-4 rounded-xl border dark:border-gray-700">
-                <QRCodeSVG value={b.qrCode} size={160} />
-                <p className="text-xs text-gray-400 dark:text-gray-500 text-center mt-2">Show at check-in</p>
+            <div className="mt-4 space-y-3">
+              <div className="flex justify-center">
+                <div className="bg-white dark:bg-gray-900 p-4 rounded-xl border dark:border-gray-700">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 text-center mb-2 font-medium">Your QR Code</p>
+                  <QRCodeSVG value={b.qrCode} size={160} />
+                  <p className="text-xs text-gray-400 dark:text-gray-500 text-center mt-2">Show at check-in</p>
+                </div>
               </div>
+              {b.companions && b.companions.length > 0 && (
+                <div className="space-y-2">
+                  {b.companions.map((comp, i) => (
+                    <div key={i} className="flex justify-center">
+                      <div className="bg-white dark:bg-gray-900 p-4 rounded-xl border dark:border-gray-700">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 text-center mb-2 font-medium">{comp.full_name}</p>
+                        {comp.qr_code ? (
+                          <>
+                            <QRCodeSVG value={comp.qr_code} size={140} />
+                            <p className="text-xs text-gray-400 dark:text-gray-500 text-center mt-2">Show at check-in</p>
+                          </>
+                        ) : (
+                          <p className="text-xs text-gray-400 text-center">QR code pending verification</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </Card>

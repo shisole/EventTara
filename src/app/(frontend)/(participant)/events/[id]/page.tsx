@@ -80,12 +80,10 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
     .eq("event_id", id)
     .order("sort_order", { ascending: true });
 
-  // Fetch booking count
-  const { count: bookingCount } = await supabase
-    .from("bookings")
-    .select("*", { count: "exact", head: true })
-    .eq("event_id", id)
-    .in("status", ["pending", "confirmed"]);
+  // Fetch total participant count (bookings + companions)
+  const { data: totalParticipants } = await supabase
+    .rpc("get_total_participants", { p_event_id: id });
+  const bookingCount = totalParticipants || 0;
 
   // Fetch organizer event count
   const { count: orgEventCount } = await supabase
@@ -104,6 +102,19 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
     data: { user: authUser },
   } = await supabase.auth.getUser();
 
+  // Check if user already has an active booking for this event
+  let userBooking: { id: string; status: string; payment_status: string } | null = null;
+  if (authUser) {
+    const { data: existingBooking } = await supabase
+      .from("bookings")
+      .select("id, status, payment_status")
+      .eq("event_id", id)
+      .eq("user_id", authUser.id)
+      .in("status", ["pending", "confirmed"])
+      .single();
+    userBooking = existingBooking;
+  }
+
   let eventBadges = badgeData || [];
   let earnedBadgeIds = new Set<string>();
 
@@ -117,7 +128,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
     earnedBadgeIds = new Set((userBadgeData || []).map((ub) => ub.badge_id));
   }
 
-  const spotsLeft = event.max_participants - (bookingCount || 0);
+  const spotsLeft = event.max_participants - bookingCount;
   const formattedDate = new Date(event.date).toLocaleDateString("en-PH", {
     weekday: "long", month: "long", day: "numeric", year: "numeric",
   });
@@ -170,7 +181,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
             </div>
 
             <div className="text-center text-sm text-gray-500 dark:text-gray-400">
-              <span className="font-medium text-gray-700 dark:text-gray-300">{bookingCount || 0}</span> adventurer{(bookingCount || 0) !== 1 ? "s" : ""} joined
+              <span className="font-medium text-gray-700 dark:text-gray-300">{bookingCount}</span> adventurer{bookingCount !== 1 ? "s" : ""} joined
               {" \u00B7 "}
               <span className={spotsLeft <= 5 ? "text-red-500 font-medium" : ""}>
                 {spotsLeft <= 0 ? "Fully booked" : `${spotsLeft} spots left`}
@@ -178,7 +189,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
             </div>
 
             <div className="pt-2">
-              <BookingButton eventId={id} spotsLeft={spotsLeft} price={Number(event.price)} isPast={event.status === "completed"} />
+              <BookingButton eventId={id} spotsLeft={spotsLeft} price={Number(event.price)} isPast={event.status === "completed"} userBooking={userBooking} />
             </div>
           </div>
 

@@ -82,20 +82,39 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
       .in("status", ["confirmed", "pending"])
       .order("booked_at", { ascending: false });
 
-    upcoming = (bookingData || [])
-      .filter((b: any) => b.events && new Date(b.events.date) >= new Date())
-      .map((b: any) => ({
-        id: b.id,
-        qrCode: b.qr_code || "",
-        eventTitle: b.events.title,
-        eventType: b.events.type,
-        eventDate: b.events.date,
-        eventLocation: b.events.location,
-        eventId: b.events.id,
-        paymentStatus: b.payment_status,
-        paymentMethod: b.payment_method,
-        paymentProofUrl: b.payment_proof_url,
-      }));
+    const upcomingBookings = (bookingData || [])
+      .filter((b: any) => b.events && new Date(b.events.date) >= new Date());
+
+    // Fetch companions for upcoming bookings
+    const upcomingBookingIds = upcomingBookings.map((b: any) => b.id);
+    let companionsByBooking: Record<string, any[]> = {};
+    if (upcomingBookingIds.length > 0) {
+      const { data: companions } = await supabase
+        .from("booking_companions")
+        .select("booking_id, full_name, qr_code")
+        .in("booking_id", upcomingBookingIds);
+
+      if (companions) {
+        for (const c of companions) {
+          if (!companionsByBooking[c.booking_id]) companionsByBooking[c.booking_id] = [];
+          companionsByBooking[c.booking_id].push({ full_name: c.full_name, qr_code: c.qr_code });
+        }
+      }
+    }
+
+    upcoming = upcomingBookings.map((b: any) => ({
+      id: b.id,
+      qrCode: b.qr_code || "",
+      eventTitle: b.events.title,
+      eventType: b.events.type,
+      eventDate: b.events.date,
+      eventLocation: b.events.location,
+      eventId: b.events.id,
+      paymentStatus: b.payment_status,
+      paymentMethod: b.payment_method,
+      paymentProofUrl: b.payment_proof_url,
+      companions: companionsByBooking[b.id] || [],
+    }));
 
     const pastBookings = (bookingData || [])
       .filter((b: any) => b.events && new Date(b.events.date) < new Date());

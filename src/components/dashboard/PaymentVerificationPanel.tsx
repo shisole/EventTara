@@ -19,6 +19,7 @@ interface PaymentBooking {
   payment_proof_url: string | null;
   booked_at: string;
   users: BookingUser;
+  companion_count?: number;
 }
 
 interface PaymentStats {
@@ -193,7 +194,14 @@ export default function PaymentVerificationPanel({ eventId, eventPrice }: Paymen
                 className="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm dark:shadow-gray-950/30 flex items-center justify-between gap-4"
               >
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{booking.users?.full_name || "Guest"}</p>
+                  <p className="font-medium truncate">
+                    {booking.users?.full_name || "Guest"}
+                    {booking.companion_count && booking.companion_count > 0 && (
+                      <span className="ml-2 text-xs text-gray-400 dark:text-gray-500 font-normal">
+                        +{booking.companion_count} companion{booking.companion_count !== 1 ? "s" : ""}
+                      </span>
+                    )}
+                  </p>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
                     {new Date(booking.booked_at).toLocaleDateString("en-PH", {
                       month: "short",

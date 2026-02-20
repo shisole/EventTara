@@ -56,6 +56,22 @@ export async function PATCH(
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    // Generate QR codes for companions
+    const { data: companions } = await supabase
+      .from("booking_companions")
+      .select("id")
+      .eq("booking_id", id);
+
+    if (companions && companions.length > 0) {
+      for (const comp of companions) {
+        const companionQr = `eventtara:checkin:${booking.event_id}:companion:${comp.id}`;
+        await supabase
+          .from("booking_companions")
+          .update({ qr_code: companionQr })
+          .eq("id", comp.id);
+      }
+    }
+
     // Send confirmation email with QR code
     const email = (booking.users as any)?.email;
     if (email) {

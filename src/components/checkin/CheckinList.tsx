@@ -6,7 +6,8 @@ import { Avatar } from "@/components/ui";
 import { cn } from "@/lib/utils";
 
 interface Participant {
-  userId: string;
+  id: string;
+  type: "user" | "companion";
   fullName: string;
   avatarUrl: string | null;
   checkedIn: boolean;
@@ -24,7 +25,8 @@ export default function CheckinList({
   const supabase = createClient();
 
   useEffect(() => {
-    const channel = supabase
+    // Subscribe to user check-ins
+    const checkinChannel = supabase
       .channel(`checkins-${eventId}`)
       .on(
         "postgres_changes",
@@ -37,7 +39,7 @@ export default function CheckinList({
         (payload) => {
           setParticipants((prev) =>
             prev.map((p) =>
-              p.userId === payload.new.user_id
+              p.type === "user" && p.id === payload.new.user_id
                 ? { ...p, checkedIn: true, checkedInAt: payload.new.checked_in_at }
                 : p
             )
@@ -46,8 +48,33 @@ export default function CheckinList({
       )
       .subscribe();
 
+    // Subscribe to companion check-ins
+    const companionChannel = supabase
+      .channel(`companion-checkins-${eventId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "booking_companions",
+        },
+        (payload) => {
+          if (payload.new.checked_in) {
+            setParticipants((prev) =>
+              prev.map((p) =>
+                p.type === "companion" && p.id === payload.new.id
+                  ? { ...p, checkedIn: true, checkedInAt: payload.new.checked_in_at }
+                  : p
+              )
+            );
+          }
+        }
+      )
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(checkinChannel);
+      supabase.removeChannel(companionChannel);
     };
   }, [eventId, supabase]);
 
@@ -64,7 +91,7 @@ export default function CheckinList({
       <div className="space-y-2">
         {participants.map((p) => (
           <div
-            key={p.userId}
+            key={`${p.type}-${p.id}`}
             className={cn(
               "flex items-center justify-between p-3 rounded-xl",
               p.checkedIn ? "bg-forest-50" : "bg-white dark:bg-gray-900"

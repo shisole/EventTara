@@ -8,15 +8,16 @@ interface PaymentMethodPickerProps {
 }
 
 const PAYMENT_METHODS = [
-  { id: "gcash", name: "GCash", color: "bg-blue-500", icon: "\u{1F499}" },
-  { id: "maya", name: "Maya", color: "bg-green-500", icon: "\u{1F49A}" },
+  { id: "gcash", name: "GCash", icon: "💙" },
+  { id: "maya", name: "Maya", icon: "💚" },
+  { id: "cash", name: "Cash", icon: "💵" },
 ];
 
 export default function PaymentMethodPicker({ selected, onSelect }: PaymentMethodPickerProps) {
   return (
     <div className="space-y-2">
       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Payment Method</label>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         {PAYMENT_METHODS.map((method) => (
           <button
             key={method.id}
