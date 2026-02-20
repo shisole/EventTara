@@ -16,10 +16,22 @@ export async function POST(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { rating, text } = await request.json();
+  let rating: number;
+  let text: string | undefined;
+  try {
+    const body = await request.json();
+    rating = body.rating;
+    text = body.text;
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
 
-  if (!rating || rating < 1 || rating > 5) {
-    return NextResponse.json({ error: "Rating must be between 1 and 5" }, { status: 400 });
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+    return NextResponse.json({ error: "Rating must be an integer between 1 and 5" }, { status: 400 });
+  }
+
+  if (text && typeof text === "string" && text.trim().length > 500) {
+    return NextResponse.json({ error: "Review text must be 500 characters or less" }, { status: 400 });
   }
 
   // Verify the event exists and is completed
@@ -66,7 +78,7 @@ export async function POST(
     .insert({
       event_id: eventId,
       user_id: user.id,
-      rating: Math.round(rating) as number,
+      rating,
       text: text?.trim() || null,
     })
     .select()
@@ -79,18 +91,3 @@ export async function POST(
   return NextResponse.json({ review });
 }
 
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const { id: eventId } = await params;
-  const supabase = await createClient();
-
-  const { data: reviews } = await supabase
-    .from("event_reviews")
-    .select("id, rating, text, created_at, users(full_name, avatar_url, username)")
-    .eq("event_id", eventId)
-    .order("created_at", { ascending: false });
-
-  return NextResponse.json({ reviews: reviews || [] });
-}
