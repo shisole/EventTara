@@ -1,11 +1,18 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 
-export default function EventCarousel({ children }: { children: React.ReactNode }) {
+interface EventCarouselProps {
+  children: React.ReactNode;
+  autoSlide?: boolean;
+  autoSlideInterval?: number;
+}
+
+export default function EventCarousel({ children, autoSlide = false, autoSlideInterval = 4000 }: EventCarouselProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+  const isPaused = useRef(false);
 
   const checkScroll = () => {
     const el = scrollRef.current;
@@ -13,6 +20,13 @@ export default function EventCarousel({ children }: { children: React.ReactNode 
     setCanScrollLeft(el.scrollLeft > 0);
     setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
   };
+
+  const scrollByOne = useCallback((direction: "left" | "right") => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const cardWidth = el.querySelector<HTMLElement>(":scope > *")?.offsetWidth || 300;
+    el.scrollBy({ left: direction === "left" ? -cardWidth - 24 : cardWidth + 24, behavior: "smooth" });
+  }, []);
 
   useEffect(() => {
     checkScroll();
@@ -26,11 +40,26 @@ export default function EventCarousel({ children }: { children: React.ReactNode 
     };
   }, []);
 
+  useEffect(() => {
+    if (!autoSlide) return;
+    const interval = setInterval(() => {
+      if (isPaused.current) return;
+      const el = scrollRef.current;
+      if (!el) return;
+      const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 1;
+      if (atEnd) {
+        el.scrollTo({ left: 0, behavior: "smooth" });
+      } else {
+        scrollByOne("right");
+      }
+    }, autoSlideInterval);
+    return () => clearInterval(interval);
+  }, [autoSlide, autoSlideInterval, scrollByOne]);
+
   const scroll = (direction: "left" | "right") => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const cardWidth = el.querySelector<HTMLElement>(":scope > *")?.offsetWidth || 300;
-    el.scrollBy({ left: direction === "left" ? -cardWidth - 24 : cardWidth + 24, behavior: "smooth" });
+    isPaused.current = true;
+    scrollByOne(direction);
+    setTimeout(() => { isPaused.current = false; }, autoSlideInterval * 2);
   };
 
   return (
@@ -46,6 +75,10 @@ export default function EventCarousel({ children }: { children: React.ReactNode 
           ref={scrollRef}
           className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
           style={{ scrollSnapType: "x mandatory" }}
+          onMouseEnter={() => { isPaused.current = true; }}
+          onMouseLeave={() => { isPaused.current = false; }}
+          onTouchStart={() => { isPaused.current = true; }}
+          onTouchEnd={() => { setTimeout(() => { isPaused.current = false; }, autoSlideInterval); }}
         >
           {children}
         </div>
