@@ -153,8 +153,11 @@ export interface Database {
           event_id: string
           user_id: string
           status: 'pending' | 'confirmed' | 'cancelled'
-          payment_status: 'pending' | 'paid' | 'refunded'
-          payment_method: 'gcash' | 'maya' | null
+          payment_status: 'pending' | 'paid' | 'rejected' | 'refunded'
+          payment_method: 'gcash' | 'maya' | 'cash' | null
+          payment_proof_url: string | null
+          payment_verified_at: string | null
+          payment_verified_by: string | null
           qr_code: string | null
           booked_at: string
         }
@@ -163,8 +166,11 @@ export interface Database {
           event_id: string
           user_id: string
           status?: 'pending' | 'confirmed' | 'cancelled'
-          payment_status?: 'pending' | 'paid' | 'refunded'
-          payment_method?: 'gcash' | 'maya' | null
+          payment_status?: 'pending' | 'paid' | 'rejected' | 'refunded'
+          payment_method?: 'gcash' | 'maya' | 'cash' | null
+          payment_proof_url?: string | null
+          payment_verified_at?: string | null
+          payment_verified_by?: string | null
           qr_code?: string | null
           booked_at?: string
         }
@@ -173,8 +179,11 @@ export interface Database {
           event_id?: string
           user_id?: string
           status?: 'pending' | 'confirmed' | 'cancelled'
-          payment_status?: 'pending' | 'paid' | 'refunded'
-          payment_method?: 'gcash' | 'maya' | null
+          payment_status?: 'pending' | 'paid' | 'rejected' | 'refunded'
+          payment_method?: 'gcash' | 'maya' | 'cash' | null
+          payment_proof_url?: string | null
+          payment_verified_at?: string | null
+          payment_verified_by?: string | null
           qr_code?: string | null
           booked_at?: string
         }
