@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 
 export default function SplashScreen() {
   const [visible, setVisible] = useState(true);
@@ -33,12 +32,12 @@ export default function SplashScreen() {
       }`}
     >
       <div className="flex flex-col items-center gap-4">
-        <Image
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
           src="/favicon-192x192.png"
           alt="EventTara"
           width={80}
           height={80}
-          priority
         />
         <span className="text-4xl font-heading font-bold text-lime-500">
           EventTara
