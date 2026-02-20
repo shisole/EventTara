@@ -7,6 +7,8 @@ import { resolvePresetImage } from "@/lib/constants/avatars";
 import EventGallery from "@/components/events/EventGallery";
 import OrganizerCard from "@/components/events/OrganizerCard";
 import BookingButton from "@/components/events/BookingButton";
+import ReviewForm from "@/components/reviews/ReviewForm";
+import ReviewList from "@/components/reviews/ReviewList";
 
 const typeLabels: Record<string, string> = {
   hiking: "Hiking",
@@ -128,6 +130,34 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
     earnedBadgeIds = new Set((userBadgeData || []).map((ub) => ub.badge_id));
   }
 
+  // Fetch event reviews
+  const { data: reviews } = await supabase
+    .from("event_reviews")
+    .select("id, rating, text, created_at, user_id, users(full_name, avatar_url, username)")
+    .eq("event_id", id)
+    .order("created_at", { ascending: false });
+
+  const eventReviews = (reviews || []) as any[];
+  const avgRating = eventReviews.length > 0
+    ? eventReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / eventReviews.length
+    : 0;
+
+  // Check if current user can review (checked in + hasn't reviewed)
+  let canReview = false;
+  if (authUser && event.status === "completed") {
+    const { data: userCheckin } = await supabase
+      .from("event_checkins")
+      .select("id")
+      .eq("event_id", id)
+      .eq("user_id", authUser.id)
+      .single();
+
+    if (userCheckin) {
+      const hasReviewed = eventReviews.some((r: any) => r.user_id === authUser.id);
+      canReview = !hasReviewed;
+    }
+  }
+
   const spotsLeft = event.max_participants - bookingCount;
   const formattedDate = new Date(event.date).toLocaleDateString("en-PH", {
     weekday: "long", month: "long", day: "numeric", year: "numeric",
@@ -169,6 +199,19 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
           )}
 
           <EventGallery photos={photos || []} />
+
+          {/* Reviews Section */}
+          {(eventReviews.length > 0 || canReview) && (
+            <div>
+              <h2 className="text-xl font-heading font-bold mb-4">Reviews</h2>
+              {canReview && (
+                <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm dark:shadow-gray-950/20 p-5 mb-6">
+                  <ReviewForm eventId={id} />
+                </div>
+              )}
+              <ReviewList reviews={eventReviews} averageRating={avgRating} />
+            </div>
+          )}
         </div>
 
         {/* Sidebar */}
@@ -187,6 +230,14 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
                 {spotsLeft <= 0 ? "Fully booked" : `${spotsLeft} spots left`}
               </span>
             </div>
+
+            {avgRating > 0 && (
+              <div className="text-center text-sm">
+                <span className="text-yellow-400">&#9733;</span>{" "}
+                <span className="font-medium text-gray-700 dark:text-gray-300">{avgRating.toFixed(1)}</span>
+                <span className="text-gray-400 dark:text-gray-500"> ({eventReviews.length} review{eventReviews.length !== 1 ? "s" : ""})</span>
+              </div>
+            )}
 
             <div className="pt-2">
               <BookingButton eventId={id} spotsLeft={spotsLeft} price={Number(event.price)} isPast={event.status === "completed"} userBooking={userBooking} />
