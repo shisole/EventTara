@@ -24,3 +24,29 @@ CREATE POLICY "Organizers can update event bookings" ON public.bookings
 
 -- Index for filtering by payment status
 CREATE INDEX idx_bookings_payment_status ON public.bookings(payment_status);
+
+-- Create payment-proofs storage bucket
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+  'payment-proofs',
+  'payment-proofs',
+  true,
+  5242880,
+  ARRAY['image/jpeg', 'image/png', 'image/webp']
+);
+
+-- Storage RLS policies
+CREATE POLICY "Authenticated users can upload payment proofs"
+ON storage.objects FOR INSERT
+TO authenticated
+WITH CHECK (bucket_id = 'payment-proofs');
+
+CREATE POLICY "Anyone can view payment proofs"
+ON storage.objects FOR SELECT
+TO authenticated
+USING (bucket_id = 'payment-proofs');
+
+CREATE POLICY "Users can update their own proofs"
+ON storage.objects FOR UPDATE
+TO authenticated
+USING (bucket_id = 'payment-proofs');
