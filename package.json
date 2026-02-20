@@ -9,6 +9,7 @@
     "lint": "next lint",
     "seed": "npx tsx scripts/seed.ts",
     "unseed": "npx tsx scripts/unseed.ts",
+    "seed:cms": "node --import tsx scripts/seed-cms-pages.ts",
     "docs:sync": "ts-node --compiler-options {\\\"module\\\":\\\"commonjs\\\",\\\"target\\\":\\\"ES2017\\\"} scripts/sync-docs/index.ts"
   },
   "dependencies": {
