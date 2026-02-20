@@ -22,7 +22,7 @@ export default async function CheckinPage({
   // Get all bookings with check-in status
   const { data: bookings } = await supabase
     .from("bookings")
-    .select("user_id, users:user_id(full_name, avatar_url)")
+    .select("id, user_id, users:user_id(full_name, avatar_url)")
     .eq("event_id", id)
     .in("status", ["confirmed", "pending"]);
 
@@ -35,13 +35,36 @@ export default async function CheckinPage({
     (checkins || []).map((c) => [c.user_id, c.checked_in_at])
   );
 
-  const participants = (bookings || []).map((b: any) => ({
-    userId: b.user_id,
+  const participants: { id: string; type: "user" | "companion"; fullName: string; avatarUrl: string | null; checkedIn: boolean; checkedInAt: string | null }[] = (bookings || []).map((b: any) => ({
+    id: b.user_id,
+    type: "user" as const,
     fullName: b.users?.full_name || "Guest",
     avatarUrl: b.users?.avatar_url || null,
     checkedIn: checkinMap.has(b.user_id),
     checkedInAt: checkinMap.get(b.user_id) || null,
   }));
+
+  // Fetch companions for all active bookings
+  const bookingIds = (bookings || []).map((b: any) => b.id);
+  if (bookingIds.length > 0) {
+    const { data: companions } = await supabase
+      .from("booking_companions")
+      .select("id, full_name, checked_in, checked_in_at, booking_id")
+      .in("booking_id", bookingIds);
+
+    if (companions) {
+      for (const comp of companions) {
+        participants.push({
+          id: comp.id,
+          type: "companion" as const,
+          fullName: `${comp.full_name} (companion)`,
+          avatarUrl: null,
+          checkedIn: comp.checked_in,
+          checkedInAt: comp.checked_in_at,
+        });
+      }
+    }
+  }
 
   return (
     <div className="space-y-6">
