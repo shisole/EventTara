@@ -130,6 +130,7 @@ export default function BookingForm({
         paymentStatus={booking.payment_status}
         paymentMethod={booking.payment_method}
         companions={booking.companions}
+        mode={mode}
       />
     );
   }
