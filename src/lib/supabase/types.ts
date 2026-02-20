@@ -229,6 +229,8 @@ export interface Database {
           title: string
           description: string | null
           image_url: string | null
+          category: 'distance' | 'adventure' | 'location' | 'special'
+          rarity: 'common' | 'rare' | 'epic' | 'legendary'
           created_at: string
         }
         Insert: {
@@ -237,6 +239,8 @@ export interface Database {
           title: string
           description?: string | null
           image_url?: string | null
+          category?: 'distance' | 'adventure' | 'location' | 'special'
+          rarity?: 'common' | 'rare' | 'epic' | 'legendary'
           created_at?: string
         }
         Update: {
@@ -245,6 +249,8 @@ export interface Database {
           title?: string
           description?: string | null
           image_url?: string | null
+          category?: 'distance' | 'adventure' | 'location' | 'special'
+          rarity?: 'common' | 'rare' | 'epic' | 'legendary'
           created_at?: string
         }
         Relationships: []
