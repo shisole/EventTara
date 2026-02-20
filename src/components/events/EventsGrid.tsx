@@ -19,6 +19,8 @@ interface EventData {
   organizer_name?: string;
   organizer_id?: string;
   coordinates?: { lat: number; lng: number } | null;
+  avg_rating?: number;
+  review_count?: number;
 }
 
 interface EventsGridProps {
@@ -90,6 +92,8 @@ export default function EventsGrid({ events }: EventsGridProps) {
               organizer_name={event.organizer_name}
               organizer_id={event.organizer_id}
               distance={event.distance}
+              avg_rating={event.avg_rating}
+              review_count={event.review_count}
             />
           </div>
         ))}

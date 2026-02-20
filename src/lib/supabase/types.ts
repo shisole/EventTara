@@ -229,6 +229,8 @@ export interface Database {
           title: string
           description: string | null
           image_url: string | null
+          category: 'distance' | 'adventure' | 'location' | 'special'
+          rarity: 'common' | 'rare' | 'epic' | 'legendary'
           created_at: string
         }
         Insert: {
@@ -237,6 +239,8 @@ export interface Database {
           title: string
           description?: string | null
           image_url?: string | null
+          category?: 'distance' | 'adventure' | 'location' | 'special'
+          rarity?: 'common' | 'rare' | 'epic' | 'legendary'
           created_at?: string
         }
         Update: {
@@ -245,6 +249,8 @@ export interface Database {
           title?: string
           description?: string | null
           image_url?: string | null
+          category?: 'distance' | 'adventure' | 'location' | 'special'
+          rarity?: 'common' | 'rare' | 'epic' | 'legendary'
           created_at?: string
         }
         Relationships: []
@@ -291,6 +297,66 @@ export interface Database {
           user_id?: string
           checked_in_at?: string
           method?: 'qr' | 'manual'
+        }
+        Relationships: []
+      }
+      app_testimonials: {
+        Row: {
+          id: string
+          name: string
+          role: string
+          text: string
+          avatar_url: string | null
+          display_order: number
+          is_active: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          role: string
+          text: string
+          avatar_url?: string | null
+          display_order?: number
+          is_active?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          role?: string
+          text?: string
+          avatar_url?: string | null
+          display_order?: number
+          is_active?: boolean
+          created_at?: string
+        }
+        Relationships: []
+      }
+      event_reviews: {
+        Row: {
+          id: string
+          event_id: string
+          user_id: string
+          rating: number
+          text: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          event_id: string
+          user_id: string
+          rating: number
+          text?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          event_id?: string
+          user_id?: string
+          rating?: number
+          text?: string | null
+          created_at?: string
         }
         Relationships: []
       }

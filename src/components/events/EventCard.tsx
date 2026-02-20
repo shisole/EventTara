@@ -20,6 +20,8 @@ interface EventCardProps {
   organizer_name?: string;
   organizer_id?: string;
   distance?: number;
+  avg_rating?: number;
+  review_count?: number;
 }
 
 const typeLabels: Record<string, string> = {
@@ -44,6 +46,8 @@ export default function EventCard({
   organizer_name,
   organizer_id,
   distance,
+  avg_rating,
+  review_count,
 }: EventCardProps) {
   const spotsLeft = max_participants - booking_count;
   const formattedDate = new Date(date).toLocaleDateString("en-PH", {
@@ -109,6 +113,13 @@ export default function EventCard({
               </span>
             )}
           </div>
+          {avg_rating != null && avg_rating > 0 && review_count != null && review_count > 0 && (
+            <div className="flex items-center gap-1 text-sm">
+              <span className="text-yellow-400">&#9733;</span>
+              <span className="font-medium text-gray-700 dark:text-gray-300">{avg_rating.toFixed(1)}</span>
+              <span className="text-gray-400 dark:text-gray-500">({review_count})</span>
+            </div>
+          )}
           <div className="flex items-center justify-between pt-2">
             <span className="font-bold text-lime-600 dark:text-lime-400">
               {price === 0 ? "Free" : `\u20B1${price.toLocaleString()}`}

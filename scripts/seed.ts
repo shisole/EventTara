@@ -421,6 +421,9 @@ async function cleanExistingTestData() {
   // events, badges etc. that are linked through organizer_profiles.
   // Because events FK to organizer_profiles (which FK to public.users),
   // deleting public.users cascades everything.
+  // Clean app testimonials (not tied to user cascade)
+  await supabase.from("app_testimonials").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+
   for (const user of testUsers) {
     const { error } = await supabase.auth.admin.deleteUser(user.id);
     if (error) {
@@ -807,6 +810,8 @@ interface BadgeDef {
   title: string;
   description: string;
   image_url: string;
+  category: 'distance' | 'adventure' | 'location' | 'special';
+  rarity: 'common' | 'rare' | 'epic' | 'legendary';
 }
 
 const BADGE_DEFS: BadgeDef[] = [
@@ -818,6 +823,8 @@ const BADGE_DEFS: BadgeDef[] = [
       "Awarded to participants who completed the Taal Volcano Day Hike and reached the crater rim.",
     image_url:
       "https://images.unsplash.com/photo-1600298881974-6be191ceeda1?w=200&h=200&fit=crop",
+    category: "adventure",
+    rarity: "common",
   },
   // Published events — pre-created by organizers
   {
@@ -827,6 +834,8 @@ const BADGE_DEFS: BadgeDef[] = [
       "Awarded to those who conquered Mt. Pulag and witnessed the legendary sunrise above the sea of clouds.",
     image_url:
       "https://images.unsplash.com/photo-1551632811-561732d1e306?w=200&h=200&fit=crop",
+    category: "adventure",
+    rarity: "epic",
   },
   {
     eventTitle: "Masungi Georeserve Trail Run",
@@ -835,6 +844,8 @@ const BADGE_DEFS: BadgeDef[] = [
       "You ran through the karst limestone landscape of Masungi Georeserve. Nature's obstacle course conquered!",
     image_url:
       "https://images.unsplash.com/photo-1452626038306-9aae5e071dd3?w=200&h=200&fit=crop",
+    category: "adventure",
+    rarity: "rare",
   },
   {
     eventTitle: "BGC Night Run 10K",
@@ -843,6 +854,8 @@ const BADGE_DEFS: BadgeDef[] = [
       "Finished the BGC Night Run 10K in the city lights of Bonifacio Global City. You owned the night!",
     image_url:
       "https://images.unsplash.com/photo-1571008887538-b36bb32f4571?w=200&h=200&fit=crop",
+    category: "distance",
+    rarity: "common",
   },
   {
     eventTitle: "Tagaytay Road Bike Loop",
@@ -851,6 +864,8 @@ const BADGE_DEFS: BadgeDef[] = [
       "Completed the scenic 80km Tagaytay loop with views of Taal Lake. Your legs earned this one.",
     image_url:
       "https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=200&h=200&fit=crop",
+    category: "distance",
+    rarity: "rare",
   },
   {
     eventTitle: "Mt. Banahaw MTB Adventure",
@@ -859,6 +874,8 @@ const BADGE_DEFS: BadgeDef[] = [
       "Conquered the technical single tracks and river crossings of the mystical Mt. Banahaw on two wheels.",
     image_url:
       "https://images.unsplash.com/photo-1544191696-102dbdaeeaa0?w=200&h=200&fit=crop",
+    category: "adventure",
+    rarity: "epic",
   },
   // Past event badges
   {
@@ -868,6 +885,8 @@ const BADGE_DEFS: BadgeDef[] = [
       "You hiked through volcanic lahar fields and reached the legendary turquoise crater lake of Mt. Pinatubo.",
     image_url:
       "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=200&h=200&fit=crop",
+    category: "adventure",
+    rarity: "rare",
   },
   {
     eventTitle: "Bataan Death March Trail Run",
@@ -876,6 +895,8 @@ const BADGE_DEFS: BadgeDef[] = [
       "Completed the historic 21K Bataan Death March Trail Run — honoring heroes through every step.",
     image_url:
       "https://images.unsplash.com/photo-1510227272981-87123e259b17?w=200&h=200&fit=crop",
+    category: "adventure",
+    rarity: "rare",
   },
   {
     eventTitle: "Mt. Apo Summit Trek",
@@ -884,6 +905,8 @@ const BADGE_DEFS: BadgeDef[] = [
       "You stood on the highest point in the Philippines. The roof of the archipelago is yours.",
     image_url:
       "https://images.unsplash.com/photo-1551632811-561732d1e306?w=200&h=200&fit=crop",
+    category: "adventure",
+    rarity: "legendary",
   },
   {
     eventTitle: "Clark-Subic Gran Fondo",
@@ -892,6 +915,8 @@ const BADGE_DEFS: BadgeDef[] = [
       "Pedaled 120km from Clark to Subic Bay through the hills of Bataan. Your legs are legends.",
     image_url:
       "https://images.unsplash.com/photo-1534787238916-9ba6764efd4f?w=200&h=200&fit=crop",
+    category: "distance",
+    rarity: "epic",
   },
   {
     eventTitle: "Corregidor Island MTB Ride",
@@ -900,6 +925,8 @@ const BADGE_DEFS: BadgeDef[] = [
       "Rode through WWII ruins and coastal cliffs on the historic island fortress of Corregidor.",
     image_url:
       "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=200&h=200&fit=crop",
+    category: "location",
+    rarity: "rare",
   },
   {
     eventTitle: "Quezon City Fun Run 5K",
@@ -908,6 +935,8 @@ const BADGE_DEFS: BadgeDef[] = [
       "Crossed the finish line at the QC Memorial Circle 5K. Every adventure starts with the first stride!",
     image_url:
       "https://images.unsplash.com/photo-1513593771513-7b58b6c4af38?w=200&h=200&fit=crop",
+    category: "distance",
+    rarity: "common",
   },
 ];
 
@@ -990,6 +1019,8 @@ async function createBadges(
         title: badge.title,
         description: badge.description,
         image_url: badge.image_url,
+        category: badge.category,
+        rarity: badge.rarity,
       })
       .select("id")
       .single();
@@ -1135,6 +1166,125 @@ const COMPANION_DEFS: CompanionDef[] = [
   },
 ];
 
+const APP_TESTIMONIALS = [
+  {
+    name: "Miguel Pascual",
+    role: "Trail Runner",
+    text: "EventTara made it so easy to find trail running events near me. I've joined three events already and met amazing people along the way!",
+    avatar_url: null,
+    display_order: 1,
+  },
+  {
+    name: "Rina Aquino",
+    role: "Mountain Biker",
+    text: "As someone new to MTB, I was nervous about joining group rides. EventTara's booking system was seamless, and the organizers were so welcoming.",
+    avatar_url: null,
+    display_order: 2,
+  },
+  {
+    name: "Paolo Guerrero",
+    role: "Hiking Enthusiast",
+    text: "I love how I can track my adventure badges on EventTara. It's like a passport for outdoor adventures in the Philippines!",
+    avatar_url: null,
+    display_order: 3,
+  },
+  {
+    name: "Camille Tan",
+    role: "Road Cyclist",
+    text: "Finally a platform that brings the PH cycling community together. The QR check-in system is super convenient for organizers and participants alike.",
+    avatar_url: null,
+    display_order: 4,
+  },
+];
+
+interface ReviewDef {
+  eventTitle: string;
+  userEmail: string;
+  rating: number;
+  text: string;
+}
+
+const REVIEW_DEFS: ReviewDef[] = [
+  {
+    eventTitle: "Taal Volcano Day Hike",
+    userEmail: `participant1${TEST_EMAIL_DOMAIN}`,
+    rating: 5,
+    text: "Incredible views from the crater rim! The guide was knowledgeable and the pace was perfect for beginners.",
+  },
+  {
+    eventTitle: "Taal Volcano Day Hike",
+    userEmail: `participant3${TEST_EMAIL_DOMAIN}`,
+    rating: 4,
+    text: "Great hike overall. The boat ride was fun. Only wish we had more time at the summit.",
+  },
+  {
+    eventTitle: "Mt. Pinatubo Crater Hike",
+    userEmail: `participant1${TEST_EMAIL_DOMAIN}`,
+    rating: 5,
+    text: "The crater lake is even more beautiful in person. The 4x4 ride through the lahar fields was an adventure on its own!",
+  },
+  {
+    eventTitle: "Mt. Pinatubo Crater Hike",
+    userEmail: `participant2${TEST_EMAIL_DOMAIN}`,
+    rating: 4,
+    text: "Well organized event. The landscape is surreal. Bring sunscreen and lots of water!",
+  },
+  {
+    eventTitle: "Bataan Death March Trail Run",
+    userEmail: `participant1${TEST_EMAIL_DOMAIN}`,
+    rating: 5,
+    text: "Deeply moving experience. The trail was challenging but the historical significance made every step meaningful.",
+  },
+  {
+    eventTitle: "Clark-Subic Gran Fondo",
+    userEmail: `participant1${TEST_EMAIL_DOMAIN}`,
+    rating: 4,
+    text: "Solid event. The route through Bataan is beautiful. Aid stations were well-stocked.",
+  },
+  {
+    eventTitle: "Clark-Subic Gran Fondo",
+    userEmail: `participant2${TEST_EMAIL_DOMAIN}`,
+    rating: 5,
+    text: "Best gran fondo I've done in the PH. Perfect organization and the post-ride BBQ was amazing!",
+  },
+  {
+    eventTitle: "Bataan Death March Trail Run",
+    userEmail: `participant3${TEST_EMAIL_DOMAIN}`,
+    rating: 4,
+    text: "Tough but rewarding. The trail markers were clear and the water stations were well-placed. Would definitely do it again.",
+  },
+  {
+    eventTitle: "Mt. Apo Summit Trek",
+    userEmail: `participant3${TEST_EMAIL_DOMAIN}`,
+    rating: 5,
+    text: "The highest peak in the Philippines — bucket list checked! Three days of breathtaking scenery. The guides were top-notch and the campsite views were unreal.",
+  },
+  {
+    eventTitle: "Mt. Apo Summit Trek",
+    userEmail: `participant2${TEST_EMAIL_DOMAIN}`,
+    rating: 5,
+    text: "Life-changing experience. Waking up above the clouds at the summit camp is something I'll never forget. Worth every peso.",
+  },
+  {
+    eventTitle: "Corregidor Island MTB Ride",
+    userEmail: `participant3${TEST_EMAIL_DOMAIN}`,
+    rating: 5,
+    text: "Riding through WWII ruins on a mountain bike — what an experience! Highly recommend.",
+  },
+  {
+    eventTitle: "Corregidor Island MTB Ride",
+    userEmail: `participant1${TEST_EMAIL_DOMAIN}`,
+    rating: 4,
+    text: "Unique combination of history and mountain biking. The ferry ride and island trails made for an unforgettable day.",
+  },
+  {
+    eventTitle: "Quezon City Fun Run 5K",
+    userEmail: `participant2${TEST_EMAIL_DOMAIN}`,
+    rating: 4,
+    text: "Perfect for beginners! The route through Memorial Circle was scenic and well-marked.",
+  },
+];
+
 /** Create booking companions with QR codes. */
 async function createCompanions(
   bookingMap: Map<string, string>,
@@ -1195,6 +1345,49 @@ async function createCompanions(
   }
 }
 
+async function seedAppTestimonials() {
+  log("💬", "Creating app testimonials...");
+
+  for (const t of APP_TESTIMONIALS) {
+    const { error } = await supabase.from("app_testimonials").insert(t);
+    if (error) {
+      console.error(`  Failed to create testimonial for "${t.name}": ${error.message}`);
+    } else {
+      log("  ✅", `${t.name} — ${t.role}`);
+    }
+  }
+}
+
+async function seedEventReviews(
+  userMap: Map<string, string>,
+  eventMap: Map<string, string>
+) {
+  log("⭐", "Creating event reviews...");
+
+  for (const review of REVIEW_DEFS) {
+    const userId = userMap.get(review.userEmail);
+    const eventId = eventMap.get(review.eventTitle);
+    if (!userId || !eventId) {
+      console.error(`  Missing user or event for review: ${review.userEmail} -> ${review.eventTitle}`);
+      continue;
+    }
+
+    const { error } = await supabase.from("event_reviews").insert({
+      event_id: eventId,
+      user_id: userId,
+      rating: review.rating,
+      text: review.text,
+    });
+
+    if (error) {
+      console.error(`  Failed to create review: ${error.message}`);
+    } else {
+      const name = TEST_USERS.find((u) => u.email === review.userEmail)?.full_name;
+      log("  ✅", `${name} reviewed ${review.eventTitle} (${review.rating}★)`);
+    }
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
@@ -1243,6 +1436,14 @@ async function main() {
 
     // Step 8: Create check-ins
     await createCheckins(userMap, eventMap);
+    console.log();
+
+    // Step 9: Create app testimonials
+    await seedAppTestimonials();
+    console.log();
+
+    // Step 10: Create event reviews
+    await seedEventReviews(userMap, eventMap);
     console.log();
 
     // Summary

@@ -9,7 +9,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { event_id, title, description, image_url } = await request.json();
+  const { event_id, title, description, image_url, category, rarity } = await request.json();
 
   // Check if badge already exists for event — upsert
   const { data: existing } = await supabase
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
   if (existing) {
     const { data: badge, error } = await supabase
       .from("badges")
-      .update({ title, description, image_url })
+      .update({ title, description, image_url, category, rarity })
       .eq("id", existing.id)
       .select()
       .single();
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
 
   const { data: badge, error } = await supabase
     .from("badges")
-    .insert({ event_id, title, description, image_url })
+    .insert({ event_id, title, description, image_url, category, rarity })
     .select()
     .single();
 

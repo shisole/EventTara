@@ -87,9 +87,13 @@ async function main() {
     }
     console.log();
 
-    // 2. Delete each test user (cascades through FK constraints)
+    // 2. Clean non-cascading tables (not tied to auth user FK)
+    console.log("Cleaning app_testimonials...");
+    await supabase.from("app_testimonials").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+
+    // 3. Delete each test user (cascades through FK constraints)
     //    auth.users -> public.users -> organizer_profiles -> events -> bookings,
-    //    badges, user_badges, event_checkins, event_photos
+    //    badges, user_badges, event_checkins, event_photos, event_reviews
     console.log("Deleting test accounts and all associated data...\n");
 
     let deleted = 0;

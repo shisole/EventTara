@@ -3,6 +3,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { resolvePresetImage } from "@/lib/constants/avatars";
+import { RARITY_STYLES, CATEGORY_STYLES } from "@/lib/constants/badge-rarity";
+import { cn } from "@/lib/utils";
+import ReviewForm from "@/components/reviews/ReviewForm";
 
 const typeLabels: Record<string, string> = {
   hiking: "Hiking",
@@ -65,12 +68,52 @@ export default async function BadgeDetailPage({ params }: { params: Promise<{ id
 
   const event = (badge as any).events;
 
+  const rarityStyle = RARITY_STYLES[(badge.rarity as keyof typeof RARITY_STYLES) || "common"];
+  const categoryStyle = badge.category ? CATEGORY_STYLES[badge.category as keyof typeof CATEGORY_STYLES] : null;
+
   // Fetch participants who earned this badge
   const { data: userBadges } = await supabase
     .from("user_badges")
     .select("awarded_at, users(id, full_name, avatar_url, username)")
     .eq("badge_id", id)
     .order("awarded_at", { ascending: false });
+
+  // Check if current user can review the event
+  const {
+    data: { user: authUser },
+  } = await supabase.auth.getUser();
+
+  let canReview = false;
+  let hasReviewed = false;
+  if (authUser && event) {
+    // Check event is completed
+    const { data: fullEvent } = await supabase
+      .from("events")
+      .select("status")
+      .eq("id", event.id)
+      .single();
+
+    if (fullEvent?.status === "completed") {
+      const { data: checkin } = await supabase
+        .from("event_checkins")
+        .select("id")
+        .eq("event_id", event.id)
+        .eq("user_id", authUser.id)
+        .single();
+
+      if (checkin) {
+        const { data: existingReview } = await supabase
+          .from("event_reviews")
+          .select("id")
+          .eq("event_id", event.id)
+          .eq("user_id", authUser.id)
+          .single();
+
+        hasReviewed = !!existingReview;
+        canReview = !hasReviewed;
+      }
+    }
+  }
 
   const participants = (userBadges || []).map((ub: any) => ({
     id: ub.users?.id,
@@ -90,7 +133,12 @@ export default async function BadgeDetailPage({ params }: { params: Promise<{ id
         {(() => {
           const resolved = resolvePresetImage(badge.image_url);
           return (
-            <div className={`w-32 h-32 rounded-full ${resolved?.type === "emoji" ? resolved.color : "bg-golden-100"} flex items-center justify-center overflow-hidden shadow-lg`}>
+            <div className={cn(
+              "w-32 h-32 rounded-full flex items-center justify-center overflow-hidden shadow-lg",
+              resolved?.type === "emoji" ? resolved.color : "bg-golden-100",
+              rarityStyle.ring,
+              rarityStyle.glow
+            )}>
               {resolved?.type === "url" ? (
                 <Image
                   src={resolved.url}
@@ -107,6 +155,19 @@ export default async function BadgeDetailPage({ params }: { params: Promise<{ id
         })()}
 
         <h1 className="text-2xl font-heading font-bold">{badge.title}</h1>
+
+        <div className="flex items-center gap-2 justify-center">
+          {badge.rarity && badge.rarity !== "common" && (
+            <span className={cn("inline-block text-xs px-2.5 py-1 rounded-full font-medium", rarityStyle.pill)}>
+              {rarityStyle.label}
+            </span>
+          )}
+          {categoryStyle && (
+            <span className={cn("inline-block text-xs px-2.5 py-1 rounded-full", categoryStyle.pill)}>
+              {categoryStyle.label}
+            </span>
+          )}
+        </div>
 
         {badge.description && (
           <p className="text-gray-600 dark:text-gray-400 max-w-md">{badge.description}</p>
@@ -211,6 +272,22 @@ export default async function BadgeDetailPage({ params }: { params: Promise<{ id
           <p className="text-center text-gray-500 dark:text-gray-400">No one has earned this badge yet.</p>
         )}
       </div>
+
+      {/* Leave a Review */}
+      {canReview && event && (
+        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-6">
+          <h2 className="text-lg font-heading font-bold mb-4 text-center">
+            How was {event.title}?
+          </h2>
+          <ReviewForm eventId={event.id} />
+        </div>
+      )}
+
+      {hasReviewed && (
+        <p className="text-center text-sm text-gray-500 dark:text-gray-400">
+          You&apos;ve already reviewed this event. Thanks!
+        </p>
+      )}
 
       {/* Back link */}
       <div className="text-center pt-4 border-t border-gray-100 dark:border-gray-800">
