@@ -3,31 +3,32 @@
 import { useEffect, useState } from "react";
 
 export default function SplashScreen() {
-  const [visible, setVisible] = useState(true);
+  const [visible, setVisible] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return !sessionStorage.getItem("splash_shown");
+  });
   const [fadeOut, setFadeOut] = useState(false);
 
   useEffect(() => {
-    // Start fade out after a brief moment to let auth resolve
-    const timer = setTimeout(() => {
-      setFadeOut(true);
-    }, 400);
+    if (!visible) return;
 
-    // Remove from DOM after fade animation
-    const removeTimer = setTimeout(() => {
-      setVisible(false);
-    }, 700);
+    sessionStorage.setItem("splash_shown", "1");
+
+    // Start fade immediately — just enough for a branded flash
+    const timer = setTimeout(() => setFadeOut(true), 150);
+    const removeTimer = setTimeout(() => setVisible(false), 400);
 
     return () => {
       clearTimeout(timer);
       clearTimeout(removeTimer);
     };
-  }, []);
+  }, [visible]);
 
   if (!visible) return null;
 
   return (
     <div
-      className={`fixed inset-0 z-[100] bg-white dark:bg-gray-950 flex items-center justify-center transition-opacity duration-300 ${
+      className={`fixed inset-0 z-[100] bg-white dark:bg-gray-950 flex items-center justify-center transition-opacity duration-250 ${
         fadeOut ? "opacity-0" : "opacity-100"
       }`}
     >

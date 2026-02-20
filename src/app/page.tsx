@@ -4,6 +4,9 @@ import { createClient } from "@/lib/supabase/server";
 import { Avatar } from "@/components/ui";
 import EventCard from "@/components/events/EventCard";
 import EventCarousel from "@/components/events/EventCarousel";
+import HostEventLink from "@/components/landing/HostEventLink";
+
+export const revalidate = 60;
 
 const categories = [
   {
@@ -56,12 +59,10 @@ export default async function Home() {
   const now = new Date().toISOString();
 
   const [
-    { data: { user: authUser } },
     { count: totalUpcoming },
     { data: upcomingEvents },
     { data: organizers },
   ] = await Promise.all([
-    supabase.auth.getUser(),
     supabase
       .from("events")
       .select("*", { count: "exact", head: true })
@@ -120,12 +121,7 @@ export default async function Home() {
             >
               Explore Events
             </Link>
-            <Link
-              href={!authUser || authUser.is_anonymous ? "/signup" : "/events"}
-              className="inline-flex items-center justify-center font-semibold rounded-xl text-lg py-4 px-8 border-2 border-gray-300 dark:border-slate-600 text-gray-600 dark:text-gray-300 hover:border-lime-500 hover:text-lime-600 dark:hover:text-lime-400 transition-colors"
-            >
-              Host Your Event
-            </Link>
+            <HostEventLink />
           </div>
         </div>
       </section>
