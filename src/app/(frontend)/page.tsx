@@ -8,6 +8,18 @@ import EventCarousel from "@/components/events/EventCarousel";
 import HeroCarousel from "@/components/landing/HeroCarousel";
 import HostEventLink from "@/components/landing/HostEventLink";
 
+export const metadata = {
+  title: "EventTara — Outdoor Adventure Events in Panay Island",
+  description:
+    "Discover hiking, trail running, mountain biking, and road cycling events across Panay Island. From the mountains of Igbaras and Tubungan to the coasts of Antique — find your next adventure on EventTara.",
+  openGraph: {
+    title: "EventTara — Outdoor Adventure Events in Panay Island",
+    description:
+      "Discover hiking, trail running, mountain biking, and road cycling events across Panay Island. Find your next adventure on EventTara.",
+    type: "website" as const,
+  },
+};
+
 export const revalidate = 60;
 
 const categories = [
