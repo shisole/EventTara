@@ -3,6 +3,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { resolvePresetImage } from "@/lib/constants/avatars";
+import { RARITY_STYLES, CATEGORY_STYLES } from "@/lib/constants/badge-rarity";
+import { cn } from "@/lib/utils";
 import ReviewForm from "@/components/reviews/ReviewForm";
 
 const typeLabels: Record<string, string> = {
@@ -66,6 +68,9 @@ export default async function BadgeDetailPage({ params }: { params: Promise<{ id
 
   const event = (badge as any).events;
 
+  const rarityStyle = RARITY_STYLES[(badge.rarity as keyof typeof RARITY_STYLES) || "common"];
+  const categoryStyle = badge.category ? CATEGORY_STYLES[badge.category as keyof typeof CATEGORY_STYLES] : null;
+
   // Fetch participants who earned this badge
   const { data: userBadges } = await supabase
     .from("user_badges")
@@ -128,7 +133,12 @@ export default async function BadgeDetailPage({ params }: { params: Promise<{ id
         {(() => {
           const resolved = resolvePresetImage(badge.image_url);
           return (
-            <div className={`w-32 h-32 rounded-full ${resolved?.type === "emoji" ? resolved.color : "bg-golden-100"} flex items-center justify-center overflow-hidden shadow-lg`}>
+            <div className={cn(
+              "w-32 h-32 rounded-full flex items-center justify-center overflow-hidden shadow-lg",
+              resolved?.type === "emoji" ? resolved.color : "bg-golden-100",
+              rarityStyle.ring,
+              rarityStyle.glow
+            )}>
               {resolved?.type === "url" ? (
                 <Image
                   src={resolved.url}
@@ -145,6 +155,19 @@ export default async function BadgeDetailPage({ params }: { params: Promise<{ id
         })()}
 
         <h1 className="text-2xl font-heading font-bold">{badge.title}</h1>
+
+        <div className="flex items-center gap-2 justify-center">
+          {badge.rarity && badge.rarity !== "common" && (
+            <span className={cn("inline-block text-xs px-2.5 py-1 rounded-full font-medium", rarityStyle.pill)}>
+              {rarityStyle.label}
+            </span>
+          )}
+          {categoryStyle && (
+            <span className={cn("inline-block text-xs px-2.5 py-1 rounded-full", categoryStyle.pill)}>
+              {categoryStyle.label}
+            </span>
+          )}
+        </div>
 
         {badge.description && (
           <p className="text-gray-600 dark:text-gray-400 max-w-md">{badge.description}</p>
