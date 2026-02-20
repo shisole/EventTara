@@ -794,6 +794,8 @@ interface BadgeDef {
   title: string;
   description: string;
   image_url: string;
+  category: 'distance' | 'adventure' | 'location' | 'special';
+  rarity: 'common' | 'rare' | 'epic' | 'legendary';
 }
 
 const BADGE_DEFS: BadgeDef[] = [
@@ -805,6 +807,8 @@ const BADGE_DEFS: BadgeDef[] = [
       "Awarded to participants who completed the Taal Volcano Day Hike and reached the crater rim.",
     image_url:
       "https://images.unsplash.com/photo-1600298881974-6be191ceeda1?w=200&h=200&fit=crop",
+    category: "adventure",
+    rarity: "common",
   },
   // Published events — pre-created by organizers
   {
@@ -814,6 +818,8 @@ const BADGE_DEFS: BadgeDef[] = [
       "Awarded to those who conquered Mt. Pulag and witnessed the legendary sunrise above the sea of clouds.",
     image_url:
       "https://images.unsplash.com/photo-1551632811-561732d1e306?w=200&h=200&fit=crop",
+    category: "adventure",
+    rarity: "epic",
   },
   {
     eventTitle: "Masungi Georeserve Trail Run",
@@ -822,6 +828,8 @@ const BADGE_DEFS: BadgeDef[] = [
       "You ran through the karst limestone landscape of Masungi Georeserve. Nature's obstacle course conquered!",
     image_url:
       "https://images.unsplash.com/photo-1452626038306-9aae5e071dd3?w=200&h=200&fit=crop",
+    category: "adventure",
+    rarity: "rare",
   },
   {
     eventTitle: "BGC Night Run 10K",
@@ -830,6 +838,8 @@ const BADGE_DEFS: BadgeDef[] = [
       "Finished the BGC Night Run 10K in the city lights of Bonifacio Global City. You owned the night!",
     image_url:
       "https://images.unsplash.com/photo-1571008887538-b36bb32f4571?w=200&h=200&fit=crop",
+    category: "distance",
+    rarity: "common",
   },
   {
     eventTitle: "Tagaytay Road Bike Loop",
@@ -838,6 +848,8 @@ const BADGE_DEFS: BadgeDef[] = [
       "Completed the scenic 80km Tagaytay loop with views of Taal Lake. Your legs earned this one.",
     image_url:
       "https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=200&h=200&fit=crop",
+    category: "distance",
+    rarity: "rare",
   },
   {
     eventTitle: "Mt. Banahaw MTB Adventure",
@@ -846,6 +858,8 @@ const BADGE_DEFS: BadgeDef[] = [
       "Conquered the technical single tracks and river crossings of the mystical Mt. Banahaw on two wheels.",
     image_url:
       "https://images.unsplash.com/photo-1544191696-102dbdaeeaa0?w=200&h=200&fit=crop",
+    category: "adventure",
+    rarity: "epic",
   },
   // Past event badges
   {
@@ -855,6 +869,8 @@ const BADGE_DEFS: BadgeDef[] = [
       "You hiked through volcanic lahar fields and reached the legendary turquoise crater lake of Mt. Pinatubo.",
     image_url:
       "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=200&h=200&fit=crop",
+    category: "adventure",
+    rarity: "rare",
   },
   {
     eventTitle: "Bataan Death March Trail Run",
@@ -863,6 +879,8 @@ const BADGE_DEFS: BadgeDef[] = [
       "Completed the historic 21K Bataan Death March Trail Run — honoring heroes through every step.",
     image_url:
       "https://images.unsplash.com/photo-1510227272981-87123e259b17?w=200&h=200&fit=crop",
+    category: "adventure",
+    rarity: "rare",
   },
   {
     eventTitle: "Mt. Apo Summit Trek",
@@ -871,6 +889,8 @@ const BADGE_DEFS: BadgeDef[] = [
       "You stood on the highest point in the Philippines. The roof of the archipelago is yours.",
     image_url:
       "https://images.unsplash.com/photo-1551632811-561732d1e306?w=200&h=200&fit=crop",
+    category: "adventure",
+    rarity: "legendary",
   },
   {
     eventTitle: "Clark-Subic Gran Fondo",
@@ -879,6 +899,8 @@ const BADGE_DEFS: BadgeDef[] = [
       "Pedaled 120km from Clark to Subic Bay through the hills of Bataan. Your legs are legends.",
     image_url:
       "https://images.unsplash.com/photo-1534787238916-9ba6764efd4f?w=200&h=200&fit=crop",
+    category: "distance",
+    rarity: "epic",
   },
   {
     eventTitle: "Corregidor Island MTB Ride",
@@ -887,6 +909,8 @@ const BADGE_DEFS: BadgeDef[] = [
       "Rode through WWII ruins and coastal cliffs on the historic island fortress of Corregidor.",
     image_url:
       "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=200&h=200&fit=crop",
+    category: "location",
+    rarity: "rare",
   },
   {
     eventTitle: "Quezon City Fun Run 5K",
@@ -895,6 +919,8 @@ const BADGE_DEFS: BadgeDef[] = [
       "Crossed the finish line at the QC Memorial Circle 5K. Every adventure starts with the first stride!",
     image_url:
       "https://images.unsplash.com/photo-1513593771513-7b58b6c4af38?w=200&h=200&fit=crop",
+    category: "distance",
+    rarity: "common",
   },
 ];
 
@@ -977,6 +1003,8 @@ async function createBadges(
         title: badge.title,
         description: badge.description,
         image_url: badge.image_url,
+        category: badge.category,
+        rarity: badge.rarity,
       })
       .select("id")
       .single();
