@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
+import { cdnUrl } from "@/lib/storage";
 import { Button } from "@/components/ui";
 import { cn } from "@/lib/utils";
 
@@ -101,7 +102,7 @@ export default function PhotoUploader({ bucket, path, value, onChange, label }: 
     }
 
     const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(fileName);
-    onChange(publicUrl);
+    onChange(cdnUrl(publicUrl) || publicUrl);
     setUploading(false);
   };
 
