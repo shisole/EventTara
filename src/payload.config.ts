@@ -1,4 +1,5 @@
 import { postgresAdapter } from '@payloadcms/db-postgres'
+import { Pages } from './payload/collections/pages'
 import { Navigation } from './payload/globals/navigation'
 import { SiteSettings } from './payload/globals/site-settings'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
@@ -26,6 +27,7 @@ export default buildConfig({
       },
       fields: [],
     },
+    Pages,
   ],
   globals: [SiteSettings, Navigation],
   editor: lexicalEditor(),
