@@ -20,7 +20,7 @@ CREATE POLICY "Anyone can read active testimonials"
 CREATE TABLE IF NOT EXISTS public.event_reviews (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   event_id UUID NOT NULL REFERENCES public.events(id) ON DELETE CASCADE,
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   rating SMALLINT NOT NULL CHECK (rating >= 1 AND rating <= 5),
   text TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
