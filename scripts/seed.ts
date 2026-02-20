@@ -123,6 +123,38 @@ const TEST_USERS: TestUser[] = [
     is_guest: true,
     avatar_url: "preset:mountain-goat",
   },
+  {
+    email: `organizer3${TEST_EMAIL_DOMAIN}`,
+    password: DEFAULT_PASSWORD,
+    full_name: "Jay Tablatin",
+    username: "jtt_trails",
+    role: "organizer",
+    avatar_url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face",
+  },
+  {
+    email: `organizer4${TEST_EMAIL_DOMAIN}`,
+    password: DEFAULT_PASSWORD,
+    full_name: "Teri Magbanua",
+    username: "ftt_treks",
+    role: "organizer",
+    avatar_url: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop&crop=face",
+  },
+  {
+    email: `organizer5${TEST_EMAIL_DOMAIN}`,
+    password: DEFAULT_PASSWORD,
+    full_name: "Yen Casimiro",
+    username: "yenergy_out",
+    role: "organizer",
+    avatar_url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop&crop=face",
+  },
+  {
+    email: `organizer6${TEST_EMAIL_DOMAIN}`,
+    password: DEFAULT_PASSWORD,
+    full_name: "Ruben Torres",
+    username: "ruborubo",
+    role: "organizer",
+    avatar_url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop&crop=face",
+  },
 ];
 
 interface OrgProfile {
@@ -135,19 +167,51 @@ interface OrgProfile {
 const ORGANIZER_PROFILES: OrgProfile[] = [
   {
     ownerEmail: `organizer1${TEST_EMAIL_DOMAIN}`,
-    org_name: "Trail Masters PH",
+    org_name: "Panay Trail Collective",
     description:
-      "Leading hiking and trail running events across the Philippines. We organize unforgettable outdoor adventures from easy day hikes to challenging multi-day expeditions through the country's most scenic mountains and trails.",
+      "Exploring the mountains and trails of Panay Island — from the highlands of Igbaras and Tubungan to the summit of Mt. Madja-as. We organize hiking, trail running, and outdoor adventures across Iloilo, Antique, and beyond.",
     logo_url:
       "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=200&h=200&fit=crop",
   },
   {
     ownerEmail: `organizer2${TEST_EMAIL_DOMAIN}`,
-    org_name: "Pedal Republic",
+    org_name: "Iloilo Pedal Club",
     description:
-      "Mountain biking and road cycling events for riders of all levels. From scenic road loops to adrenaline-pumping MTB trails, we bring the cycling community together for epic rides and races.",
+      "Road cycling and mountain biking events across Panay Island. From the coastal roads of Iloilo-Antique to the highland trails of Tubungan and Guimaras, we bring the Western Visayas cycling community together.",
     logo_url:
       "https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=200&h=200&fit=crop",
+  },
+  {
+    ownerEmail: `organizer3${TEST_EMAIL_DOMAIN}`,
+    org_name: "JTT (Journey Through Trails)",
+    description:
+      "Journey Through Trails — discovering the hidden paths of Panay Island one trail at a time. We organize weekend hikes, multi-day treks, and trail exploration events across Iloilo, Antique, and Capiz.",
+    logo_url:
+      "https://images.unsplash.com/photo-1501555088652-021faa106b9b?w=200&h=200&fit=crop",
+  },
+  {
+    ownerEmail: `organizer4${TEST_EMAIL_DOMAIN}`,
+    org_name: "Five Tersty Trekkers",
+    description:
+      "Five friends turned trail community — Five Tersty Trekkers brings the fun to every mountain adventure. From Igbaras to Antique, we hike with energy, laughter, and lots of water (we're always thirsty!).",
+    logo_url:
+      "https://images.unsplash.com/photo-1522163182402-834f871fd851?w=200&h=200&fit=crop",
+  },
+  {
+    ownerEmail: `organizer5${TEST_EMAIL_DOMAIN}`,
+    org_name: "Yenergy Outdoors",
+    description:
+      "Fueled by positive energy! Yenergy Outdoors organizes hiking, trail running, and outdoor fitness events across Western Visayas. We believe every mountain is a chance to recharge your soul.",
+    logo_url:
+      "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=200&h=200&fit=crop",
+  },
+  {
+    ownerEmail: `organizer6${TEST_EMAIL_DOMAIN}`,
+    org_name: "Rubo-rubo Lang",
+    description:
+      "Rubo-rubo lang — just wandering! A laid-back hiking community that explores the trails of Panay at our own pace. No pressure, no rush. Just good vibes, good views, and good company.",
+    logo_url:
+      "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=200&h=200&fit=crop",
   },
 ];
 
@@ -191,206 +255,322 @@ interface TestEvent {
 }
 
 const TEST_EVENTS: TestEvent[] = [
-  // ---- Organizer 1: Trail Masters PH ----
+  // ---- Organizer 1: Panay Trail Collective ----
   {
-    orgProfileName: "Trail Masters PH",
-    title: "Mt. Pulag Sunrise Hike",
+    orgProfileName: "Panay Trail Collective",
+    title: "Mt. Madja-as Summit Trek",
     description:
-      "Experience the breathtaking sea of clouds at the summit of Mt. Pulag, the third highest peak in the Philippines. This guided sunrise hike follows the Ambangeg Trail, the easiest route to the summit. Includes campsite fee, guide, and hot breakfast. Bring warm clothes - temperatures can drop below zero!",
+      "Conquer the highest peak on Panay Island! This 2-day guided trek to the summit of Mt. Madja-as (2,117m) in Antique takes you through mossy forest, cloud forest, and exposed ridgelines with panoramic views of the Visayan Sea. Includes guide, porter, campsite fee, and meals. Bring cold-weather gear — summit temperatures can drop to single digits!",
     type: "hiking",
     date: daysFromNow(14),
-    location: "Mt. Pulag, Benguet",
-    coordinates: { lat: 16.5917, lng: 120.8983 },
-    max_participants: 30,
-    price: 500,
+    location: "Mt. Madja-as, Culasi, Antique",
+    coordinates: { lat: 11.3850, lng: 122.0600 },
+    max_participants: 20,
+    price: 2500,
     status: "published",
     cover_image_url: COVER_IMAGES.hiking,
   },
   {
-    orgProfileName: "Trail Masters PH",
-    title: "Masungi Georeserve Trail Run",
+    orgProfileName: "Panay Trail Collective",
+    title: "Bucari Pine Forest Trail Run",
     description:
-      "Run through the stunning karst landscape of Masungi Georeserve in Rizal. This trail run takes you through rope courses, hanging bridges, and breathtaking viewpoints. A unique combination of trail running and nature exploration. Includes park entrance fee and hydration stations.",
+      "Run through the pine-covered highlands of Bucari in Leon, Iloilo. This scenic 15K trail run winds through rolling hills of Benguet pine trees at 900m elevation — a cool escape from the Iloilo heat. Includes hydration stations, finisher medal, and a post-run bonfire. One of the most unique trail running experiences in the Visayas.",
     type: "trail_run",
-    date: daysFromNow(30),
-    location: "Masungi Georeserve, Rizal",
-    coordinates: { lat: 14.5785, lng: 121.3419 },
-    max_participants: 25,
-    price: 800,
+    date: daysFromNow(21),
+    location: "Bucari, Leon, Iloilo",
+    coordinates: { lat: 10.7833, lng: 122.3667 },
+    max_participants: 40,
+    price: 600,
     status: "published",
     cover_image_url: COVER_IMAGES.trail_run,
   },
   {
-    orgProfileName: "Trail Masters PH",
-    title: "Taal Volcano Day Hike",
+    orgProfileName: "Panay Trail Collective",
+    title: "Igbaras Mountain Day Hike",
     description:
-      "A classic day hike to Taal Volcano, the smallest active volcano in the world. Enjoy panoramic views of Taal Lake from the crater rim. This beginner-friendly hike includes boat ride, guide, and refreshments. Perfect for first-time hikers!",
+      "Explore the lush mountains of Igbaras, the hiking capital of Iloilo. This beginner-friendly day hike takes you past Nadsadan Falls and through dense tropical forest to a scenic ridge overlooking the town and the Panay Gulf. Perfect for first-timers. Includes guide, lunch, and river dip at the falls.",
     type: "hiking",
     date: daysFromNow(-14),
-    location: "Taal Volcano, Batangas",
-    coordinates: { lat: 14.0113, lng: 120.9980 },
-    max_participants: 40,
+    location: "Igbaras, Iloilo",
+    coordinates: { lat: 10.7200, lng: 122.2700 },
+    max_participants: 35,
     price: 350,
     status: "completed",
     cover_image_url: COVER_IMAGES.hiking_alt,
   },
   {
-    orgProfileName: "Trail Masters PH",
-    title: "Sierra Madre Trail Challenge",
+    orgProfileName: "Panay Trail Collective",
+    title: "Mt. Nangtud Expedition",
     description:
-      "Take on the ultimate trail running challenge in the Sierra Madre mountain range. A grueling 25K course through dense forest, river crossings, and steep climbs. Only for experienced trail runners. Finisher medals and post-race feast included.",
+      "Attempt the second highest peak in Panay — Mt. Nangtud (2,073m) in the deep mountains of Antique. This 3-day expedition through virgin forest and steep ridges is strictly for experienced mountaineers. All-inclusive: guides, porters, camping gear, and all meals from basecamp to summit.",
     type: "trail_run",
     date: daysFromNow(45),
-    location: "Sierra Madre, Rizal",
-    coordinates: { lat: 14.7500, lng: 121.4500 },
-    max_participants: 20,
-    price: 1200,
+    location: "Mt. Nangtud, Sebaste, Antique",
+    coordinates: { lat: 11.3500, lng: 122.0200 },
+    max_participants: 15,
+    price: 3500,
     status: "draft",
     cover_image_url: COVER_IMAGES.trail_run_alt,
   },
-  // ---- Organizer 2: Pedal Republic ----
+  // ---- Organizer 2: Iloilo Pedal Club ----
   {
-    orgProfileName: "Pedal Republic",
-    title: "Tagaytay Road Bike Loop",
+    orgProfileName: "Iloilo Pedal Club",
+    title: "Iloilo-Antique Coastal Road Ride",
     description:
-      "Ride the scenic Tagaytay loop with stunning views of Taal Lake. This 80km road cycling event follows the classic route through Nasugbu, Tagaytay, and back. Includes SAG support vehicle, hydration stops, and post-ride meal. Road bikes recommended.",
+      "Ride the stunning coastal road from Iloilo City to San Jose de Buenavista, Antique. This 120km road cycling event hugs the coastline through Miag-ao, San Joaquin, and the scenic mountain passes of southern Iloilo. Includes SAG support vehicle, hydration stops every 25km, and a seafood feast in Antique. Road bikes recommended.",
     type: "road_bike",
-    date: daysFromNow(21),
-    location: "Tagaytay, Cavite",
-    coordinates: { lat: 14.1153, lng: 120.9621 },
+    date: daysFromNow(28),
+    location: "Iloilo City to San Jose, Antique",
+    coordinates: { lat: 10.7202, lng: 122.5621 },
     max_participants: 35,
-    price: 600,
+    price: 800,
     status: "published",
     cover_image_url: COVER_IMAGES.road_bike,
   },
   {
-    orgProfileName: "Pedal Republic",
-    title: "Mt. Banahaw MTB Adventure",
+    orgProfileName: "Iloilo Pedal Club",
+    title: "Tubungan Highlands MTB",
     description:
-      "Explore the mystical trails of Mt. Banahaw on a mountain bike. Technical single tracks, river crossings, and challenging climbs await. This intermediate-level MTB event includes mechanical support, lunch, and a commemorative jersey.",
+      "Take on the highland trails of Tubungan, Iloilo on a mountain bike. Rolling single tracks through farmlands, river crossings, and steep climbs with rewarding views of the surrounding mountains. This intermediate-level MTB event includes mechanical support, local lunch, and a cold spring dip. Hardtail or full-suspension recommended.",
     type: "mtb",
-    date: daysFromNow(30),
-    location: "Mt. Banahaw, Quezon",
-    coordinates: { lat: 14.0692, lng: 121.4887 },
-    max_participants: 20,
-    price: 900,
+    date: daysFromNow(14),
+    location: "Tubungan, Iloilo",
+    coordinates: { lat: 10.7500, lng: 122.3000 },
+    max_participants: 25,
+    price: 500,
     status: "published",
     cover_image_url: COVER_IMAGES.mtb,
   },
   {
-    orgProfileName: "Pedal Republic",
-    title: "BGC Night Run 10K",
+    orgProfileName: "Iloilo Pedal Club",
+    title: "Iloilo Esplanade Night Run 10K",
     description:
-      "Hit the streets of BGC for a fun 10K night run! Run through the vibrant nightlife of Bonifacio Global City with live music, LED armbands, and a post-run party. Open to all fitness levels. Includes race kit, finisher medal, and event shirt.",
+      "Run the iconic Iloilo Esplanade at night! This 10K night run takes you along the beautifully lit riverside boardwalk, through the streets of Mandurriao, and past the Iloilo Business Park. Open to all fitness levels. Includes race kit, LED armband, finisher medal, and post-run street food festival. The best way to experience Iloilo City after dark.",
     type: "running",
-    date: daysFromNow(14),
-    location: "Bonifacio Global City, Taguig",
-    coordinates: { lat: 14.5547, lng: 121.0509 },
+    date: daysFromNow(7),
+    location: "Esplanade, Iloilo City",
+    coordinates: { lat: 10.7130, lng: 122.5650 },
     max_participants: 100,
-    price: 450,
+    price: 400,
     status: "published",
     cover_image_url: COVER_IMAGES.running,
   },
   {
-    orgProfileName: "Pedal Republic",
-    title: "Subic MTB Trail Ride",
+    orgProfileName: "Iloilo Pedal Club",
+    title: "Guimaras Island MTB Adventure",
     description:
-      "An MTB trail ride through the forests of Subic Bay Freeport Zone. Rolling hills, flowing single tracks, and wide fire roads make this perfect for intermediate riders. Includes park entrance and post-ride refreshments.",
+      "Cross the Iloilo Strait by boat and explore Guimaras Island on mountain bikes. Scenic coastal trails, mango plantation roads, and rolling hills make this a unique island MTB experience. Includes boat transfer, park entrance, lunch, and mechanical support. Don't miss the fresh mangoes at the finish!",
     type: "mtb",
-    date: daysFromNow(28),
-    location: "Subic Bay Freeport Zone, Zambales",
-    coordinates: { lat: 14.7943, lng: 120.2832 },
-    max_participants: 25,
-    price: 700,
+    date: daysFromNow(35),
+    location: "Guimaras Island",
+    coordinates: { lat: 10.5880, lng: 122.6280 },
+    max_participants: 20,
+    price: 900,
     status: "cancelled",
     cover_image_url: COVER_IMAGES.mtb_alt,
   },
   // ---- Past / Completed Events ----
-  // Trail Masters PH
+  // Panay Trail Collective
   {
-    orgProfileName: "Trail Masters PH",
-    title: "Mt. Pinatubo Crater Hike",
+    orgProfileName: "Panay Trail Collective",
+    title: "Nadsadan Falls Day Hike",
     description:
-      "Trek through the lahar-covered landscapes of Mt. Pinatubo and gaze into one of the world's most dramatic volcanic craters. The turquoise crater lake at the summit is an unforgettable sight. Includes 4x4 ride, guide, lunch, and crater fee.",
+      "A refreshing day hike to the multi-tiered Nadsadan Falls in Igbaras, Iloilo. Trek through bamboo groves and river trails to reach the stunning cascade. Includes guide, packed lunch, and plenty of time for swimming in the crystal-clear pools. A perfect weekend escape from the city.",
     type: "hiking",
-    date: daysFromNow(-30),
-    location: "Mt. Pinatubo, Tarlac",
-    coordinates: { lat: 15.1429, lng: 120.3496 },
-    max_participants: 35,
-    price: 650,
+    date: daysFromNow(-21),
+    location: "Nadsadan Falls, Igbaras, Iloilo",
+    coordinates: { lat: 10.7150, lng: 122.2650 },
+    max_participants: 30,
+    price: 300,
     status: "completed",
     cover_image_url: COVER_IMAGES.hiking_alt2,
   },
   {
-    orgProfileName: "Trail Masters PH",
-    title: "Bataan Death March Trail Run",
+    orgProfileName: "Panay Trail Collective",
+    title: "Miag-ao Heritage Trail Run",
     description:
-      "A historic 21K trail run along the routes of the Bataan Death March. Pay tribute to heroes while pushing your limits through jungle terrain and rolling hills. A deeply meaningful race that combines history and athleticism. Finisher medal included.",
+      "A scenic 21K trail run starting from the UNESCO World Heritage Miag-ao Church, through coastal paths, rice paddies, and the rolling hills of southern Iloilo. Experience history and nature combined. Includes finisher medal, hydration stations, and a heritage town tour post-race.",
     type: "trail_run",
-    date: daysFromNow(-60),
-    location: "Mt. Samat, Bataan",
-    coordinates: { lat: 14.5700, lng: 120.4400 },
-    max_participants: 40,
-    price: 750,
+    date: daysFromNow(-45),
+    location: "Miag-ao, Iloilo",
+    coordinates: { lat: 10.6440, lng: 122.2340 },
+    max_participants: 50,
+    price: 650,
     status: "completed",
     cover_image_url: COVER_IMAGES.trail_run_alt,
   },
   {
-    orgProfileName: "Trail Masters PH",
-    title: "Mt. Apo Summit Trek",
+    orgProfileName: "Panay Trail Collective",
+    title: "Mt. Malinao Summit Hike",
     description:
-      "Stand on the highest point in the Philippines! This 3-day guided trek to the summit of Mt. Apo takes you through cloud forest, sulfuric vents, and stunning ridgelines. All-inclusive package: guide, porter, meals, and camping gear provided.",
+      "Trek to the summit of Mt. Malinao (1,610m) in Aklan, the sacred mountain of the Ati people. This challenging day hike passes through old-growth forest and mossy trails. On a clear day, the summit offers views of Boracay Island, the Sibuyan Sea, and the Antique mountain range. Guide and packed meals included.",
     type: "hiking",
-    date: daysFromNow(-90),
-    location: "Mt. Apo, Davao del Sur",
-    coordinates: { lat: 6.9871, lng: 125.2710 },
-    max_participants: 15,
-    price: 4500,
+    date: daysFromNow(-75),
+    location: "Mt. Malinao, Malinao, Aklan",
+    coordinates: { lat: 11.6900, lng: 122.1800 },
+    max_participants: 20,
+    price: 1200,
     status: "completed",
     cover_image_url: COVER_IMAGES.hiking,
   },
-  // Pedal Republic
+  // Iloilo Pedal Club
   {
-    orgProfileName: "Pedal Republic",
-    title: "Clark-Subic Gran Fondo",
+    orgProfileName: "Iloilo Pedal Club",
+    title: "Panay Circumferential Road Ride",
     description:
-      "A classic 120km road cycling gran fondo from Clark Freeport to Subic Bay. Rolling terrain through Bataan's scenic countryside with fully supported aid stations every 20km. Chip timing, SAG wagons, and a post-ride barbecue feast await finishers.",
+      "The ultimate Panay cycling challenge — a 2-day 300km road ride around the entire island. Day 1: Iloilo to Roxas City via Capiz coast. Day 2: Roxas to Kalibo to Antique and back to Iloilo. Fully supported with SAG wagons, aid stations, overnight accommodation, and meals. For serious cyclists only.",
     type: "road_bike",
     date: daysFromNow(-30),
-    location: "Clark Freeport Zone, Pampanga",
-    coordinates: { lat: 15.1861, lng: 120.5467 },
-    max_participants: 60,
-    price: 1100,
+    location: "Panay Island Circumferential",
+    coordinates: { lat: 11.0000, lng: 122.5000 },
+    max_participants: 30,
+    price: 2500,
     status: "completed",
     cover_image_url: COVER_IMAGES.road_bike_alt,
   },
   {
-    orgProfileName: "Pedal Republic",
-    title: "Corregidor Island MTB Ride",
+    orgProfileName: "Iloilo Pedal Club",
+    title: "Malalison Island Trail Ride",
     description:
-      "Explore the historic island fortress of Corregidor on mountain bikes. Winding trails through WWII ruins, bunkers, and coastal cliffs create an unforgettable riding experience. Ferry ride and island entrance fee included.",
+      "Take a boat to the remote Malalison Island off the coast of Culasi, Antique, and explore its rugged trails on mountain bikes. Coastal cliffs, white sand coves, and challenging rocky terrain make this a one-of-a-kind MTB experience. Includes boat transfer, island guide, lunch, and beach time.",
     type: "mtb",
     date: daysFromNow(-60),
-    location: "Corregidor Island, Manila Bay",
-    coordinates: { lat: 14.3814, lng: 120.5747 },
-    max_participants: 20,
-    price: 1800,
+    location: "Malalison Island, Culasi, Antique",
+    coordinates: { lat: 11.4400, lng: 121.9600 },
+    max_participants: 15,
+    price: 1500,
     status: "completed",
     cover_image_url: COVER_IMAGES.mtb,
   },
   {
-    orgProfileName: "Pedal Republic",
-    title: "Quezon City Fun Run 5K",
+    orgProfileName: "Iloilo Pedal Club",
+    title: "Iloilo City Fun Run 5K",
     description:
-      "A beginner-friendly 5K fun run through the tree-lined streets of Quezon City Memorial Circle. Perfect for first-time runners and families. Includes race bib, finisher medal, and free breakfast at the finish line.",
+      "A beginner-friendly 5K fun run through the streets of Iloilo City. Starting at the Iloilo Esplanade, the route passes by the iconic Molo Church, through the tree-lined streets of Jaro, and finishes at SM City Iloilo. Perfect for first-time runners and families. Includes race bib, finisher medal, and free La Paz batchoy at the finish!",
     type: "running",
     date: daysFromNow(-90),
-    location: "QC Memorial Circle, Quezon City",
-    coordinates: { lat: 14.6518, lng: 121.0492 },
+    location: "Iloilo City",
+    coordinates: { lat: 10.6920, lng: 122.5640 },
     max_participants: 200,
     price: 250,
     status: "completed",
     cover_image_url: COVER_IMAGES.running_alt,
+  },
+  // ---- Organizer 3: JTT (Journey Through Trails) ----
+  {
+    orgProfileName: "JTT (Journey Through Trails)",
+    title: "Igbaras-Tubungan Traverse",
+    description:
+      "A challenging day traverse connecting the mountain trails of Igbaras and Tubungan. Start from Brgy. Passi in Igbaras, cross the ridgeline, and descend into the highlands of Tubungan. Roughly 18km of trail through farmland, forest, and river valleys. For experienced hikers. Guide and lunch included.",
+    type: "hiking",
+    date: daysFromNow(10),
+    location: "Igbaras to Tubungan, Iloilo",
+    coordinates: { lat: 10.7350, lng: 122.2850 },
+    max_participants: 25,
+    price: 450,
+    status: "published",
+    cover_image_url: COVER_IMAGES.hiking,
+  },
+  {
+    orgProfileName: "JTT (Journey Through Trails)",
+    title: "Bacolod de Tubungan Heritage Hike",
+    description:
+      "Discover the old Spanish-era ruins and mountain trails around Bacolod de Tubungan. This easy-to-moderate hike explores the historical sites and natural springs of one of Iloilo's hidden gems. Guide, snacks, and local history briefing included.",
+    type: "hiking",
+    date: daysFromNow(-35),
+    location: "Tubungan, Iloilo",
+    coordinates: { lat: 10.7480, lng: 122.3100 },
+    max_participants: 30,
+    price: 300,
+    status: "completed",
+    cover_image_url: COVER_IMAGES.hiking_alt2,
+  },
+  // ---- Organizer 4: Five Tersty Trekkers ----
+  {
+    orgProfileName: "Five Tersty Trekkers",
+    title: "Pan de Azucar Island Day Trek",
+    description:
+      "Trek to the summit of Pan de Azucar (Sugar Loaf) island off the coast of Concepcion, Iloilo. A boat ride across turquoise waters leads to a steep but rewarding climb with 360-degree views of the Visayan Sea. Includes boat transfer, guide, and island picnic lunch.",
+    type: "hiking",
+    date: daysFromNow(18),
+    location: "Pan de Azucar Island, Concepcion, Iloilo",
+    coordinates: { lat: 11.2700, lng: 123.0800 },
+    max_participants: 20,
+    price: 700,
+    status: "published",
+    cover_image_url: COVER_IMAGES.hiking_alt,
+  },
+  {
+    orgProfileName: "Five Tersty Trekkers",
+    title: "Baloy Falls Adventure Hike",
+    description:
+      "Trek through the jungles of San Joaquin to reach the stunning Baloy Falls — a multi-tiered cascade hidden deep in the mountains of southern Iloilo. River crossings, rope sections, and jungle trails make this an exciting adventure for intermediate hikers. Guide and packed lunch included.",
+    type: "hiking",
+    date: daysFromNow(-50),
+    location: "San Joaquin, Iloilo",
+    coordinates: { lat: 10.5900, lng: 122.2100 },
+    max_participants: 20,
+    price: 400,
+    status: "completed",
+    cover_image_url: COVER_IMAGES.hiking,
+  },
+  // ---- Organizer 5: Yenergy Outdoors ----
+  {
+    orgProfileName: "Yenergy Outdoors",
+    title: "Mt. Napulak Sunrise Hike",
+    description:
+      "Catch the sunrise from the summit of Mt. Napulak in Igbaras, one of the most accessible peaks in Iloilo. Start the pre-dawn hike at 3 AM and reach the summit just in time for golden hour. Includes guide, headlamps, and breakfast at the summit. Perfect for all fitness levels.",
+    type: "hiking",
+    date: daysFromNow(5),
+    location: "Mt. Napulak, Igbaras, Iloilo",
+    coordinates: { lat: 10.7100, lng: 122.2800 },
+    max_participants: 30,
+    price: 350,
+    status: "published",
+    cover_image_url: COVER_IMAGES.hiking_alt2,
+  },
+  {
+    orgProfileName: "Yenergy Outdoors",
+    title: "Calinog Highland Trail Run 15K",
+    description:
+      "A 15K trail run through the rolling highlands of Calinog, Iloilo. Pass through coffee plantations, river crossings, and open grasslands with views of the central Panay mountain range. Includes finisher medal, hydration stations, and a post-run recovery meal. Moderate difficulty.",
+    type: "trail_run",
+    date: daysFromNow(-25),
+    location: "Calinog, Iloilo",
+    coordinates: { lat: 10.8500, lng: 122.3500 },
+    max_participants: 40,
+    price: 500,
+    status: "completed",
+    cover_image_url: COVER_IMAGES.trail_run,
+  },
+  // ---- Organizer 6: Rubo-rubo Lang ----
+  {
+    orgProfileName: "Rubo-rubo Lang",
+    title: "Garin Farm Hilltop Hike",
+    description:
+      "A relaxed day hike to the famous Garin Farm hilltop in San Joaquin, Iloilo. Climb the 456 steps to the heavenly garden replica with views of the coastline and surrounding mountains. Perfect for families and casual hikers. Includes farm entrance, guide, and organic lunch.",
+    type: "hiking",
+    date: daysFromNow(12),
+    location: "Garin Farm, San Joaquin, Iloilo",
+    coordinates: { lat: 10.5950, lng: 122.1950 },
+    max_participants: 40,
+    price: 500,
+    status: "published",
+    cover_image_url: COVER_IMAGES.hiking_alt,
+  },
+  {
+    orgProfileName: "Rubo-rubo Lang",
+    title: "Anini-y Coastal Trail Walk",
+    description:
+      "A chill coastal trail walk along the cliffs and beaches of Anini-y, Antique. No rush, no pressure — just a relaxing 8km walk with ocean views, tide pools, and a seafood lunch by the beach. The rubo-rubo (wandering) way of hiking.",
+    type: "hiking",
+    date: daysFromNow(-40),
+    location: "Anini-y, Antique",
+    coordinates: { lat: 10.4600, lng: 121.9500 },
+    max_participants: 25,
+    price: 350,
+    status: "completed",
+    cover_image_url: COVER_IMAGES.hiking_alt2,
   },
 ];
 
@@ -595,39 +775,33 @@ async function createBookings(
   }
 
   const bookings: BookingDef[] = [
+    // ---- Upcoming event bookings ----
     // Jake's bookings
     {
       userEmail: `participant1${TEST_EMAIL_DOMAIN}`,
-      eventTitle: "Mt. Pulag Sunrise Hike",
+      eventTitle: "Mt. Madja-as Summit Trek",
       status: "confirmed",
       payment_status: "paid",
       payment_method: "gcash",
     },
     {
       userEmail: `participant1${TEST_EMAIL_DOMAIN}`,
-      eventTitle: "Tagaytay Road Bike Loop",
+      eventTitle: "Iloilo-Antique Coastal Road Ride",
       status: "confirmed",
       payment_status: "paid",
       payment_method: "maya",
     },
-    {
-      userEmail: `participant1${TEST_EMAIL_DOMAIN}`,
-      eventTitle: "Taal Volcano Day Hike",
-      status: "confirmed",
-      payment_status: "paid",
-      payment_method: "gcash",
-    },
     // Maria's bookings
     {
       userEmail: `participant2${TEST_EMAIL_DOMAIN}`,
-      eventTitle: "Mt. Pulag Sunrise Hike",
+      eventTitle: "Mt. Madja-as Summit Trek",
       status: "confirmed",
       payment_status: "paid",
       payment_method: "gcash",
     },
     {
       userEmail: `participant2${TEST_EMAIL_DOMAIN}`,
-      eventTitle: "BGC Night Run 10K",
+      eventTitle: "Iloilo Esplanade Night Run 10K",
       status: "confirmed",
       payment_status: "paid",
       payment_method: "maya",
@@ -635,14 +809,7 @@ async function createBookings(
     // Carlos's bookings
     {
       userEmail: `participant3${TEST_EMAIL_DOMAIN}`,
-      eventTitle: "Taal Volcano Day Hike",
-      status: "confirmed",
-      payment_status: "paid",
-      payment_method: "gcash",
-    },
-    {
-      userEmail: `participant3${TEST_EMAIL_DOMAIN}`,
-      eventTitle: "Masungi Georeserve Trail Run",
+      eventTitle: "Bucari Pine Forest Trail Run",
       status: "pending",
       payment_status: "pending",
       payment_method: "gcash",
@@ -650,7 +817,7 @@ async function createBookings(
     // Cash booking — pending, pays on event day
     {
       userEmail: `participant3${TEST_EMAIL_DOMAIN}`,
-      eventTitle: "BGC Night Run 10K",
+      eventTitle: "Iloilo Esplanade Night Run 10K",
       status: "pending",
       payment_status: "pending",
       payment_method: "cash",
@@ -658,7 +825,7 @@ async function createBookings(
     // Rejected payment — needs re-upload
     {
       userEmail: `participant2${TEST_EMAIL_DOMAIN}`,
-      eventTitle: "Tagaytay Road Bike Loop",
+      eventTitle: "Iloilo-Antique Coastal Road Ride",
       status: "pending",
       payment_status: "rejected",
       payment_method: "maya",
@@ -666,98 +833,173 @@ async function createBookings(
     // Guest's booking
     {
       userEmail: `guest${TEST_EMAIL_DOMAIN}`,
-      eventTitle: "BGC Night Run 10K",
+      eventTitle: "Iloilo Esplanade Night Run 10K",
       status: "confirmed",
       payment_status: "paid",
       payment_method: "gcash",
     },
     // ---- Past event bookings ----
-    // Mt. Pinatubo Crater Hike (-30 days)
+    // Igbaras Mountain Day Hike (-14 days)
     {
       userEmail: `participant1${TEST_EMAIL_DOMAIN}`,
-      eventTitle: "Mt. Pinatubo Crater Hike",
-      status: "confirmed",
-      payment_status: "paid",
-      payment_method: "gcash",
-    },
-    {
-      userEmail: `participant2${TEST_EMAIL_DOMAIN}`,
-      eventTitle: "Mt. Pinatubo Crater Hike",
-      status: "confirmed",
-      payment_status: "paid",
-      payment_method: "maya",
-    },
-    // Bataan Death March Trail Run (-60 days)
-    {
-      userEmail: `participant1${TEST_EMAIL_DOMAIN}`,
-      eventTitle: "Bataan Death March Trail Run",
+      eventTitle: "Igbaras Mountain Day Hike",
       status: "confirmed",
       payment_status: "paid",
       payment_method: "gcash",
     },
     {
       userEmail: `participant3${TEST_EMAIL_DOMAIN}`,
-      eventTitle: "Bataan Death March Trail Run",
+      eventTitle: "Igbaras Mountain Day Hike",
       status: "confirmed",
       payment_status: "paid",
       payment_method: "gcash",
     },
-    // Mt. Apo Summit Trek (-90 days)
+    // Nadsadan Falls Day Hike (-21 days)
+    {
+      userEmail: `participant1${TEST_EMAIL_DOMAIN}`,
+      eventTitle: "Nadsadan Falls Day Hike",
+      status: "confirmed",
+      payment_status: "paid",
+      payment_method: "gcash",
+    },
+    {
+      userEmail: `participant2${TEST_EMAIL_DOMAIN}`,
+      eventTitle: "Nadsadan Falls Day Hike",
+      status: "confirmed",
+      payment_status: "paid",
+      payment_method: "maya",
+    },
+    // Calinog Highland Trail Run 15K (-25 days)
+    {
+      userEmail: `participant1${TEST_EMAIL_DOMAIN}`,
+      eventTitle: "Calinog Highland Trail Run 15K",
+      status: "confirmed",
+      payment_status: "paid",
+      payment_method: "gcash",
+    },
     {
       userEmail: `participant3${TEST_EMAIL_DOMAIN}`,
-      eventTitle: "Mt. Apo Summit Trek",
+      eventTitle: "Calinog Highland Trail Run 15K",
+      status: "confirmed",
+      payment_status: "paid",
+      payment_method: "gcash",
+    },
+    // Panay Circumferential Road Ride (-30 days)
+    {
+      userEmail: `participant1${TEST_EMAIL_DOMAIN}`,
+      eventTitle: "Panay Circumferential Road Ride",
       status: "confirmed",
       payment_status: "paid",
       payment_method: "maya",
     },
     {
       userEmail: `participant2${TEST_EMAIL_DOMAIN}`,
-      eventTitle: "Mt. Apo Summit Trek",
+      eventTitle: "Panay Circumferential Road Ride",
       status: "confirmed",
       payment_status: "paid",
       payment_method: "gcash",
     },
-    // Clark-Subic Gran Fondo (-30 days)
+    // Bacolod de Tubungan Heritage Hike (-35 days)
     {
       userEmail: `participant1${TEST_EMAIL_DOMAIN}`,
-      eventTitle: "Clark-Subic Gran Fondo",
+      eventTitle: "Bacolod de Tubungan Heritage Hike",
+      status: "confirmed",
+      payment_status: "paid",
+      payment_method: "gcash",
+    },
+    {
+      userEmail: `participant2${TEST_EMAIL_DOMAIN}`,
+      eventTitle: "Bacolod de Tubungan Heritage Hike",
+      status: "confirmed",
+      payment_status: "paid",
+      payment_method: "maya",
+    },
+    // Anini-y Coastal Trail Walk (-40 days)
+    {
+      userEmail: `participant2${TEST_EMAIL_DOMAIN}`,
+      eventTitle: "Anini-y Coastal Trail Walk",
+      status: "confirmed",
+      payment_status: "paid",
+      payment_method: "gcash",
+    },
+    {
+      userEmail: `participant3${TEST_EMAIL_DOMAIN}`,
+      eventTitle: "Anini-y Coastal Trail Walk",
+      status: "confirmed",
+      payment_status: "paid",
+      payment_method: "gcash",
+    },
+    // Miag-ao Heritage Trail Run (-45 days)
+    {
+      userEmail: `participant1${TEST_EMAIL_DOMAIN}`,
+      eventTitle: "Miag-ao Heritage Trail Run",
+      status: "confirmed",
+      payment_status: "paid",
+      payment_method: "gcash",
+    },
+    {
+      userEmail: `participant3${TEST_EMAIL_DOMAIN}`,
+      eventTitle: "Miag-ao Heritage Trail Run",
+      status: "confirmed",
+      payment_status: "paid",
+      payment_method: "gcash",
+    },
+    // Baloy Falls Adventure Hike (-50 days)
+    {
+      userEmail: `participant3${TEST_EMAIL_DOMAIN}`,
+      eventTitle: "Baloy Falls Adventure Hike",
+      status: "confirmed",
+      payment_status: "paid",
+      payment_method: "gcash",
+    },
+    {
+      userEmail: `participant2${TEST_EMAIL_DOMAIN}`,
+      eventTitle: "Baloy Falls Adventure Hike",
+      status: "confirmed",
+      payment_status: "paid",
+      payment_method: "maya",
+    },
+    // Malalison Island Trail Ride (-60 days)
+    {
+      userEmail: `participant3${TEST_EMAIL_DOMAIN}`,
+      eventTitle: "Malalison Island Trail Ride",
+      status: "confirmed",
+      payment_status: "paid",
+      payment_method: "gcash",
+    },
+    {
+      userEmail: `participant1${TEST_EMAIL_DOMAIN}`,
+      eventTitle: "Malalison Island Trail Ride",
+      status: "confirmed",
+      payment_status: "paid",
+      payment_method: "gcash",
+    },
+    // Mt. Malinao Summit Hike (-75 days)
+    {
+      userEmail: `participant3${TEST_EMAIL_DOMAIN}`,
+      eventTitle: "Mt. Malinao Summit Hike",
       status: "confirmed",
       payment_status: "paid",
       payment_method: "maya",
     },
     {
       userEmail: `participant2${TEST_EMAIL_DOMAIN}`,
-      eventTitle: "Clark-Subic Gran Fondo",
+      eventTitle: "Mt. Malinao Summit Hike",
       status: "confirmed",
       payment_status: "paid",
       payment_method: "gcash",
     },
-    // Corregidor Island MTB Ride (-60 days)
-    {
-      userEmail: `participant3${TEST_EMAIL_DOMAIN}`,
-      eventTitle: "Corregidor Island MTB Ride",
-      status: "confirmed",
-      payment_status: "paid",
-      payment_method: "gcash",
-    },
-    {
-      userEmail: `participant1${TEST_EMAIL_DOMAIN}`,
-      eventTitle: "Corregidor Island MTB Ride",
-      status: "confirmed",
-      payment_status: "paid",
-      payment_method: "gcash",
-    },
-    // Quezon City Fun Run 5K (-90 days)
+    // Iloilo City Fun Run 5K (-90 days)
     {
       userEmail: `participant2${TEST_EMAIL_DOMAIN}`,
-      eventTitle: "Quezon City Fun Run 5K",
+      eventTitle: "Iloilo City Fun Run 5K",
       status: "confirmed",
       payment_status: "paid",
       payment_method: "gcash",
     },
     {
       userEmail: `guest${TEST_EMAIL_DOMAIN}`,
-      eventTitle: "Quezon City Fun Run 5K",
+      eventTitle: "Iloilo City Fun Run 5K",
       status: "confirmed",
       payment_status: "paid",
       payment_method: "gcash",
@@ -815,124 +1057,133 @@ interface BadgeDef {
 }
 
 const BADGE_DEFS: BadgeDef[] = [
-  // Completed event — Taal Volcano Day Hike
-  {
-    eventTitle: "Taal Volcano Day Hike",
-    title: "Taal Volcano Summit Badge",
-    description:
-      "Awarded to participants who completed the Taal Volcano Day Hike and reached the crater rim.",
-    image_url:
-      "https://images.unsplash.com/photo-1600298881974-6be191ceeda1?w=200&h=200&fit=crop",
-    category: "adventure",
-    rarity: "common",
-  },
   // Published events — pre-created by organizers
   {
-    eventTitle: "Mt. Pulag Sunrise Hike",
-    title: "Sea of Clouds Chaser",
+    eventTitle: "Mt. Madja-as Summit Trek",
+    title: "Madja-as Summiteer",
     description:
-      "Awarded to those who conquered Mt. Pulag and witnessed the legendary sunrise above the sea of clouds.",
+      "Conquered the highest peak on Panay Island — Mt. Madja-as at 2,117m. You earned this above the clouds.",
     image_url:
       "https://images.unsplash.com/photo-1551632811-561732d1e306?w=200&h=200&fit=crop",
     category: "adventure",
     rarity: "epic",
   },
   {
-    eventTitle: "Masungi Georeserve Trail Run",
-    title: "Masungi Trailblazer",
+    eventTitle: "Bucari Pine Forest Trail Run",
+    title: "Bucari Trailblazer",
     description:
-      "You ran through the karst limestone landscape of Masungi Georeserve. Nature's obstacle course conquered!",
+      "Ran through the highland pine forests of Bucari at 900m elevation. A unique Visayan trail experience!",
     image_url:
       "https://images.unsplash.com/photo-1452626038306-9aae5e071dd3?w=200&h=200&fit=crop",
     category: "adventure",
     rarity: "rare",
   },
   {
-    eventTitle: "BGC Night Run 10K",
-    title: "BGC Night Runner",
+    eventTitle: "Iloilo Esplanade Night Run 10K",
+    title: "Esplanade Night Runner",
     description:
-      "Finished the BGC Night Run 10K in the city lights of Bonifacio Global City. You owned the night!",
+      "Finished the Iloilo Esplanade Night Run 10K under the city lights. You owned the riverside!",
     image_url:
       "https://images.unsplash.com/photo-1571008887538-b36bb32f4571?w=200&h=200&fit=crop",
     category: "distance",
     rarity: "common",
   },
   {
-    eventTitle: "Tagaytay Road Bike Loop",
-    title: "Tagaytay Road Warrior",
+    eventTitle: "Iloilo-Antique Coastal Road Ride",
+    title: "Coastal Road Warrior",
     description:
-      "Completed the scenic 80km Tagaytay loop with views of Taal Lake. Your legs earned this one.",
+      "Completed the 120km coastal ride from Iloilo to Antique. Your legs earned this one!",
     image_url:
       "https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=200&h=200&fit=crop",
     category: "distance",
     rarity: "rare",
   },
   {
-    eventTitle: "Mt. Banahaw MTB Adventure",
-    title: "Banahaw MTB Crusher",
+    eventTitle: "Tubungan Highlands MTB",
+    title: "Tubungan MTB Crusher",
     description:
-      "Conquered the technical single tracks and river crossings of the mystical Mt. Banahaw on two wheels.",
+      "Conquered the highland trails and river crossings of Tubungan on two wheels. Mountain biker certified!",
     image_url:
       "https://images.unsplash.com/photo-1544191696-102dbdaeeaa0?w=200&h=200&fit=crop",
     category: "adventure",
     rarity: "epic",
   },
-  // Past event badges
   {
-    eventTitle: "Mt. Pinatubo Crater Hike",
-    title: "Pinatubo Crater Explorer",
+    eventTitle: "Mt. Napulak Sunrise Hike",
+    title: "Napulak Sunrise Chaser",
     description:
-      "You hiked through volcanic lahar fields and reached the legendary turquoise crater lake of Mt. Pinatubo.",
+      "Caught the sunrise from Mt. Napulak's summit. The early morning trek was worth every step!",
     image_url:
       "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=200&h=200&fit=crop",
     category: "adventure",
     rarity: "rare",
   },
+  // Completed event badges
   {
-    eventTitle: "Bataan Death March Trail Run",
-    title: "Bataan Trailblazer",
+    eventTitle: "Igbaras Mountain Day Hike",
+    title: "Igbaras Hiker",
     description:
-      "Completed the historic 21K Bataan Death March Trail Run — honoring heroes through every step.",
+      "Explored the lush mountains of Igbaras, the hiking capital of Iloilo. A true Panay adventurer!",
+    image_url:
+      "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=200&h=200&fit=crop",
+    category: "adventure",
+    rarity: "common",
+  },
+  {
+    eventTitle: "Nadsadan Falls Day Hike",
+    title: "Nadsadan Falls Explorer",
+    description:
+      "Trekked through bamboo groves to reach the stunning Nadsadan Falls. You earned a river dip!",
+    image_url:
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=200&h=200&fit=crop",
+    category: "adventure",
+    rarity: "common",
+  },
+  {
+    eventTitle: "Miag-ao Heritage Trail Run",
+    title: "Miag-ao Heritage Runner",
+    description:
+      "Ran 21K from the UNESCO Heritage Miag-ao Church through rice paddies and coastal paths. History meets endurance!",
     image_url:
       "https://images.unsplash.com/photo-1510227272981-87123e259b17?w=200&h=200&fit=crop",
     category: "adventure",
     rarity: "rare",
   },
   {
-    eventTitle: "Mt. Apo Summit Trek",
-    title: "Mt. Apo Summiteer",
+    eventTitle: "Mt. Malinao Summit Hike",
+    title: "Mt. Malinao Summiteer",
     description:
-      "You stood on the highest point in the Philippines. The roof of the archipelago is yours.",
+      "Stood on the sacred summit of Mt. Malinao in Aklan with views of Boracay and the Sibuyan Sea. Legendary!",
     image_url:
       "https://images.unsplash.com/photo-1551632811-561732d1e306?w=200&h=200&fit=crop",
     category: "adventure",
     rarity: "legendary",
   },
   {
-    eventTitle: "Clark-Subic Gran Fondo",
-    title: "Gran Fondo Finisher",
+    eventTitle: "Panay Circumferential Road Ride",
+    title: "Panay Circuit Finisher",
     description:
-      "Pedaled 120km from Clark to Subic Bay through the hills of Bataan. Your legs are legends.",
+      "Pedaled 300km around the entire island of Panay in 2 days. Your legs are legends.",
     image_url:
       "https://images.unsplash.com/photo-1534787238916-9ba6764efd4f?w=200&h=200&fit=crop",
     category: "distance",
     rarity: "epic",
   },
   {
-    eventTitle: "Corregidor Island MTB Ride",
-    title: "Corregidor Island Rider",
+    eventTitle: "Malalison Island Trail Ride",
+    title: "Malalison Island Rider",
     description:
-      "Rode through WWII ruins and coastal cliffs on the historic island fortress of Corregidor.",
+      "Rode through coastal cliffs and white sand coves on the remote Malalison Island. Island MTB at its finest!",
     image_url:
       "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=200&h=200&fit=crop",
     category: "location",
     rarity: "rare",
   },
   {
-    eventTitle: "Quezon City Fun Run 5K",
-    title: "QC Fun Runner",
+    eventTitle: "Iloilo City Fun Run 5K",
+    title: "Iloilo Fun Runner",
     description:
-      "Crossed the finish line at the QC Memorial Circle 5K. Every adventure starts with the first stride!",
+      "Crossed the finish line at the Iloilo City 5K. Every adventure starts with the first stride — and a bowl of La Paz batchoy!",
     image_url:
       "https://images.unsplash.com/photo-1513593771513-7b58b6c4af38?w=200&h=200&fit=crop",
     category: "distance",
@@ -947,49 +1198,49 @@ interface BadgeAwardDef {
 
 const BADGE_AWARDS: BadgeAwardDef[] = [
   {
-    badgeTitle: "Taal Volcano Summit Badge",
+    badgeTitle: "Igbaras Hiker",
     userEmails: [
       `participant1${TEST_EMAIL_DOMAIN}`, // Jake
       `participant3${TEST_EMAIL_DOMAIN}`, // Carlos
     ],
   },
   {
-    badgeTitle: "Pinatubo Crater Explorer",
+    badgeTitle: "Nadsadan Falls Explorer",
     userEmails: [
       `participant1${TEST_EMAIL_DOMAIN}`, // Jake
       `participant2${TEST_EMAIL_DOMAIN}`, // Maria
     ],
   },
   {
-    badgeTitle: "Bataan Trailblazer",
+    badgeTitle: "Miag-ao Heritage Runner",
     userEmails: [
       `participant1${TEST_EMAIL_DOMAIN}`, // Jake
       `participant3${TEST_EMAIL_DOMAIN}`, // Carlos
     ],
   },
   {
-    badgeTitle: "Mt. Apo Summiteer",
+    badgeTitle: "Mt. Malinao Summiteer",
     userEmails: [
       `participant3${TEST_EMAIL_DOMAIN}`, // Carlos
       `participant2${TEST_EMAIL_DOMAIN}`, // Maria
     ],
   },
   {
-    badgeTitle: "Gran Fondo Finisher",
+    badgeTitle: "Panay Circuit Finisher",
     userEmails: [
       `participant1${TEST_EMAIL_DOMAIN}`, // Jake
       `participant2${TEST_EMAIL_DOMAIN}`, // Maria
     ],
   },
   {
-    badgeTitle: "Corregidor Island Rider",
+    badgeTitle: "Malalison Island Rider",
     userEmails: [
       `participant3${TEST_EMAIL_DOMAIN}`, // Carlos
       `participant1${TEST_EMAIL_DOMAIN}`, // Jake
     ],
   },
   {
-    badgeTitle: "QC Fun Runner",
+    badgeTitle: "Iloilo Fun Runner",
     userEmails: [
       `participant2${TEST_EMAIL_DOMAIN}`, // Maria
       `guest${TEST_EMAIL_DOMAIN}`,        // Guest
@@ -1076,13 +1327,17 @@ interface CheckinDef {
 }
 
 const CHECKIN_DEFS: CheckinDef[] = [
-  { eventTitle: "Taal Volcano Day Hike",         daysAgo: 14, userEmails: [`participant1${TEST_EMAIL_DOMAIN}`, `participant3${TEST_EMAIL_DOMAIN}`] },
-  { eventTitle: "Mt. Pinatubo Crater Hike",       daysAgo: 30, userEmails: [`participant1${TEST_EMAIL_DOMAIN}`, `participant2${TEST_EMAIL_DOMAIN}`] },
-  { eventTitle: "Bataan Death March Trail Run",   daysAgo: 60, userEmails: [`participant1${TEST_EMAIL_DOMAIN}`, `participant3${TEST_EMAIL_DOMAIN}`] },
-  { eventTitle: "Mt. Apo Summit Trek",            daysAgo: 90, userEmails: [`participant3${TEST_EMAIL_DOMAIN}`, `participant2${TEST_EMAIL_DOMAIN}`] },
-  { eventTitle: "Clark-Subic Gran Fondo",         daysAgo: 30, userEmails: [`participant1${TEST_EMAIL_DOMAIN}`, `participant2${TEST_EMAIL_DOMAIN}`] },
-  { eventTitle: "Corregidor Island MTB Ride",     daysAgo: 60, userEmails: [`participant3${TEST_EMAIL_DOMAIN}`, `participant1${TEST_EMAIL_DOMAIN}`] },
-  { eventTitle: "Quezon City Fun Run 5K",         daysAgo: 90, userEmails: [`participant2${TEST_EMAIL_DOMAIN}`, `guest${TEST_EMAIL_DOMAIN}`] },
+  { eventTitle: "Igbaras Mountain Day Hike",          daysAgo: 14, userEmails: [`participant1${TEST_EMAIL_DOMAIN}`, `participant3${TEST_EMAIL_DOMAIN}`] },
+  { eventTitle: "Nadsadan Falls Day Hike",            daysAgo: 21, userEmails: [`participant1${TEST_EMAIL_DOMAIN}`, `participant2${TEST_EMAIL_DOMAIN}`] },
+  { eventTitle: "Calinog Highland Trail Run 15K",     daysAgo: 25, userEmails: [`participant1${TEST_EMAIL_DOMAIN}`, `participant3${TEST_EMAIL_DOMAIN}`] },
+  { eventTitle: "Panay Circumferential Road Ride",    daysAgo: 30, userEmails: [`participant1${TEST_EMAIL_DOMAIN}`, `participant2${TEST_EMAIL_DOMAIN}`] },
+  { eventTitle: "Bacolod de Tubungan Heritage Hike",  daysAgo: 35, userEmails: [`participant1${TEST_EMAIL_DOMAIN}`, `participant2${TEST_EMAIL_DOMAIN}`] },
+  { eventTitle: "Anini-y Coastal Trail Walk",         daysAgo: 40, userEmails: [`participant2${TEST_EMAIL_DOMAIN}`, `participant3${TEST_EMAIL_DOMAIN}`] },
+  { eventTitle: "Miag-ao Heritage Trail Run",         daysAgo: 45, userEmails: [`participant1${TEST_EMAIL_DOMAIN}`, `participant3${TEST_EMAIL_DOMAIN}`] },
+  { eventTitle: "Baloy Falls Adventure Hike",         daysAgo: 50, userEmails: [`participant3${TEST_EMAIL_DOMAIN}`, `participant2${TEST_EMAIL_DOMAIN}`] },
+  { eventTitle: "Malalison Island Trail Ride",        daysAgo: 60, userEmails: [`participant3${TEST_EMAIL_DOMAIN}`, `participant1${TEST_EMAIL_DOMAIN}`] },
+  { eventTitle: "Mt. Malinao Summit Hike",            daysAgo: 75, userEmails: [`participant3${TEST_EMAIL_DOMAIN}`, `participant2${TEST_EMAIL_DOMAIN}`] },
+  { eventTitle: "Iloilo City Fun Run 5K",             daysAgo: 90, userEmails: [`participant2${TEST_EMAIL_DOMAIN}`, `guest${TEST_EMAIL_DOMAIN}`] },
 ];
 
 /** Create check-ins for all completed events. */
@@ -1131,35 +1386,35 @@ interface CompanionDef {
 }
 
 const COMPANION_DEFS: CompanionDef[] = [
-  // Jake brought 2 friends to Mt. Pulag (confirmed/paid — companions get QR codes)
+  // Jake brought 2 friends to Mt. Madja-as (confirmed/paid — companions get QR codes)
   {
     userEmail: `participant1${TEST_EMAIL_DOMAIN}`,
-    eventTitle: "Mt. Pulag Sunrise Hike",
+    eventTitle: "Mt. Madja-as Summit Trek",
     companions: [
       { full_name: "Rico Dela Cruz", phone: "09171112233" },
       { full_name: "Jen Villanueva", phone: "09181234567" },
     ],
   },
-  // Maria brought 1 friend to BGC Night Run (confirmed/paid)
+  // Maria brought 1 friend to Esplanade Night Run (confirmed/paid)
   {
     userEmail: `participant2${TEST_EMAIL_DOMAIN}`,
-    eventTitle: "BGC Night Run 10K",
+    eventTitle: "Iloilo Esplanade Night Run 10K",
     companions: [
       { full_name: "Sofia Reyes", phone: "09199876543" },
     ],
   },
-  // Carlos has a pending booking to Masungi with 1 companion (pending e-wallet — no QR yet)
+  // Carlos has a pending booking to Bucari with 1 companion (pending e-wallet — no QR yet)
   {
     userEmail: `participant3${TEST_EMAIL_DOMAIN}`,
-    eventTitle: "Masungi Georeserve Trail Run",
+    eventTitle: "Bucari Pine Forest Trail Run",
     companions: [
       { full_name: "Daniel Torres", phone: "09201234567" },
     ],
   },
-  // Carlos brought a friend to BGC Night Run (cash/pending — companions get QR codes)
+  // Carlos brought a friend to Esplanade Night Run (cash/pending — companions get QR codes)
   {
     userEmail: `participant3${TEST_EMAIL_DOMAIN}`,
-    eventTitle: "BGC Night Run 10K",
+    eventTitle: "Iloilo Esplanade Night Run 10K",
     companions: [
       { full_name: "Andrea Santos", phone: "" },
     ],
@@ -1170,28 +1425,28 @@ const APP_TESTIMONIALS = [
   {
     name: "Miguel Pascual",
     role: "Trail Runner",
-    text: "EventTara made it so easy to find trail running events near me. I've joined three events already and met amazing people along the way!",
+    text: "EventTara made it so easy to find trail running events around Panay. I've joined three events already — from Bucari to Miag-ao — and met amazing people along the way!",
     avatar_url: null,
     display_order: 1,
   },
   {
     name: "Rina Aquino",
     role: "Mountain Biker",
-    text: "As someone new to MTB, I was nervous about joining group rides. EventTara's booking system was seamless, and the organizers were so welcoming.",
+    text: "As someone new to MTB, I was nervous about joining group rides. EventTara's booking system was seamless, and the Iloilo Pedal Club organizers were so welcoming.",
     avatar_url: null,
     display_order: 2,
   },
   {
     name: "Paolo Guerrero",
     role: "Hiking Enthusiast",
-    text: "I love how I can track my adventure badges on EventTara. It's like a passport for outdoor adventures in the Philippines!",
+    text: "I love how I can track my adventure badges on EventTara. It's like a passport for outdoor adventures across Panay Island!",
     avatar_url: null,
     display_order: 3,
   },
   {
     name: "Camille Tan",
     role: "Road Cyclist",
-    text: "Finally a platform that brings the PH cycling community together. The QR check-in system is super convenient for organizers and participants alike.",
+    text: "Finally a platform that brings the Western Visayas cycling community together. The QR check-in system is super convenient for organizers and participants alike.",
     avatar_url: null,
     display_order: 4,
   },
@@ -1206,82 +1461,106 @@ interface ReviewDef {
 
 const REVIEW_DEFS: ReviewDef[] = [
   {
-    eventTitle: "Taal Volcano Day Hike",
+    eventTitle: "Igbaras Mountain Day Hike",
     userEmail: `participant1${TEST_EMAIL_DOMAIN}`,
     rating: 5,
-    text: "Incredible views from the crater rim! The guide was knowledgeable and the pace was perfect for beginners.",
+    text: "The mountains of Igbaras are stunning! The guide was knowledgeable and the pace was perfect for beginners. The river dip at Nadsadan Falls was the highlight.",
   },
   {
-    eventTitle: "Taal Volcano Day Hike",
+    eventTitle: "Igbaras Mountain Day Hike",
     userEmail: `participant3${TEST_EMAIL_DOMAIN}`,
     rating: 4,
-    text: "Great hike overall. The boat ride was fun. Only wish we had more time at the summit.",
+    text: "Great hike overall. The views from the ridge were amazing. Only wish we had more time at the falls.",
   },
   {
-    eventTitle: "Mt. Pinatubo Crater Hike",
+    eventTitle: "Nadsadan Falls Day Hike",
     userEmail: `participant1${TEST_EMAIL_DOMAIN}`,
     rating: 5,
-    text: "The crater lake is even more beautiful in person. The 4x4 ride through the lahar fields was an adventure on its own!",
+    text: "Nadsadan Falls is even more beautiful in person. The bamboo grove trail was magical and the swimming pool at the base is crystal clear!",
   },
   {
-    eventTitle: "Mt. Pinatubo Crater Hike",
+    eventTitle: "Nadsadan Falls Day Hike",
     userEmail: `participant2${TEST_EMAIL_DOMAIN}`,
     rating: 4,
-    text: "Well organized event. The landscape is surreal. Bring sunscreen and lots of water!",
+    text: "Well organized event. The multi-tiered falls are spectacular. Bring waterproof bags for your gear!",
   },
   {
-    eventTitle: "Bataan Death March Trail Run",
+    eventTitle: "Miag-ao Heritage Trail Run",
     userEmail: `participant1${TEST_EMAIL_DOMAIN}`,
     rating: 5,
-    text: "Deeply moving experience. The trail was challenging but the historical significance made every step meaningful.",
+    text: "Running past the UNESCO Heritage Miag-ao Church at sunrise was unforgettable. The coastal trail section was challenging but beautiful.",
   },
   {
-    eventTitle: "Clark-Subic Gran Fondo",
-    userEmail: `participant1${TEST_EMAIL_DOMAIN}`,
-    rating: 4,
-    text: "Solid event. The route through Bataan is beautiful. Aid stations were well-stocked.",
-  },
-  {
-    eventTitle: "Clark-Subic Gran Fondo",
-    userEmail: `participant2${TEST_EMAIL_DOMAIN}`,
-    rating: 5,
-    text: "Best gran fondo I've done in the PH. Perfect organization and the post-ride BBQ was amazing!",
-  },
-  {
-    eventTitle: "Bataan Death March Trail Run",
+    eventTitle: "Miag-ao Heritage Trail Run",
     userEmail: `participant3${TEST_EMAIL_DOMAIN}`,
     rating: 4,
-    text: "Tough but rewarding. The trail markers were clear and the water stations were well-placed. Would definitely do it again.",
+    text: "Tough but rewarding 21K. The rice paddy views and heritage town post-run tour made it special. Would definitely do it again.",
   },
   {
-    eventTitle: "Mt. Apo Summit Trek",
-    userEmail: `participant3${TEST_EMAIL_DOMAIN}`,
-    rating: 5,
-    text: "The highest peak in the Philippines — bucket list checked! Three days of breathtaking scenery. The guides were top-notch and the campsite views were unreal.",
-  },
-  {
-    eventTitle: "Mt. Apo Summit Trek",
-    userEmail: `participant2${TEST_EMAIL_DOMAIN}`,
-    rating: 5,
-    text: "Life-changing experience. Waking up above the clouds at the summit camp is something I'll never forget. Worth every peso.",
-  },
-  {
-    eventTitle: "Corregidor Island MTB Ride",
-    userEmail: `participant3${TEST_EMAIL_DOMAIN}`,
-    rating: 5,
-    text: "Riding through WWII ruins on a mountain bike — what an experience! Highly recommend.",
-  },
-  {
-    eventTitle: "Corregidor Island MTB Ride",
+    eventTitle: "Panay Circumferential Road Ride",
     userEmail: `participant1${TEST_EMAIL_DOMAIN}`,
     rating: 4,
-    text: "Unique combination of history and mountain biking. The ferry ride and island trails made for an unforgettable day.",
+    text: "Solid event. The Capiz coastal road is beautiful. Aid stations were well-stocked and the overnight in Roxas City was a nice break.",
   },
   {
-    eventTitle: "Quezon City Fun Run 5K",
+    eventTitle: "Panay Circumferential Road Ride",
+    userEmail: `participant2${TEST_EMAIL_DOMAIN}`,
+    rating: 5,
+    text: "Best gran fondo I've done in the Visayas. 300km around Panay is no joke! Perfect organization and the post-ride seafood feast in Antique was amazing.",
+  },
+  {
+    eventTitle: "Mt. Malinao Summit Hike",
+    userEmail: `participant3${TEST_EMAIL_DOMAIN}`,
+    rating: 5,
+    text: "The sacred mountain of the Ati people — bucket list checked! Views of Boracay from the summit were breathtaking. The guides were top-notch.",
+  },
+  {
+    eventTitle: "Mt. Malinao Summit Hike",
+    userEmail: `participant2${TEST_EMAIL_DOMAIN}`,
+    rating: 5,
+    text: "Life-changing experience. The old-growth mossy forest was like stepping into another world. Worth every peso and every step.",
+  },
+  {
+    eventTitle: "Malalison Island Trail Ride",
+    userEmail: `participant3${TEST_EMAIL_DOMAIN}`,
+    rating: 5,
+    text: "Riding through coastal cliffs on a remote island — what an experience! The boat ride and white sand coves made it unforgettable.",
+  },
+  {
+    eventTitle: "Malalison Island Trail Ride",
+    userEmail: `participant1${TEST_EMAIL_DOMAIN}`,
+    rating: 4,
+    text: "Unique combination of island hopping and mountain biking. The rocky terrain was challenging but the beach lunch was worth it.",
+  },
+  {
+    eventTitle: "Iloilo City Fun Run 5K",
     userEmail: `participant2${TEST_EMAIL_DOMAIN}`,
     rating: 4,
-    text: "Perfect for beginners! The route through Memorial Circle was scenic and well-marked.",
+    text: "Perfect for beginners! The route past Molo Church and through Jaro was scenic. And the free La Paz batchoy at the finish? Chef's kiss!",
+  },
+  {
+    eventTitle: "Bacolod de Tubungan Heritage Hike",
+    userEmail: `participant1${TEST_EMAIL_DOMAIN}`,
+    rating: 4,
+    text: "Hidden gem of Iloilo! The Spanish ruins and natural springs were fascinating. Easy-moderate hike perfect for a chill weekend.",
+  },
+  {
+    eventTitle: "Baloy Falls Adventure Hike",
+    userEmail: `participant3${TEST_EMAIL_DOMAIN}`,
+    rating: 5,
+    text: "Baloy Falls is absolutely worth the trek! The rope sections and river crossings made it a real adventure. The multi-tiered cascade is jaw-dropping.",
+  },
+  {
+    eventTitle: "Calinog Highland Trail Run 15K",
+    userEmail: `participant1${TEST_EMAIL_DOMAIN}`,
+    rating: 4,
+    text: "Beautiful trail through coffee plantations and grasslands. The Calinog highlands are an underrated gem. Great hydration stations throughout.",
+  },
+  {
+    eventTitle: "Anini-y Coastal Trail Walk",
+    userEmail: `participant2${TEST_EMAIL_DOMAIN}`,
+    rating: 5,
+    text: "The most relaxing hike I've ever done! Ocean views, tide pools, and fresh seafood lunch by the beach. The rubo-rubo way is the best way!",
   },
 ];
 
