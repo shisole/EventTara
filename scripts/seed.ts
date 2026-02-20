@@ -406,6 +406,9 @@ async function cleanExistingTestData() {
   // events, badges etc. that are linked through organizer_profiles.
   // Because events FK to organizer_profiles (which FK to public.users),
   // deleting public.users cascades everything.
+  // Clean app testimonials (not tied to user cascade)
+  await supabase.from("app_testimonials").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+
   for (const user of testUsers) {
     const { error } = await supabase.auth.admin.deleteUser(user.id);
     if (error) {
@@ -1119,6 +1122,125 @@ const COMPANION_DEFS: CompanionDef[] = [
   },
 ];
 
+const APP_TESTIMONIALS = [
+  {
+    name: "Miguel Pascual",
+    role: "Trail Runner",
+    text: "EventTara made it so easy to find trail running events near me. I've joined three events already and met amazing people along the way!",
+    avatar_url: null,
+    display_order: 1,
+  },
+  {
+    name: "Rina Aquino",
+    role: "Mountain Biker",
+    text: "As someone new to MTB, I was nervous about joining group rides. EventTara's booking system was seamless, and the organizers were so welcoming.",
+    avatar_url: null,
+    display_order: 2,
+  },
+  {
+    name: "Paolo Guerrero",
+    role: "Hiking Enthusiast",
+    text: "I love how I can track my adventure badges on EventTara. It's like a passport for outdoor adventures in the Philippines!",
+    avatar_url: null,
+    display_order: 3,
+  },
+  {
+    name: "Camille Tan",
+    role: "Road Cyclist",
+    text: "Finally a platform that brings the PH cycling community together. The QR check-in system is super convenient for organizers and participants alike.",
+    avatar_url: null,
+    display_order: 4,
+  },
+];
+
+interface ReviewDef {
+  eventTitle: string;
+  userEmail: string;
+  rating: number;
+  text: string;
+}
+
+const REVIEW_DEFS: ReviewDef[] = [
+  {
+    eventTitle: "Taal Volcano Day Hike",
+    userEmail: `participant1${TEST_EMAIL_DOMAIN}`,
+    rating: 5,
+    text: "Incredible views from the crater rim! The guide was knowledgeable and the pace was perfect for beginners.",
+  },
+  {
+    eventTitle: "Taal Volcano Day Hike",
+    userEmail: `participant3${TEST_EMAIL_DOMAIN}`,
+    rating: 4,
+    text: "Great hike overall. The boat ride was fun. Only wish we had more time at the summit.",
+  },
+  {
+    eventTitle: "Mt. Pinatubo Crater Hike",
+    userEmail: `participant1${TEST_EMAIL_DOMAIN}`,
+    rating: 5,
+    text: "The crater lake is even more beautiful in person. The 4x4 ride through the lahar fields was an adventure on its own!",
+  },
+  {
+    eventTitle: "Mt. Pinatubo Crater Hike",
+    userEmail: `participant2${TEST_EMAIL_DOMAIN}`,
+    rating: 4,
+    text: "Well organized event. The landscape is surreal. Bring sunscreen and lots of water!",
+  },
+  {
+    eventTitle: "Bataan Death March Trail Run",
+    userEmail: `participant1${TEST_EMAIL_DOMAIN}`,
+    rating: 5,
+    text: "Deeply moving experience. The trail was challenging but the historical significance made every step meaningful.",
+  },
+  {
+    eventTitle: "Clark-Subic Gran Fondo",
+    userEmail: `participant1${TEST_EMAIL_DOMAIN}`,
+    rating: 4,
+    text: "Solid event. The route through Bataan is beautiful. Aid stations were well-stocked.",
+  },
+  {
+    eventTitle: "Clark-Subic Gran Fondo",
+    userEmail: `participant2${TEST_EMAIL_DOMAIN}`,
+    rating: 5,
+    text: "Best gran fondo I've done in the PH. Perfect organization and the post-ride BBQ was amazing!",
+  },
+  {
+    eventTitle: "Bataan Death March Trail Run",
+    userEmail: `participant3${TEST_EMAIL_DOMAIN}`,
+    rating: 4,
+    text: "Tough but rewarding. The trail markers were clear and the water stations were well-placed. Would definitely do it again.",
+  },
+  {
+    eventTitle: "Mt. Apo Summit Trek",
+    userEmail: `participant3${TEST_EMAIL_DOMAIN}`,
+    rating: 5,
+    text: "The highest peak in the Philippines — bucket list checked! Three days of breathtaking scenery. The guides were top-notch and the campsite views were unreal.",
+  },
+  {
+    eventTitle: "Mt. Apo Summit Trek",
+    userEmail: `participant2${TEST_EMAIL_DOMAIN}`,
+    rating: 5,
+    text: "Life-changing experience. Waking up above the clouds at the summit camp is something I'll never forget. Worth every peso.",
+  },
+  {
+    eventTitle: "Corregidor Island MTB Ride",
+    userEmail: `participant3${TEST_EMAIL_DOMAIN}`,
+    rating: 5,
+    text: "Riding through WWII ruins on a mountain bike — what an experience! Highly recommend.",
+  },
+  {
+    eventTitle: "Corregidor Island MTB Ride",
+    userEmail: `participant1${TEST_EMAIL_DOMAIN}`,
+    rating: 4,
+    text: "Unique combination of history and mountain biking. The ferry ride and island trails made for an unforgettable day.",
+  },
+  {
+    eventTitle: "Quezon City Fun Run 5K",
+    userEmail: `participant2${TEST_EMAIL_DOMAIN}`,
+    rating: 4,
+    text: "Perfect for beginners! The route through Memorial Circle was scenic and well-marked.",
+  },
+];
+
 /** Create booking companions with QR codes. */
 async function createCompanions(
   bookingMap: Map<string, string>,
@@ -1179,6 +1301,49 @@ async function createCompanions(
   }
 }
 
+async function seedAppTestimonials() {
+  log("💬", "Creating app testimonials...");
+
+  for (const t of APP_TESTIMONIALS) {
+    const { error } = await supabase.from("app_testimonials").insert(t);
+    if (error) {
+      console.error(`  Failed to create testimonial for "${t.name}": ${error.message}`);
+    } else {
+      log("  ✅", `${t.name} — ${t.role}`);
+    }
+  }
+}
+
+async function seedEventReviews(
+  userMap: Map<string, string>,
+  eventMap: Map<string, string>
+) {
+  log("⭐", "Creating event reviews...");
+
+  for (const review of REVIEW_DEFS) {
+    const userId = userMap.get(review.userEmail);
+    const eventId = eventMap.get(review.eventTitle);
+    if (!userId || !eventId) {
+      console.error(`  Missing user or event for review: ${review.userEmail} -> ${review.eventTitle}`);
+      continue;
+    }
+
+    const { error } = await supabase.from("event_reviews").insert({
+      event_id: eventId,
+      user_id: userId,
+      rating: review.rating,
+      text: review.text,
+    });
+
+    if (error) {
+      console.error(`  Failed to create review: ${error.message}`);
+    } else {
+      const name = TEST_USERS.find((u) => u.email === review.userEmail)?.full_name;
+      log("  ✅", `${name} reviewed ${review.eventTitle} (${review.rating}★)`);
+    }
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
@@ -1227,6 +1392,14 @@ async function main() {
 
     // Step 8: Create check-ins
     await createCheckins(userMap, eventMap);
+    console.log();
+
+    // Step 9: Create app testimonials
+    await seedAppTestimonials();
+    console.log();
+
+    // Step 10: Create event reviews
+    await seedEventReviews(userMap, eventMap);
     console.log();
 
     // Summary

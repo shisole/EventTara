@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { resolvePresetImage } from "@/lib/constants/avatars";
+import ReviewForm from "@/components/reviews/ReviewForm";
 
 const typeLabels: Record<string, string> = {
   hiking: "Hiking",
@@ -71,6 +72,43 @@ export default async function BadgeDetailPage({ params }: { params: Promise<{ id
     .select("awarded_at, users(id, full_name, avatar_url, username)")
     .eq("badge_id", id)
     .order("awarded_at", { ascending: false });
+
+  // Check if current user can review the event
+  const {
+    data: { user: authUser },
+  } = await supabase.auth.getUser();
+
+  let canReview = false;
+  let hasReviewed = false;
+  if (authUser && event) {
+    // Check event is completed
+    const { data: fullEvent } = await supabase
+      .from("events")
+      .select("status")
+      .eq("id", event.id)
+      .single();
+
+    if (fullEvent?.status === "completed") {
+      const { data: checkin } = await supabase
+        .from("event_checkins")
+        .select("id")
+        .eq("event_id", event.id)
+        .eq("user_id", authUser.id)
+        .single();
+
+      if (checkin) {
+        const { data: existingReview } = await supabase
+          .from("event_reviews")
+          .select("id")
+          .eq("event_id", event.id)
+          .eq("user_id", authUser.id)
+          .single();
+
+        hasReviewed = !!existingReview;
+        canReview = !hasReviewed;
+      }
+    }
+  }
 
   const participants = (userBadges || []).map((ub: any) => ({
     id: ub.users?.id,
@@ -211,6 +249,22 @@ export default async function BadgeDetailPage({ params }: { params: Promise<{ id
           <p className="text-center text-gray-500 dark:text-gray-400">No one has earned this badge yet.</p>
         )}
       </div>
+
+      {/* Leave a Review */}
+      {canReview && event && (
+        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-6">
+          <h2 className="text-lg font-heading font-bold mb-4 text-center">
+            How was {event.title}?
+          </h2>
+          <ReviewForm eventId={event.id} />
+        </div>
+      )}
+
+      {hasReviewed && (
+        <p className="text-center text-sm text-gray-500 dark:text-gray-400">
+          You&apos;ve already reviewed this event. Thanks!
+        </p>
+      )}
 
       {/* Back link */}
       <div className="text-center pt-4 border-t border-gray-100 dark:border-gray-800">
