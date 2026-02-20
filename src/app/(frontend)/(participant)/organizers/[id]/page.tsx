@@ -6,6 +6,7 @@ import OrganizerProfileHeader from "@/components/organizers/OrganizerProfileHead
 import OrganizerStats from "@/components/organizers/OrganizerStats";
 import EventCard from "@/components/events/EventCard";
 import BadgeGrid from "@/components/badges/BadgeGrid";
+import StarRating from "@/components/reviews/StarRating";
 
 export const dynamic = "force-dynamic";
 
@@ -99,6 +100,33 @@ export default async function OrganizerProfilePage({ params }: { params: Promise
     }));
   }
 
+  // Fetch aggregate review stats for organizer's events
+  let avgRating = 0;
+  let totalReviews = 0;
+  let recentReviews: any[] = [];
+
+  if (eventIds.length > 0) {
+    const { data: allRatings } = await supabase
+      .from("event_reviews")
+      .select("rating")
+      .in("event_id", eventIds);
+
+    if (allRatings && allRatings.length > 0) {
+      totalReviews = allRatings.length;
+      avgRating = allRatings.reduce((sum, r) => sum + r.rating, 0) / allRatings.length;
+    }
+
+    if (totalReviews > 0) {
+      const { data: reviewData } = await supabase
+        .from("event_reviews")
+        .select("id, rating, text, created_at, event_id, users(full_name, avatar_url, username), events(title)")
+        .in("event_id", eventIds)
+        .order("created_at", { ascending: false })
+        .limit(5);
+      recentReviews = reviewData || [];
+    }
+  }
+
   // Split events into upcoming and past
   const now = new Date().toISOString();
   const upcomingEvents = allEvents.filter((e) => e.date >= now);
@@ -126,6 +154,8 @@ export default async function OrganizerProfilePage({ params }: { params: Promise
         totalEvents={allEvents.length}
         totalParticipants={totalParticipants}
         totalBadgesAwarded={totalBadgesAwarded}
+        avgRating={avgRating}
+        totalReviews={totalReviews}
       />
 
       {/* Upcoming Events */}
@@ -186,6 +216,39 @@ export default async function OrganizerProfilePage({ params }: { params: Promise
         <h2 className="text-xl font-heading font-bold mb-4 text-center">Badges & Trophies</h2>
         <BadgeGrid badges={badges} />
       </div>
+
+      {/* Reviews */}
+      {totalReviews > 0 && (
+        <div>
+          <h2 className="text-xl font-heading font-bold mb-4 text-center">Reviews</h2>
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <StarRating value={Math.round(avgRating)} readonly size="md" />
+            <span className="font-bold text-gray-900 dark:text-white">{avgRating.toFixed(1)}</span>
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              ({totalReviews} review{totalReviews !== 1 ? "s" : ""} across events)
+            </span>
+          </div>
+          <div className="space-y-4">
+            {recentReviews.map((review: any) => (
+              <div key={review.id} className="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm dark:shadow-gray-950/20">
+                <div className="flex items-center gap-2 mb-2">
+                  <StarRating value={review.rating} readonly size="sm" />
+                  <span className="text-xs text-gray-400 dark:text-gray-500">
+                    for {review.events?.title || "Event"}
+                  </span>
+                </div>
+                {review.text && (
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{review.text}</p>
+                )}
+                <p className="text-xs text-gray-400 dark:text-gray-500">
+                  {review.users?.full_name || "Participant"} &middot;{" "}
+                  {new Date(review.created_at).toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" })}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="text-center pt-6 border-t border-gray-100 dark:border-gray-800">
         <p className="text-gray-500 dark:text-gray-400 mb-3">Want to join their events?</p>
