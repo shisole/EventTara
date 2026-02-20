@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { Button } from "@/components/ui";
 
 interface NearbyState {
@@ -17,10 +17,21 @@ interface NearbySortProps {
 export default function NearbySort({ onLocationChange, active }: NearbySortProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const cachedCoords = useRef<{ lat: number; lng: number } | null>(null);
 
   const handleToggle = useCallback(() => {
     if (active) {
       onLocationChange(null);
+      return;
+    }
+
+    // Reuse cached coordinates if available
+    if (cachedCoords.current) {
+      onLocationChange({
+        active: true,
+        lat: cachedCoords.current.lat,
+        lng: cachedCoords.current.lng,
+      });
       return;
     }
 
@@ -34,11 +45,12 @@ export default function NearbySort({ onLocationChange, active }: NearbySortProps
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        onLocationChange({
-          active: true,
+        const coords = {
           lat: position.coords.latitude,
           lng: position.coords.longitude,
-        });
+        };
+        cachedCoords.current = coords;
+        onLocationChange({ active: true, ...coords });
         setLoading(false);
       },
       (err) => {
