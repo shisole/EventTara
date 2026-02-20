@@ -252,5 +252,6 @@ export async function POST(request: Request) {
   return NextResponse.json({
     booking: bookingRecord,
     companions: insertedCompanions,
+    mode,
   });
 }
