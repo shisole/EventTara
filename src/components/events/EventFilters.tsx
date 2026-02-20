@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useState, useEffect, useRef } from "react";
+import { useCallback, useState, useEffect, useRef, useTransition } from "react";
 import { Button } from "@/components/ui";
 
 const EVENT_TYPES = [
@@ -23,16 +23,27 @@ const TIME_FILTERS = [
 export default function EventFilters() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
   const currentType = searchParams.get("type") || "";
   const currentWhen = searchParams.get("when") || "";
   const currentSearch = searchParams.get("search") || "";
   const [searchValue, setSearchValue] = useState(currentSearch);
   const [isSearching, setIsSearching] = useState(false);
+  const [optimisticType, setOptimisticType] = useState(currentType);
+  const [optimisticWhen, setOptimisticWhen] = useState(currentWhen);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     setSearchValue(currentSearch);
   }, [currentSearch]);
+
+  useEffect(() => {
+    setOptimisticType(currentType);
+  }, [currentType]);
+
+  useEffect(() => {
+    setOptimisticWhen(currentWhen);
+  }, [currentWhen]);
 
   const updateParams = useCallback(
     (updates: Record<string, string>) => {
@@ -44,18 +55,26 @@ export default function EventFilters() {
           params.delete(key);
         }
       }
-      router.push(`/events?${params.toString()}`);
+      startTransition(() => {
+        router.push(`/events?${params.toString()}`);
+      });
     },
-    [router, searchParams]
+    [router, searchParams, startTransition]
   );
 
   const handleTypeChange = useCallback(
-    (type: string) => updateParams({ type }),
+    (type: string) => {
+      setOptimisticType(type);
+      updateParams({ type });
+    },
     [updateParams]
   );
 
   const handleWhenChange = useCallback(
-    (when: string) => updateParams({ when }),
+    (when: string) => {
+      setOptimisticWhen(when);
+      updateParams({ when });
+    },
     [updateParams]
   );
 
@@ -126,7 +145,7 @@ export default function EventFilters() {
         {EVENT_TYPES.map((type) => (
           <Button
             key={type.value}
-            variant={currentType === type.value ? "primary" : "ghost"}
+            variant={optimisticType === type.value ? "primary" : "ghost"}
             size="sm"
             className="whitespace-nowrap shrink-0 sm:shrink min-h-[44px]"
             onClick={() => handleTypeChange(type.value)}
@@ -140,12 +159,12 @@ export default function EventFilters() {
         {TIME_FILTERS.map((filter) => (
           <Button
             key={filter.value}
-            variant={currentWhen === filter.value ? "primary" : "ghost"}
+            variant={optimisticWhen === filter.value ? "primary" : "ghost"}
             size="sm"
             className="whitespace-nowrap shrink-0 sm:shrink min-h-[44px]"
             onClick={() => handleWhenChange(filter.value)}
           >
-            {filter.value === "now" && currentWhen === "now" && (
+            {filter.value === "now" && optimisticWhen === "now" && (
               <span className="relative flex h-2 w-2 mr-1.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-gray-900 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-gray-900" />
@@ -155,6 +174,12 @@ export default function EventFilters() {
           </Button>
         ))}
       </div>
+
+      {isPending && (
+        <div className="flex justify-center py-2">
+          <div className="h-1 w-24 rounded-full bg-lime-500/50 animate-pulse" />
+        </div>
+      )}
     </div>
   );
 }
