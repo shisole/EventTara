@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Card, UIBadge, Button } from "@/components/ui";
+import PaymentStatusBadge from "@/components/ui/PaymentStatusBadge";
 
 interface Booking {
   id: string;
@@ -13,12 +14,59 @@ interface Booking {
   eventDate: string;
   eventLocation: string;
   eventId: string;
+  paymentStatus: string;
+  paymentMethod: string;
+  paymentProofUrl: string | null;
 }
 
 const typeLabels: Record<string, string> = {
   hiking: "Hiking", mtb: "Mountain Biking", road_bike: "Road Biking",
   running: "Running", trail_run: "Trail Running",
 };
+
+function ReuploadButton({ bookingId }: { bookingId: string }) {
+  const [uploading, setUploading] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleUpload = async (file: File) => {
+    setUploading(true);
+    const formData = new FormData();
+    formData.append("payment_proof", file);
+
+    const res = await fetch(`/api/bookings/${bookingId}/proof`, {
+      method: "PATCH",
+      body: formData,
+    });
+
+    if (res.ok) {
+      window.location.reload();
+    }
+    setUploading(false);
+  };
+
+  return (
+    <>
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={() => inputRef.current?.click()}
+        disabled={uploading}
+      >
+        {uploading ? "Uploading..." : "Re-upload Proof"}
+      </Button>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) handleUpload(file);
+        }}
+      />
+    </>
+  );
+}
 
 export default function UpcomingBookings({ bookings }: { bookings: Booking[] }) {
   const [expandedQR, setExpandedQR] = useState<string | null>(null);
@@ -39,7 +87,10 @@ export default function UpcomingBookings({ bookings }: { bookings: Booking[] }) 
         <Card key={b.id} className="p-5">
           <div className="flex items-start justify-between">
             <div className="space-y-1">
-              <UIBadge variant={b.eventType as any}>{typeLabels[b.eventType] || b.eventType}</UIBadge>
+              <div className="flex gap-2 items-center">
+                <UIBadge variant={b.eventType as any}>{typeLabels[b.eventType] || b.eventType}</UIBadge>
+                {b.paymentStatus && <PaymentStatusBadge status={b.paymentStatus as any} />}
+              </div>
               <Link href={`/events/${b.eventId}`}>
                 <h3 className="font-heading font-bold text-lg hover:text-lime-600 dark:hover:text-lime-400">{b.eventTitle}</h3>
               </Link>
@@ -47,15 +98,29 @@ export default function UpcomingBookings({ bookings }: { bookings: Booking[] }) 
                 📅 {new Date(b.eventDate).toLocaleDateString("en-PH", { weekday: "short", month: "short", day: "numeric" })}
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400">📍 {b.eventLocation}</p>
+              {b.paymentStatus === "pending" && b.paymentMethod !== "cash" && (
+                <p className="text-sm text-yellow-600 dark:text-yellow-400">Waiting for payment verification</p>
+              )}
+              {b.paymentStatus === "pending" && b.paymentMethod === "cash" && (
+                <p className="text-sm text-yellow-600 dark:text-yellow-400">Pay cash on event day</p>
+              )}
+              {b.paymentStatus === "rejected" && (
+                <div className="space-y-2">
+                  <p className="text-sm text-red-500">Payment rejected — please re-upload proof</p>
+                  <ReuploadButton bookingId={b.id} />
+                </div>
+              )}
             </div>
-            <button
-              onClick={() => setExpandedQR(expandedQR === b.id ? null : b.id)}
-              className="text-sm text-lime-600 dark:text-lime-400 font-medium hover:text-lime-600"
-            >
-              {expandedQR === b.id ? "Hide QR" : "Show QR"}
-            </button>
+            {b.qrCode && (
+              <button
+                onClick={() => setExpandedQR(expandedQR === b.id ? null : b.id)}
+                className="text-sm text-lime-600 dark:text-lime-400 font-medium hover:text-lime-600"
+              >
+                {expandedQR === b.id ? "Hide QR" : "Show QR"}
+              </button>
+            )}
           </div>
-          {expandedQR === b.id && (
+          {expandedQR === b.id && b.qrCode && (
             <div className="mt-4 flex justify-center">
               <div className="bg-white dark:bg-gray-900 p-4 rounded-xl border dark:border-gray-700">
                 <QRCodeSVG value={b.qrCode} size={160} />

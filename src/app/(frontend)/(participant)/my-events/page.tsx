@@ -19,7 +19,7 @@ export default async function MyEventsPage() {
   // Upcoming bookings
   const { data: upcomingData } = await supabase
     .from("bookings")
-    .select("id, qr_code, events(id, title, type, date, location)")
+    .select("id, qr_code, payment_status, payment_method, payment_proof_url, events(id, title, type, date, location)")
     .eq("user_id", user.id)
     .in("status", ["confirmed", "pending"])
     .order("booked_at", { ascending: false });
@@ -34,6 +34,9 @@ export default async function MyEventsPage() {
       eventDate: b.events.date,
       eventLocation: b.events.location,
       eventId: b.events.id,
+      paymentStatus: b.payment_status,
+      paymentMethod: b.payment_method,
+      paymentProofUrl: b.payment_proof_url,
     }));
 
   // Past events
