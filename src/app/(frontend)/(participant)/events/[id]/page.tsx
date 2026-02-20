@@ -7,6 +7,7 @@ import { resolvePresetImage } from "@/lib/constants/avatars";
 import EventGallery from "@/components/events/EventGallery";
 import OrganizerCard from "@/components/events/OrganizerCard";
 import BookingButton from "@/components/events/BookingButton";
+import ShareButtons from "@/components/events/ShareButtons";
 
 const typeLabels: Record<string, string> = {
   hiking: "Hiking",
@@ -144,9 +145,11 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
               {typeLabels[event.type] || event.type}
             </UIBadge>
             <h1 className="text-3xl md:text-4xl font-heading font-bold mb-4">{event.title}</h1>
-            <div className="flex flex-wrap gap-4 text-gray-600 dark:text-gray-400">
+            <div className="flex flex-wrap items-center gap-4 text-gray-600 dark:text-gray-400">
               <span>{formattedDate} at {formattedTime}</span>
               <span>{event.location}</span>
+              <span className="hidden sm:block text-gray-300 dark:text-gray-600">|</span>
+              <ShareButtons title={event.title} eventId={id} />
             </div>
           </div>
 
