@@ -150,6 +150,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
       eventTitle: b.events.title,
       eventType: b.events.type,
       eventDate: b.events.date,
+      eventPrice: b.events.price,
       badgeTitle: badgeMap.get(b.events.id)?.title || null,
       badgeImageUrl: badgeMap.get(b.events.id)?.imageUrl || null,
       checkedIn: checkinSet.has(b.events.id),

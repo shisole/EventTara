@@ -6,6 +6,7 @@ interface PastEvent {
   eventTitle: string;
   eventType: string;
   eventDate: string;
+  eventPrice: number;
   badgeTitle: string | null;
   badgeImageUrl: string | null;
   checkedIn: boolean;
@@ -38,6 +39,9 @@ export default function PastEvents({ events }: { events: PastEvent[] }) {
               </Link>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 {new Date(e.eventDate).toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" })}
+              </p>
+              <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                {e.eventPrice > 0 ? `₱${e.eventPrice.toLocaleString()}` : "Free"}
               </p>
             </div>
             <div className="text-right">
