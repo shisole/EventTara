@@ -9,6 +9,14 @@ import { Button, Avatar } from "@/components/ui";
 import ThemeToggle from "@/components/layout/ThemeToggle";
 import type { User } from "@supabase/supabase-js";
 
+const activities = [
+  { slug: "hiking", label: "Hiking", icon: "🏔️" },
+  { slug: "mtb", label: "Mountain Biking", icon: "🚵" },
+  { slug: "road_bike", label: "Road Biking", icon: "🚴" },
+  { slug: "running", label: "Running", icon: "🏃" },
+  { slug: "trail_run", label: "Trail Running", icon: "🥾" },
+];
+
 export default function Navbar() {
   const supabase = createClient();
   const pathname = usePathname();
@@ -16,6 +24,7 @@ export default function Navbar() {
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [exploreOpen, setExploreOpen] = useState(false);
 
   useEffect(() => {
     const getUser = async () => {
@@ -40,20 +49,24 @@ export default function Navbar() {
   useEffect(() => {
     setMenuOpen(false);
     setProfileOpen(false);
+    setExploreOpen(false);
   }, [pathname]);
 
-  // Close profile dropdown on outside click
+  // Close dropdowns on outside click
   useEffect(() => {
-    if (!profileOpen) return;
+    if (!profileOpen && !exploreOpen) return;
     const handleClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      if (!target.closest("[data-profile-dropdown]")) {
+      if (profileOpen && !target.closest("[data-profile-dropdown]")) {
         setProfileOpen(false);
+      }
+      if (exploreOpen && !target.closest("[data-explore-dropdown]")) {
+        setExploreOpen(false);
       }
     };
     document.addEventListener("click", handleClick);
     return () => document.removeEventListener("click", handleClick);
-  }, [profileOpen]);
+  }, [profileOpen, exploreOpen]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -82,12 +95,45 @@ export default function Navbar() {
 
           {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-6">
-            <Link
-              href="/events"
-              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium"
-            >
-              Explore Events
-            </Link>
+            <div className="relative" data-explore-dropdown>
+              <button
+                onClick={() => setExploreOpen(!exploreOpen)}
+                className="flex items-center gap-1 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium"
+              >
+                Explore Events
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                  className={`w-4 h-4 transition-transform ${exploreOpen ? "rotate-180" : ""}`}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                </svg>
+              </button>
+              {exploreOpen && (
+                <div className="absolute left-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-lg dark:shadow-gray-950/30 border border-gray-100 dark:border-gray-700 py-2 z-50">
+                  <Link
+                    href="/events"
+                    className="block px-4 py-2 text-sm font-semibold text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700"
+                  >
+                    All Events
+                  </Link>
+                  <div className="border-t border-gray-100 dark:border-gray-700 my-1" />
+                  {activities.map((activity) => (
+                    <Link
+                      key={activity.slug}
+                      href={`/events?type=${activity.slug}`}
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                    >
+                      <span>{activity.icon}</span>
+                      {activity.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
             {loading ? (
               <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 animate-pulse" />
             ) : user ? (
@@ -188,13 +234,46 @@ export default function Navbar() {
       {menuOpen && (
         <div className="md:hidden border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
           <div className="px-4 py-4 space-y-2">
-            <Link
-              href="/events"
-              onClick={() => setMenuOpen(false)}
-              className="block px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium min-h-[44px] flex items-center"
-            >
-              Explore Events
-            </Link>
+            <div>
+              <button
+                onClick={() => setExploreOpen(!exploreOpen)}
+                className="w-full px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium min-h-[44px] flex items-center justify-between"
+              >
+                Explore Events
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                  className={`w-4 h-4 transition-transform ${exploreOpen ? "rotate-180" : ""}`}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                </svg>
+              </button>
+              {exploreOpen && (
+                <div className="ml-4 space-y-1">
+                  <Link
+                    href="/events"
+                    onClick={() => setMenuOpen(false)}
+                    className="block px-4 py-2 rounded-lg text-sm font-semibold text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800 min-h-[44px] flex items-center"
+                  >
+                    All Events
+                  </Link>
+                  {activities.map((activity) => (
+                    <Link
+                      key={activity.slug}
+                      href={`/events?type=${activity.slug}`}
+                      onClick={() => setMenuOpen(false)}
+                      className="px-4 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 min-h-[44px] flex items-center gap-2"
+                    >
+                      <span>{activity.icon}</span>
+                      {activity.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
             {user ? (
               <>
                 <Link
