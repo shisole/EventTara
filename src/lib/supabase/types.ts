@@ -294,6 +294,66 @@ export interface Database {
         }
         Relationships: []
       }
+      app_testimonials: {
+        Row: {
+          id: string
+          name: string
+          role: string
+          text: string
+          avatar_url: string | null
+          display_order: number
+          is_active: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          role: string
+          text: string
+          avatar_url?: string | null
+          display_order?: number
+          is_active?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          role?: string
+          text?: string
+          avatar_url?: string | null
+          display_order?: number
+          is_active?: boolean
+          created_at?: string
+        }
+        Relationships: []
+      }
+      event_reviews: {
+        Row: {
+          id: string
+          event_id: string
+          user_id: string
+          rating: number
+          text: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          event_id: string
+          user_id: string
+          rating: number
+          text?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          event_id?: string
+          user_id?: string
+          rating?: number
+          text?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
