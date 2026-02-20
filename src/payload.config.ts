@@ -1,4 +1,5 @@
 import { postgresAdapter } from '@payloadcms/db-postgres'
+import { Media } from './payload/collections/media'
 import { Pages } from './payload/collections/pages'
 import { Navigation } from './payload/globals/navigation'
 import { SiteSettings } from './payload/globals/site-settings'
@@ -28,6 +29,7 @@ export default buildConfig({
       fields: [],
     },
     Pages,
+    Media,
   ],
   globals: [SiteSettings, Navigation],
   editor: lexicalEditor(),
