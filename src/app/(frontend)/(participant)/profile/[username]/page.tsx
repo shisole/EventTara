@@ -160,7 +160,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
   // Get user badges with event info
   const { data: userBadges } = await supabase
     .from("user_badges")
-    .select("badge_id, awarded_at, badges(title, image_url, events(title))")
+    .select("badge_id, awarded_at, badges(title, image_url, category, rarity, events(title))")
     .eq("user_id", user.id)
     .order("awarded_at", { ascending: false });
 
@@ -188,6 +188,8 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
     eventName: ub.badges?.events?.title || "Event",
     imageUrl: ub.badges?.image_url || null,
     awardedAt: ub.awarded_at,
+    category: ub.badges?.category || null,
+    rarity: ub.badges?.rarity || null,
   }));
 
   return (
