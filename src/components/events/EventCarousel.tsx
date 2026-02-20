@@ -6,9 +6,11 @@ interface EventCarouselProps {
   children: React.ReactNode;
   autoSlide?: boolean;
   autoSlideInterval?: number;
+  infinite?: boolean;
+  speed?: number;
 }
 
-export default function EventCarousel({ children, autoSlide = false, autoSlideInterval = 4000 }: EventCarouselProps) {
+export default function EventCarousel({ children, autoSlide = false, autoSlideInterval = 4000, infinite = false, speed = 30 }: EventCarouselProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -61,6 +63,86 @@ export default function EventCarousel({ children, autoSlide = false, autoSlideIn
     scrollByOne(direction);
     setTimeout(() => { isPaused.current = false; }, autoSlideInterval * 2);
   };
+
+  const infiniteRef = useRef<HTMLDivElement>(null);
+  const dragging = useRef(false);
+  const dragStartX = useRef(0);
+  const dragScrollLeft = useRef(0);
+  const velocity = useRef(1); // 1 = full speed, 0 = stopped
+  const targetVelocity = useRef(1);
+
+  // Infinite auto-scroll with requestAnimationFrame + eased velocity
+  useEffect(() => {
+    if (!infinite) return;
+    const el = infiniteRef.current;
+    if (!el) return;
+
+    let raf: number;
+    const pixelsPerFrame = speed / 60;
+    const easeFactor = 0.03; // lower = smoother deceleration
+
+    const step = () => {
+      // Ease velocity toward target
+      velocity.current += (targetVelocity.current - velocity.current) * easeFactor;
+      if (Math.abs(velocity.current) < 0.001) velocity.current = 0;
+
+      if (velocity.current > 0 && !dragging.current) {
+        el.scrollLeft += pixelsPerFrame * velocity.current;
+        const halfScroll = el.scrollWidth / 2;
+        if (el.scrollLeft >= halfScroll) {
+          el.scrollLeft -= halfScroll;
+        }
+      }
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [infinite, speed]);
+
+  // Mouse drag handlers for infinite carousel
+  const onDragStart = useCallback((e: React.MouseEvent) => {
+    const el = infiniteRef.current;
+    if (!el) return;
+    dragging.current = true;
+    dragStartX.current = e.pageX - el.offsetLeft;
+    dragScrollLeft.current = el.scrollLeft;
+    el.style.cursor = "grabbing";
+  }, []);
+
+  const onDragMove = useCallback((e: React.MouseEvent) => {
+    if (!dragging.current) return;
+    const el = infiniteRef.current;
+    if (!el) return;
+    e.preventDefault();
+    const x = e.pageX - el.offsetLeft;
+    el.scrollLeft = dragScrollLeft.current - (x - dragStartX.current);
+  }, []);
+
+  const onDragEnd = useCallback(() => {
+    dragging.current = false;
+    const el = infiniteRef.current;
+    if (el) el.style.cursor = "grab";
+  }, []);
+
+  if (infinite) {
+    return (
+      <div
+        ref={infiniteRef}
+        className="flex gap-6 overflow-x-auto scrollbar-hide cursor-grab select-none"
+        style={{ maskImage: "linear-gradient(to right, transparent, black 5%, black 95%, transparent)" }}
+        onMouseEnter={() => { targetVelocity.current = 0; }}
+        onMouseLeave={() => { targetVelocity.current = 1; onDragEnd(); }}
+        onMouseDown={onDragStart}
+        onMouseMove={onDragMove}
+        onMouseUp={onDragEnd}
+        onTouchStart={() => { targetVelocity.current = 0; }}
+        onTouchEnd={() => { setTimeout(() => { targetVelocity.current = 1; }, 2000); }}
+      >
+        {children}
+        {children}
+      </div>
+    );
+  }
 
   return (
     <div className="relative">

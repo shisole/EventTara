@@ -307,9 +307,9 @@ export default async function Home() {
             <p className="text-center text-gray-500 dark:text-gray-400 mb-12 max-w-2xl mx-auto">
               Hear from the community that makes EventTara special.
             </p>
-            <EventCarousel autoSlide autoSlideInterval={5000}>
+            <EventCarousel infinite speed={30}>
               {testimonials.map((t: any) => (
-                <div key={t.id} className="md:min-w-[340px] md:max-w-[380px] md:flex-shrink-0" style={{ scrollSnapAlign: "start" }}>
+                <div key={t.id} className="min-w-[300px] max-w-[380px] flex-shrink-0">
                   <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm dark:shadow-gray-950/20 h-full">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-10 h-10 rounded-full bg-lime-100 dark:bg-lime-900/30 overflow-hidden flex-shrink-0 flex items-center justify-center">
