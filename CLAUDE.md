@@ -20,10 +20,10 @@ npm run build        # Production build
 npm run lint         # ESLint via next lint
 npm run seed         # Seed DB with test accounts and events (requires SUPABASE_SERVICE_ROLE_KEY)
 npm run unseed       # Remove seeded data
+npm run seed:cms     # Seed Payload CMS with sample pages
 npm run docs:sync    # Sync docs to Confluence (requires Confluence env vars)
+npm run test:e2e     # Run Playwright E2E tests
 ```
-
-There are no automated tests in this project.
 
 ## Environment Setup
 
@@ -36,14 +36,18 @@ Copy `.env.local.example` to `.env.local` and fill in:
 
 ## Architecture
 
-**EventTara** is a Philippine outdoor adventure event booking platform (hiking, MTB, road biking, running, trail running) built on **Next.js 14 App Router** + **Supabase** as the full backend.
+**EventTara** is a Philippine outdoor adventure event booking platform (hiking, MTB, road biking, running, trail running) built on **Next.js 15.5.12 (App Router)** + **React 19** + **Supabase** as the full backend. **Payload CMS** is integrated for content management.
 
 ### Route Groups
 
-The app uses three Next.js route groups to separate concerns:
-- `(auth)` — `/login`, `/signup`, `/guest-setup` with a shared centered layout
-- `(participant)` — `/events`, `/events/[id]`, `/events/[id]/book`, `/my-events`, `/profile/[username]`
-- `(organizer)` — `/dashboard` and nested pages (`/events`, `/events/new`, `/events/[id]`, `/events/[id]/edit`, `/events/[id]/checkin`, `/settings`)
+The app uses Next.js route groups with a nested structure:
+- `(frontend)` — parent route group containing all user-facing pages:
+  - `(auth)` — `/login`, `/signup`, `/guest-setup` with a shared centered layout
+  - `(participant)` — `/events`, `/events/[id]`, `/events/[id]/book`, `/my-events`, `/profile/[username]`
+  - `(organizer)` — `/dashboard` and nested pages (`/events`, `/events/new`, `/events/[id]`, `/events/[id]/edit`, `/events/[id]/checkin`, `/settings`)
+- `(payload)` — Payload CMS admin interface (accessed at `/admin`)
+
+SEO files (`robots.ts`, `sitemap.ts`, `opengraph-image.tsx`) remain at the `src/app/` root level.
 
 Auth callback at `/auth/callback/route.ts` handles the OAuth code exchange with Supabase.
 
@@ -53,7 +57,7 @@ All database access goes through Supabase. Two clients exist:
 - **`@/lib/supabase/client`** — browser client (used in `"use client"` components)
 - **`@/lib/supabase/server`** — server client (used in Server Components, API routes, layouts)
 
-The `src/middleware.ts` runs `updateSession` on every request (excluding static assets) to keep the Supabase session cookie refreshed.
+The `src/middleware.ts` runs `updateSession` on every request (excluding static assets and `/admin` for Payload CMS) to keep the Supabase session cookie refreshed.
 
 Database types are hand-maintained in `src/lib/supabase/types.ts`. Key tables: `users`, `organizer_profiles`, `events`, `event_photos`, `bookings`, `badges`, `user_badges`, `event_checkins`.
 
@@ -74,6 +78,16 @@ Thin wrappers in `src/app/api/` that authenticate via `createClient()` server-si
 ### State Management
 
 Redux Toolkit is set up in `src/lib/store/` with a `StoreProvider` wrapping the app in the root layout. The store currently has no slices — they are added as features require client-side state.
+
+### Content Management (Payload CMS)
+
+Payload CMS v3 is integrated for headless content management:
+- Admin interface accessible at `/admin`
+- Uses the same Supabase Postgres database with `schemaName: 'payload'` for schema isolation
+- Admin users stored in `payload-admins` collection (separate from Supabase `users` table)
+- Configuration in `src/payload.config.ts`
+- Content types: pages, posts, media, etc.
+- GraphQL and REST APIs auto-generated at `/api/graphql` and `/api/*`
 
 ### Styling
 
