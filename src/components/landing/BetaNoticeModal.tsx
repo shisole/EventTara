@@ -9,19 +9,27 @@ export default function BetaNoticeModal() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const dismissed = localStorage.getItem(STORAGE_KEY);
-    if (!dismissed) {
+    try {
+      const dismissed = localStorage.getItem(STORAGE_KEY);
+      if (!dismissed) {
+        setIsOpen(true);
+        setTimeout(() => setIsVisible(true), 10);
+      }
+    } catch {
+      // Graceful fallback: show modal even if localStorage unavailable
       setIsOpen(true);
-      // Trigger animation after mount
       setTimeout(() => setIsVisible(true), 10);
     }
   }, []);
 
   const handleDismiss = () => {
     setIsVisible(false);
-    // Wait for animation to complete before removing from DOM
     setTimeout(() => {
-      localStorage.setItem(STORAGE_KEY, "true");
+      try {
+        localStorage.setItem(STORAGE_KEY, "true");
+      } catch {
+        // Silently fail — modal won't persist in private browsing
+      }
       setIsOpen(false);
     }, 200);
   };
