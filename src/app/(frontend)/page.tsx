@@ -7,6 +7,7 @@ import EventCard from "@/components/events/EventCard";
 import EventCarousel from "@/components/events/EventCarousel";
 import HeroCarousel from "@/components/landing/HeroCarousel";
 import HostEventLink from "@/components/landing/HostEventLink";
+import BetaNoticeModal from "@/components/landing/BetaNoticeModal";
 
 export const metadata = {
   title: "EventTara — Outdoor Adventure Events in Panay Island",
@@ -139,6 +140,8 @@ export default async function Home() {
 
   return (
     <main>
+      <BetaNoticeModal />
+
       {/* Hero Section */}
       <section className="relative py-24 sm:py-32 overflow-hidden min-h-[500px] flex items-center">
         {heroSlides.length > 0 ? (
