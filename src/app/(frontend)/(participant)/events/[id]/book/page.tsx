@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import BookingForm from "@/components/booking/BookingForm";
+import BookingPageClient from "@/components/booking/BookingPageClient";
 
 export default async function BookEventPage({
   params,
@@ -73,7 +73,8 @@ export default async function BookEventPage({
         {mode === "friend" ? "Book for a Friend" : "Book Your Spot"}
       </h1>
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-5 sm:p-8">
-        <BookingForm
+        <BookingPageClient
+          isAuthenticated={!!user}
           eventId={event.id}
           eventTitle={event.title}
           eventDate={event.date}
