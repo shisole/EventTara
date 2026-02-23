@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui";
 import confetti from "canvas-confetti";
 
-type ModalState = "email" | "check-email" | "success";
+type ModalState = "email" | "verify-code" | "success";
+
+const CODE_LENGTH = 6;
 
 interface AuthBookingModalProps {
   eventName: string;
@@ -20,10 +22,12 @@ export default function AuthBookingModal({
 }: AuthBookingModalProps) {
   const [state, setState] = useState<ModalState>("email");
   const [email, setEmail] = useState("");
+  const [code, setCode] = useState<string[]>(Array(CODE_LENGTH).fill(""));
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [userDisplay, setUserDisplay] = useState("");
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   // Animate in on mount
   useEffect(() => {
@@ -38,42 +42,6 @@ export default function AuthBookingModal({
       document.body.style.overflow = "";
     };
   }, []);
-
-  // Poll for auth session during check-email state
-  useEffect(() => {
-    if (state !== "check-email") return;
-
-    const supabase = createClient();
-    let attempts = 0;
-    const maxAttempts = 200; // ~10 minutes at 3s intervals
-    let isMounted = true;
-
-    const interval = setInterval(async () => {
-      attempts++;
-      if (attempts >= maxAttempts) {
-        clearInterval(interval);
-        if (isMounted) setError("Link expired. Send a new one?");
-        return;
-      }
-
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session && isMounted) {
-        clearInterval(interval);
-        const displayName =
-          session.user.user_metadata?.full_name ||
-          session.user.email ||
-          userDisplay;
-        setUserDisplay(displayName);
-        setState("success");
-      }
-    }, 3000);
-
-    return () => {
-      isMounted = false;
-      clearInterval(interval);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state]);
 
   // Success: fire confetti and auto-close
   useEffect(() => {
@@ -109,9 +77,6 @@ export default function AuthBookingModal({
       const supabase = createClient();
       const { error: otpError } = await supabase.auth.signInWithOtp({
         email: trimmed,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?next=/events/${eventId}/book`,
-        },
       });
 
       if (otpError) {
@@ -124,7 +89,83 @@ export default function AuthBookingModal({
       }
 
       setUserDisplay(trimmed);
-      setState("check-email");
+      setState("verify-code");
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCodeChange = (index: number, value: string) => {
+    if (!/^\d*$/.test(value)) return;
+
+    const newCode = [...code];
+    newCode[index] = value.slice(-1);
+    setCode(newCode);
+    setError("");
+
+    // Auto-advance to next input
+    if (value && index < CODE_LENGTH - 1) {
+      inputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleCodeKeyDown = (index: number, e: React.KeyboardEvent) => {
+    if (e.key === "Backspace" && !code[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleCodePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, CODE_LENGTH);
+    if (!pasted) return;
+
+    const newCode = [...code];
+    for (let i = 0; i < pasted.length; i++) {
+      newCode[i] = pasted[i];
+    }
+    setCode(newCode);
+    setError("");
+
+    // Focus the next empty input or the last one
+    const nextEmpty = newCode.findIndex((c) => !c);
+    inputRefs.current[nextEmpty === -1 ? CODE_LENGTH - 1 : nextEmpty]?.focus();
+  };
+
+  const handleVerifyCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    const token = code.join("");
+    if (token.length !== CODE_LENGTH) {
+      setError("Please enter the full 6-digit code.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const supabase = createClient();
+      const { data, error: verifyError } = await supabase.auth.verifyOtp({
+        email: userDisplay,
+        token,
+        type: "email",
+      });
+
+      if (verifyError) {
+        setError(verifyError.message || "Invalid code. Please try again.");
+        setCode(Array(CODE_LENGTH).fill(""));
+        inputRefs.current[0]?.focus();
+        return;
+      }
+
+      const displayName =
+        data.user?.user_metadata?.full_name ||
+        data.user?.email ||
+        userDisplay;
+      setUserDisplay(displayName);
+      setState("success");
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -139,9 +180,6 @@ export default function AuthBookingModal({
       const supabase = createClient();
       const { error: otpError } = await supabase.auth.signInWithOtp({
         email: userDisplay,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?next=/events/${eventId}/book`,
-        },
       });
       if (otpError) {
         if (otpError.message?.includes("rate")) {
@@ -149,6 +187,9 @@ export default function AuthBookingModal({
         } else {
           setError(otpError.message || "Something went wrong. Please try again.");
         }
+      } else {
+        setCode(Array(CODE_LENGTH).fill(""));
+        inputRefs.current[0]?.focus();
       }
     } catch {
       setError("Something went wrong. Please try again.");
@@ -208,66 +249,80 @@ export default function AuthBookingModal({
             )}
 
             <Button type="submit" className="w-full" size="lg" disabled={loading}>
-              {loading ? "Sending link..." : "Continue"}
+              {loading ? "Sending code..." : "Continue"}
             </Button>
 
             <p className="text-xs text-center text-gray-400 dark:text-gray-500">
-              We&apos;ll send a sign-in link to your email. Works for new and existing accounts.
+              We&apos;ll send a 6-digit code to your email. Works for new and existing accounts.
             </p>
           </form>
         )}
 
-        {state === "check-email" && (
-          <div className="text-center space-y-4">
-            <div className="w-14 h-14 bg-teal-100 dark:bg-teal-900/30 rounded-full flex items-center justify-center mx-auto">
-              <svg className="w-7 h-7 text-teal-600 dark:text-teal-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 9v.906a2.25 2.25 0 01-1.183 1.981l-6.478 3.488M2.25 9v.906a2.25 2.25 0 001.183 1.981l6.478 3.488m8.839 2.51l-4.66-2.51m0 0l-1.023-.55a2.25 2.25 0 00-2.134 0l-1.022.55m0 0l-4.661 2.51" />
-              </svg>
-            </div>
-
-            <div>
+        {state === "verify-code" && (
+          <form onSubmit={handleVerifyCode} className="space-y-5">
+            <div className="text-center">
+              <div className="w-14 h-14 bg-teal-100 dark:bg-teal-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-7 h-7 text-teal-600 dark:text-teal-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                </svg>
+              </div>
               <h2 className="text-xl font-heading font-bold text-gray-900 dark:text-white">
-                Check your email
+                Enter your code
               </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                We sent a sign-in link to{" "}
-                <span className="font-medium text-gray-900 dark:text-white">{userDisplay}</span>.
-                Click it to continue.
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                We sent a 6-digit code to{" "}
+                <span className="font-medium text-gray-900 dark:text-white">{userDisplay}</span>
               </p>
             </div>
 
-            <div className="flex items-center justify-center gap-1.5 text-sm text-gray-400 dark:text-gray-500">
-              <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-              </svg>
-              Waiting for confirmation...
+            <div className="flex justify-center gap-2" onPaste={handleCodePaste}>
+              {code.map((digit, i) => (
+                <input
+                  key={i}
+                  ref={(el) => { inputRefs.current[i] = el; }}
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={1}
+                  value={digit}
+                  onChange={(e) => handleCodeChange(i, e.target.value)}
+                  onKeyDown={(e) => handleCodeKeyDown(i, e)}
+                  autoFocus={i === 0}
+                  className="w-12 h-14 text-center text-xl font-bold rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-lime-500 focus:border-transparent outline-none transition-colors"
+                />
+              ))}
             </div>
 
             {error && (
-              <div className="space-y-2">
-                <p className="text-sm text-amber-600 dark:text-amber-400">{error}</p>
-                <button
-                  onClick={() => {
-                    setError("");
-                    setState("email");
-                  }}
-                  className="text-sm font-medium text-lime-600 dark:text-lime-400 hover:underline"
-                >
-                  Try again
-                </button>
-              </div>
+              <p className="text-sm text-red-500 text-center" role="alert">{error}</p>
             )}
 
-            {!error && (
+            <Button type="submit" className="w-full" size="lg" disabled={loading || code.join("").length !== CODE_LENGTH}>
+              {loading ? "Verifying..." : "Verify"}
+            </Button>
+
+            <div className="text-center">
               <button
+                type="button"
                 onClick={handleResend}
+                disabled={loading}
+                className="text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 disabled:opacity-50"
+              >
+                Didn&apos;t get it? Resend code
+              </button>
+              <span className="mx-2 text-gray-300 dark:text-gray-600">|</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setError("");
+                  setCode(Array(CODE_LENGTH).fill(""));
+                  setState("email");
+                }}
                 className="text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
               >
-                Didn&apos;t get it? Resend email
+                Change email
               </button>
-            )}
-          </div>
+            </div>
+          </form>
         )}
 
         {state === "success" && (
