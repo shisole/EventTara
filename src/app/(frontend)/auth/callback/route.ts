@@ -34,6 +34,12 @@ export async function GET(request: Request) {
         return NextResponse.redirect(`${origin}/dashboard`);
       }
 
+      // Booking magic link: redirect to confirmation page instead of the booking page
+      // The original tab's polling will detect the session and show confetti
+      if (next.includes("/book")) {
+        return NextResponse.redirect(`${origin}/auth/confirmed`);
+      }
+
       return NextResponse.redirect(`${origin}${next}`);
     }
   }
