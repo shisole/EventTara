@@ -160,6 +160,36 @@ export default function AuthBookingModal({
         return;
       }
 
+      // Auto-generate username from email prefix if user doesn't have one
+      if (data.user) {
+        const { data: existingUser } = await supabase
+          .from("users")
+          .select("username")
+          .eq("id", data.user.id)
+          .single();
+
+        if (existingUser && !existingUser.username) {
+          const prefix = userDisplay.split("@")[0].toLowerCase().replace(/[^a-z0-9._-]/g, "");
+          let username = prefix || "user";
+
+          // Check if taken, append random number if so
+          const { data: taken } = await supabase
+            .from("users")
+            .select("id")
+            .eq("username", username)
+            .single();
+
+          if (taken) {
+            username = `${username}${Math.floor(Math.random() * 9000) + 1000}`;
+          }
+
+          await supabase
+            .from("users")
+            .update({ username })
+            .eq("id", data.user.id);
+        }
+      }
+
       const displayName =
         data.user?.user_metadata?.full_name ||
         data.user?.email ||
