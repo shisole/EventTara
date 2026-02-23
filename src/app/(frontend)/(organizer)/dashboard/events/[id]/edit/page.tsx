@@ -18,7 +18,7 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
 
   return (
     <div>
-      <h1 className="text-2xl font-heading font-bold mb-8">Edit Event</h1>
+      <h1 className="text-2xl font-heading font-bold mb-8 dark:text-white">Edit Event</h1>
       <EventForm
         mode="edit"
         initialData={{

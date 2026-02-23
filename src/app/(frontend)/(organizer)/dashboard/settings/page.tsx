@@ -17,11 +17,11 @@ export default async function SettingsPage() {
   return (
     <div className="space-y-10 max-w-2xl">
       <div>
-        <h1 className="text-2xl font-heading font-bold mb-6">Settings</h1>
+        <h1 className="text-2xl font-heading font-bold mb-6 dark:text-white">Settings</h1>
       </div>
 
       <section>
-        <h2 className="text-xl font-heading font-bold mb-4">Organizer Profile</h2>
+        <h2 className="text-xl font-heading font-bold mb-4 dark:text-white">Organizer Profile</h2>
         <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-6">
           <OrganizerProfileForm
             profile={profile ? {
@@ -36,7 +36,7 @@ export default async function SettingsPage() {
 
       {profile && (
         <section>
-          <h2 className="text-xl font-heading font-bold mb-4">Payment Settings</h2>
+          <h2 className="text-xl font-heading font-bold mb-4 dark:text-white">Payment Settings</h2>
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-6">
             <PaymentSettingsForm
               profileId={profile.id}

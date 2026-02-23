@@ -27,7 +27,7 @@ export async function GET(
   // Get bookings with user info
   const { data: bookings } = await supabase
     .from("bookings")
-    .select("id, status, payment_status, payment_method, payment_proof_url, booked_at, users:user_id(full_name, email, avatar_url)")
+    .select("id, status, payment_status, payment_method, payment_proof_url, participant_cancelled, booked_at, users:user_id(full_name, email, avatar_url)")
     .eq("event_id", id)
     .in("status", ["pending", "confirmed"])
     .order("booked_at", { ascending: false });
@@ -35,17 +35,22 @@ export async function GET(
   const allBookings = bookings || [];
   const bookingIds = allBookings.map((b) => b.id);
 
-  // Fetch companion counts per booking
+  // Fetch companion counts per booking (only non-cancelled)
   let companionCounts: Record<string, number> = {};
+  let confirmedCompanionCounts: Record<string, number> = {};
   if (bookingIds.length > 0) {
     const { data: companions } = await supabase
       .from("booking_companions")
-      .select("booking_id")
-      .in("booking_id", bookingIds);
+      .select("booking_id, status")
+      .in("booking_id", bookingIds)
+      .neq("status", "cancelled");
 
     if (companions) {
       for (const c of companions) {
         companionCounts[c.booking_id] = (companionCounts[c.booking_id] || 0) + 1;
+        if (c.status === "confirmed") {
+          confirmedCompanionCounts[c.booking_id] = (confirmedCompanionCounts[c.booking_id] || 0) + 1;
+        }
       }
     }
   }
@@ -61,12 +66,13 @@ export async function GET(
   const rejectedCount = allBookings.filter((b) => b.payment_status === "rejected").length;
   const cashCount = allBookings.filter((b) => b.payment_method === "cash").length;
 
-  // Revenue accounts for companions: (1 + companion_count) * price for paid bookings
+  // Revenue: count main participant (if not cancelled) + confirmed companions
   const revenue = allBookings
     .filter((b) => b.payment_status === "paid")
     .reduce((sum, b) => {
-      const compCount = companionCounts[b.id] || 0;
-      return sum + (1 + compCount) * Number(event.price);
+      const mainCount = (b as any).participant_cancelled ? 0 : 1;
+      const compCount = confirmedCompanionCounts[b.id] || 0;
+      return sum + (mainCount + compCount) * Number(event.price);
     }, 0);
 
   return NextResponse.json({

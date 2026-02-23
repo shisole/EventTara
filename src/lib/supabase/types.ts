@@ -158,6 +158,7 @@ export interface Database {
           payment_proof_url: string | null
           payment_verified_at: string | null
           payment_verified_by: string | null
+          participant_cancelled: boolean
           qr_code: string | null
           booked_at: string
         }
@@ -171,6 +172,7 @@ export interface Database {
           payment_proof_url?: string | null
           payment_verified_at?: string | null
           payment_verified_by?: string | null
+          participant_cancelled?: boolean
           qr_code?: string | null
           booked_at?: string
         }
@@ -184,6 +186,7 @@ export interface Database {
           payment_proof_url?: string | null
           payment_verified_at?: string | null
           payment_verified_by?: string | null
+          participant_cancelled?: boolean
           qr_code?: string | null
           booked_at?: string
         }
@@ -198,6 +201,7 @@ export interface Database {
           qr_code: string | null
           checked_in: boolean
           checked_in_at: string | null
+          status: 'pending' | 'confirmed' | 'cancelled'
           created_at: string
         }
         Insert: {
@@ -208,6 +212,7 @@ export interface Database {
           qr_code?: string | null
           checked_in?: boolean
           checked_in_at?: string | null
+          status?: 'pending' | 'confirmed' | 'cancelled'
           created_at?: string
         }
         Update: {
@@ -218,6 +223,7 @@ export interface Database {
           qr_code?: string | null
           checked_in?: boolean
           checked_in_at?: string | null
+          status?: 'pending' | 'confirmed' | 'cancelled'
           created_at?: string
         }
         Relationships: []

@@ -56,7 +56,7 @@ export async function PATCH(
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // Generate QR codes for companions
+    // Confirm companions and generate QR codes
     const { data: companions } = await supabase
       .from("booking_companions")
       .select("id")
@@ -67,7 +67,7 @@ export async function PATCH(
         const companionQr = `eventtara:checkin:${booking.event_id}:companion:${comp.id}`;
         await supabase
           .from("booking_companions")
-          .update({ qr_code: companionQr })
+          .update({ status: "confirmed" as const, qr_code: companionQr })
           .eq("id", comp.id);
       }
     }
@@ -104,6 +104,12 @@ export async function PATCH(
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    // Cancel all companions when booking is rejected
+    await supabase
+      .from("booking_companions")
+      .update({ status: "cancelled" as const, qr_code: null })
+      .eq("booking_id", id);
 
     const email = (booking.users as any)?.email;
     if (email) {

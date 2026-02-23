@@ -83,7 +83,7 @@ export default function CheckinList({
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-heading font-bold">Participants</h2>
+        <h2 className="text-xl font-heading font-bold dark:text-white">Participants</h2>
         <span className="text-sm text-gray-500 dark:text-gray-400">
           {checkedInCount}/{participants.length} checked in
         </span>
@@ -99,7 +99,7 @@ export default function CheckinList({
           >
             <div className="flex items-center gap-3">
               <Avatar src={p.avatarUrl} alt={p.fullName} size="sm" />
-              <span className="font-medium">{p.fullName}</span>
+              <span className="font-medium dark:text-white">{p.fullName}</span>
             </div>
             <span
               className={cn(

@@ -57,7 +57,7 @@ export default function BadgeAwarder({ badgeId, participants }: BadgeAwarderProp
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="font-heading font-bold">Award Badge</h3>
+        <h3 className="font-heading font-bold dark:text-white">Award Badge</h3>
         <Button variant="ghost" size="sm" onClick={selectAllCheckedIn}>
           Select All Checked-in
         </Button>
@@ -79,7 +79,7 @@ export default function BadgeAwarder({ badgeId, participants }: BadgeAwarderProp
             <div className="flex items-center gap-3">
               <Avatar src={p.avatarUrl} alt={p.fullName} size="sm" />
               <div>
-                <span className="font-medium">{p.fullName}</span>
+                <span className="font-medium dark:text-white">{p.fullName}</span>
                 <span className="text-xs text-gray-400 dark:text-gray-500 ml-2">
                   {p.alreadyAwarded ? "Already awarded" : p.checkedIn ? "Checked in" : "Not checked in"}
                 </span>

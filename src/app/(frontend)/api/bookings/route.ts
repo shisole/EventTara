@@ -180,10 +180,12 @@ export async function POST(request: Request) {
   // Insert companions if any
   let insertedCompanions: any[] = [];
   if (companions.length > 0) {
+    const companionStatus = isFree ? "confirmed" as const : "pending" as const;
     const companionRows = companions.map((c) => ({
       booking_id: bookingId,
       full_name: c.full_name.trim(),
       phone: c.phone || null,
+      status: companionStatus,
     }));
 
     const { data: inserted, error: compError } = await supabase
