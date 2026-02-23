@@ -1,9 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 import EventFilters from "@/components/events/EventFilters";
-import EventsGrid from "@/components/events/EventsGrid";
+import EventsListClient from "@/components/events/EventsListClient";
 
 type EventType = Database["public"]["Tables"]["events"]["Row"]["type"];
+
+const BATCH_SIZE = 9;
 
 export const metadata = {
   title: "Explore Events \u2014 EventTara",
@@ -26,35 +28,59 @@ export default async function EventsPage({
   const supabase = await createClient();
   const today = new Date().toISOString().split("T")[0];
 
-  let query = supabase
+  // Count query for total
+  let countQuery = supabase
+    .from("events")
+    .select("id", { count: "exact", head: true })
+    .in("status", ["published", "completed"]);
+
+  // Data query for first batch
+  let dataQuery = supabase
     .from("events")
     .select("*, bookings(count), organizer_profiles!inner(org_name)")
     .in("status", ["published", "completed"])
     .order("date", { ascending: true });
 
+  // Apply filters to both
   if (params.when === "upcoming") {
-    query = query.gt("date", today);
+    countQuery = countQuery.gt("date", today);
+    dataQuery = dataQuery.gt("date", today);
   } else if (params.when === "now") {
-    query = query.gte("date", today).lte("date", `${today}T23:59:59`);
+    countQuery = countQuery.gte("date", today).lte("date", `${today}T23:59:59`);
+    dataQuery = dataQuery.gte("date", today).lte("date", `${today}T23:59:59`);
   } else if (params.when === "past") {
-    query = query.lt("date", today);
+    countQuery = countQuery.lt("date", today);
+    dataQuery = dataQuery.lt("date", today);
   }
 
   if (params.type) {
-    query = query.eq("type", params.type as EventType);
+    countQuery = countQuery.eq("type", params.type as EventType);
+    dataQuery = dataQuery.eq("type", params.type as EventType);
   }
 
   if (params.search) {
     const pattern = params.search.trim().replace(/\s+/g, "%");
-    query = query.or(
-      `title.ilike.%${pattern}%,location.ilike.%${pattern}%`
-    );
+    const filter = `title.ilike.%${pattern}%,location.ilike.%${pattern}%`;
+    countQuery = countQuery.or(filter);
+    dataQuery = dataQuery.or(filter);
   }
 
-  const { data: events } = await query;
+  // For "no when filter" we need all events to sort upcoming-first, then slice
+  const [{ count }, { data: allEvents }] = await Promise.all([
+    countQuery,
+    !params.when ? dataQuery : dataQuery.range(0, BATCH_SIZE - 1),
+  ]);
+
+  let events = allEvents || [];
+
+  if (!params.when && events.length > 0) {
+    const upcoming = events.filter((e) => e.date.split("T")[0] >= today);
+    const past = events.filter((e) => e.date.split("T")[0] < today).reverse();
+    events = [...upcoming, ...past].slice(0, BATCH_SIZE);
+  }
 
   // Fetch review stats for completed events
-  const completedIds = (events || []).filter((e) => e.status === "completed").map((e) => e.id);
+  const completedIds = events.filter((e) => e.status === "completed").map((e) => e.id);
   const reviewStats: Record<string, { avg: number; count: number }> = {};
 
   if (completedIds.length > 0) {
@@ -76,16 +102,7 @@ export default async function EventsPage({
     }
   }
 
-  // When showing all events (no "when" filter), put upcoming first then past
-  const sortedEvents = !params.when && events
-    ? (() => {
-        const upcoming = events.filter((e) => e.date.split("T")[0] >= today);
-        const past = events.filter((e) => e.date.split("T")[0] < today).reverse();
-        return [...upcoming, ...past];
-      })()
-    : events;
-
-  const gridEvents = (sortedEvents || []).map((event: any) => {
+  const gridEvents = events.map((event: any) => {
     const stats = reviewStats[event.id];
     return {
       id: event.id,
@@ -106,6 +123,8 @@ export default async function EventsPage({
     };
   });
 
+  const totalCount = count ?? 0;
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
@@ -115,19 +134,7 @@ export default async function EventsPage({
         <EventFilters />
       </div>
 
-      {gridEvents.length > 0 ? (
-        <EventsGrid events={gridEvents} />
-      ) : (
-        <div className="text-center py-20 opacity-0 animate-fade-up">
-          <p className="text-5xl mb-4">&#x1F3D4;&#xFE0F;</p>
-          <h2 className="text-xl font-heading font-bold text-gray-700 dark:text-gray-300 mb-2">
-            No events found
-          </h2>
-          <p className="text-gray-500 dark:text-gray-400">
-            Check back soon — new adventures are being planned!
-          </p>
-        </div>
-      )}
+      <EventsListClient initialEvents={gridEvents} totalCount={totalCount} />
     </div>
   );
 }
