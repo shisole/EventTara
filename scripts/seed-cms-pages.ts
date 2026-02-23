@@ -125,7 +125,7 @@ async function seedCMSPages() {
           {
             title: 'For Organizers',
             links: [
-              { label: 'Host Your Event', url: '/signup' },
+              { label: 'Host Your Event', url: '/signup?role=organizer' },
               { label: 'Organizer Dashboard', url: '/dashboard' },
             ],
           },

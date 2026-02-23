@@ -217,6 +217,11 @@ export default function Navbar() {
             ) : (
               <div className="flex items-center gap-3">
                 <ThemeToggle />
+                <Link href="/signup?role=organizer">
+                  <Button variant="ghost" size="sm">
+                    Host Your Event
+                  </Button>
+                </Link>
                 <Link href="/login">
                   <Button variant="ghost" size="sm">
                     Sign In
@@ -329,6 +334,11 @@ export default function Navbar() {
               </>
             ) : (
               <div className="flex flex-col gap-2 pt-2">
+                <Link href="/signup?role=organizer" onClick={() => setMenuOpen(false)}>
+                  <Button variant="ghost" className="w-full min-h-[44px]">
+                    Host Your Event
+                  </Button>
+                </Link>
                 <Link href="/login" onClick={() => setMenuOpen(false)}>
                   <Button variant="ghost" className="w-full min-h-[44px]">
                     Sign In

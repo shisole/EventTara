@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 export default function HostEventLink() {
-  const [href, setHref] = useState("/signup");
+  const [href, setHref] = useState("/signup?role=organizer");
 
   useEffect(() => {
     const supabase = createClient();
