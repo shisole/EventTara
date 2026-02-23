@@ -31,6 +31,14 @@ export default function AuthBookingModal({
     return () => clearTimeout(timer);
   }, []);
 
+  // Lock body scroll while modal is open
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, []);
+
   // Poll for auth session during check-email state
   useEffect(() => {
     if (state !== "check-email") return;
