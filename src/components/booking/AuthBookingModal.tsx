@@ -38,17 +38,18 @@ export default function AuthBookingModal({
     const supabase = createClient();
     let attempts = 0;
     const maxAttempts = 200; // ~10 minutes at 3s intervals
+    let isMounted = true;
 
     const interval = setInterval(async () => {
       attempts++;
       if (attempts >= maxAttempts) {
         clearInterval(interval);
-        setError("Link expired. Send a new one?");
+        if (isMounted) setError("Link expired. Send a new one?");
         return;
       }
 
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
+      if (session && isMounted) {
         clearInterval(interval);
         const displayName =
           session.user.user_metadata?.full_name ||
@@ -59,8 +60,12 @@ export default function AuthBookingModal({
       }
     }, 3000);
 
-    return () => clearInterval(interval);
-  }, [state, userDisplay]);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
 
   // Success: fire confetti and auto-close
   useEffect(() => {
@@ -131,7 +136,11 @@ export default function AuthBookingModal({
         },
       });
       if (otpError) {
-        setError("Too many attempts. Try again in a few minutes.");
+        if (otpError.message?.includes("rate")) {
+          setError("Too many attempts. Try again in a few minutes.");
+        } else {
+          setError(otpError.message || "Something went wrong. Please try again.");
+        }
       }
     } catch {
       setError("Something went wrong. Please try again.");
