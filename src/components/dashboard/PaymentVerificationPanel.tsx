@@ -178,7 +178,7 @@ export default function PaymentVerificationPanel({ eventId, eventPrice }: Paymen
       {/* Booking List */}
       {filteredBookings.length === 0 ? (
         <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-          <p className="text-lg font-medium">No {filter === "all" ? "" : filter} bookings found</p>
+          <p className="text-lg font-medium dark:text-gray-300">No {filter === "all" ? "" : filter} bookings found</p>
           <p className="text-sm mt-1">Payment submissions will appear here.</p>
         </div>
       ) : (
@@ -194,7 +194,7 @@ export default function PaymentVerificationPanel({ eventId, eventPrice }: Paymen
                 className="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm dark:shadow-gray-950/30 flex items-center justify-between gap-4"
               >
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">
+                  <p className="font-medium truncate dark:text-white">
                     {booking.users?.full_name || "Guest"}
                     {booking.companion_count && booking.companion_count > 0 && (
                       <span className="ml-2 text-xs text-gray-400 dark:text-gray-500 font-normal">

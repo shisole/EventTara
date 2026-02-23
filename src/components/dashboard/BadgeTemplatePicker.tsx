@@ -74,7 +74,7 @@ export default function BadgeTemplatePicker({ onSelect, onSkip }: BadgeTemplateP
               onClick={() => onSelect(t)}
               className="text-left p-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-teal-400 dark:hover:border-teal-500 transition-colors"
             >
-              <p className="text-sm font-medium truncate">{t.title}</p>
+              <p className="text-sm font-medium truncate dark:text-white">{t.title}</p>
               <span className={cn("inline-block text-xs px-1.5 py-0.5 rounded-full mt-1", rStyle.pill)}>
                 {rStyle.label}
               </span>
