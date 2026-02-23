@@ -1,6 +1,134 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { findProvinceFromLocation } from "@/lib/constants/philippine-provinces";
+import type { Database } from "@/lib/supabase/types";
+
+type EventType = Database["public"]["Tables"]["events"]["Row"]["type"];
+
+function getEventStatus(eventDate: string, today: string): "upcoming" | "happening_now" | "past" {
+  const dateOnly = eventDate.split("T")[0];
+  if (dateOnly === today) return "happening_now";
+  return dateOnly > today ? "upcoming" : "past";
+}
+
+export async function GET(request: NextRequest) {
+  const { searchParams } = request.nextUrl;
+  const offset = parseInt(searchParams.get("offset") || "0", 10);
+  const limit = parseInt(searchParams.get("limit") || "9", 10);
+  const type = searchParams.get("type") || "";
+  const when = searchParams.get("when") || "";
+  const search = searchParams.get("search") || "";
+
+  const supabase = await createClient();
+  const today = new Date().toISOString().split("T")[0];
+
+  // Count query
+  let countQuery = supabase
+    .from("events")
+    .select("id", { count: "exact", head: true })
+    .in("status", ["published", "completed"]);
+
+  // Data query
+  let dataQuery = supabase
+    .from("events")
+    .select("*, bookings(count), organizer_profiles!inner(org_name)")
+    .in("status", ["published", "completed"]);
+
+  // Apply filters to both queries
+  if (when === "upcoming") {
+    countQuery = countQuery.gt("date", today);
+    dataQuery = dataQuery.gt("date", today);
+  } else if (when === "now") {
+    countQuery = countQuery.gte("date", today).lte("date", `${today}T23:59:59`);
+    dataQuery = dataQuery.gte("date", today).lte("date", `${today}T23:59:59`);
+  } else if (when === "past") {
+    countQuery = countQuery.lt("date", today);
+    dataQuery = dataQuery.lt("date", today);
+  }
+
+  if (type) {
+    countQuery = countQuery.eq("type", type as EventType);
+    dataQuery = dataQuery.eq("type", type as EventType);
+  }
+
+  if (search) {
+    const pattern = search.trim().replace(/\s+/g, "%");
+    const filter = `title.ilike.%${pattern}%,location.ilike.%${pattern}%`;
+    countQuery = countQuery.or(filter);
+    dataQuery = dataQuery.or(filter);
+  }
+
+  // For "no when filter", we need custom sorting: upcoming first, then past reversed
+  // We'll fetch with a basic order and sort in-memory for this case
+  if (!when) {
+    dataQuery = dataQuery.order("date", { ascending: true });
+  } else {
+    dataQuery = dataQuery.order("date", { ascending: when !== "past" });
+  }
+
+  const [{ count }, { data: allEvents }] = await Promise.all([
+    countQuery,
+    // For "no when filter", we need all events to sort properly, then slice
+    !when
+      ? dataQuery
+      : dataQuery.range(offset, offset + limit - 1),
+  ]);
+
+  let events = allEvents || [];
+
+  // When no "when" filter, sort upcoming first then past, then paginate
+  if (!when && events.length > 0) {
+    const upcoming = events.filter((e) => e.date.split("T")[0] >= today);
+    const past = events.filter((e) => e.date.split("T")[0] < today).reverse();
+    events = [...upcoming, ...past].slice(offset, offset + limit);
+  }
+
+  // Fetch review stats for completed events
+  const completedIds = events.filter((e) => e.status === "completed").map((e) => e.id);
+  const reviewStats: Record<string, { avg: number; count: number }> = {};
+
+  if (completedIds.length > 0) {
+    const { data: allRatings } = await supabase
+      .from("event_reviews")
+      .select("rating, event_id")
+      .in("event_id", completedIds);
+
+    if (allRatings) {
+      const perEvent: Record<string, { sum: number; count: number }> = {};
+      for (const r of allRatings) {
+        if (!perEvent[r.event_id]) perEvent[r.event_id] = { sum: 0, count: 0 };
+        perEvent[r.event_id].sum += r.rating;
+        perEvent[r.event_id].count++;
+      }
+      for (const [eid, stats] of Object.entries(perEvent)) {
+        reviewStats[eid] = { avg: stats.sum / stats.count, count: stats.count };
+      }
+    }
+  }
+
+  const gridEvents = events.map((event: any) => {
+    const stats = reviewStats[event.id];
+    return {
+      id: event.id,
+      title: event.title,
+      type: event.type,
+      date: event.date,
+      location: event.location,
+      price: Number(event.price),
+      cover_image_url: event.cover_image_url,
+      max_participants: event.max_participants,
+      booking_count: event.bookings?.[0]?.count || 0,
+      status: getEventStatus(event.date, today),
+      organizer_name: event.organizer_profiles?.org_name,
+      organizer_id: event.organizer_id,
+      coordinates: event.coordinates as { lat: number; lng: number } | null,
+      avg_rating: stats?.avg,
+      review_count: stats?.count,
+    };
+  });
+
+  return NextResponse.json({ events: gridEvents, totalCount: count ?? 0 });
+}
 
 export async function POST(request: Request) {
   const supabase = await createClient();
