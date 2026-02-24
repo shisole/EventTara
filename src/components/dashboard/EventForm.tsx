@@ -70,7 +70,9 @@ function GuideCombobox({
       }
     };
     document.addEventListener("mousedown", handleClick);
-    return () => { document.removeEventListener("mousedown", handleClick); };
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+    };
   }, []);
 
   const selectedGuides = guides.filter((g) => selectedIds.includes(g.id));
@@ -145,7 +147,9 @@ function GuideCombobox({
                 setQuery(e.target.value);
                 setOpen(true);
               }}
-              onFocus={() => { setOpen(true); }}
+              onFocus={() => {
+                setOpen(true);
+              }}
               placeholder={selectedIds.length === 0 ? "Search guides..." : ""}
               className="flex-1 min-w-[120px] bg-transparent outline-none text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
             />
@@ -344,7 +348,9 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
         id="title"
         label="Event Title"
         value={title}
-        onChange={(e) => { setTitle(e.target.value); }}
+        onChange={(e) => {
+          setTitle(e.target.value);
+        }}
         placeholder="Mountain Hike at Mt. Pulag"
         required
       />
@@ -355,7 +361,9 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
         </label>
         <textarea
           value={description}
-          onChange={(e) => { setDescription(e.target.value); }}
+          onChange={(e) => {
+            setDescription(e.target.value);
+          }}
           rows={4}
           className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600"
           placeholder="Describe your event..."
@@ -368,7 +376,9 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
         </label>
         <select
           value={type}
-          onChange={(e) => { setType(e.target.value); }}
+          onChange={(e) => {
+            setType(e.target.value);
+          }}
           className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600"
         >
           {EVENT_TYPES.map((t) => (
@@ -384,7 +394,9 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
         label="Date & Time"
         type="datetime-local"
         value={date}
-        onChange={(e) => { setDate(e.target.value); }}
+        onChange={(e) => {
+          setDate(e.target.value);
+        }}
         required
       />
 
@@ -409,7 +421,9 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
       <div className="space-y-2">
         <button
           type="button"
-          onClick={() => { setShowMap(!showMap); }}
+          onClick={() => {
+            setShowMap(!showMap);
+          }}
           className="flex items-center gap-2 text-sm font-medium text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 transition-colors"
         >
           <svg
@@ -452,7 +466,9 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
           label="Max Participants"
           type="number"
           value={String(maxParticipants)}
-          onChange={(e) => { setMaxParticipants(Number(e.target.value)); }}
+          onChange={(e) => {
+            setMaxParticipants(Number(e.target.value));
+          }}
           min="1"
           required
         />
@@ -461,7 +477,9 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
           label="Price (PHP)"
           type="number"
           value={String(price)}
-          onChange={(e) => { setPrice(Number(e.target.value)); }}
+          onChange={(e) => {
+            setPrice(Number(e.target.value));
+          }}
           min="0"
           step="0.01"
           required
@@ -491,7 +509,13 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
         <Button type="submit" disabled={loading}>
           {loading ? "Saving..." : mode === "create" ? "Create Event" : "Save Changes"}
         </Button>
-        <Button type="button" variant="ghost" onClick={() => { router.back(); }}>
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={() => {
+            router.back();
+          }}
+        >
           Cancel
         </Button>
       </div>

@@ -66,7 +66,9 @@ export async function POST(request: Request) {
                 username: u.username ?? undefined,
                 badgeId: badge_id,
               }),
-            }).catch((error_) => { console.error("[Email] Badge notification failed:", error_); });
+            }).catch((error_) => {
+              console.error("[Email] Badge notification failed:", error_);
+            });
           }
         }
       }

@@ -113,7 +113,9 @@ function SignupForm() {
           id="fullName"
           label="Full Name"
           value={fullName}
-          onChange={(e) => { setFullName(e.target.value); }}
+          onChange={(e) => {
+            setFullName(e.target.value);
+          }}
           placeholder="Juan Dela Cruz"
           required
         />
@@ -122,7 +124,9 @@ function SignupForm() {
           label="Email"
           type="email"
           value={email}
-          onChange={(e) => { setEmail(e.target.value); }}
+          onChange={(e) => {
+            setEmail(e.target.value);
+          }}
           placeholder="you@example.com"
           required
         />
@@ -131,7 +135,9 @@ function SignupForm() {
           label="Password"
           type="password"
           value={password}
-          onChange={(e) => { setPassword(e.target.value); }}
+          onChange={(e) => {
+            setPassword(e.target.value);
+          }}
           placeholder="At least 6 characters"
           minLength={6}
           required
@@ -143,7 +149,9 @@ function SignupForm() {
             <input
               type="checkbox"
               checked={isOrganizer}
-              onChange={(e) => { setIsOrganizer(e.target.checked); }}
+              onChange={(e) => {
+                setIsOrganizer(e.target.checked);
+              }}
               className="sr-only peer"
             />
             <div className="w-10 h-6 bg-gray-200 dark:bg-gray-700 rounded-full peer-checked:bg-lime-500 transition-colors" />
@@ -173,7 +181,9 @@ function SignupForm() {
                 id="orgName"
                 label="Organization Name"
                 value={orgName}
-                onChange={(e) => { setOrgName(e.target.value); }}
+                onChange={(e) => {
+                  setOrgName(e.target.value);
+                }}
                 placeholder="e.g. Summit Trail Events"
                 required={isOrganizer}
               />

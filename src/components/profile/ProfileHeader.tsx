@@ -24,7 +24,9 @@ export default function ProfileHeader({
   const handleShare = () => {
     navigator.clipboard.writeText(globalThis.location.href);
     setCopied(true);
-    setTimeout(() => { setCopied(false); }, 2000);
+    setTimeout(() => {
+      setCopied(false);
+    }, 2000);
   };
 
   const memberSince = new Date(createdAt).toLocaleDateString("en-PH", {

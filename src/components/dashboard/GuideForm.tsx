@@ -74,7 +74,9 @@ export default function GuideForm({ mode, initialData }: GuideFormProps) {
         <input
           type="text"
           value={fullName}
-          onChange={(e) => { setFullName(e.target.value); }}
+          onChange={(e) => {
+            setFullName(e.target.value);
+          }}
           placeholder="e.g. Juan Dela Cruz"
           required
           className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800 focus:outline-none"
@@ -85,7 +87,9 @@ export default function GuideForm({ mode, initialData }: GuideFormProps) {
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Bio</label>
         <textarea
           value={bio}
-          onChange={(e) => { setBio(e.target.value); }}
+          onChange={(e) => {
+            setBio(e.target.value);
+          }}
           rows={4}
           placeholder="Tell us about this guide's experience, certifications, specialties..."
           className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800 focus:outline-none transition-colors"
@@ -99,7 +103,9 @@ export default function GuideForm({ mode, initialData }: GuideFormProps) {
         <input
           type="text"
           value={contactNumber}
-          onChange={(e) => { setContactNumber(e.target.value); }}
+          onChange={(e) => {
+            setContactNumber(e.target.value);
+          }}
           placeholder="e.g. 09171234567"
           className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800 focus:outline-none"
         />
@@ -119,7 +125,13 @@ export default function GuideForm({ mode, initialData }: GuideFormProps) {
         <Button type="submit" disabled={loading}>
           {loading ? "Saving..." : mode === "create" ? "Add Guide" : "Save Changes"}
         </Button>
-        <Button type="button" variant="ghost" onClick={() => { router.back(); }}>
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={() => {
+            router.back();
+          }}
+        >
           Cancel
         </Button>
       </div>

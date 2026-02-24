@@ -96,7 +96,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           bookingId: booking.id,
           qrCode,
         }),
-      }).catch((error_) => { console.error("[Email] Confirmation failed:", error_); });
+      }).catch((error_) => {
+        console.error("[Email] Confirmation failed:", error_);
+      });
     }
 
     return NextResponse.json({ message: "Payment approved", qrCode });
@@ -127,7 +129,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           userName: (booking.users as any)?.full_name ?? "",
           eventTitle: (booking.events as any).title,
         }),
-      }).catch((error_) => { console.error("[Email] Rejection email failed:", error_); });
+      }).catch((error_) => {
+        console.error("[Email] Rejection email failed:", error_);
+      });
     }
 
     return NextResponse.json({ message: "Payment rejected" });

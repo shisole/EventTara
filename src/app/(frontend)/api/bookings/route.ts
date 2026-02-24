@@ -250,7 +250,9 @@ export async function POST(request: Request) {
             bookingId,
             qrCode: qrCode!,
           }),
-        }).catch((error) => { console.error("[Email] Booking confirmation failed:", error); });
+        }).catch((error) => {
+          console.error("[Email] Booking confirmation failed:", error);
+        });
       }
     } catch (error) {
       console.error("[Email] Error preparing booking confirmation:", error);

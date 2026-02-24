@@ -147,7 +147,9 @@ export default function UpcomingBookings({ bookings }: { bookings: Booking[] }) 
             </div>
             {b.qrCode && (
               <button
-                onClick={() => { setExpandedQR(expandedQR === b.id ? null : b.id); }}
+                onClick={() => {
+                  setExpandedQR(expandedQR === b.id ? null : b.id);
+                }}
                 className="text-sm text-lime-600 dark:text-lime-400 font-medium hover:text-lime-600"
               >
                 {expandedQR === b.id ? "Hide QR" : "Show QR"}

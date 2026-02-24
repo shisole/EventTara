@@ -71,7 +71,9 @@ export default function ReviewForm({ eventId, onSubmitted }: ReviewFormProps) {
       <div>
         <textarea
           value={text}
-          onChange={(e) => { setText(e.target.value); }}
+          onChange={(e) => {
+            setText(e.target.value);
+          }}
           placeholder="Share your experience (optional)"
           rows={3}
           maxLength={500}

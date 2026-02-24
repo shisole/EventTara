@@ -42,25 +42,25 @@ export default async function EventsPage({
 
   // Apply filters to both
   switch (params.when) {
-  case "upcoming": {
-    countQuery = countQuery.gt("date", today);
-    dataQuery = dataQuery.gt("date", today);
-  
-  break;
-  }
-  case "now": {
-    countQuery = countQuery.gte("date", today).lte("date", `${today}T23:59:59`);
-    dataQuery = dataQuery.gte("date", today).lte("date", `${today}T23:59:59`);
-  
-  break;
-  }
-  case "past": {
-    countQuery = countQuery.lt("date", today);
-    dataQuery = dataQuery.lt("date", today);
-  
-  break;
-  }
-  // No default
+    case "upcoming": {
+      countQuery = countQuery.gt("date", today);
+      dataQuery = dataQuery.gt("date", today);
+
+      break;
+    }
+    case "now": {
+      countQuery = countQuery.gte("date", today).lte("date", `${today}T23:59:59`);
+      dataQuery = dataQuery.gte("date", today).lte("date", `${today}T23:59:59`);
+
+      break;
+    }
+    case "past": {
+      countQuery = countQuery.lt("date", today);
+      dataQuery = dataQuery.lt("date", today);
+
+      break;
+    }
+    // No default
   }
 
   if (params.type) {

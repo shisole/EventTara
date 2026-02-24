@@ -60,8 +60,7 @@ export default async function OGImage({ params }: { params: Promise<{ id: string
     day: "numeric",
     year: "numeric",
   });
-  const price =
-    event.price === 0 ? "Free" : `\u20B1${event.price.toLocaleString()}`;
+  const price = event.price === 0 ? "Free" : `\u20B1${event.price.toLocaleString()}`;
 
   return new ImageResponse(
     <div

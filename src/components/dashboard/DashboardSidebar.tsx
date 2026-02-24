@@ -26,7 +26,9 @@ export default function DashboardSidebar() {
           <Link
             key={item.href}
             href={item.href}
-            onClick={() => { setDrawerOpen(false); }}
+            onClick={() => {
+              setDrawerOpen(false);
+            }}
             className={cn(
               "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors min-h-[44px]",
               isActive
@@ -46,7 +48,9 @@ export default function DashboardSidebar() {
     <>
       {/* Mobile toggle button */}
       <button
-        onClick={() => { setDrawerOpen(true); }}
+        onClick={() => {
+          setDrawerOpen(true);
+        }}
         className="md:hidden fixed bottom-20 left-4 z-40 bg-lime-500 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-lime-400 transition-colors"
         aria-label="Open dashboard menu"
       >
@@ -70,16 +74,22 @@ export default function DashboardSidebar() {
       {drawerOpen && (
         <div
           className="md:hidden fixed inset-0 z-50 bg-black/40"
-          onClick={() => { setDrawerOpen(false); }}
+          onClick={() => {
+            setDrawerOpen(false);
+          }}
         >
           <aside
             className="absolute top-0 left-0 h-full w-64 bg-white dark:bg-gray-900 shadow-xl dark:shadow-gray-950/30 p-4 animate-slide-in-left"
-            onClick={(e) => { e.stopPropagation(); }}
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
           >
             <div className="flex items-center justify-between mb-6">
               <span className="text-lg font-heading font-bold text-lime-500">Dashboard</span>
               <button
-                onClick={() => { setDrawerOpen(false); }}
+                onClick={() => {
+                  setDrawerOpen(false);
+                }}
                 className="w-11 h-11 flex items-center justify-center rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
                 aria-label="Close menu"
               >

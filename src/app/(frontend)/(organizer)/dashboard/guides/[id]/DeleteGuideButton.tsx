@@ -11,7 +11,9 @@ export default function DeleteGuideButton({ guideId }: { guideId: string }) {
 
   const handleDelete = async () => {
     if (
-      !globalThis.confirm("Are you sure you want to delete this guide? This action cannot be undone.")
+      !globalThis.confirm(
+        "Are you sure you want to delete this guide? This action cannot be undone.",
+      )
     ) {
       return;
     }

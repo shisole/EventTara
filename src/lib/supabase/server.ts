@@ -16,8 +16,8 @@ export async function createClient() {
         },
         setAll(cookiesToSet) {
           try {
-            for (const { name, value, options } of cookiesToSet) cookieStore.set(name, value, options)
-            ;
+            for (const { name, value, options } of cookiesToSet)
+              cookieStore.set(name, value, options);
           } catch {
             // setAll called from Server Component - ignored, middleware handles it
           }

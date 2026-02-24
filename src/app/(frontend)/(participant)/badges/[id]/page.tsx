@@ -70,10 +70,8 @@ export default async function BadgeDetailPage({ params }: { params: Promise<{ id
 
   const event = (badge as any).events;
 
-  const rarityStyle = RARITY_STYLES[(badge.rarity) || "common"];
-  const categoryStyle = badge.category
-    ? CATEGORY_STYLES[badge.category]
-    : null;
+  const rarityStyle = RARITY_STYLES[badge.rarity || "common"];
+  const categoryStyle = badge.category ? CATEGORY_STYLES[badge.category] : null;
 
   // Fetch participants who earned this badge
   const { data: userBadges } = await supabase

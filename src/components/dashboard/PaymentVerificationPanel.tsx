@@ -138,7 +138,7 @@ export default function PaymentVerificationPanel({
     return (
       <div className="space-y-4">
         <div className="grid grid-cols-3 gap-4">
-          {Array.from({length: 3}).map((_, i) => (
+          {Array.from({ length: 3 }).map((_, i) => (
             <div
               key={i}
               className="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm dark:shadow-gray-950/30 animate-pulse"
@@ -150,7 +150,7 @@ export default function PaymentVerificationPanel({
         </div>
         <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse" />
         <div className="space-y-3">
-          {Array.from({length: 3}).map((_, i) => (
+          {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="h-16 bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse" />
           ))}
         </div>
@@ -183,7 +183,9 @@ export default function PaymentVerificationPanel({
         {(["all", "pending", "paid", "rejected"] as const).map((tab) => (
           <button
             key={tab}
-            onClick={() => { setFilter(tab); }}
+            onClick={() => {
+              setFilter(tab);
+            }}
             className={cn(
               "flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors capitalize",
               filter === tab
@@ -314,7 +316,9 @@ export default function PaymentVerificationPanel({
         >
           <div
             className="bg-white dark:bg-gray-900 rounded-2xl p-4 max-w-lg w-full"
-            onClick={(e) => { e.stopPropagation(); }}
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
           >
             <img src={viewingProof} alt="Payment proof" className="w-full rounded-xl" />
             <div className="flex gap-3 mt-4 justify-end">

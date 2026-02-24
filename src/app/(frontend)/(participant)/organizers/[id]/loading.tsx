@@ -14,7 +14,7 @@ export default function OrganizerProfileLoading() {
 
       {/* Stats skeleton */}
       <div className="grid grid-cols-3 gap-4">
-        {Array.from({length: 3}).map((_, i) => (
+        {Array.from({ length: 3 }).map((_, i) => (
           <div
             key={i}
             className="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-5 text-center space-y-2"
@@ -29,7 +29,7 @@ export default function OrganizerProfileLoading() {
       <div>
         <div className="h-6 w-40 bg-gray-200 dark:bg-gray-700 rounded mb-4" />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          {Array.from({length: 4}).map((_, i) => (
+          {Array.from({ length: 4 }).map((_, i) => (
             <div
               key={i}
               className="rounded-2xl overflow-hidden bg-white dark:bg-gray-900 shadow-sm"

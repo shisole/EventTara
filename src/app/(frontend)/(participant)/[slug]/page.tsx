@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 
 import { getPayloadClient } from "@/lib/payload/client";
 
-
 interface Props {
   params: Promise<{ slug: string }>;
 }

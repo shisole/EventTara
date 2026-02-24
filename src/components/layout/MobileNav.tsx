@@ -91,7 +91,9 @@ export default function MobileNav() {
       fetchProfile();
     });
 
-    return () => { subscription.unsubscribe(); };
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Hide on dashboard/organizer pages

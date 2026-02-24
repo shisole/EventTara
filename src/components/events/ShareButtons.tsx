@@ -18,7 +18,9 @@ export default function ShareButtons({ title, eventId }: ShareButtonsProps) {
     try {
       await navigator.clipboard.writeText(getUrl());
       setCopied(true);
-      setTimeout(() => { setCopied(false); }, 2000);
+      setTimeout(() => {
+        setCopied(false);
+      }, 2000);
     } catch {
       // Fallback for older browsers
       const input = document.createElement("input");
@@ -28,7 +30,9 @@ export default function ShareButtons({ title, eventId }: ShareButtonsProps) {
       document.execCommand("copy");
       input.remove();
       setCopied(true);
-      setTimeout(() => { setCopied(false); }, 2000);
+      setTimeout(() => {
+        setCopied(false);
+      }, 2000);
     }
   }, [getUrl]);
 

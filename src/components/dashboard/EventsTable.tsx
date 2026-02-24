@@ -81,7 +81,9 @@ export default function EventsTable({ events }: EventsTableProps) {
   const SortHeader = ({ label, field }: { label: string; field: SortKey }) => (
     <th
       className="text-left px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400 cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
-      onClick={() => { handleSort(field); }}
+      onClick={() => {
+        handleSort(field);
+      }}
     >
       <span className="inline-flex items-center gap-1">
         {label}

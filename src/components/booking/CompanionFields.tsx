@@ -50,7 +50,9 @@ export default function CompanionFields({
               type="text"
               placeholder="Full name *"
               value={companion.full_name}
-              onChange={(e) => { updateCompanion(index, "full_name", e.target.value); }}
+              onChange={(e) => {
+                updateCompanion(index, "full_name", e.target.value);
+              }}
               required
               className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-lime-500"
             />
@@ -58,13 +60,17 @@ export default function CompanionFields({
               type="tel"
               placeholder="Phone (optional)"
               value={companion.phone}
-              onChange={(e) => { updateCompanion(index, "phone", e.target.value); }}
+              onChange={(e) => {
+                updateCompanion(index, "phone", e.target.value);
+              }}
               className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-lime-500"
             />
           </div>
           <button
             type="button"
-            onClick={() => { removeCompanion(index); }}
+            onClick={() => {
+              removeCompanion(index);
+            }}
             className="mt-2 text-gray-400 hover:text-red-500 transition-colors"
             aria-label="Remove companion"
           >

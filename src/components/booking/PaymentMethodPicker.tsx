@@ -24,7 +24,9 @@ export default function PaymentMethodPicker({ selected, onSelect }: PaymentMetho
           <button
             key={method.id}
             type="button"
-            onClick={() => { onSelect(method.id); }}
+            onClick={() => {
+              onSelect(method.id);
+            }}
             className={cn(
               "flex items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all font-medium",
               selected === method.id

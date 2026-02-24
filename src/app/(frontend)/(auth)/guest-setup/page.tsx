@@ -66,7 +66,9 @@ export default function GuestSetupPage() {
             <button
               key={avatar.id}
               type="button"
-              onClick={() => { setSelectedAvatar(avatar.id); }}
+              onClick={() => {
+                setSelectedAvatar(avatar.id);
+              }}
               className={cn(
                 "flex flex-col items-center gap-1 p-3 rounded-xl border-2 transition-all",
                 selectedAvatar === avatar.id
@@ -91,7 +93,9 @@ export default function GuestSetupPage() {
           id="displayName"
           label="Display Name (optional)"
           value={displayName}
-          onChange={(e) => { setDisplayName(e.target.value); }}
+          onChange={(e) => {
+            setDisplayName(e.target.value);
+          }}
           placeholder="TrailHiker_42"
         />
 

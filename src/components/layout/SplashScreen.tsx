@@ -15,8 +15,12 @@ export default function SplashScreen() {
     sessionStorage.setItem("splash_shown", "1");
 
     // Start fade immediately — just enough for a branded flash
-    const timer = setTimeout(() => { setFadeOut(true); }, 150);
-    const removeTimer = setTimeout(() => { setVisible(false); }, 400);
+    const timer = setTimeout(() => {
+      setFadeOut(true);
+    }, 150);
+    const removeTimer = setTimeout(() => {
+      setVisible(false);
+    }, 400);
 
     return () => {
       clearTimeout(timer);

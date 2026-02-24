@@ -58,7 +58,9 @@ export default function ReviewList({
       { threshold: 0.1 },
     );
     observer.observe(el);
-    return () => { observer.disconnect(); };
+    return () => {
+      observer.disconnect();
+    };
   }, [loadMore]);
 
   if (reviews.length === 0) return null;

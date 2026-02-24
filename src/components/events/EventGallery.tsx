@@ -41,7 +41,9 @@ export default function EventGallery({ photos }: { photos: Photo[] }) {
         {photos.map((photo, idx) => (
           <button
             key={photo.id}
-            onClick={() => { setSelectedIndex(idx); }}
+            onClick={() => {
+              setSelectedIndex(idx);
+            }}
             className="relative aspect-square rounded-xl overflow-hidden hover:opacity-90 transition-opacity snap-center shrink-0 w-[70vw] sm:w-auto"
           >
             <Image
@@ -58,7 +60,9 @@ export default function EventGallery({ photos }: { photos: Photo[] }) {
       {selectedPhoto && (
         <div
           className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
-          onClick={() => { setSelectedIndex(null); }}
+          onClick={() => {
+            setSelectedIndex(null);
+          }}
         >
           {/* Prev button */}
           {selectedIndex !== null && selectedIndex > 0 && (
@@ -112,7 +116,9 @@ export default function EventGallery({ photos }: { photos: Photo[] }) {
 
           {/* Close button */}
           <button
-            onClick={() => { setSelectedIndex(null); }}
+            onClick={() => {
+              setSelectedIndex(null);
+            }}
             className="absolute top-4 right-4 z-10 w-11 h-11 flex items-center justify-center bg-white/20 hover:bg-white/40 rounded-full text-white transition-colors"
             aria-label="Close"
           >
@@ -130,7 +136,9 @@ export default function EventGallery({ photos }: { photos: Photo[] }) {
 
           <div
             className="relative max-w-4xl max-h-[90vh] w-full"
-            onClick={(e) => { e.stopPropagation(); }}
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
           >
             <Image
               src={selectedPhoto.image_url}

@@ -72,7 +72,9 @@ export default function BadgeAwarder({ badgeId, participants }: BadgeAwarderProp
             key={p.userId}
             type="button"
             disabled={p.alreadyAwarded}
-            onClick={() => { toggleUser(p.userId); }}
+            onClick={() => {
+              toggleUser(p.userId);
+            }}
             className={cn(
               "w-full flex items-center justify-between p-3 rounded-xl transition-colors text-left",
               p.alreadyAwarded

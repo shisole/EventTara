@@ -291,9 +291,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-5 sm:p-6 space-y-4 mb-4">
             <div className="text-center">
               <span className="text-3xl font-bold text-lime-600 dark:text-lime-400">
-                {event.price === 0
-                  ? "Free"
-                  : `\u20B1${event.price.toLocaleString()}`}
+                {event.price === 0 ? "Free" : `\u20B1${event.price.toLocaleString()}`}
               </span>
             </div>
 

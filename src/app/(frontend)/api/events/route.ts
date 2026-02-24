@@ -37,25 +37,25 @@ export async function GET(request: NextRequest) {
 
   // Apply filters to both queries
   switch (when) {
-  case "upcoming": {
-    countQuery = countQuery.gt("date", today);
-    dataQuery = dataQuery.gt("date", today);
-  
-  break;
-  }
-  case "now": {
-    countQuery = countQuery.gte("date", today).lte("date", `${today}T23:59:59`);
-    dataQuery = dataQuery.gte("date", today).lte("date", `${today}T23:59:59`);
-  
-  break;
-  }
-  case "past": {
-    countQuery = countQuery.lt("date", today);
-    dataQuery = dataQuery.lt("date", today);
-  
-  break;
-  }
-  // No default
+    case "upcoming": {
+      countQuery = countQuery.gt("date", today);
+      dataQuery = dataQuery.gt("date", today);
+
+      break;
+    }
+    case "now": {
+      countQuery = countQuery.gte("date", today).lte("date", `${today}T23:59:59`);
+      dataQuery = dataQuery.gte("date", today).lte("date", `${today}T23:59:59`);
+
+      break;
+    }
+    case "past": {
+      countQuery = countQuery.lt("date", today);
+      dataQuery = dataQuery.lt("date", today);
+
+      break;
+    }
+    // No default
   }
 
   if (type) {
@@ -72,7 +72,9 @@ export async function GET(request: NextRequest) {
 
   // For "no when filter", we need custom sorting: upcoming first, then past reversed
   // We'll fetch with a basic order and sort in-memory for this case
-  dataQuery = when ? dataQuery.order("date", { ascending: when !== "past" }) : dataQuery.order("date", { ascending: true });
+  dataQuery = when
+    ? dataQuery.order("date", { ascending: when !== "past" })
+    : dataQuery.order("date", { ascending: true });
 
   const [{ count }, { data: allEvents }] = await Promise.all([
     countQuery,

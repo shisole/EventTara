@@ -114,7 +114,9 @@ export default function EventsListClient({ initialEvents, totalCount }: EventsLi
     );
 
     observer.observe(sentinel);
-    return () => { observer.disconnect(); };
+    return () => {
+      observer.disconnect();
+    };
   }, [loadMore]);
 
   const handlePageChange = async (page: number) => {

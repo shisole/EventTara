@@ -13,12 +13,16 @@ export default function BetaNoticeModal() {
       const dismissed = localStorage.getItem(STORAGE_KEY);
       if (!dismissed) {
         setIsOpen(true);
-        setTimeout(() => { setIsVisible(true); }, 10);
+        setTimeout(() => {
+          setIsVisible(true);
+        }, 10);
       }
     } catch {
       // Graceful fallback: show modal even if localStorage unavailable
       setIsOpen(true);
-      setTimeout(() => { setIsVisible(true); }, 10);
+      setTimeout(() => {
+        setIsVisible(true);
+      }, 10);
     }
   }, []);
 
@@ -43,7 +47,9 @@ export default function BetaNoticeModal() {
     };
 
     document.addEventListener("keydown", handleEscape);
-    return () => { document.removeEventListener("keydown", handleEscape); };
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+    };
   }, [isOpen]);
 
   if (!isOpen) return null;
@@ -62,7 +68,9 @@ export default function BetaNoticeModal() {
         className={`relative w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8 transition-all duration-200 ${
           isVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
         }`}
-        onClick={(e) => { e.stopPropagation(); }}
+        onClick={(e) => {
+          e.stopPropagation();
+        }}
       >
         {/* Icon */}
         <div className="text-center mb-4">

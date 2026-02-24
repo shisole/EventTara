@@ -25,7 +25,9 @@ export default function OrganizerProfileHeader({
   const handleShare = () => {
     navigator.clipboard.writeText(globalThis.location.href);
     setCopied(true);
-    setTimeout(() => { setCopied(false); }, 2000);
+    setTimeout(() => {
+      setCopied(false);
+    }, 2000);
   };
 
   const organizingSince = new Date(createdAt).toLocaleDateString("en-PH", {

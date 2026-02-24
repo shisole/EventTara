@@ -14,7 +14,7 @@ const MAX_DIMENSION = 2000; // cap longest side at 2000px
 async function compressImage(file: File): Promise<File> {
   return new Promise((resolve, reject) => {
     const img = new globalThis.Image();
-    img.addEventListener('load', () => {
+    img.addEventListener("load", () => {
       let { width, height } = img;
 
       // Scale down if either dimension exceeds MAX_DIMENSION
@@ -155,7 +155,14 @@ export default function PhotoUploader({
       />
       {error && <p className="text-sm text-red-500">{error}</p>}
       {value && (
-        <Button type="button" variant="ghost" size="sm" onClick={() => { onChange(null); }}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            onChange(null);
+          }}
+        >
           Remove
         </Button>
       )}

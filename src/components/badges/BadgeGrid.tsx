@@ -46,7 +46,9 @@ export default function BadgeGrid({ badges }: { badges: Badge[] }) {
       {showTabs && (
         <div className="flex flex-wrap gap-2 justify-center mb-4">
           <button
-            onClick={() => { setActiveCategory(null); }}
+            onClick={() => {
+              setActiveCategory(null);
+            }}
             className={cn(
               "px-3 py-1 rounded-full text-sm font-medium transition-colors",
               activeCategory
@@ -61,7 +63,9 @@ export default function BadgeGrid({ badges }: { badges: Badge[] }) {
             return (
               <button
                 key={cat}
-                onClick={() => { setActiveCategory(cat); }}
+                onClick={() => {
+                  setActiveCategory(cat);
+                }}
                 className={cn(
                   "px-3 py-1 rounded-full text-sm font-medium transition-colors",
                   activeCategory === cat
