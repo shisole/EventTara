@@ -172,18 +172,23 @@ function FilterChip({
         <div
           className={cn(
             "fixed inset-0 z-[60] flex flex-col sm:hidden",
-            mobileFullscreen ? "" : "justify-end",
+            mobileFullscreen ? "" : "justify-end pb-20",
           )}
         >
           {/* Backdrop */}
           {!mobileFullscreen && (
             /* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */
-            <div className="absolute inset-0 bg-black/30" onClick={() => onToggle("")} />
+            <div
+              className="absolute inset-0 bg-black/30 animate-backdrop-fade-in"
+              onClick={() => onToggle("")}
+            />
           )}
           <div
             className={cn(
-              "relative bg-white dark:bg-gray-800 flex flex-col",
-              mobileFullscreen ? "flex-1" : "max-h-[70vh] rounded-t-2xl",
+              "relative bg-white dark:bg-gray-800 flex flex-col shadow-xl",
+              mobileFullscreen
+                ? "flex-1 animate-fullscreen-slide-up"
+                : "max-h-[70vh] rounded-t-2xl animate-bottom-sheet-up",
             )}
           >
             {/* Header */}
