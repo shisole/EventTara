@@ -4,8 +4,9 @@ import type { User } from "@supabase/supabase-js";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 
+import ExploreDropdown from "@/components/layout/ExploreDropdown";
 import ThemeToggle from "@/components/layout/ThemeToggle";
 import { Button, Avatar } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
@@ -159,25 +160,9 @@ export default function Navbar() {
                 </svg>
               </button>
               {exploreOpen && (
-                <div className="absolute left-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-lg dark:shadow-gray-950/30 border border-gray-100 dark:border-gray-700 py-2 z-50">
-                  <Link
-                    href="/events"
-                    className="block px-4 py-2 text-sm font-semibold text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700"
-                  >
-                    All Events
-                  </Link>
-                  <div className="border-t border-gray-100 dark:border-gray-700 my-1" />
-                  {activities.map((activity) => (
-                    <Link
-                      key={activity.slug}
-                      href={`/events?type=${activity.slug}`}
-                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-                    >
-                      <span>{activity.icon}</span>
-                      {activity.label}
-                    </Link>
-                  ))}
-                </div>
+                <Suspense fallback={null}>
+                  <ExploreDropdown activities={activities} />
+                </Suspense>
               )}
             </div>
             {loading ? (
