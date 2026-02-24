@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { Button, Input } from "@/components/ui";
 import PhotoUploader from "./PhotoUploader";
 import { findProvinceFromLocation } from "@/lib/constants/philippine-provinces";
+import { createClient } from "@/lib/supabase/client";
 
 const MapPicker = dynamic(() => import("@/components/maps/MapPicker"), { ssr: false });
 
@@ -23,6 +24,7 @@ interface EventFormProps {
     price: number;
     cover_image_url: string | null;
     status?: string;
+    initialGuideIds?: string[];
   };
 }
 
@@ -54,6 +56,33 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | undefined>(
     initialData?.coordinates || undefined
   );
+
+  // Guide selection state (hiking events only)
+  const [selectedGuideIds, setSelectedGuideIds] = useState<string[]>(
+    initialData?.initialGuideIds || []
+  );
+  const [availableGuides, setAvailableGuides] = useState<
+    { id: string; full_name: string; avatar_url: string | null }[]
+  >([]);
+
+  useEffect(() => {
+    if (type !== "hiking") {
+      setAvailableGuides([]);
+      return;
+    }
+    const fetchGuides = async () => {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+      const res = await fetch(`/api/guides?created_by=${user.id}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      setAvailableGuides(data.guides || []);
+    };
+    fetchGuides();
+  }, [type]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,6 +116,45 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
       setError(data.error || "Something went wrong");
       setLoading(false);
     } else {
+      // Sync guides for hiking events
+      if (type === "hiking") {
+        const eventId = data.event.id;
+
+        // Get current guide links if editing
+        let currentGuideIds: string[] = [];
+        if (mode === "edit") {
+          const currentRes = await fetch(`/api/events/${eventId}/guides`);
+          if (currentRes.ok) {
+            const currentData = await currentRes.json();
+            currentGuideIds = (currentData.guides || []).map(
+              (g: { id: string }) => g.id
+            );
+          }
+        }
+
+        // Add newly selected guides
+        for (const guideId of selectedGuideIds) {
+          if (!currentGuideIds.includes(guideId)) {
+            await fetch(`/api/events/${eventId}/guides`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ guide_id: guideId }),
+            });
+          }
+        }
+
+        // Remove unselected guides
+        for (const guideId of currentGuideIds) {
+          if (!selectedGuideIds.includes(guideId)) {
+            await fetch(`/api/events/${eventId}/guides`, {
+              method: "DELETE",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ guide_id: guideId }),
+            });
+          }
+        }
+      }
+
       router.push(`/dashboard/events/${data.event.id}`);
       router.refresh();
     }
@@ -207,6 +275,43 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
         onChange={setCoverImage}
         label="Cover Image"
       />
+
+      {type === "hiking" && availableGuides.length > 0 && (
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Assign Guides
+          </label>
+          <div className="space-y-2">
+            {availableGuides.map((guide) => (
+              <label
+                key={guide.id}
+                className="flex items-center gap-3 p-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedGuideIds.includes(guide.id)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedGuideIds((prev) => [...prev, guide.id]);
+                    } else {
+                      setSelectedGuideIds((prev) =>
+                        prev.filter((id) => id !== guide.id)
+                      );
+                    }
+                  }}
+                  className="rounded border-gray-300 text-lime-500 focus:ring-lime-500"
+                />
+                <span className="text-sm dark:text-gray-200">
+                  {guide.full_name}
+                </span>
+              </label>
+            ))}
+          </div>
+          <p className="text-xs text-gray-400 dark:text-gray-500">
+            Select guides to assign to this hiking event.
+          </p>
+        </div>
+      )}
 
       {error && <p className="text-sm text-red-500">{error}</p>}
 
