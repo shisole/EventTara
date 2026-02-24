@@ -75,6 +75,7 @@ interface FilterChipProps {
   isActive: boolean;
   isOpen: boolean;
   onToggle: (id: string) => void;
+  onClear?: () => void;
   children: ReactNode;
 }
 
@@ -85,6 +86,7 @@ function FilterChip({
   isActive,
   isOpen,
   onToggle,
+  onClear,
   children,
 }: FilterChipProps) {
   const chipRef = useRef<HTMLDivElement>(null);
@@ -109,24 +111,55 @@ function FilterChip({
         type="button"
         onClick={() => onToggle(isOpen ? "" : id)}
         className={cn(
-          "flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors border",
+          "flex items-center gap-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors border",
+          isActive ? "pl-4 pr-1.5 py-1.5" : "px-4 py-2",
           isActive
             ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white"
             : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500",
         )}
       >
         {isActive ? activeLabel || label : label}
-        {/* Chevron */}
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={2.5}
-          stroke="currentColor"
-          className={cn("h-3.5 w-3.5 transition-transform", isOpen && "rotate-180")}
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-        </svg>
+        {isActive && onClear ? (
+          /* X button to clear this chip */
+          <span
+            role="button"
+            tabIndex={0}
+            onClick={(e) => {
+              e.stopPropagation();
+              onClear();
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.stopPropagation();
+                onClear();
+              }
+            }}
+            className="ml-0.5 p-1 rounded-full hover:bg-white/20 dark:hover:bg-gray-900/20 transition-colors"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2.5}
+              stroke="currentColor"
+              className="h-3.5 w-3.5"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </span>
+        ) : (
+          /* Chevron */
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2.5}
+            stroke="currentColor"
+            className={cn("h-3.5 w-3.5 transition-transform", isOpen && "rotate-180")}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+          </svg>
+        )}
       </button>
 
       {/* Popover */}
@@ -152,6 +185,15 @@ function parseTypes(param: string): Set<string> {
 /** Serialize a Set of types into a comma-separated string */
 function serializeTypes(types: Set<string>): string {
   return [...types].join(",");
+}
+
+const ALL_SLUGS = new Set(ACTIVITIES.map((a) => a.slug));
+
+/** Check if all activities are selected (equivalent to no filter) */
+function isAllSelected(types: Set<string>): boolean {
+  return (
+    types.size === 0 || (types.size === ALL_SLUGS.size && [...ALL_SLUGS].every((s) => types.has(s)))
+  );
 }
 
 /* ------------------------------------------------------------------ */
@@ -270,6 +312,27 @@ export default function EventFilters({
     [currentTypes, updateParams],
   );
 
+  /* Select all activities (clears type param = show everything) */
+  const selectAllTypes = useCallback(() => {
+    updateParams({ type: "", guide: "" });
+  }, [updateParams]);
+
+  /* Clear all filters at once */
+  const clearAllFilters = useCallback(() => {
+    updateParams({ type: "", when: "", from: "", to: "", org: "", guide: "", search: "" });
+    setSearchValue("");
+  }, [updateParams]);
+
+  /* Whether any filter is active */
+  const hasActiveFilters =
+    currentTypeParam !== "" ||
+    currentWhen !== "" ||
+    currentOrg !== "" ||
+    currentGuide !== "" ||
+    currentFrom !== "" ||
+    currentTo !== "" ||
+    currentSearch !== "";
+
   /* ---- Instant-apply helpers (toggle: click again to deselect) ---- */
   const selectWhen = useCallback(
     (value: string) => {
@@ -331,10 +394,51 @@ export default function EventFilters({
 
   return (
     <div className="space-y-4">
-      {/* Activity type selector — horizontal avatar row */}
-      <div className="flex gap-3 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
+      {/* Activity type selector — centered horizontal avatar row */}
+      <div className="flex justify-center gap-3 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
+        {/* All Activity avatar */}
+        <button
+          type="button"
+          onClick={selectAllTypes}
+          className="flex flex-col items-center gap-1.5 shrink-0 group"
+        >
+          <div
+            className={cn(
+              "relative w-16 h-16 sm:w-18 sm:h-18 rounded-full overflow-hidden border-2 transition-all flex items-center justify-center bg-gray-100 dark:bg-gray-700",
+              isAllSelected(currentTypes)
+                ? "border-lime-500 ring-2 ring-lime-300 dark:ring-lime-700 scale-105"
+                : "border-gray-200 dark:border-gray-600 opacity-70 group-hover:opacity-100 group-hover:border-gray-300 dark:group-hover:border-gray-500",
+            )}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="h-7 w-7 text-gray-500 dark:text-gray-300"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"
+              />
+            </svg>
+          </div>
+          <span
+            className={cn(
+              "text-xs font-medium transition-colors",
+              isAllSelected(currentTypes)
+                ? "text-lime-600 dark:text-lime-400"
+                : "text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300",
+            )}
+          >
+            All
+          </span>
+        </button>
+
         {ACTIVITIES.map((activity) => {
-          const isActive = currentTypes.has(activity.slug);
+          const isActive = !isAllSelected(currentTypes) && currentTypes.has(activity.slug);
           return (
             <button
               key={activity.slug}
@@ -448,10 +552,10 @@ export default function EventFilters({
         </button>
       </div>
 
-      {/* Chip bar — remaining filters (no Type chip) */}
+      {/* Chip bar — remaining filters + clear all */}
       <div
         className={cn(
-          "flex gap-2 pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide",
+          "flex items-center gap-2 pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide",
           openId ? "overflow-visible" : "overflow-x-auto",
         )}
       >
@@ -463,6 +567,7 @@ export default function EventFilters({
           isActive={!!currentWhen}
           isOpen={openId === "when"}
           onToggle={handleToggle}
+          onClear={() => updateParams({ when: "" })}
         >
           <div className="p-3 space-y-1">
             {TIME_FILTERS.map((f) => (
@@ -497,6 +602,7 @@ export default function EventFilters({
           isActive={!!(currentFrom || currentTo)}
           isOpen={openId === "date"}
           onToggle={handleToggle}
+          onClear={() => updateParams({ from: "", to: "" })}
         >
           <div className="p-3 space-y-3">
             <div>
@@ -549,6 +655,7 @@ export default function EventFilters({
             isActive={!!currentOrg}
             isOpen={openId === "org"}
             onToggle={handleToggle}
+            onClear={() => updateParams({ org: "" })}
           >
             <div className="p-3 space-y-1 max-h-[200px] overflow-y-auto">
               {organizers.map((o) => (
@@ -579,6 +686,7 @@ export default function EventFilters({
             isActive={!!currentGuide}
             isOpen={openId === "guide"}
             onToggle={handleToggle}
+            onClear={() => updateParams({ guide: "" })}
           >
             <div className="p-3 space-y-1 max-h-[200px] overflow-y-auto">
               {guides.map((g) => (
@@ -598,6 +706,17 @@ export default function EventFilters({
               ))}
             </div>
           </FilterChip>
+        )}
+
+        {/* ---- Clear all button ---- */}
+        {hasActiveFilters && (
+          <button
+            type="button"
+            onClick={clearAllFilters}
+            className="shrink-0 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 whitespace-nowrap underline underline-offset-2"
+          >
+            Clear all
+          </button>
         )}
       </div>
     </div>
