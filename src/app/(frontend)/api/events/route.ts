@@ -19,6 +19,10 @@ export async function GET(request: NextRequest) {
   const type = searchParams.get("type") || "";
   const when = searchParams.get("when") || "";
   const search = searchParams.get("search") || "";
+  const org = searchParams.get("org") || "";
+  const guide = searchParams.get("guide") || "";
+  const from = searchParams.get("from") || "";
+  const to = searchParams.get("to") || "";
 
   const supabase = await createClient();
   const today = new Date().toISOString().split("T")[0];
@@ -68,6 +72,37 @@ export async function GET(request: NextRequest) {
     const filter = `title.ilike.%${pattern}%,location.ilike.%${pattern}%`;
     countQuery = countQuery.or(filter);
     dataQuery = dataQuery.or(filter);
+  }
+
+  if (org) {
+    countQuery = countQuery.eq("organizer_id", org);
+    dataQuery = dataQuery.eq("organizer_id", org);
+  }
+
+  if (from) {
+    countQuery = countQuery.gte("date", from);
+    dataQuery = dataQuery.gte("date", from);
+  }
+
+  if (to) {
+    countQuery = countQuery.lte("date", `${to}T23:59:59`);
+    dataQuery = dataQuery.lte("date", `${to}T23:59:59`);
+  }
+
+  // Guide filter: fetch linked event IDs first, then constrain both queries
+  if (guide) {
+    const { data: links } = await supabase
+      .from("event_guides")
+      .select("event_id")
+      .eq("guide_id", guide);
+
+    const eventIds = links?.map((l) => l.event_id) ?? [];
+    if (eventIds.length === 0) {
+      return NextResponse.json({ events: [], totalCount: 0 });
+    }
+
+    countQuery = countQuery.in("id", eventIds);
+    dataQuery = dataQuery.in("id", eventIds);
   }
 
   // For "no when filter", we need custom sorting: upcoming first, then past reversed
