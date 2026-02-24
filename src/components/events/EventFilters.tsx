@@ -208,14 +208,7 @@ function FilterChip({
                 </svg>
               </button>
             </div>
-            <div
-              className={cn(
-                "flex-1 min-h-0",
-                mobileFullscreen ? "flex flex-col" : "overflow-y-auto",
-              )}
-            >
-              {children}
-            </div>
+            <div className="flex-1 min-h-0 overflow-y-auto">{children}</div>
           </div>
         </div>
       )}
@@ -412,9 +405,9 @@ function CalendarPicker({
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div>
       {/* Navigation + months */}
-      <div className="flex-1 min-h-0 overflow-y-auto p-3 pb-2">
+      <div className="p-3 pb-2">
         <div className="flex items-center justify-between mb-2">
           <button
             type="button"
@@ -458,7 +451,7 @@ function CalendarPicker({
       </div>
 
       {/* Footer */}
-      <div className="shrink-0 flex items-center justify-between border-t border-gray-200 dark:border-gray-700 px-3 py-2">
+      <div className="flex items-center justify-between border-t border-gray-200 dark:border-gray-700 px-3 py-2">
         <button
           type="button"
           onClick={onClear}
