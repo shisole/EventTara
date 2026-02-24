@@ -167,41 +167,64 @@ function FilterChip({
         )}
       </button>
 
-      {/* Mobile fullscreen overlay */}
-      {isOpen && mobileFullscreen && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-white dark:bg-gray-800 sm:hidden">
-          {/* Header with close */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-            <span className="text-base font-semibold text-gray-900 dark:text-gray-100">
-              {label}
-            </span>
-            <button
-              type="button"
-              onClick={() => onToggle("")}
-              className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-                stroke="currentColor"
-                className="h-5 w-5"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          <div className="flex-1 overflow-y-auto">{children}</div>
-        </div>
-      )}
-
-      {/* Desktop popover (hidden on mobile when mobileFullscreen) */}
+      {/* Mobile: bottom sheet (all chips) / fullscreen (date) */}
       {isOpen && (
         <div
           className={cn(
-            "absolute top-full left-0 mt-2 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg z-50",
-            mobileFullscreen ? "hidden sm:block" : "",
+            "fixed inset-0 z-50 flex flex-col sm:hidden",
+            mobileFullscreen ? "" : "justify-end",
+          )}
+        >
+          {/* Backdrop */}
+          {!mobileFullscreen && (
+            /* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */
+            <div className="absolute inset-0 bg-black/30" onClick={() => onToggle("")} />
+          )}
+          <div
+            className={cn(
+              "relative bg-white dark:bg-gray-800 flex flex-col",
+              mobileFullscreen ? "flex-1" : "max-h-[70vh] rounded-t-2xl",
+            )}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700 shrink-0">
+              <span className="text-base font-semibold text-gray-900 dark:text-gray-100">
+                {label}
+              </span>
+              <button
+                type="button"
+                onClick={() => onToggle("")}
+                className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                  className="h-5 w-5"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div
+              className={cn(
+                "flex-1 min-h-0",
+                mobileFullscreen ? "flex flex-col" : "overflow-y-auto",
+              )}
+            >
+              {children}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Desktop: normal popover */}
+      {isOpen && (
+        <div
+          className={cn(
+            "absolute top-full left-0 mt-2 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg z-50 hidden sm:block",
             popoverClassName ?? "min-w-[200px]",
           )}
         >
@@ -389,9 +412,9 @@ function CalendarPicker({
   };
 
   return (
-    <div>
+    <div className="flex flex-col h-full">
       {/* Navigation + months */}
-      <div className="p-3 pb-2">
+      <div className="flex-1 min-h-0 overflow-y-auto p-3 pb-2">
         <div className="flex items-center justify-between mb-2">
           <button
             type="button"
@@ -435,7 +458,7 @@ function CalendarPicker({
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between border-t border-gray-200 dark:border-gray-700 px-3 py-2">
+      <div className="shrink-0 flex items-center justify-between border-t border-gray-200 dark:border-gray-700 px-3 py-2">
         <button
           type="button"
           onClick={onClear}
