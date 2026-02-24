@@ -74,6 +74,7 @@ export interface Database {
           description: string | null;
           type: "hiking" | "mtb" | "road_bike" | "running" | "trail_run";
           date: string;
+          end_date: string | null;
           location: string;
           coordinates: { lat: number; lng: number } | null;
           max_participants: number;
@@ -89,6 +90,7 @@ export interface Database {
           description?: string | null;
           type: "hiking" | "mtb" | "road_bike" | "running" | "trail_run";
           date: string;
+          end_date?: string | null;
           location: string;
           coordinates?: { lat: number; lng: number } | null;
           max_participants?: number;
@@ -104,6 +106,7 @@ export interface Database {
           description?: string | null;
           type?: "hiking" | "mtb" | "road_bike" | "running" | "trail_run";
           date?: string;
+          end_date?: string | null;
           location?: string;
           coordinates?: { lat: number; lng: number } | null;
           max_participants?: number;
