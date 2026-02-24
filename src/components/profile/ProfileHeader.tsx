@@ -11,7 +11,13 @@ interface ProfileHeaderProps {
   isOwnProfile?: boolean;
 }
 
-export default function ProfileHeader({ fullName, username, avatarUrl, createdAt, isOwnProfile }: ProfileHeaderProps) {
+export default function ProfileHeader({
+  fullName,
+  username,
+  avatarUrl,
+  createdAt,
+  isOwnProfile,
+}: ProfileHeaderProps) {
   const [copied, setCopied] = useState(false);
 
   const handleShare = () => {
@@ -38,7 +44,9 @@ export default function ProfileHeader({ fullName, username, avatarUrl, createdAt
           )}
         </div>
         {username && <p className="text-gray-500 dark:text-gray-400">@{username}</p>}
-        <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Adventurer since {memberSince}</p>
+        <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+          Adventurer since {memberSince}
+        </p>
       </div>
       <Button variant="outline" size="sm" onClick={handleShare}>
         {copied ? "Link Copied!" : "Share Profile"}

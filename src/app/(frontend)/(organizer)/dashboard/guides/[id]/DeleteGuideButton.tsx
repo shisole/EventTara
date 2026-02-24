@@ -9,7 +9,9 @@ export default function DeleteGuideButton({ guideId }: { guideId: string }) {
   const [deleting, setDeleting] = useState(false);
 
   const handleDelete = async () => {
-    if (!window.confirm("Are you sure you want to delete this guide? This action cannot be undone.")) {
+    if (
+      !window.confirm("Are you sure you want to delete this guide? This action cannot be undone.")
+    ) {
       return;
     }
 
@@ -34,7 +36,12 @@ export default function DeleteGuideButton({ guideId }: { guideId: string }) {
   };
 
   return (
-    <Button variant="ghost" onClick={handleDelete} disabled={deleting} className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950">
+    <Button
+      variant="ghost"
+      onClick={handleDelete}
+      disabled={deleting}
+      className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
+    >
       {deleting ? "Deleting..." : "Delete Guide"}
     </Button>
   );

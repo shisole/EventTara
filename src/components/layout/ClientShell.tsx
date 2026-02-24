@@ -20,9 +20,7 @@ export default function ClientShell({ children }: { children: React.ReactNode })
   return (
     <>
       <Navbar />
-      <div className="flex-1 pb-16 md:pb-0">
-        {children}
-      </div>
+      <div className="flex-1 pb-16 md:pb-0">{children}</div>
       <MobileNav />
     </>
   );

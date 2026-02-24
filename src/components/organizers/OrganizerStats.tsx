@@ -20,7 +20,10 @@ export default function OrganizerStats({
   ];
 
   if (totalReviews && totalReviews > 0 && avgRating !== undefined) {
-    stats.push({ value: `${avgRating.toFixed(1)} \u2605`, label: `${totalReviews} Review${totalReviews !== 1 ? "s" : ""}` });
+    stats.push({
+      value: `${avgRating.toFixed(1)} \u2605`,
+      label: `${totalReviews} Review${totalReviews !== 1 ? "s" : ""}`,
+    });
   }
 
   const cols = stats.length === 4 ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3";
@@ -32,12 +35,8 @@ export default function OrganizerStats({
           key={stat.label}
           className="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-5 text-center"
         >
-          <p className="text-2xl font-bold text-lime-600 dark:text-lime-400">
-            {stat.value}
-          </p>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {stat.label}
-          </p>
+          <p className="text-2xl font-bold text-lime-600 dark:text-lime-400">{stat.value}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{stat.label}</p>
         </div>
       ))}
     </div>

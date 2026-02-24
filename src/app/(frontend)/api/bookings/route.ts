@@ -11,7 +11,9 @@ interface CompanionInput {
 export async function POST(request: Request) {
   const supabase = await createClient();
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -32,7 +34,11 @@ export async function POST(request: Request) {
     mode = (formData.get("mode") as string) === "friend" ? "friend" : "self";
     const companionsStr = formData.get("companions") as string | null;
     if (companionsStr) {
-      try { companions = JSON.parse(companionsStr); } catch { /* ignore */ }
+      try {
+        companions = JSON.parse(companionsStr);
+      } catch {
+        /* ignore */
+      }
     }
   } else {
     const body = await request.json();
@@ -66,8 +72,9 @@ export async function POST(request: Request) {
   }
 
   // Check capacity using RPC (accounts for companions)
-  const { data: totalParticipants } = await supabase
-    .rpc("get_total_participants", { p_event_id: eventId });
+  const { data: totalParticipants } = await supabase.rpc("get_total_participants", {
+    p_event_id: eventId,
+  });
 
   const requestedSlots = mode === "self" ? 1 + companions.length : companions.length;
   if ((totalParticipants || 0) + requestedSlots > event.max_participants) {
@@ -128,7 +135,7 @@ export async function POST(request: Request) {
       .insert({
         event_id: eventId,
         user_id: user.id,
-        payment_method: isFree ? null : paymentMethod as "gcash" | "maya" | "cash",
+        payment_method: isFree ? null : (paymentMethod as "gcash" | "maya" | "cash"),
         qr_code: qrCode,
         status: bookingStatus,
         payment_status: paymentStatus,
@@ -153,9 +160,7 @@ export async function POST(request: Request) {
         .upload(filePath, proofFile, { upsert: true });
 
       if (!uploadError) {
-        const { data: urlData } = supabase.storage
-          .from("payment-proofs")
-          .getPublicUrl(filePath);
+        const { data: urlData } = supabase.storage.from("payment-proofs").getPublicUrl(filePath);
 
         await supabase
           .from("bookings")
@@ -180,7 +185,7 @@ export async function POST(request: Request) {
   // Insert companions if any
   let insertedCompanions: any[] = [];
   if (companions.length > 0) {
-    const companionStatus = isFree ? "confirmed" as const : "pending" as const;
+    const companionStatus = isFree ? ("confirmed" as const) : ("pending" as const);
     const companionRows = companions.map((c) => ({
       booking_id: bookingId,
       full_name: c.full_name.trim(),

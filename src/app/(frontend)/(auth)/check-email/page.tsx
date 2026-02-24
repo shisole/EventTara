@@ -15,9 +15,8 @@ function CheckEmailContent() {
       <h2 className="text-2xl font-heading font-bold">Check Your Email</h2>
 
       <p className="text-gray-600 dark:text-gray-300">
-        We sent a confirmation link to{" "}
-        {email ? <strong>{email}</strong> : "your email"}. Click the link to
-        activate your account.
+        We sent a confirmation link to {email ? <strong>{email}</strong> : "your email"}. Click the
+        link to activate your account.
       </p>
 
       <p className="text-sm text-gray-400 dark:text-gray-500">

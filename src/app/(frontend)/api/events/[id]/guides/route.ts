@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: eventId } = await params;
   const supabase = await createClient();
 
@@ -54,9 +51,7 @@ export async function GET(
   }
 
   // Merge guide info with review stats and event_guide linking metadata
-  const eventGuideMap = new Map(
-    eventGuides.map((eg) => [eg.guide_id, eg])
-  );
+  const eventGuideMap = new Map(eventGuides.map((eg) => [eg.guide_id, eg]));
 
   const result = (guides || []).map((guide) => ({
     ...guide,
@@ -69,10 +64,7 @@ export async function GET(
   return NextResponse.json({ guides: result });
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: eventId } = await params;
   const supabase = await createClient();
   const {
@@ -86,10 +78,7 @@ export async function POST(
   const body = await request.json();
 
   if (!body.guide_id) {
-    return NextResponse.json(
-      { error: "guide_id is required" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "guide_id is required" }, { status: 400 });
   }
 
   // Check if the link already exists
@@ -101,10 +90,7 @@ export async function POST(
     .maybeSingle();
 
   if (existing) {
-    return NextResponse.json(
-      { error: "Guide is already linked to this event" },
-      { status: 409 }
-    );
+    return NextResponse.json({ error: "Guide is already linked to this event" }, { status: 409 });
   }
 
   const { data: eventGuide, error } = await supabase
@@ -125,7 +111,7 @@ export async function POST(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const { id: eventId } = await params;
   const supabase = await createClient();
@@ -140,10 +126,7 @@ export async function DELETE(
   const body = await request.json();
 
   if (!body.guide_id) {
-    return NextResponse.json(
-      { error: "guide_id is required" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "guide_id is required" }, { status: 400 });
   }
 
   const { error } = await supabase

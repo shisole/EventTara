@@ -19,8 +19,8 @@ export default function DashboardSidebar() {
   const navContent = (
     <nav className="space-y-1">
       {NAV_ITEMS.map((item) => {
-        const isActive = pathname === item.href ||
-          (item.href !== "/dashboard" && pathname.startsWith(item.href));
+        const isActive =
+          pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
         return (
           <Link
             key={item.href}
@@ -30,7 +30,7 @@ export default function DashboardSidebar() {
               "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors min-h-[44px]",
               isActive
                 ? "bg-lime-50 dark:bg-lime-900/30 text-lime-600 dark:text-lime-400"
-                : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
+                : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white",
             )}
           >
             <span>{item.icon}</span>
@@ -49,8 +49,19 @@ export default function DashboardSidebar() {
         className="md:hidden fixed bottom-20 left-4 z-40 bg-lime-500 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-lime-400 transition-colors"
         aria-label="Open dashboard menu"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={1.5}
+          stroke="currentColor"
+          className="w-6 h-6"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+          />
         </svg>
       </button>
 
@@ -65,15 +76,20 @@ export default function DashboardSidebar() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
-              <span className="text-lg font-heading font-bold text-lime-500">
-                Dashboard
-              </span>
+              <span className="text-lg font-heading font-bold text-lime-500">Dashboard</span>
               <button
                 onClick={() => setDrawerOpen(false)}
                 className="w-11 h-11 flex items-center justify-center rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
                 aria-label="Close menu"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-5 h-5"
+                >
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>

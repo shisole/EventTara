@@ -109,13 +109,23 @@ export default async function Home() {
   // Dedupe (inner join can return multiples) and sort by event count
   const uniqueOrganizers = organizers
     ? Object.values(
-        organizers.reduce<Record<string, { id: string; org_name: string; logo_url: string | null; event_count: number }>>((acc, org: any) => {
+        organizers.reduce<
+          Record<
+            string,
+            { id: string; org_name: string; logo_url: string | null; event_count: number }
+          >
+        >((acc, org: any) => {
           if (!acc[org.id]) {
-            acc[org.id] = { id: org.id, org_name: org.org_name, logo_url: org.logo_url, event_count: 0 };
+            acc[org.id] = {
+              id: org.id,
+              org_name: org.org_name,
+              logo_url: org.logo_url,
+              event_count: 0,
+            };
           }
           acc[org.id].event_count += Array.isArray(org.events) ? org.events.length : 1;
           return acc;
-        }, {})
+        }, {}),
       ).sort((a, b) => b.event_count - a.event_count)
     : [];
 
@@ -123,14 +133,14 @@ export default async function Home() {
   let heroSlides: { image: { url: string; alt: string } }[] = [];
   try {
     const payload = await getPayloadClient();
-    const heroData = await payload.findGlobal({ slug: 'hero-carousel' });
+    const heroData = await payload.findGlobal({ slug: "hero-carousel" });
     if (heroData?.slides) {
       heroSlides = heroData.slides
-        .filter((slide: any) => slide.image && typeof slide.image === 'object')
+        .filter((slide: any) => slide.image && typeof slide.image === "object")
         .map((slide: any) => ({
           image: {
             url: slide.image.url,
-            alt: slide.image.alt || 'Adventure',
+            alt: slide.image.alt || "Adventure",
           },
         }));
     }
@@ -155,14 +165,20 @@ export default async function Home() {
         )}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 w-full">
           <div className="inline-block mb-6 px-4 py-1.5 rounded-full bg-lime-500/10 border border-lime-500/30">
-            <span className="text-lime-600 dark:text-lime-400 text-sm font-semibold tracking-wide uppercase">Beta — Now Live</span>
+            <span className="text-lime-600 dark:text-lime-400 text-sm font-semibold tracking-wide uppercase">
+              Beta — Now Live
+            </span>
           </div>
-          <h1 className={`text-5xl sm:text-7xl font-heading font-bold mb-4 ${heroSlides.length > 0 ? 'text-white' : 'text-gray-900 dark:text-white'}`}>
+          <h1
+            className={`text-5xl sm:text-7xl font-heading font-bold mb-4 ${heroSlides.length > 0 ? "text-white" : "text-gray-900 dark:text-white"}`}
+          >
             Tara na!
           </h1>
-          <p className={`text-xl sm:text-2xl mb-10 max-w-2xl mx-auto ${heroSlides.length > 0 ? 'text-gray-200' : 'text-gray-600 dark:text-gray-400'}`}>
-            Book Your Next Adventure. Discover hiking, biking, running events
-            and more across the Philippines.
+          <p
+            className={`text-xl sm:text-2xl mb-10 max-w-2xl mx-auto ${heroSlides.length > 0 ? "text-gray-200" : "text-gray-600 dark:text-gray-400"}`}
+          >
+            Book Your Next Adventure. Discover hiking, biking, running events and more across the
+            Philippines.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
@@ -193,7 +209,11 @@ export default async function Home() {
             </div>
             <EventCarousel>
               {upcomingEvents.map((event: any) => (
-                <div key={event.id} className="md:min-w-[320px] md:max-w-[350px] md:flex-shrink-0" style={{ scrollSnapAlign: "start" }}>
+                <div
+                  key={event.id}
+                  className="md:min-w-[320px] md:max-w-[350px] md:flex-shrink-0"
+                  style={{ scrollSnapAlign: "start" }}
+                >
                   <EventCard
                     id={event.id}
                     title={event.title}
@@ -211,7 +231,10 @@ export default async function Home() {
                 </div>
               ))}
               {remainingCount > 0 && (
-                <div className="md:min-w-[280px] md:flex-shrink-0" style={{ scrollSnapAlign: "start" }}>
+                <div
+                  className="md:min-w-[280px] md:flex-shrink-0"
+                  style={{ scrollSnapAlign: "start" }}
+                >
                   <Link
                     href="/events"
                     className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 dark:border-slate-600 hover:border-lime-500 dark:hover:border-lime-500 transition-colors h-full min-h-[280px]"
@@ -329,7 +352,13 @@ export default async function Home() {
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-10 h-10 rounded-full bg-lime-100 dark:bg-lime-900/30 overflow-hidden flex-shrink-0 flex items-center justify-center">
                         {t.avatar_url ? (
-                          <Image src={t.avatar_url} alt={t.name} width={40} height={40} className="object-cover w-full h-full" />
+                          <Image
+                            src={t.avatar_url}
+                            alt={t.name}
+                            width={40}
+                            height={40}
+                            className="object-cover w-full h-full"
+                          />
                         ) : (
                           <span className="text-lime-600 dark:text-lime-400 font-bold text-sm">
                             {t.name.charAt(0).toUpperCase()}
@@ -337,11 +366,15 @@ export default async function Home() {
                         )}
                       </div>
                       <div>
-                        <p className="font-semibold text-sm text-gray-900 dark:text-white">{t.name}</p>
+                        <p className="font-semibold text-sm text-gray-900 dark:text-white">
+                          {t.name}
+                        </p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">{t.role}</p>
                       </div>
                     </div>
-                    <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">&ldquo;{t.text}&rdquo;</p>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+                      &ldquo;{t.text}&rdquo;
+                    </p>
                   </div>
                 </div>
               ))}
@@ -357,8 +390,8 @@ export default async function Home() {
             Run Adventure Events?
           </h2>
           <p className="text-lg text-slate-700 dark:text-gray-800 mb-8">
-            List them on EventTara and reach thousands of adventure seekers.
-            Manage registrations, check-ins, and more — all in one place.
+            List them on EventTara and reach thousands of adventure seekers. Manage registrations,
+            check-ins, and more — all in one place.
           </p>
           <Link
             href="/signup"

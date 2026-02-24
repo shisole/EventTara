@@ -8,11 +8,7 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: event } = await supabase
-    .from("events")
-    .select("*")
-    .eq("id", id)
-    .single();
+  const { data: event } = await supabase.from("events").select("*").eq("id", id).single();
 
   if (!event) notFound();
 

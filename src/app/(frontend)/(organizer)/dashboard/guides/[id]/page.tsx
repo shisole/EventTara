@@ -9,13 +9,11 @@ export default async function EditGuidePage({ params }: { params: Promise<{ id: 
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  const { data: guide } = await supabase
-    .from("guides")
-    .select("*")
-    .eq("id", id)
-    .single();
+  const { data: guide } = await supabase.from("guides").select("*").eq("id", id).single();
 
   if (!guide) notFound();
 

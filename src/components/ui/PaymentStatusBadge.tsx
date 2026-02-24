@@ -20,7 +20,7 @@ export default function PaymentStatusBadge({ status, className }: PaymentStatusB
       className={cn(
         "inline-flex items-center px-3 py-1 rounded-full text-xs font-medium capitalize",
         statusStyles[status] || statusStyles.pending,
-        className
+        className,
       )}
     >
       {status}

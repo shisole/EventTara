@@ -6,7 +6,9 @@ export const metadata = { title: "Settings — EventTara" };
 
 export default async function SettingsPage() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   const { data: profile } = await supabase
     .from("organizer_profiles")
@@ -24,12 +26,16 @@ export default async function SettingsPage() {
         <h2 className="text-xl font-heading font-bold mb-4 dark:text-white">Organizer Profile</h2>
         <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-6">
           <OrganizerProfileForm
-            profile={profile ? {
-              id: profile.id,
-              org_name: profile.org_name,
-              description: profile.description,
-              logo_url: profile.logo_url,
-            } : null}
+            profile={
+              profile
+                ? {
+                    id: profile.id,
+                    org_name: profile.org_name,
+                    description: profile.description,
+                    logo_url: profile.logo_url,
+                  }
+                : null
+            }
           />
         </div>
       </section>

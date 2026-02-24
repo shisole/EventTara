@@ -10,7 +10,11 @@ interface EventDashboardTabsProps {
   children: ReactNode; // The existing overview content
 }
 
-export default function EventDashboardTabs({ eventId, eventPrice, children }: EventDashboardTabsProps) {
+export default function EventDashboardTabs({
+  eventId,
+  eventPrice,
+  children,
+}: EventDashboardTabsProps) {
   const [activeTab, setActiveTab] = useState<"overview" | "payments">("overview");
 
   return (
@@ -24,7 +28,7 @@ export default function EventDashboardTabs({ eventId, eventPrice, children }: Ev
               "flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors capitalize",
               activeTab === tab
                 ? "bg-white dark:bg-gray-900 shadow-sm"
-                : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200",
             )}
           >
             {tab}
@@ -32,7 +36,11 @@ export default function EventDashboardTabs({ eventId, eventPrice, children }: Ev
         ))}
       </div>
 
-      {activeTab === "overview" ? children : <PaymentVerificationPanel eventId={eventId} eventPrice={eventPrice} />}
+      {activeTab === "overview" ? (
+        children
+      ) : (
+        <PaymentVerificationPanel eventId={eventId} eventPrice={eventPrice} />
+      )}
     </div>
   );
 }

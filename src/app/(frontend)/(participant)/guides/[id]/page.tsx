@@ -73,11 +73,7 @@ export default async function GuideProfilePage({ params }: { params: Promise<{ i
   const supabase = await createClient();
 
   // Fetch guide
-  const { data: guide, error } = await supabase
-    .from("guides")
-    .select("*")
-    .eq("id", id)
-    .single();
+  const { data: guide, error } = await supabase.from("guides").select("*").eq("id", id).single();
 
   if (error || !guide) {
     notFound();
@@ -116,7 +112,9 @@ export default async function GuideProfilePage({ params }: { params: Promise<{ i
       organizer_name: (event.organizer_profiles as any)?.org_name ?? undefined,
     }));
 
-    upcomingEvents = allEvents.filter((e) => e.status === "upcoming" || e.status === "happening_now");
+    upcomingEvents = allEvents.filter(
+      (e) => e.status === "upcoming" || e.status === "happening_now",
+    );
     pastEvents = allEvents.filter((e) => e.status === "past");
   }
 
@@ -149,19 +147,26 @@ export default async function GuideProfilePage({ params }: { params: Promise<{ i
             {avgRating > 0 && (
               <div className="flex items-center justify-center sm:justify-start gap-2 mb-3">
                 <StarRating value={Math.round(avgRating)} readonly size="md" />
-                <span className="font-semibold text-gray-700 dark:text-gray-300">{avgRating.toFixed(1)}</span>
+                <span className="font-semibold text-gray-700 dark:text-gray-300">
+                  {avgRating.toFixed(1)}
+                </span>
                 <span className="text-sm text-gray-500 dark:text-gray-400">
                   ({reviewList.length} review{reviewList.length !== 1 ? "s" : ""})
                 </span>
               </div>
             )}
             {guide.bio && (
-              <p className="text-gray-600 dark:text-gray-400 mb-3 whitespace-pre-wrap">{guide.bio}</p>
+              <p className="text-gray-600 dark:text-gray-400 mb-3 whitespace-pre-wrap">
+                {guide.bio}
+              </p>
             )}
             {guide.contact_number && (
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 <span className="font-medium text-gray-700 dark:text-gray-300">Contact:</span>{" "}
-                <a href={`tel:${guide.contact_number}`} className="hover:text-lime-600 dark:hover:text-lime-400">
+                <a
+                  href={`tel:${guide.contact_number}`}
+                  className="hover:text-lime-600 dark:hover:text-lime-400"
+                >
                   {guide.contact_number}
                 </a>
               </p>
@@ -177,7 +182,9 @@ export default async function GuideProfilePage({ params }: { params: Promise<{ i
           <p className="text-sm text-gray-500 dark:text-gray-400">Events Guided</p>
         </div>
         <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm dark:shadow-gray-950/20 p-4 text-center">
-          <p className="text-2xl font-bold text-golden-500">{avgRating > 0 ? avgRating.toFixed(1) : "--"}</p>
+          <p className="text-2xl font-bold text-golden-500">
+            {avgRating > 0 ? avgRating.toFixed(1) : "--"}
+          </p>
           <p className="text-sm text-gray-500 dark:text-gray-400">Avg Rating</p>
         </div>
         <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm dark:shadow-gray-950/20 p-4 text-center">

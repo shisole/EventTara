@@ -9,8 +9,7 @@ const BATCH_SIZE = 9;
 
 export const metadata = {
   title: "Explore Events \u2014 EventTara",
-  description:
-    "Find your next adventure. Browse hiking, biking, running, and trail events.",
+  description: "Find your next adventure. Browse hiking, biking, running, and trail events.",
 };
 
 function getEventStatus(eventDate: string, today: string): "upcoming" | "happening_now" | "past" {
@@ -128,9 +127,7 @@ export default async function EventsPage({
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-heading font-bold mb-4">
-          Explore Events
-        </h1>
+        <h1 className="text-3xl font-heading font-bold mb-4">Explore Events</h1>
         <EventFilters />
       </div>
 

@@ -81,9 +81,9 @@ export default function BetaNoticeModal() {
 
         {/* Message */}
         <p className="text-center text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
-          Welcome! You&apos;re exploring a preview of EventTara with sample
-          events and demo bookings. Everything you see is for demonstration
-          purposes to show you how the platform works.
+          Welcome! You&apos;re exploring a preview of EventTara with sample events and demo
+          bookings. Everything you see is for demonstration purposes to show you how the platform
+          works.
         </p>
 
         {/* Button */}

@@ -27,6 +27,7 @@ npm run test:e2e     # Run Playwright E2E tests
 ## Environment Setup
 
 Copy `.env.local.example` to `.env.local` and fill in:
+
 - `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` — required for all functionality
 - `RESEND_API_KEY` — for email sending (optional; emails are skipped with a warning if absent)
 - `SUPABASE_SERVICE_ROLE_KEY` — only needed for `seed`/`unseed` scripts
@@ -40,6 +41,7 @@ Copy `.env.local.example` to `.env.local` and fill in:
 ### Route Groups
 
 The app uses Next.js route groups with a nested structure:
+
 - `(frontend)` — parent route group containing all user-facing pages:
   - `(auth)` — `/login`, `/signup`, `/guest-setup` with a shared centered layout
   - `(participant)` — `/events`, `/events/[id]`, `/events/[id]/book`, `/my-events`, `/profile/[username]`, `/guides/[id]`
@@ -53,6 +55,7 @@ Auth callback at `/auth/callback/route.ts` handles the OAuth code exchange with 
 ### Data Layer
 
 All database access goes through Supabase. Two clients exist:
+
 - **`@/lib/supabase/client`** — browser client (used in `"use client"` components)
 - **`@/lib/supabase/server`** — server client (used in Server Components, API routes, layouts)
 
@@ -67,6 +70,7 @@ Three roles: `organizer`, `participant`, `guest` (anonymous via Supabase `signIn
 ### API Routes
 
 Thin wrappers in `src/app/api/` that authenticate via `createClient()` server-side, then call Supabase directly:
+
 - `GET/POST /api/events` — list/create events (GET supports pagination, filters)
 - `GET/PATCH/DELETE /api/events/[id]` — manage single event
 - `GET/POST/DELETE /api/events/[id]/guides` — event-guide linking (hiking events)
@@ -85,6 +89,7 @@ Redux Toolkit is set up in `src/lib/store/` with a `StoreProvider` wrapping the 
 ### Content Management (Payload CMS)
 
 Payload CMS v3 is integrated for headless content management:
+
 - Admin interface accessible at `/admin`
 - Uses the same Supabase Postgres database with `schemaName: 'payload'` for schema isolation
 - Admin users stored in `payload-admins` collection (separate from Supabase `users` table)
@@ -95,6 +100,7 @@ Payload CMS v3 is integrated for headless content management:
 ### Styling
 
 Tailwind CSS with a custom theme (`tailwind.config.ts`):
+
 - Custom color palettes: `teal`, `forest`, `golden`
 - Custom fonts: `font-sans` (Inter) and `font-heading` (Plus Jakarta Sans) via CSS variables
 

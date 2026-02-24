@@ -38,9 +38,19 @@ interface PaymentVerificationPanelProps {
 
 type FilterTab = "all" | "pending" | "paid" | "rejected";
 
-export default function PaymentVerificationPanel({ eventId, eventPrice }: PaymentVerificationPanelProps) {
+export default function PaymentVerificationPanel({
+  eventId,
+  eventPrice,
+}: PaymentVerificationPanelProps) {
   const [bookings, setBookings] = useState<PaymentBooking[]>([]);
-  const [stats, setStats] = useState<PaymentStats>({ total: 0, paid: 0, pending: 0, rejected: 0, cash: 0, revenue: 0 });
+  const [stats, setStats] = useState<PaymentStats>({
+    total: 0,
+    paid: 0,
+    pending: 0,
+    rejected: 0,
+    cash: 0,
+    revenue: 0,
+  });
   const [filter, setFilter] = useState<FilterTab>("all");
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -91,19 +101,27 @@ export default function PaymentVerificationPanel({ eventId, eventPrice }: Paymen
 
   const paymentMethodLabel = (method: string) => {
     switch (method) {
-      case "gcash": return "GCash";
-      case "maya": return "Maya";
-      case "cash": return "Cash";
-      default: return method?.toUpperCase() || "N/A";
+      case "gcash":
+        return "GCash";
+      case "maya":
+        return "Maya";
+      case "cash":
+        return "Cash";
+      default:
+        return method?.toUpperCase() || "N/A";
     }
   };
 
   const paymentMethodStyle = (method: string) => {
     switch (method) {
-      case "gcash": return "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300";
-      case "maya": return "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300";
-      case "cash": return "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400";
-      default: return "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400";
+      case "gcash":
+        return "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300";
+      case "maya":
+        return "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300";
+      case "cash":
+        return "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400";
+      default:
+        return "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400";
     }
   };
 
@@ -112,7 +130,10 @@ export default function PaymentVerificationPanel({ eventId, eventPrice }: Paymen
       <div className="space-y-4">
         <div className="grid grid-cols-3 gap-4">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm dark:shadow-gray-950/30 animate-pulse">
+            <div
+              key={i}
+              className="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm dark:shadow-gray-950/30 animate-pulse"
+            >
               <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20 mb-2" />
               <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-24" />
             </div>
@@ -140,15 +161,11 @@ export default function PaymentVerificationPanel({ eventId, eventPrice }: Paymen
         </div>
         <div className="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm dark:shadow-gray-950/30 border-l-4 border-yellow-500">
           <p className="text-sm text-gray-500 dark:text-gray-400">Pending</p>
-          <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
-            {stats.pending}
-          </p>
+          <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{stats.pending}</p>
         </div>
         <div className="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm dark:shadow-gray-950/30 border-l-4 border-gray-400">
           <p className="text-sm text-gray-500 dark:text-gray-400">Cash (on-day)</p>
-          <p className="text-2xl font-bold text-gray-600 dark:text-gray-400">
-            {stats.cash}
-          </p>
+          <p className="text-2xl font-bold text-gray-600 dark:text-gray-400">{stats.cash}</p>
         </div>
       </div>
 
@@ -162,7 +179,7 @@ export default function PaymentVerificationPanel({ eventId, eventPrice }: Paymen
               "flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors capitalize",
               filter === tab
                 ? "bg-white dark:bg-gray-900 shadow-sm"
-                : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200",
             )}
           >
             {tab}
@@ -178,13 +195,16 @@ export default function PaymentVerificationPanel({ eventId, eventPrice }: Paymen
       {/* Booking List */}
       {filteredBookings.length === 0 ? (
         <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-          <p className="text-lg font-medium dark:text-gray-300">No {filter === "all" ? "" : filter} bookings found</p>
+          <p className="text-lg font-medium dark:text-gray-300">
+            No {filter === "all" ? "" : filter} bookings found
+          </p>
           <p className="text-sm mt-1">Payment submissions will appear here.</p>
         </div>
       ) : (
         <div className="space-y-3">
           {filteredBookings.map((booking) => {
-            const isEwallet = booking.payment_method === "gcash" || booking.payment_method === "maya";
+            const isEwallet =
+              booking.payment_method === "gcash" || booking.payment_method === "maya";
             const isPending = booking.payment_status === "pending";
             const isCash = booking.payment_method === "cash";
 
@@ -198,7 +218,8 @@ export default function PaymentVerificationPanel({ eventId, eventPrice }: Paymen
                     {booking.users?.full_name || "Guest"}
                     {booking.companion_count && booking.companion_count > 0 && (
                       <span className="ml-2 text-xs text-gray-400 dark:text-gray-500 font-normal">
-                        +{booking.companion_count} companion{booking.companion_count !== 1 ? "s" : ""}
+                        +{booking.companion_count} companion
+                        {booking.companion_count !== 1 ? "s" : ""}
                       </span>
                     )}
                   </p>
@@ -212,7 +233,12 @@ export default function PaymentVerificationPanel({ eventId, eventPrice }: Paymen
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className={cn("inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium", paymentMethodStyle(booking.payment_method))}>
+                  <span
+                    className={cn(
+                      "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
+                      paymentMethodStyle(booking.payment_method),
+                    )}
+                  >
                     {paymentMethodLabel(booking.payment_method)}
                   </span>
                   <PaymentStatusBadge status={booking.payment_status} />

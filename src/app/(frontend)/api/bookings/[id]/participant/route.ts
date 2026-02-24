@@ -1,21 +1,23 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { cancelled } = await request.json();
   if (typeof cancelled !== "boolean") {
-    return NextResponse.json({ error: "Invalid request. Provide { cancelled: boolean }" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid request. Provide { cancelled: boolean }" },
+      { status: 400 },
+    );
   }
 
   // Get booking with event info to verify organizer

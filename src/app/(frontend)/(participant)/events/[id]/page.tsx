@@ -83,8 +83,9 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
     .order("sort_order", { ascending: true });
 
   // Fetch total participant count (bookings + companions)
-  const { data: totalParticipants } = await supabase
-    .rpc("get_total_participants", { p_event_id: id });
+  const { data: totalParticipants } = await supabase.rpc("get_total_participants", {
+    p_event_id: id,
+  });
   const bookingCount = totalParticipants || 0;
 
   // Fetch organizer event count
@@ -125,7 +126,10 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
       .from("user_badges")
       .select("badge_id")
       .eq("user_id", authUser.id)
-      .in("badge_id", eventBadges.map((b) => b.id));
+      .in(
+        "badge_id",
+        eventBadges.map((b) => b.id),
+      );
 
     earnedBadgeIds = new Set((userBadgeData || []).map((ub) => ub.badge_id));
   }
@@ -138,9 +142,10 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
     .order("created_at", { ascending: false });
 
   const eventReviews = (reviews || []) as any[];
-  const avgRating = eventReviews.length > 0
-    ? eventReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / eventReviews.length
-    : 0;
+  const avgRating =
+    eventReviews.length > 0
+      ? eventReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / eventReviews.length
+      : 0;
 
   // Fetch guides for hiking events
   let eventGuides: {
@@ -162,14 +167,8 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
       const guideIds = eventGuideRows.map((eg) => eg.guide_id);
 
       const [{ data: guides }, { data: reviewAggs }] = await Promise.all([
-        supabase
-          .from("guides")
-          .select("id, full_name, avatar_url, bio")
-          .in("id", guideIds),
-        supabase
-          .from("guide_reviews")
-          .select("guide_id, rating")
-          .in("guide_id", guideIds),
+        supabase.from("guides").select("id, full_name, avatar_url, bio").in("id", guideIds),
+        supabase.from("guide_reviews").select("guide_id, rating").in("guide_id", guideIds),
       ]);
 
       // Aggregate reviews per guide
@@ -213,10 +212,14 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
 
   const spotsLeft = event.max_participants - bookingCount;
   const formattedDate = new Date(event.date).toLocaleDateString("en-PH", {
-    weekday: "long", month: "long", day: "numeric", year: "numeric",
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
   });
   const formattedTime = new Date(event.date).toLocaleTimeString("en-PH", {
-    hour: "numeric", minute: "2-digit",
+    hour: "numeric",
+    minute: "2-digit",
   });
 
   const organizer = event.organizer_profiles as any;
@@ -239,7 +242,9 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
             </UIBadge>
             <h1 className="text-3xl md:text-4xl font-heading font-bold mb-4">{event.title}</h1>
             <div className="flex flex-wrap items-center gap-4 text-gray-600 dark:text-gray-400">
-              <span>{formattedDate} at {formattedTime}</span>
+              <span>
+                {formattedDate} at {formattedTime}
+              </span>
               <span>{event.location}</span>
               <span className="hidden sm:block text-gray-300 dark:text-gray-600">|</span>
               <ShareButtons title={event.title} eventId={id} />
@@ -249,19 +254,23 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
           {event.description && (
             <div>
               <h2 className="text-xl font-heading font-bold mb-3">About This Event</h2>
-              <p className="text-gray-600 dark:text-gray-400 whitespace-pre-wrap">{event.description}</p>
+              <p className="text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
+                {event.description}
+              </p>
             </div>
           )}
 
           <EventGallery photos={photos || []} />
 
-          {event.coordinates && typeof event.coordinates === 'object' && 'lat' in event.coordinates && (
-            <EventLocationMap
-              lat={(event.coordinates as { lat: number; lng: number }).lat}
-              lng={(event.coordinates as { lat: number; lng: number }).lng}
-              label={event.location}
-            />
-          )}
+          {event.coordinates &&
+            typeof event.coordinates === "object" &&
+            "lat" in event.coordinates && (
+              <EventLocationMap
+                lat={(event.coordinates as { lat: number; lng: number }).lat}
+                lng={(event.coordinates as { lat: number; lng: number }).lng}
+                label={event.location}
+              />
+            )}
           {/* Reviews Section */}
           {(eventReviews.length > 0 || canReview) && (
             <div>
@@ -281,12 +290,15 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-5 sm:p-6 space-y-4 mb-4">
             <div className="text-center">
               <span className="text-3xl font-bold text-lime-600 dark:text-lime-400">
-                {Number(event.price) === 0 ? "Free" : `\u20B1${Number(event.price).toLocaleString()}`}
+                {Number(event.price) === 0
+                  ? "Free"
+                  : `\u20B1${Number(event.price).toLocaleString()}`}
               </span>
             </div>
 
             <div className="text-center text-sm text-gray-500 dark:text-gray-400">
-              <span className="font-medium text-gray-700 dark:text-gray-300">{bookingCount}</span> adventurer{bookingCount !== 1 ? "s" : ""} joined
+              <span className="font-medium text-gray-700 dark:text-gray-300">{bookingCount}</span>{" "}
+              adventurer{bookingCount !== 1 ? "s" : ""} joined
               {" \u00B7 "}
               <span className={spotsLeft <= 5 ? "text-red-500 font-medium" : ""}>
                 {spotsLeft <= 0 ? "Fully booked" : `${spotsLeft} spots left`}
@@ -296,13 +308,24 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
             {avgRating > 0 && (
               <div className="text-center text-sm">
                 <span className="text-yellow-400">&#9733;</span>{" "}
-                <span className="font-medium text-gray-700 dark:text-gray-300">{avgRating.toFixed(1)}</span>
-                <span className="text-gray-400 dark:text-gray-500"> ({eventReviews.length} review{eventReviews.length !== 1 ? "s" : ""})</span>
+                <span className="font-medium text-gray-700 dark:text-gray-300">
+                  {avgRating.toFixed(1)}
+                </span>
+                <span className="text-gray-400 dark:text-gray-500">
+                  {" "}
+                  ({eventReviews.length} review{eventReviews.length !== 1 ? "s" : ""})
+                </span>
               </div>
             )}
 
             <div className="pt-2">
-              <BookingButton eventId={id} spotsLeft={spotsLeft} price={Number(event.price)} isPast={event.status === "completed"} userBooking={userBooking} />
+              <BookingButton
+                eventId={id}
+                spotsLeft={spotsLeft}
+                price={Number(event.price)}
+                isPast={event.status === "completed"}
+                userBooking={userBooking}
+              />
             </div>
           </div>
 
@@ -318,9 +341,24 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
           {eventGuides.length > 0 && (
             <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-5 sm:p-6">
               <h3 className="font-heading font-bold mb-3 flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-teal-600 dark:text-teal-400">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-5 h-5 text-teal-600 dark:text-teal-400"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
+                  />
                 </svg>
                 Guide{eventGuides.length !== 1 ? "s" : ""}
               </h3>
@@ -355,16 +393,28 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
                       href={`/badges/${badge.id}`}
                       className="flex items-center gap-3 rounded-xl p-2 -mx-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                     >
-                      <div className={`w-10 h-10 rounded-full ${resolved?.type === "emoji" ? resolved.color : "bg-gray-100 dark:bg-gray-800"} flex items-center justify-center overflow-hidden flex-shrink-0`}>
+                      <div
+                        className={`w-10 h-10 rounded-full ${resolved?.type === "emoji" ? resolved.color : "bg-gray-100 dark:bg-gray-800"} flex items-center justify-center overflow-hidden flex-shrink-0`}
+                      >
                         {resolved?.type === "url" ? (
-                          <Image src={resolved.url} alt={badge.title} width={40} height={40} className="object-cover" />
+                          <Image
+                            src={resolved.url}
+                            alt={badge.title}
+                            width={40}
+                            height={40}
+                            className="object-cover"
+                          />
                         ) : (
-                          <span className="text-xl">{resolved?.type === "emoji" ? resolved.emoji : "\u{1F3C6}"}</span>
+                          <span className="text-xl">
+                            {resolved?.type === "emoji" ? resolved.emoji : "\u{1F3C6}"}
+                          </span>
                         )}
                       </div>
                       <span className="font-medium text-sm">{badge.title}</span>
                       {authUser && earned && (
-                        <span className="ml-auto text-xs text-teal-600 dark:text-teal-400 font-medium">Earned</span>
+                        <span className="ml-auto text-xs text-teal-600 dark:text-teal-400 font-medium">
+                          Earned
+                        </span>
                       )}
                     </Link>
                   );

@@ -52,7 +52,16 @@
 
 /* Hero carousel crossfade animation */
 @keyframes heroFade {
-  0%, 5% { opacity: 1; }
-  20%, 80% { opacity: 0; }
-  95%, 100% { opacity: 1; }
+  0%,
+  5% {
+    opacity: 1;
+  }
+  20%,
+  80% {
+    opacity: 0;
+  }
+  95%,
+  100% {
+    opacity: 1;
+  }
 }

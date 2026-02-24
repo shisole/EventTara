@@ -15,6 +15,7 @@
 ### Task 1: Install canvas-confetti
 
 **Files:**
+
 - Modify: `package.json`
 
 **Step 1: Install the dependency**
@@ -38,6 +39,7 @@ git commit -m "chore: add canvas-confetti dependency for booking auth modal"
 ### Task 2: Create the AuthBookingModal component — Email Input state
 
 **Files:**
+
 - Create: `src/components/booking/AuthBookingModal.tsx`
 
 **Step 1: Create the component with State 1 (email input)**
@@ -137,20 +139,34 @@ export default function AuthBookingModal({
           <form onSubmit={handleEmailSubmit} className="space-y-5">
             <div className="text-center">
               <div className="w-14 h-14 bg-lime-100 dark:bg-lime-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-7 h-7 text-lime-600 dark:text-lime-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                <svg
+                  className="w-7 h-7 text-lime-600 dark:text-lime-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"
+                  />
                 </svg>
               </div>
-              <h2 id="auth-modal-title" className="text-xl font-heading font-bold text-gray-900 dark:text-white">
+              <h2
+                id="auth-modal-title"
+                className="text-xl font-heading font-bold text-gray-900 dark:text-white"
+              >
                 Sign in to continue booking
               </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                {eventName}
-              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{eventName}</p>
             </div>
 
             <div>
-              <label htmlFor="auth-email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              <label
+                htmlFor="auth-email"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
+              >
                 Email address
               </label>
               <input
@@ -165,7 +181,9 @@ export default function AuthBookingModal({
             </div>
 
             {error && (
-              <p className="text-sm text-red-500" role="alert">{error}</p>
+              <p className="text-sm text-red-500" role="alert">
+                {error}
+              </p>
             )}
 
             <Button type="submit" className="w-full" size="lg" disabled={loading}>
@@ -214,6 +232,7 @@ git commit -m "feat: add AuthBookingModal with email input state"
 ### Task 3: Add Check Your Email state with polling
 
 **Files:**
+
 - Modify: `src/components/booking/AuthBookingModal.tsx`
 
 **Step 1: Add the polling logic and check-email UI**
@@ -237,13 +256,13 @@ useEffect(() => {
       return;
     }
 
-    const { data: { session } } = await supabase.auth.getSession();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
     if (session) {
       clearInterval(interval);
       const displayName =
-        session.user.user_metadata?.full_name ||
-        session.user.email ||
-        userDisplay;
+        session.user.user_metadata?.full_name || session.user.email || userDisplay;
       setUserDisplay(displayName);
       setState("success");
     }
@@ -256,58 +275,81 @@ useEffect(() => {
 Replace the check-email placeholder with:
 
 ```tsx
-{state === "check-email" && (
-  <div className="text-center space-y-4">
-    <div className="w-14 h-14 bg-teal-100 dark:bg-teal-900/30 rounded-full flex items-center justify-center mx-auto">
-      <svg className="w-7 h-7 text-teal-600 dark:text-teal-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 9v.906a2.25 2.25 0 01-1.183 1.981l-6.478 3.488M2.25 9v.906a2.25 2.25 0 001.183 1.981l6.478 3.488m8.839 2.51l-4.66-2.51m0 0l-1.023-.55a2.25 2.25 0 00-2.134 0l-1.022.55m0 0l-4.661 2.51" />
-      </svg>
-    </div>
-
-    <div>
-      <h2 className="text-xl font-heading font-bold text-gray-900 dark:text-white">
-        Check your email
-      </h2>
-      <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-        We sent a sign-in link to{" "}
-        <span className="font-medium text-gray-900 dark:text-white">{userDisplay}</span>.
-        Click it to continue.
-      </p>
-    </div>
-
-    <div className="flex items-center justify-center gap-1.5 text-sm text-gray-400 dark:text-gray-500">
-      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-      </svg>
-      Waiting for confirmation...
-    </div>
-
-    {error && (
-      <div className="space-y-2">
-        <p className="text-sm text-amber-600 dark:text-amber-400">{error}</p>
-        <button
-          onClick={() => {
-            setError("");
-            setState("email");
-          }}
-          className="text-sm font-medium text-lime-600 dark:text-lime-400 hover:underline"
+{
+  state === "check-email" && (
+    <div className="text-center space-y-4">
+      <div className="w-14 h-14 bg-teal-100 dark:bg-teal-900/30 rounded-full flex items-center justify-center mx-auto">
+        <svg
+          className="w-7 h-7 text-teal-600 dark:text-teal-400"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={1.5}
+          stroke="currentColor"
         >
-          Try again
-        </button>
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M21.75 9v.906a2.25 2.25 0 01-1.183 1.981l-6.478 3.488M2.25 9v.906a2.25 2.25 0 001.183 1.981l6.478 3.488m8.839 2.51l-4.66-2.51m0 0l-1.023-.55a2.25 2.25 0 00-2.134 0l-1.022.55m0 0l-4.661 2.51"
+          />
+        </svg>
       </div>
-    )}
 
-    {!error && (
-      <button
-        onClick={handleResend}
-        className="text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
-      >
-        Didn&apos;t get it? Resend email
-      </button>
-    )}
-  </div>
-)}
+      <div>
+        <h2 className="text-xl font-heading font-bold text-gray-900 dark:text-white">
+          Check your email
+        </h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+          We sent a sign-in link to{" "}
+          <span className="font-medium text-gray-900 dark:text-white">{userDisplay}</span>. Click it
+          to continue.
+        </p>
+      </div>
+
+      <div className="flex items-center justify-center gap-1.5 text-sm text-gray-400 dark:text-gray-500">
+        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          />
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+          />
+        </svg>
+        Waiting for confirmation...
+      </div>
+
+      {error && (
+        <div className="space-y-2">
+          <p className="text-sm text-amber-600 dark:text-amber-400">{error}</p>
+          <button
+            onClick={() => {
+              setError("");
+              setState("email");
+            }}
+            className="text-sm font-medium text-lime-600 dark:text-lime-400 hover:underline"
+          >
+            Try again
+          </button>
+        </div>
+      )}
+
+      {!error && (
+        <button
+          onClick={handleResend}
+          className="text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+        >
+          Didn&apos;t get it? Resend email
+        </button>
+      )}
+    </div>
+  );
+}
 ```
 
 Also add the `handleResend` function alongside the other handlers:
@@ -352,6 +394,7 @@ git commit -m "feat: add check-email state with session polling and resend"
 ### Task 4: Add Success state with confetti
 
 **Files:**
+
 - Modify: `src/components/booking/AuthBookingModal.tsx`
 
 **Step 1: Add the success effect and UI**
@@ -382,21 +425,33 @@ useEffect(() => {
 Replace the success placeholder with:
 
 ```tsx
-{state === "success" && (
-  <div className="text-center space-y-3">
-    <div className="w-14 h-14 bg-lime-100 dark:bg-lime-900/30 rounded-full flex items-center justify-center mx-auto">
-      <svg className="w-7 h-7 text-lime-600 dark:text-lime-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
+{
+  state === "success" && (
+    <div className="text-center space-y-3">
+      <div className="w-14 h-14 bg-lime-100 dark:bg-lime-900/30 rounded-full flex items-center justify-center mx-auto">
+        <svg
+          className="w-7 h-7 text-lime-600 dark:text-lime-400"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={1.5}
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+      </div>
+      <h2 className="text-xl font-heading font-bold text-gray-900 dark:text-white">
+        You&apos;re all set!
+      </h2>
+      <p className="text-sm text-gray-500 dark:text-gray-400">
+        Welcome, <span className="font-medium text-gray-900 dark:text-white">{userDisplay}</span>!
+      </p>
     </div>
-    <h2 className="text-xl font-heading font-bold text-gray-900 dark:text-white">
-      You&apos;re all set!
-    </h2>
-    <p className="text-sm text-gray-500 dark:text-gray-400">
-      Welcome, <span className="font-medium text-gray-900 dark:text-white">{userDisplay}</span>!
-    </p>
-  </div>
-)}
+  );
+}
 ```
 
 **Step 2: Verify it compiles**
@@ -418,6 +473,7 @@ git commit -m "feat: add success state with confetti animation and auto-close"
 The booking page is currently a Server Component. We need a client wrapper that manages the `isAuthenticated` state and conditionally shows the modal + blurred form.
 
 **Files:**
+
 - Create: `src/components/booking/BookingPageClient.tsx`
 
 **Step 1: Create the client wrapper**
@@ -504,11 +560,13 @@ git commit -m "feat: add BookingPageClient wrapper with auth modal integration"
 ### Task 6: Update the booking page to use BookingPageClient
 
 **Files:**
+
 - Modify: `src/app/(frontend)/(participant)/events/[id]/book/page.tsx`
 
 **Step 1: Replace BookingForm with BookingPageClient**
 
 Update the booking page Server Component. The key changes:
+
 1. Import `BookingPageClient` instead of `BookingForm`
 2. Pass `isAuthenticated={!!user}` to the wrapper
 3. Remove the redirect for unauthenticated users (the modal handles it now)
@@ -516,6 +574,7 @@ Update the booking page Server Component. The key changes:
 The page already fetches `user` via `supabase.auth.getUser()` (line 28-30). Change the render section:
 
 Replace the import:
+
 ```tsx
 // Before
 import BookingForm from "@/components/booking/BookingForm";
@@ -525,6 +584,7 @@ import BookingPageClient from "@/components/booking/BookingPageClient";
 ```
 
 Replace the return JSX (the `<BookingForm>` usage):
+
 ```tsx
 return (
   <div className="max-w-lg mx-auto px-4 py-12">
@@ -577,6 +637,7 @@ git commit -m "feat: integrate auth modal into booking page for unauthenticated 
 ### Task 7: Visual polish and edge cases
 
 **Files:**
+
 - Modify: `src/components/booking/AuthBookingModal.tsx`
 
 **Step 1: Add body scroll lock when modal is open**

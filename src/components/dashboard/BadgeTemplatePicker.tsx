@@ -6,7 +6,12 @@ import { RARITY_STYLES } from "@/lib/constants/badge-rarity";
 import { cn } from "@/lib/utils";
 
 interface BadgeTemplatePickerProps {
-  onSelect: (template: { title: string; description: string; category: string; rarity: string }) => void;
+  onSelect: (template: {
+    title: string;
+    description: string;
+    category: string;
+    rarity: string;
+  }) => void;
   onSkip: () => void;
 }
 
@@ -41,7 +46,7 @@ export default function BadgeTemplatePicker({ onSelect, onSkip }: BadgeTemplateP
             "px-3 py-1 rounded-full text-xs font-medium transition-colors",
             !activeCategory
               ? "bg-teal-600 text-white"
-              : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
+              : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400",
           )}
         >
           All
@@ -55,7 +60,7 @@ export default function BadgeTemplatePicker({ onSelect, onSkip }: BadgeTemplateP
               "px-3 py-1 rounded-full text-xs font-medium transition-colors",
               activeCategory === cat.value
                 ? "bg-teal-600 text-white"
-                : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
+                : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400",
             )}
           >
             {cat.label}
@@ -75,7 +80,9 @@ export default function BadgeTemplatePicker({ onSelect, onSkip }: BadgeTemplateP
               className="text-left p-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-teal-400 dark:hover:border-teal-500 transition-colors"
             >
               <p className="text-sm font-medium truncate dark:text-white">{t.title}</p>
-              <span className={cn("inline-block text-xs px-1.5 py-0.5 rounded-full mt-1", rStyle.pill)}>
+              <span
+                className={cn("inline-block text-xs px-1.5 py-0.5 rounded-full mt-1", rStyle.pill)}
+              >
                 {rStyle.label}
               </span>
             </button>

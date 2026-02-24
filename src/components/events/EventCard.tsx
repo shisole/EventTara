@@ -59,10 +59,12 @@ export default function EventCard({
 
   return (
     <Link href={`/events/${id}`}>
-      <Card className={cn(
-        "overflow-hidden cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700",
-        status === "past" && "opacity-60"
-      )}>
+      <Card
+        className={cn(
+          "overflow-hidden cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700",
+          status === "past" && "opacity-60",
+        )}
+      >
         <div className="relative h-48 bg-gradient-to-br from-lime-100 to-forest-100 dark:from-lime-900 dark:to-forest-900">
           {cover_image_url && (
             <Image
@@ -93,12 +95,8 @@ export default function EventCard({
           )}
         </div>
         <div className="p-4 space-y-2">
-          <UIBadge variant={type as any}>
-            {typeLabels[type] || type}
-          </UIBadge>
-          <h3 className="font-heading font-bold text-lg line-clamp-1">
-            {title}
-          </h3>
+          <UIBadge variant={type as any}>{typeLabels[type] || type}</UIBadge>
+          <h3 className="font-heading font-bold text-lg line-clamp-1">{title}</h3>
           {organizer_name && organizer_id ? (
             <OrganizerLink organizerId={organizer_id} name={organizer_name} />
           ) : organizer_name ? (
@@ -109,14 +107,16 @@ export default function EventCard({
             <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{location}</p>
             {distance != null && (
               <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300">
-                {distance < 1 ? '<1km' : `~${Math.round(distance)}km`}
+                {distance < 1 ? "<1km" : `~${Math.round(distance)}km`}
               </span>
             )}
           </div>
           {avg_rating != null && avg_rating > 0 && review_count != null && review_count > 0 && (
             <div className="flex items-center gap-1 text-sm">
               <span className="text-yellow-400">&#9733;</span>
-              <span className="font-medium text-gray-700 dark:text-gray-300">{avg_rating.toFixed(1)}</span>
+              <span className="font-medium text-gray-700 dark:text-gray-300">
+                {avg_rating.toFixed(1)}
+              </span>
               <span className="text-gray-400 dark:text-gray-500">({review_count})</span>
             </div>
           )}
@@ -127,7 +127,7 @@ export default function EventCard({
             <span
               className={cn(
                 "text-sm",
-                spotsLeft <= 5 ? "text-red-500 font-medium" : "text-gray-400 dark:text-gray-500"
+                spotsLeft <= 5 ? "text-red-500 font-medium" : "text-gray-400 dark:text-gray-500",
               )}
             >
               {spotsLeft <= 0 ? "Fully Booked" : `${spotsLeft} spots left`}

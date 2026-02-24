@@ -35,7 +35,11 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   };
 }
 
-export default async function OrganizerProfilePage({ params }: { params: Promise<{ id: string }> }) {
+export default async function OrganizerProfilePage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = await params;
   const supabase = await createClient();
 
@@ -71,7 +75,13 @@ export default async function OrganizerProfilePage({ params }: { params: Promise
   }
 
   // Fetch badges for organizer's events
-  let badges: { id: string; title: string; eventName: string; imageUrl: string | null; awardedAt: string }[] = [];
+  let badges: {
+    id: string;
+    title: string;
+    eventName: string;
+    imageUrl: string | null;
+    awardedAt: string;
+  }[] = [];
   let totalBadgesAwarded = 0;
 
   if (eventIds.length > 0) {
@@ -131,7 +141,9 @@ export default async function OrganizerProfilePage({ params }: { params: Promise
     if (totalReviews > 0) {
       const { data: reviewData } = await supabase
         .from("event_reviews")
-        .select("id, rating, text, created_at, event_id, users(full_name, avatar_url, username), events(title)")
+        .select(
+          "id, rating, text, created_at, event_id, users(full_name, avatar_url, username), events(title)",
+        )
         .in("event_id", eventIds)
         .order("created_at", { ascending: false })
         .limit(5);
@@ -247,7 +259,10 @@ export default async function OrganizerProfilePage({ params }: { params: Promise
           </div>
           <div className="space-y-4">
             {recentReviews.map((review: any) => (
-              <div key={review.id} className="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm dark:shadow-gray-950/20">
+              <div
+                key={review.id}
+                className="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm dark:shadow-gray-950/20"
+              >
                 <div className="flex items-center gap-2 mb-2">
                   <StarRating value={review.rating} readonly size="sm" />
                   <span className="text-xs text-gray-400 dark:text-gray-500">
@@ -259,7 +274,11 @@ export default async function OrganizerProfilePage({ params }: { params: Promise
                 )}
                 <p className="text-xs text-gray-400 dark:text-gray-500">
                   {review.users?.full_name || "Participant"} &middot;{" "}
-                  {new Date(review.created_at).toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" })}
+                  {new Date(review.created_at).toLocaleDateString("en-PH", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
                 </p>
               </div>
             ))}

@@ -21,7 +21,7 @@ interface BadgeAwarderProps {
 export default function BadgeAwarder({ badgeId, participants }: BadgeAwarderProps) {
   const router = useRouter();
   const [selected, setSelected] = useState<Set<string>>(
-    new Set(participants.filter((p) => p.checkedIn && !p.alreadyAwarded).map((p) => p.userId))
+    new Set(participants.filter((p) => p.checkedIn && !p.alreadyAwarded).map((p) => p.userId)),
   );
   const [loading, setLoading] = useState(false);
   const [awarded, setAwarded] = useState(false);
@@ -34,7 +34,9 @@ export default function BadgeAwarder({ badgeId, participants }: BadgeAwarderProp
   };
 
   const selectAllCheckedIn = () => {
-    setSelected(new Set(participants.filter((p) => p.checkedIn && !p.alreadyAwarded).map((p) => p.userId)));
+    setSelected(
+      new Set(participants.filter((p) => p.checkedIn && !p.alreadyAwarded).map((p) => p.userId)),
+    );
   };
 
   const handleAward = async () => {
@@ -72,8 +74,11 @@ export default function BadgeAwarder({ badgeId, participants }: BadgeAwarderProp
             onClick={() => toggleUser(p.userId)}
             className={cn(
               "w-full flex items-center justify-between p-3 rounded-xl transition-colors text-left",
-              p.alreadyAwarded ? "bg-golden-50 opacity-60" :
-              selected.has(p.userId) ? "bg-lime-50 dark:bg-lime-950 border-2 border-lime-300 dark:border-lime-700" : "bg-white dark:bg-gray-900 border-2 border-gray-100 dark:border-gray-800 hover:border-gray-200 dark:hover:border-gray-700"
+              p.alreadyAwarded
+                ? "bg-golden-50 opacity-60"
+                : selected.has(p.userId)
+                  ? "bg-lime-50 dark:bg-lime-950 border-2 border-lime-300 dark:border-lime-700"
+                  : "bg-white dark:bg-gray-900 border-2 border-gray-100 dark:border-gray-800 hover:border-gray-200 dark:hover:border-gray-700",
             )}
           >
             <div className="flex items-center gap-3">
@@ -81,7 +86,11 @@ export default function BadgeAwarder({ badgeId, participants }: BadgeAwarderProp
               <div>
                 <span className="font-medium dark:text-white">{p.fullName}</span>
                 <span className="text-xs text-gray-400 dark:text-gray-500 ml-2">
-                  {p.alreadyAwarded ? "Already awarded" : p.checkedIn ? "Checked in" : "Not checked in"}
+                  {p.alreadyAwarded
+                    ? "Already awarded"
+                    : p.checkedIn
+                      ? "Checked in"
+                      : "Not checked in"}
                 </span>
               </div>
             </div>
@@ -95,7 +104,9 @@ export default function BadgeAwarder({ badgeId, participants }: BadgeAwarderProp
       {awarded && <p className="text-sm text-forest-500">Badges awarded!</p>}
 
       <Button onClick={handleAward} disabled={loading || selected.size === 0} className="w-full">
-        {loading ? "Awarding..." : `Award Badge to ${selected.size} Participant${selected.size !== 1 ? "s" : ""}`}
+        {loading
+          ? "Awarding..."
+          : `Award Badge to ${selected.size} Participant${selected.size !== 1 ? "s" : ""}`}
       </Button>
     </div>
   );

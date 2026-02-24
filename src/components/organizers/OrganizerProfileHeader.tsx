@@ -37,9 +37,7 @@ export default function OrganizerProfileHeader({
       <Avatar src={logoUrl} alt={orgName} size="xl" className="mx-auto" />
       <div>
         <h1 className="text-2xl font-heading font-bold">{orgName}</h1>
-        {description && (
-          <p className="text-gray-600 dark:text-gray-400 mt-1">{description}</p>
-        )}
+        {description && <p className="text-gray-600 dark:text-gray-400 mt-1">{description}</p>}
         <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
           Organizing since {organizingSince}
         </p>

@@ -21,14 +21,16 @@ export async function generateMetadata(): Promise<Metadata> {
   let settings;
   try {
     const payload = await getPayloadClient();
-    settings = await payload.findGlobal({ slug: 'site-settings' });
+    settings = await payload.findGlobal({ slug: "site-settings" });
   } catch {
     settings = null;
   }
 
   const siteName = settings?.siteName || "EventTara";
   const tagline = settings?.tagline || "Tara na! Book Your Next Adventure";
-  const siteDescription = settings?.siteDescription || "EventTara is an adventure event booking platform for hiking, mountain biking, road biking, running, and more. Tara na!";
+  const siteDescription =
+    settings?.siteDescription ||
+    "EventTara is an adventure event booking platform for hiking, mountain biking, road biking, running, and more. Tara na!";
   const siteUrl = settings?.siteUrl || process.env.NEXT_PUBLIC_SITE_URL || "https://eventtara.com";
   const defaultTitle = `${siteName} — ${tagline}`;
 
@@ -40,8 +42,16 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     description: siteDescription,
     keywords: settings?.seo?.keywords?.split(",").map((k: string) => k.trim()) || [
-      "events", "adventure", "hiking", "mountain biking", "road biking",
-      "running", "trail running", "Philippines", "outdoor", "booking",
+      "events",
+      "adventure",
+      "hiking",
+      "mountain biking",
+      "road biking",
+      "running",
+      "trail running",
+      "Philippines",
+      "outdoor",
+      "booking",
     ],
     authors: [{ name: siteName }],
     openGraph: {
@@ -71,22 +81,20 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${plusJakarta.variable}`} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${inter.variable} ${plusJakarta.variable}`}
+      suppressHydrationWarning
+    >
       <GoogleAnalytics />
       <body className="font-sans min-h-screen flex flex-col">
-          <ThemeProvider>
-            <ClientShell>
-              {children}
-            </ClientShell>
-            <Footer />
-          </ThemeProvider>
-        </body>
+        <ThemeProvider>
+          <ClientShell>{children}</ClientShell>
+          <Footer />
+        </ThemeProvider>
+      </body>
     </html>
   );
 }

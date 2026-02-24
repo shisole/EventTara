@@ -88,7 +88,11 @@ function SignupForm() {
         </p>
       )}
 
-      <Button onClick={handleFacebookLogin} className="w-full bg-[#1877F2] hover:bg-[#166FE5]" size="lg">
+      <Button
+        onClick={handleFacebookLogin}
+        className="w-full bg-[#1877F2] hover:bg-[#166FE5]"
+        size="lg"
+      >
         Continue with Facebook
       </Button>
 
@@ -97,7 +101,9 @@ function SignupForm() {
           <div className="w-full border-t border-gray-200 dark:border-gray-700" />
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="bg-white dark:bg-gray-900 px-4 text-gray-400 dark:text-gray-500">or</span>
+          <span className="bg-white dark:bg-gray-900 px-4 text-gray-400 dark:text-gray-500">
+            or
+          </span>
         </div>
       </div>
 
@@ -151,7 +157,7 @@ function SignupForm() {
         <div
           className={cn(
             "grid transition-all duration-300 ease-in-out",
-            isOrganizer ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+            isOrganizer ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
           )}
         >
           <div className="overflow-hidden">
@@ -190,21 +196,30 @@ function SignupForm() {
 
       <p className="text-center text-sm text-gray-500 dark:text-gray-400">
         Already have an account?{" "}
-        <Link href="/login" className="text-lime-600 dark:text-lime-400 hover:text-lime-600 dark:hover:text-lime-400 font-medium">
+        <Link
+          href="/login"
+          className="text-lime-600 dark:text-lime-400 hover:text-lime-600 dark:hover:text-lime-400 font-medium"
+        >
           Sign In
         </Link>
       </p>
       {isOrganizerEntry ? (
         <p className="text-center text-sm text-gray-500 dark:text-gray-400">
           Just looking for events?{" "}
-          <Link href="/signup" className="text-lime-600 dark:text-lime-400 hover:text-lime-600 dark:hover:text-lime-400 font-medium">
+          <Link
+            href="/signup"
+            className="text-lime-600 dark:text-lime-400 hover:text-lime-600 dark:hover:text-lime-400 font-medium"
+          >
             Sign up as a participant
           </Link>
         </p>
       ) : (
         <p className="text-center text-sm text-gray-500 dark:text-gray-400">
           Want to host events?{" "}
-          <Link href="/signup?role=organizer" className="text-lime-600 dark:text-lime-400 hover:text-lime-600 dark:hover:text-lime-400 font-medium">
+          <Link
+            href="/signup?role=organizer"
+            className="text-lime-600 dark:text-lime-400 hover:text-lime-600 dark:hover:text-lime-400 font-medium"
+          >
             Sign up as an organizer
           </Link>
         </p>

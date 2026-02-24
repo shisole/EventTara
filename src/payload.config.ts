@@ -1,31 +1,31 @@
-import { postgresAdapter } from '@payloadcms/db-postgres'
-import { Media } from './payload/collections/media'
-import { Pages } from './payload/collections/pages'
-import { HeroCarousel } from './payload/globals/hero-carousel'
-import { Navigation } from './payload/globals/navigation'
-import { SiteSettings } from './payload/globals/site-settings'
-import { lexicalEditor } from '@payloadcms/richtext-lexical'
-import path from 'path'
-import { buildConfig } from 'payload'
-import { fileURLToPath } from 'url'
-import sharp from 'sharp'
+import { postgresAdapter } from "@payloadcms/db-postgres";
+import { Media } from "./payload/collections/media";
+import { Pages } from "./payload/collections/pages";
+import { HeroCarousel } from "./payload/globals/hero-carousel";
+import { Navigation } from "./payload/globals/navigation";
+import { SiteSettings } from "./payload/globals/site-settings";
+import { lexicalEditor } from "@payloadcms/richtext-lexical";
+import path from "path";
+import { buildConfig } from "payload";
+import { fileURLToPath } from "url";
+import sharp from "sharp";
 
-const filename = fileURLToPath(import.meta.url)
-const dirname = path.dirname(filename)
+const filename = fileURLToPath(import.meta.url);
+const dirname = path.dirname(filename);
 
 export default buildConfig({
   admin: {
-    user: 'payload-admins',
+    user: "payload-admins",
     importMap: {
       baseDir: path.resolve(dirname),
     },
   },
   collections: [
     {
-      slug: 'payload-admins',
+      slug: "payload-admins",
       auth: true,
       admin: {
-        useAsTitle: 'email',
+        useAsTitle: "email",
       },
       fields: [],
     },
@@ -34,16 +34,16 @@ export default buildConfig({
   ],
   globals: [SiteSettings, Navigation, HeroCarousel],
   editor: lexicalEditor(),
-  secret: process.env.PAYLOAD_SECRET || 'CHANGE-ME-IN-PRODUCTION',
+  secret: process.env.PAYLOAD_SECRET || "CHANGE-ME-IN-PRODUCTION",
   typescript: {
-    outputFile: path.resolve(dirname, 'payload-types.ts'),
+    outputFile: path.resolve(dirname, "payload-types.ts"),
   },
   db: postgresAdapter({
     pool: {
-      connectionString: process.env.DATABASE_URI || '',
+      connectionString: process.env.DATABASE_URI || "",
     },
-    schemaName: 'payload',
+    schemaName: "payload",
   }),
   sharp,
   plugins: [],
-})
+});

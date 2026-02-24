@@ -64,7 +64,13 @@ interface PhotoUploaderProps {
   label?: string;
 }
 
-export default function PhotoUploader({ bucket, path, value, onChange, label }: PhotoUploaderProps) {
+export default function PhotoUploader({
+  bucket,
+  path,
+  value,
+  onChange,
+  label,
+}: PhotoUploaderProps) {
   const supabase = createClient();
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -101,19 +107,27 @@ export default function PhotoUploader({ bucket, path, value, onChange, label }: 
       return;
     }
 
-    const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(fileName);
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from(bucket).getPublicUrl(fileName);
     onChange(cdnUrl(publicUrl) || publicUrl);
     setUploading(false);
   };
 
   return (
     <div className="space-y-2">
-      {label && <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{label}</label>}
+      {label && (
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          {label}
+        </label>
+      )}
       <div
         onClick={() => inputRef.current?.click()}
         className={cn(
           "border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-colors",
-          value ? "border-forest-300 bg-forest-50" : "border-gray-300 dark:border-gray-600 hover:border-lime-300"
+          value
+            ? "border-forest-300 bg-forest-50"
+            : "border-gray-300 dark:border-gray-600 hover:border-lime-300",
         )}
       >
         {value ? (
@@ -122,12 +136,22 @@ export default function PhotoUploader({ bucket, path, value, onChange, label }: 
           </div>
         ) : (
           <div className="py-8">
-            <p className="text-gray-500 dark:text-gray-400">{uploading ? "Compressing & uploading..." : "Click to upload image"}</p>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Max 1 MB · auto-compressed to JPEG</p>
+            <p className="text-gray-500 dark:text-gray-400">
+              {uploading ? "Compressing & uploading..." : "Click to upload image"}
+            </p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+              Max 1 MB · auto-compressed to JPEG
+            </p>
           </div>
         )}
       </div>
-      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleUpload}
+      />
       {error && <p className="text-sm text-red-500">{error}</p>}
       {value && (
         <Button type="button" variant="ghost" size="sm" onClick={() => onChange(null)}>

@@ -64,7 +64,7 @@ export default function EventsListClient({ initialEvents, totalCount }: EventsLi
       if (search) params.set("search", search);
       return `/api/events?${params.toString()}`;
     },
-    [searchParams]
+    [searchParams],
   );
 
   const loadMore = useCallback(async () => {
@@ -109,7 +109,7 @@ export default function EventsListClient({ initialEvents, totalCount }: EventsLi
           loadMore();
         }
       },
-      { rootMargin: "200px" }
+      { rootMargin: "200px" },
     );
 
     observer.observe(sentinel);
@@ -164,9 +164,25 @@ export default function EventsListClient({ initialEvents, totalCount }: EventsLi
         <div ref={sentinelRef} className="flex justify-center py-8">
           {isLoadingMore && (
             <div className="flex items-center gap-2 text-gray-400 dark:text-gray-500">
-              <svg className="h-5 w-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
-                <path className="opacity-75" fill="currentColor" d="M12 2a10 10 0 0 1 10 10h-3a7 7 0 0 0-7-7V2z" />
+              <svg
+                className="h-5 w-5 animate-spin"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M12 2a10 10 0 0 1 10 10h-3a7 7 0 0 0-7-7V2z"
+                />
               </svg>
               <span className="text-sm">Loading more events...</span>
             </div>
@@ -187,7 +203,10 @@ export default function EventsListClient({ initialEvents, totalCount }: EventsLi
 
           {generatePageNumbers(currentPage, totalPages).map((page, i) =>
             page === "..." ? (
-              <span key={`ellipsis-${i}`} className="px-2 py-2 text-sm text-gray-400 dark:text-gray-500">
+              <span
+                key={`ellipsis-${i}`}
+                className="px-2 py-2 text-sm text-gray-400 dark:text-gray-500"
+              >
                 ...
               </span>
             ) : (
@@ -202,7 +221,7 @@ export default function EventsListClient({ initialEvents, totalCount }: EventsLi
               >
                 {page}
               </button>
-            )
+            ),
           )}
 
           <button

@@ -22,8 +22,13 @@ interface BookingFormProps {
 }
 
 export default function BookingForm({
-  eventId, eventTitle, eventDate, price, organizerPaymentInfo,
-  spotsLeft = 999, mode = "self",
+  eventId,
+  eventTitle,
+  eventDate,
+  price,
+  organizerPaymentInfo,
+  spotsLeft = 999,
+  mode = "self",
 }: BookingFormProps) {
   const [paymentMethod, setPaymentMethod] = useState("");
   const [proofFile, setProofFile] = useState<File | null>(null);
@@ -31,7 +36,7 @@ export default function BookingForm({
   const [error, setError] = useState("");
   const [booking, setBooking] = useState<any>(null);
   const [companions, setCompanions] = useState<Companion[]>(
-    mode === "friend" ? [{ full_name: "", phone: "" }] : []
+    mode === "friend" ? [{ full_name: "", phone: "" }] : [],
   );
 
   const isFree = price === 0;
@@ -141,13 +146,17 @@ export default function BookingForm({
         <h3 className="font-heading font-bold">{eventTitle}</h3>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
           {new Date(eventDate).toLocaleDateString("en-PH", {
-            weekday: "long", month: "long", day: "numeric",
+            weekday: "long",
+            month: "long",
+            day: "numeric",
           })}
         </p>
         <p className="text-lg font-bold text-lime-600 dark:text-lime-400 mt-2">
-          {isFree ? "Free" : totalPeople > 1
-            ? `₱${price.toLocaleString()} × ${totalPeople} = ₱${totalPrice.toLocaleString()}`
-            : `₱${price.toLocaleString()}`}
+          {isFree
+            ? "Free"
+            : totalPeople > 1
+              ? `₱${price.toLocaleString()} × ${totalPeople} = ₱${totalPrice.toLocaleString()}`
+              : `₱${price.toLocaleString()}`}
         </p>
       </div>
 
@@ -167,9 +176,7 @@ export default function BookingForm({
         />
       )}
 
-      {!isFree && (
-        <PaymentMethodPicker selected={paymentMethod} onSelect={setPaymentMethod} />
-      )}
+      {!isFree && <PaymentMethodPicker selected={paymentMethod} onSelect={setPaymentMethod} />}
 
       {isEwallet && organizerPaymentInfo && (
         <PaymentInstructions
@@ -179,14 +186,13 @@ export default function BookingForm({
         />
       )}
 
-      {isEwallet && (
-        <PaymentProofUpload file={proofFile} onFileChange={setProofFile} />
-      )}
+      {isEwallet && <PaymentProofUpload file={proofFile} onFileChange={setProofFile} />}
 
       {isCash && (
         <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            💵 You&apos;ll pay <strong>₱{totalPrice.toLocaleString()}</strong> in cash on the event day. Your spot will be reserved.
+            💵 You&apos;ll pay <strong>₱{totalPrice.toLocaleString()}</strong> in cash on the event
+            day. Your spot will be reserved.
           </p>
         </div>
       )}
@@ -194,7 +200,15 @@ export default function BookingForm({
       {error && <p className="text-sm text-red-500">{error}</p>}
 
       <Button type="submit" className="w-full" size="lg" disabled={loading}>
-        {loading ? "Booking..." : isFree ? "Confirm Booking" : isCash ? "Reserve Spot" : isEwallet ? "Submit Booking & Proof" : "Confirm Booking"}
+        {loading
+          ? "Booking..."
+          : isFree
+            ? "Confirm Booking"
+            : isCash
+              ? "Reserve Spot"
+              : isEwallet
+                ? "Submit Booking & Proof"
+                : "Confirm Booking"}
       </Button>
     </form>
   );

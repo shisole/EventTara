@@ -62,9 +62,7 @@ export default async function CMSPage({ params }: Props) {
         {page.title}
       </h1>
       {lastUpdated && (
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">
-          Last updated: {lastUpdated}
-        </p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">Last updated: {lastUpdated}</p>
       )}
       {page.content && (
         <div className="prose prose-gray dark:prose-invert max-w-none">

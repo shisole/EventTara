@@ -13,9 +13,11 @@
 ### Task 1: Install dependencies
 
 **Files:**
+
 - Modify: `package.json`
 
 **Steps:**
+
 1. Install dev dependencies:
    ```bash
    npm install -D prettier eslint-config-prettier eslint-plugin-unicorn eslint-plugin-import @typescript-eslint/parser @typescript-eslint/eslint-plugin husky lint-staged
@@ -38,10 +40,12 @@
 ### Task 2: Configure Prettier
 
 **Files:**
+
 - Create: `.prettierrc.json`
 - Create: `.prettierignore`
 
 **Steps:**
+
 1. Create `.prettierrc.json`:
    ```json
    {
@@ -72,9 +76,11 @@
 ### Task 3: Configure ESLint
 
 **Files:**
+
 - Modify: `.eslintrc.json`
 
 **Steps:**
+
 1. Update `.eslintrc.json` with:
    - `extends`: `next/core-web-vitals`, `plugin:@typescript-eslint/strict-type-checked`, `plugin:@typescript-eslint/stylistic-type-checked`, `plugin:unicorn/recommended`, `plugin:import/recommended`, `plugin:import/typescript`, `prettier`
    - `parser`: `@typescript-eslint/parser`
@@ -106,10 +112,12 @@
 ### Task 4: Set up husky + pre-commit hook
 
 **Files:**
+
 - Create: `.husky/pre-commit`
 - Modify: `package.json` (prepare script)
 
 **Steps:**
+
 1. Add prepare script: `"prepare": "husky"` in package.json
 2. Run `npx husky init`
 3. Write `.husky/pre-commit`:
@@ -124,9 +132,11 @@
 ### Task 5: Create GHA workflow
 
 **Files:**
+
 - Create: `.github/workflows/ci.yml`
 
 **Steps:**
+
 1. Create `.github/workflows/ci.yml`:
    - Trigger: `pull_request` to `main`, `push` to `main`
    - Single job `ci` on `ubuntu-latest`
@@ -139,9 +149,11 @@
 ### Task 6: Fix existing code — Prettier formatting
 
 **Files:**
+
 - Modify: all `.ts`, `.tsx`, `.json`, `.md`, `.css` files
 
 **Steps:**
+
 1. Run `npm run format` to auto-fix all formatting
 2. Verify: `npm run format:check` passes
 3. Commit: `style: format entire codebase with Prettier`
@@ -151,9 +163,11 @@
 ### Task 7: Fix existing code — ESLint violations
 
 **Files:**
+
 - Modify: various `src/` files
 
 **Steps:**
+
 1. Run `npm run lint -- --fix` to auto-fix what ESLint can
 2. Run `npm run lint` to see remaining issues
 3. Fix remaining issues manually (likely `import type`, nullish coalescing, etc.)
@@ -166,6 +180,7 @@
 ### Task 8: Final verification
 
 **Steps:**
+
 1. Run full CI locally:
    ```bash
    npm run format:check && npm run lint && npm run typecheck && npm run build

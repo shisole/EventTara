@@ -9,6 +9,7 @@ A `hero-carousel` Payload global stores an array of images (from the Media colle
 ## Data Model
 
 **Payload Global: `hero-carousel`**
+
 - `slides` — array of:
   - `image` — relationship to `media` collection (required)
 

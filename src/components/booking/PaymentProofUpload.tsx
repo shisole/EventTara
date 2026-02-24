@@ -60,7 +60,10 @@ export default function PaymentProofUpload({ file, onFileChange }: PaymentProofU
         </div>
       ) : (
         <div
-          onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setDragOver(true);
+          }}
           onDragLeave={() => setDragOver(false)}
           onDrop={handleDrop}
           onClick={() => inputRef.current?.click()}

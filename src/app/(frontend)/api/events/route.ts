@@ -69,9 +69,7 @@ export async function GET(request: NextRequest) {
   const [{ count }, { data: allEvents }] = await Promise.all([
     countQuery,
     // For "no when filter", we need all events to sort properly, then slice
-    !when
-      ? dataQuery
-      : dataQuery.range(offset, offset + limit - 1),
+    !when ? dataQuery : dataQuery.range(offset, offset + limit - 1),
   ]);
 
   let events = allEvents || [];
@@ -132,7 +130,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: Request) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

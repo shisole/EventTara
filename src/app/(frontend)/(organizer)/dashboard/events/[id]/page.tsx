@@ -9,11 +9,7 @@ export default async function ManageEventPage({ params }: { params: Promise<{ id
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: event } = await supabase
-    .from("events")
-    .select("*")
-    .eq("id", id)
-    .single();
+  const { data: event } = await supabase.from("events").select("*").eq("id", id).single();
 
   if (!event) notFound();
 
@@ -42,7 +38,10 @@ export default async function ManageEventPage({ params }: { params: Promise<{ id
   }
 
   // Total participants = non-cancelled bookings + non-cancelled companions
-  const totalCompanions = Object.values(companionsByBooking).reduce((sum, arr) => sum + arr.filter((c: any) => c.status !== "cancelled").length, 0);
+  const totalCompanions = Object.values(companionsByBooking).reduce(
+    (sum, arr) => sum + arr.filter((c: any) => c.status !== "cancelled").length,
+    0,
+  );
   const activeBookings = (bookings || []).filter((b: any) => !b.participant_cancelled).length;
   const totalParticipants = activeBookings + totalCompanions;
 
@@ -57,7 +56,9 @@ export default async function ManageEventPage({ params }: { params: Promise<{ id
     .filter((b: any) => b.payment_status === "paid")
     .reduce((sum: number, b: any) => {
       const mainCount = b.participant_cancelled ? 0 : 1;
-      const confirmedComps = (companionsByBooking[b.id] || []).filter((c: any) => c.status === "confirmed").length;
+      const confirmedComps = (companionsByBooking[b.id] || []).filter(
+        (c: any) => c.status === "confirmed",
+      ).length;
       return sum + (mainCount + confirmedComps) * Number(event.price);
     }, 0);
 
@@ -96,7 +97,9 @@ export default async function ManageEventPage({ params }: { params: Promise<{ id
         <div className="grid grid-cols-3 gap-4">
           <div className="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm dark:shadow-gray-950/30">
             <p className="text-sm text-gray-500 dark:text-gray-400">Participants</p>
-            <p className="text-2xl font-bold dark:text-white">{totalParticipants}/{event.max_participants}</p>
+            <p className="text-2xl font-bold dark:text-white">
+              {totalParticipants}/{event.max_participants}
+            </p>
           </div>
           <div className="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm dark:shadow-gray-950/30">
             <p className="text-sm text-gray-500 dark:text-gray-400">Checked In</p>
@@ -104,9 +107,7 @@ export default async function ManageEventPage({ params }: { params: Promise<{ id
           </div>
           <div className="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm dark:shadow-gray-950/30">
             <p className="text-sm text-gray-500 dark:text-gray-400">Revenue</p>
-            <p className="text-2xl font-bold dark:text-white">
-              PHP {revenue.toLocaleString()}
-            </p>
+            <p className="text-2xl font-bold dark:text-white">PHP {revenue.toLocaleString()}</p>
           </div>
         </div>
 

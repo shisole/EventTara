@@ -13,6 +13,7 @@
 ### Task 1: Create hero-carousel Payload global
 
 **Files:**
+
 - Create: `src/payload/globals/hero-carousel.ts`
 - Modify: `src/payload.config.ts`
 
@@ -21,42 +22,44 @@
 Create `src/payload/globals/hero-carousel.ts`:
 
 ```typescript
-import type { GlobalConfig } from 'payload'
+import type { GlobalConfig } from "payload";
 
 export const HeroCarousel: GlobalConfig = {
-  slug: 'hero-carousel',
-  label: 'Hero Carousel',
+  slug: "hero-carousel",
+  label: "Hero Carousel",
   access: {
     read: () => true,
   },
   fields: [
     {
-      name: 'slides',
-      type: 'array',
-      label: 'Slides',
+      name: "slides",
+      type: "array",
+      label: "Slides",
       minRows: 0,
       maxRows: 10,
       fields: [
         {
-          name: 'image',
-          type: 'upload',
-          relationTo: 'media',
+          name: "image",
+          type: "upload",
+          relationTo: "media",
           required: true,
         },
       ],
     },
   ],
-}
+};
 ```
 
 **Step 2: Register in payload.config.ts**
 
 Add import at top:
+
 ```typescript
-import { HeroCarousel } from './payload/globals/hero-carousel'
+import { HeroCarousel } from "./payload/globals/hero-carousel";
 ```
 
 Add `HeroCarousel` to the `globals` array (after existing globals):
+
 ```typescript
 globals: [SiteSettings, Navigation, HeroCarousel],
 ```
@@ -79,6 +82,7 @@ git commit -m "feat: add hero-carousel global to payload cms"
 ### Task 2: Add CSS crossfade keyframes
 
 **Files:**
+
 - Modify: `src/app/(frontend)/globals.css`
 
 **Step 1: Add the crossfade keyframes at the end of globals.css**
@@ -88,9 +92,18 @@ Append to the end of `src/app/(frontend)/globals.css`:
 ```css
 /* Hero carousel crossfade animation */
 @keyframes heroFade {
-  0%, 5% { opacity: 1; }
-  20%, 80% { opacity: 0; }
-  95%, 100% { opacity: 1; }
+  0%,
+  5% {
+    opacity: 1;
+  }
+  20%,
+  80% {
+    opacity: 0;
+  }
+  95%,
+  100% {
+    opacity: 1;
+  }
 }
 ```
 
@@ -114,6 +127,7 @@ git commit -m "feat: add hero carousel crossfade keyframes"
 ### Task 3: Build the HeroCarousel component
 
 **Files:**
+
 - Create: `src/components/landing/HeroCarousel.tsx`
 
 **Step 1: Create the component**
@@ -179,6 +193,7 @@ export default function HeroCarousel({ slides }: HeroCarouselProps) {
 ```
 
 Key details:
+
 - Each slide is absolutely positioned and stacked
 - For a single image: no animation, just a static background
 - For multiple images: CSS `heroFade` animation with staggered delays
@@ -203,6 +218,7 @@ git commit -m "feat: add hero carousel component with css crossfade"
 ### Task 4: Integrate carousel into the landing page
 
 **Files:**
+
 - Modify: `src/app/(frontend)/page.tsx`
 
 **Step 1: Add imports**
@@ -219,24 +235,24 @@ import HeroCarousel from "@/components/landing/HeroCarousel";
 Inside the `Home` function, after the existing Supabase queries (after line 83), add:
 
 ```typescript
-  // Fetch hero carousel images from Payload CMS
-  let heroSlides: { image: { url: string; alt: string } }[] = [];
-  try {
-    const payload = await getPayloadClient();
-    const heroData = await payload.findGlobal({ slug: 'hero-carousel' });
-    if (heroData?.slides) {
-      heroSlides = heroData.slides
-        .filter((slide: any) => slide.image && typeof slide.image === 'object')
-        .map((slide: any) => ({
-          image: {
-            url: slide.image.url,
-            alt: slide.image.alt || 'Adventure',
-          },
-        }));
-    }
-  } catch {
-    // Fallback: no carousel images
+// Fetch hero carousel images from Payload CMS
+let heroSlides: { image: { url: string; alt: string } }[] = [];
+try {
+  const payload = await getPayloadClient();
+  const heroData = await payload.findGlobal({ slug: "hero-carousel" });
+  if (heroData?.slides) {
+    heroSlides = heroData.slides
+      .filter((slide: any) => slide.image && typeof slide.image === "object")
+      .map((slide: any) => ({
+        image: {
+          url: slide.image.url,
+          alt: slide.image.alt || "Adventure",
+        },
+      }));
   }
+} catch {
+  // Fallback: no carousel images
+}
 ```
 
 **Step 3: Update the hero section**
@@ -244,42 +260,51 @@ Inside the `Home` function, after the existing Supabase queries (after line 83),
 Replace the hero `<section>` (lines 103-127) with:
 
 ```tsx
-      {/* Hero Section */}
-      <section className="relative py-24 sm:py-32 overflow-hidden min-h-[500px] flex items-center">
-        {heroSlides.length > 0 ? (
-          <HeroCarousel slides={heroSlides} />
-        ) : (
-          <>
-            {/* Fallback: original flat background */}
-            <div className="absolute inset-0 bg-gray-50 dark:bg-slate-900" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-lime-500/10 rounded-full blur-3xl" />
-          </>
-        )}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 w-full">
-          <div className="inline-block mb-6 px-4 py-1.5 rounded-full bg-lime-500/10 border border-lime-500/30">
-            <span className="text-lime-600 dark:text-lime-400 text-sm font-semibold tracking-wide uppercase">Beta — Now Live</span>
-          </div>
-          <h1 className={`text-5xl sm:text-7xl font-heading font-bold mb-4 ${heroSlides.length > 0 ? 'text-white' : 'text-gray-900 dark:text-white'}`}>
-            Tara na!
-          </h1>
-          <p className={`text-xl sm:text-2xl mb-10 max-w-2xl mx-auto ${heroSlides.length > 0 ? 'text-gray-200' : 'text-gray-600 dark:text-gray-400'}`}>
-            Book Your Next Adventure. Discover hiking, biking, running events
-            and more across the Philippines.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/events"
-              className="inline-flex items-center justify-center font-semibold rounded-xl text-lg py-4 px-8 bg-lime-500 hover:bg-lime-400 text-slate-900 transition-colors"
-            >
-              Explore Events
-            </Link>
-            <HostEventLink />
-          </div>
-        </div>
-      </section>
+{
+  /* Hero Section */
+}
+<section className="relative py-24 sm:py-32 overflow-hidden min-h-[500px] flex items-center">
+  {heroSlides.length > 0 ? (
+    <HeroCarousel slides={heroSlides} />
+  ) : (
+    <>
+      {/* Fallback: original flat background */}
+      <div className="absolute inset-0 bg-gray-50 dark:bg-slate-900" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-lime-500/10 rounded-full blur-3xl" />
+    </>
+  )}
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 w-full">
+    <div className="inline-block mb-6 px-4 py-1.5 rounded-full bg-lime-500/10 border border-lime-500/30">
+      <span className="text-lime-600 dark:text-lime-400 text-sm font-semibold tracking-wide uppercase">
+        Beta — Now Live
+      </span>
+    </div>
+    <h1
+      className={`text-5xl sm:text-7xl font-heading font-bold mb-4 ${heroSlides.length > 0 ? "text-white" : "text-gray-900 dark:text-white"}`}
+    >
+      Tara na!
+    </h1>
+    <p
+      className={`text-xl sm:text-2xl mb-10 max-w-2xl mx-auto ${heroSlides.length > 0 ? "text-gray-200" : "text-gray-600 dark:text-gray-400"}`}
+    >
+      Book Your Next Adventure. Discover hiking, biking, running events and more across the
+      Philippines.
+    </p>
+    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+      <Link
+        href="/events"
+        className="inline-flex items-center justify-center font-semibold rounded-xl text-lg py-4 px-8 bg-lime-500 hover:bg-lime-400 text-slate-900 transition-colors"
+      >
+        Explore Events
+      </Link>
+      <HostEventLink />
+    </div>
+  </div>
+</section>;
 ```
 
 Key changes from the original hero:
+
 - Section has `relative` positioning and `min-h-[500px]` with `flex items-center`
 - When carousel has images: renders `HeroCarousel`, text becomes white
 - When no images: renders the original flat bg + glow effect, text colors unchanged
@@ -324,6 +349,7 @@ Visit `http://localhost:3000/` — the hero should look identical to before (fla
 **Step 4: Verify carousel**
 
 Reload `http://localhost:3000/` — the hero should now show:
+
 - Full-bleed background images
 - Dark overlay for text contrast
 - Auto-crossfade between images every ~6 seconds

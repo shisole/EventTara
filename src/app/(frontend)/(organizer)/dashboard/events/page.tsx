@@ -7,7 +7,9 @@ export const metadata = { title: "My Events — EventTara" };
 
 export default async function EventsListPage() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   const { data: profile } = await supabase
     .from("organizer_profiles")
@@ -37,7 +39,9 @@ export default async function EventsListPage() {
       {events.length === 0 ? (
         <div className="text-center py-20 bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30">
           <h2 className="text-lg font-heading font-bold mb-2 dark:text-white">No events yet</h2>
-          <p className="text-gray-500 dark:text-gray-400 mb-4">Create your first adventure event!</p>
+          <p className="text-gray-500 dark:text-gray-400 mb-4">
+            Create your first adventure event!
+          </p>
           <Link href="/dashboard/events/new">
             <Button>Create Event</Button>
           </Link>

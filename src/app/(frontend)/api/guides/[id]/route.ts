@@ -6,11 +6,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const supabase = await createClient();
 
   // Fetch guide
-  const { data: guide, error } = await supabase
-    .from("guides")
-    .select("*")
-    .eq("id", id)
-    .single();
+  const { data: guide, error } = await supabase.from("guides").select("*").eq("id", id).single();
 
   if (error || !guide) {
     return NextResponse.json({ error: "Guide not found" }, { status: 404 });
@@ -74,7 +70,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -119,7 +117,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -140,10 +140,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const { error } = await supabase
-    .from("guides")
-    .delete()
-    .eq("id", id);
+  const { error } = await supabase.from("guides").delete().eq("id", id);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

@@ -44,7 +44,12 @@ export default function EventGallery({ photos }: { photos: Photo[] }) {
             onClick={() => setSelectedIndex(idx)}
             className="relative aspect-square rounded-xl overflow-hidden hover:opacity-90 transition-opacity snap-center shrink-0 w-[70vw] sm:w-auto"
           >
-            <Image src={photo.image_url} alt={photo.caption || "Event photo"} fill className="object-cover" />
+            <Image
+              src={photo.image_url}
+              alt={photo.caption || "Event photo"}
+              fill
+              className="object-cover"
+            />
           </button>
         ))}
       </div>
@@ -58,12 +63,26 @@ export default function EventGallery({ photos }: { photos: Photo[] }) {
           {/* Prev button */}
           {selectedIndex !== null && selectedIndex > 0 && (
             <button
-              onClick={(e) => { e.stopPropagation(); goToPrev(); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                goToPrev();
+              }}
               className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-10 w-11 h-11 flex items-center justify-center bg-white/20 hover:bg-white/40 rounded-full text-white transition-colors"
               aria-label="Previous photo"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className="w-6 h-6"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M15.75 19.5L8.25 12l7.5-7.5"
+                />
               </svg>
             </button>
           )}
@@ -71,11 +90,21 @@ export default function EventGallery({ photos }: { photos: Photo[] }) {
           {/* Next button */}
           {selectedIndex !== null && selectedIndex < photos.length - 1 && (
             <button
-              onClick={(e) => { e.stopPropagation(); goToNext(); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                goToNext();
+              }}
               className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-10 w-11 h-11 flex items-center justify-center bg-white/20 hover:bg-white/40 rounded-full text-white transition-colors"
               aria-label="Next photo"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className="w-6 h-6"
+              >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
               </svg>
             </button>
@@ -87,12 +116,22 @@ export default function EventGallery({ photos }: { photos: Photo[] }) {
             className="absolute top-4 right-4 z-10 w-11 h-11 flex items-center justify-center bg-white/20 hover:bg-white/40 rounded-full text-white transition-colors"
             aria-label="Close"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="w-6 h-6"
+            >
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
 
-          <div className="relative max-w-4xl max-h-[90vh] w-full" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="relative max-w-4xl max-h-[90vh] w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
             <Image
               src={selectedPhoto.image_url}
               alt={selectedPhoto.caption || "Event photo"}

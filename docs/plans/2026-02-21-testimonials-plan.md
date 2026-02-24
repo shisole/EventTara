@@ -13,6 +13,7 @@
 ### Task 1: Add database types for both tables
 
 **Files:**
+
 - Modify: `src/lib/supabase/types.ts`
 
 **Step 1: Add `app_testimonials` type after `event_checkins` (after line 296)**
@@ -94,6 +95,7 @@ git commit -m "feat: add app_testimonials and event_reviews types"
 ### Task 2: Create Supabase tables via SQL
 
 **Files:**
+
 - Create: `supabase/migrations/20260221_testimonials_and_reviews.sql`
 
 **Step 1: Write the migration SQL**
@@ -165,6 +167,7 @@ git commit -m "feat: add app_testimonials and event_reviews tables"
 ### Task 3: App Testimonials section on landing page
 
 **Files:**
+
 - Modify: `src/app/(frontend)/page.tsx`
 
 **Step 1: Fetch app testimonials in the data query**
@@ -187,41 +190,56 @@ Destructure as `{ data: testimonials }` alongside the existing results.
 Insert a new section between "Trusted by Organizers" and "Organizer CTA" (after line 291, before line 293). The section:
 
 ```tsx
-{/* Participant Testimonials */}
-{testimonials && testimonials.length > 0 && (
-  <section className="py-20 bg-gray-50 dark:bg-slate-900">
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <h2 className="text-3xl sm:text-4xl font-heading font-bold text-center text-gray-900 dark:text-white mb-4">
-        What Adventurers Say
-      </h2>
-      <p className="text-center text-gray-500 dark:text-gray-400 mb-12 max-w-2xl mx-auto">
-        Hear from the community that makes EventTara special.
-      </p>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {testimonials.map((t: any) => (
-          <div key={t.id} className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm dark:shadow-gray-950/20">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-lime-100 dark:bg-lime-900/30 overflow-hidden flex-shrink-0 flex items-center justify-center">
-                {t.avatar_url ? (
-                  <Image src={t.avatar_url} alt={t.name} width={40} height={40} className="object-cover w-full h-full" />
-                ) : (
-                  <span className="text-lime-600 dark:text-lime-400 font-bold text-sm">
-                    {t.name.charAt(0).toUpperCase()}
-                  </span>
-                )}
+{
+  /* Participant Testimonials */
+}
+{
+  testimonials && testimonials.length > 0 && (
+    <section className="py-20 bg-gray-50 dark:bg-slate-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 className="text-3xl sm:text-4xl font-heading font-bold text-center text-gray-900 dark:text-white mb-4">
+          What Adventurers Say
+        </h2>
+        <p className="text-center text-gray-500 dark:text-gray-400 mb-12 max-w-2xl mx-auto">
+          Hear from the community that makes EventTara special.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {testimonials.map((t: any) => (
+            <div
+              key={t.id}
+              className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm dark:shadow-gray-950/20"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-lime-100 dark:bg-lime-900/30 overflow-hidden flex-shrink-0 flex items-center justify-center">
+                  {t.avatar_url ? (
+                    <Image
+                      src={t.avatar_url}
+                      alt={t.name}
+                      width={40}
+                      height={40}
+                      className="object-cover w-full h-full"
+                    />
+                  ) : (
+                    <span className="text-lime-600 dark:text-lime-400 font-bold text-sm">
+                      {t.name.charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                </div>
+                <div>
+                  <p className="font-semibold text-sm text-gray-900 dark:text-white">{t.name}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{t.role}</p>
+                </div>
               </div>
-              <div>
-                <p className="font-semibold text-sm text-gray-900 dark:text-white">{t.name}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{t.role}</p>
-              </div>
+              <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+                &ldquo;{t.text}&rdquo;
+              </p>
             </div>
-            <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">&ldquo;{t.text}&rdquo;</p>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
-    </div>
-  </section>
-)}
+    </section>
+  );
+}
 ```
 
 **Step 3: Commit**
@@ -236,6 +254,7 @@ git commit -m "feat: add app testimonials section to landing page"
 ### Task 4: Event review API endpoint
 
 **Files:**
+
 - Create: `src/app/(frontend)/api/events/[id]/reviews/route.ts`
 
 **Step 1: Create the API route**
@@ -244,10 +263,7 @@ git commit -m "feat: add app testimonials section to landing page"
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-export async function POST(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id: eventId } = await params;
   const supabase = await createClient();
 
@@ -277,7 +293,10 @@ export async function POST(
   }
 
   if (event.status !== "completed") {
-    return NextResponse.json({ error: "Reviews can only be left for completed events" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Reviews can only be left for completed events" },
+      { status: 400 },
+    );
   }
 
   // Verify user has a check-in for this event
@@ -289,7 +308,10 @@ export async function POST(
     .single();
 
   if (!checkin) {
-    return NextResponse.json({ error: "Only checked-in participants can leave reviews" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Only checked-in participants can leave reviews" },
+      { status: 403 },
+    );
   }
 
   // Check for existing review
@@ -322,10 +344,7 @@ export async function POST(
   return NextResponse.json({ review });
 }
 
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id: eventId } = await params;
   const supabase = await createClient();
 
@@ -351,6 +370,7 @@ git commit -m "feat: add event reviews API endpoint"
 ### Task 5: StarRating component
 
 **Files:**
+
 - Create: `src/components/reviews/StarRating.tsx`
 
 **Step 1: Create a reusable star rating display + input component**
@@ -386,9 +406,7 @@ export default function StarRating({
           className={cn(
             "transition-colors",
             readonly ? "cursor-default" : "cursor-pointer hover:scale-110",
-            star <= value
-              ? "text-yellow-400"
-              : "text-gray-300 dark:text-gray-600"
+            star <= value ? "text-yellow-400" : "text-gray-300 dark:text-gray-600",
           )}
         >
           &#9733;
@@ -411,6 +429,7 @@ git commit -m "feat: add StarRating component"
 ### Task 6: ReviewForm component
 
 **Files:**
+
 - Create: `src/components/reviews/ReviewForm.tsx`
 
 **Step 1: Create the review form**
@@ -469,7 +488,9 @@ export default function ReviewForm({ eventId, onSubmitted }: ReviewFormProps) {
     return (
       <div className="text-center py-4">
         <p className="text-lg font-medium text-gray-900 dark:text-white">Thanks for your review!</p>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Your feedback helps the community.</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          Your feedback helps the community.
+        </p>
       </div>
     );
   }
@@ -513,6 +534,7 @@ git commit -m "feat: add ReviewForm component"
 ### Task 7: ReviewList component
 
 **Files:**
+
 - Create: `src/components/reviews/ReviewList.tsx`
 
 **Step 1: Create the review list display**
@@ -557,18 +579,32 @@ export default function ReviewList({ reviews, averageRating }: ReviewListProps) 
         {reviews.map((review) => {
           const user = review.users;
           return (
-            <div key={review.id} className="border-b border-gray-100 dark:border-gray-800 pb-4 last:border-0">
+            <div
+              key={review.id}
+              className="border-b border-gray-100 dark:border-gray-800 pb-4 last:border-0"
+            >
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden flex-shrink-0 flex items-center justify-center">
                   {user.avatar_url ? (
-                    <Image src={user.avatar_url} alt={user.full_name} width={32} height={32} className="object-cover w-full h-full" />
+                    <Image
+                      src={user.avatar_url}
+                      alt={user.full_name}
+                      width={32}
+                      height={32}
+                      className="object-cover w-full h-full"
+                    />
                   ) : (
-                    <span className="text-xs text-gray-400 font-bold">{user.full_name.charAt(0).toUpperCase()}</span>
+                    <span className="text-xs text-gray-400 font-bold">
+                      {user.full_name.charAt(0).toUpperCase()}
+                    </span>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
                   {user.username ? (
-                    <Link href={`/profile/${user.username}`} className="text-sm font-medium hover:text-lime-600 dark:hover:text-lime-400">
+                    <Link
+                      href={`/profile/${user.username}`}
+                      className="text-sm font-medium hover:text-lime-600 dark:hover:text-lime-400"
+                    >
                       {user.full_name}
                     </Link>
                   ) : (
@@ -577,7 +613,11 @@ export default function ReviewList({ reviews, averageRating }: ReviewListProps) 
                   <div className="flex items-center gap-2">
                     <StarRating value={review.rating} readonly size="sm" />
                     <span className="text-xs text-gray-400 dark:text-gray-500">
-                      {new Date(review.created_at).toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" })}
+                      {new Date(review.created_at).toLocaleDateString("en-PH", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
                     </span>
                   </div>
                 </div>
@@ -606,6 +646,7 @@ git commit -m "feat: add ReviewList component"
 ### Task 8: Add reviews to event detail page
 
 **Files:**
+
 - Modify: `src/app/(frontend)/(participant)/events/[id]/page.tsx`
 
 **Step 1: Fetch reviews and check-in status in the server component**
@@ -621,9 +662,10 @@ const { data: reviews } = await supabase
   .order("created_at", { ascending: false });
 
 const eventReviews = (reviews || []) as any[];
-const avgRating = eventReviews.length > 0
-  ? eventReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / eventReviews.length
-  : 0;
+const avgRating =
+  eventReviews.length > 0
+    ? eventReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / eventReviews.length
+    : 0;
 
 // Check if current user can review (checked in + hasn't reviewed)
 let canReview = false;
@@ -660,18 +702,22 @@ import ReviewList from "@/components/reviews/ReviewList";
 After `<EventGallery photos={photos || []} />` (after line 171), add:
 
 ```tsx
-{/* Reviews Section */}
-{(eventReviews.length > 0 || canReview) && (
-  <div>
-    <h2 className="text-xl font-heading font-bold mb-4">Reviews</h2>
-    {canReview && (
-      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm dark:shadow-gray-950/20 p-5 mb-6">
-        <ReviewForm eventId={id} />
-      </div>
-    )}
-    <ReviewList reviews={eventReviews} averageRating={avgRating} />
-  </div>
-)}
+{
+  /* Reviews Section */
+}
+{
+  (eventReviews.length > 0 || canReview) && (
+    <div>
+      <h2 className="text-xl font-heading font-bold mb-4">Reviews</h2>
+      {canReview && (
+        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm dark:shadow-gray-950/20 p-5 mb-6">
+          <ReviewForm eventId={id} />
+        </div>
+      )}
+      <ReviewList reviews={eventReviews} averageRating={avgRating} />
+    </div>
+  );
+}
 ```
 
 **Step 4: Add average rating in the sidebar price section**
@@ -679,13 +725,18 @@ After `<EventGallery photos={photos || []} />` (after line 171), add:
 After the spots left display (around line 189), add a rating display if reviews exist:
 
 ```tsx
-{avgRating > 0 && (
-  <div className="text-center text-sm">
-    <span className="text-yellow-400">&#9733;</span>{" "}
-    <span className="font-medium text-gray-700 dark:text-gray-300">{avgRating.toFixed(1)}</span>
-    <span className="text-gray-400 dark:text-gray-500"> ({eventReviews.length} review{eventReviews.length !== 1 ? "s" : ""})</span>
-  </div>
-)}
+{
+  avgRating > 0 && (
+    <div className="text-center text-sm">
+      <span className="text-yellow-400">&#9733;</span>{" "}
+      <span className="font-medium text-gray-700 dark:text-gray-300">{avgRating.toFixed(1)}</span>
+      <span className="text-gray-400 dark:text-gray-500">
+        {" "}
+        ({eventReviews.length} review{eventReviews.length !== 1 ? "s" : ""})
+      </span>
+    </div>
+  );
+}
 ```
 
 **Step 5: Commit**
@@ -700,6 +751,7 @@ git commit -m "feat: add reviews section to event detail page"
 ### Task 9: Add review form to badge page
 
 **Files:**
+
 - Modify: `src/app/(frontend)/(participant)/badges/[id]/page.tsx`
 
 **Step 1: Fetch check-in and existing review status**
@@ -756,21 +808,25 @@ import ReviewForm from "@/components/reviews/ReviewForm";
 After the "Earned By" section (after line 213), before the "Back link", add:
 
 ```tsx
-{/* Leave a Review */}
-{canReview && event && (
-  <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-6">
-    <h2 className="text-lg font-heading font-bold mb-4 text-center">
-      How was {event.title}?
-    </h2>
-    <ReviewForm eventId={event.id} />
-  </div>
-)}
+{
+  /* Leave a Review */
+}
+{
+  canReview && event && (
+    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-6">
+      <h2 className="text-lg font-heading font-bold mb-4 text-center">How was {event.title}?</h2>
+      <ReviewForm eventId={event.id} />
+    </div>
+  );
+}
 
-{hasReviewed && (
-  <p className="text-center text-sm text-gray-500 dark:text-gray-400">
-    You&apos;ve already reviewed this event. Thanks!
-  </p>
-)}
+{
+  hasReviewed && (
+    <p className="text-center text-sm text-gray-500 dark:text-gray-400">
+      You&apos;ve already reviewed this event. Thanks!
+    </p>
+  );
+}
 ```
 
 **Step 4: Commit**
@@ -785,6 +841,7 @@ git commit -m "feat: add review form to badge page"
 ### Task 10: Add review CTA to badge award email
 
 **Files:**
+
 - Modify: `src/lib/email/templates/badge-awarded.ts`
 - Modify: `src/app/(frontend)/api/badges/award/route.ts`
 
@@ -798,7 +855,10 @@ After the existing "View Your Badges" CTA button (after line 62), add:
 
 ```html
 <div style="margin-top:16px;">
-  <a href="https://eventtara.com/badges/${badgeId}" style="display:inline-block;background-color:transparent;color:#2D5A3D;text-decoration:none;padding:10px 24px;border-radius:8px;font-size:14px;font-weight:600;border:2px solid #2D5A3D;">
+  <a
+    href="https://eventtara.com/badges/${badgeId}"
+    style="display:inline-block;background-color:transparent;color:#2D5A3D;text-decoration:none;padding:10px 24px;border-radius:8px;font-size:14px;font-weight:600;border:2px solid #2D5A3D;"
+  >
     Leave a Review
   </a>
 </div>
@@ -820,6 +880,7 @@ git commit -m "feat: add review CTA to badge award email"
 ### Task 11: Add aggregate rating to organizer profile
 
 **Files:**
+
 - Modify: `src/app/(frontend)/(participant)/organizers/[id]/page.tsx`
 
 **Step 1: Fetch aggregate reviews for organizer's events**
@@ -835,7 +896,9 @@ let recentReviews: any[] = [];
 if (eventIds.length > 0) {
   const { data: reviewData } = await supabase
     .from("event_reviews")
-    .select("id, rating, text, created_at, event_id, users(full_name, avatar_url, username), events(title)")
+    .select(
+      "id, rating, text, created_at, event_id, users(full_name, avatar_url, username), events(title)",
+    )
     .in("event_id", eventIds)
     .order("created_at", { ascending: false })
     .limit(5);
@@ -881,38 +944,49 @@ import StarRating from "@/components/reviews/StarRating";
 After the Badges section (after line 188), before the footer CTA, add:
 
 ```tsx
-{/* Reviews */}
-{totalReviews > 0 && (
-  <div>
-    <h2 className="text-xl font-heading font-bold mb-4 text-center">Reviews</h2>
-    <div className="flex items-center justify-center gap-3 mb-6">
-      <StarRating value={Math.round(avgRating)} readonly size="md" />
-      <span className="font-bold text-gray-900 dark:text-white">{avgRating.toFixed(1)}</span>
-      <span className="text-sm text-gray-500 dark:text-gray-400">
-        ({totalReviews} review{totalReviews !== 1 ? "s" : ""} across events)
-      </span>
-    </div>
-    <div className="space-y-4">
-      {recentReviews.map((review: any) => (
-        <div key={review.id} className="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm dark:shadow-gray-950/20">
-          <div className="flex items-center gap-2 mb-2">
-            <StarRating value={review.rating} readonly size="sm" />
-            <span className="text-xs text-gray-400 dark:text-gray-500">
-              for {review.events?.title || "Event"}
-            </span>
+{
+  /* Reviews */
+}
+{
+  totalReviews > 0 && (
+    <div>
+      <h2 className="text-xl font-heading font-bold mb-4 text-center">Reviews</h2>
+      <div className="flex items-center justify-center gap-3 mb-6">
+        <StarRating value={Math.round(avgRating)} readonly size="md" />
+        <span className="font-bold text-gray-900 dark:text-white">{avgRating.toFixed(1)}</span>
+        <span className="text-sm text-gray-500 dark:text-gray-400">
+          ({totalReviews} review{totalReviews !== 1 ? "s" : ""} across events)
+        </span>
+      </div>
+      <div className="space-y-4">
+        {recentReviews.map((review: any) => (
+          <div
+            key={review.id}
+            className="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm dark:shadow-gray-950/20"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <StarRating value={review.rating} readonly size="sm" />
+              <span className="text-xs text-gray-400 dark:text-gray-500">
+                for {review.events?.title || "Event"}
+              </span>
+            </div>
+            {review.text && (
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{review.text}</p>
+            )}
+            <p className="text-xs text-gray-400 dark:text-gray-500">
+              {review.users?.full_name || "Participant"} &middot;{" "}
+              {new Date(review.created_at).toLocaleDateString("en-PH", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })}
+            </p>
           </div>
-          {review.text && (
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{review.text}</p>
-          )}
-          <p className="text-xs text-gray-400 dark:text-gray-500">
-            {review.users?.full_name || "Participant"} &middot;{" "}
-            {new Date(review.created_at).toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" })}
-          </p>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
-  </div>
-)}
+  );
+}
 ```
 
 **Step 4: Update OrganizerStats to include rating**
@@ -931,6 +1005,7 @@ git commit -m "feat: add aggregate reviews to organizer profile"
 ### Task 12: Add rating badge to EventCard
 
 **Files:**
+
 - Modify: `src/components/events/EventCard.tsx`
 
 **Step 1: Add optional `avg_rating` and `review_count` props**
@@ -947,13 +1022,15 @@ review_count?: number;
 In the bottom section (around line 103-115), add a rating display when reviews exist. Between the price and spots left, or below the location:
 
 ```tsx
-{avg_rating && avg_rating > 0 && review_count && review_count > 0 && (
-  <div className="flex items-center gap-1 text-sm">
-    <span className="text-yellow-400">&#9733;</span>
-    <span className="font-medium text-gray-700 dark:text-gray-300">{avg_rating.toFixed(1)}</span>
-    <span className="text-gray-400 dark:text-gray-500">({review_count})</span>
-  </div>
-)}
+{
+  avg_rating && avg_rating > 0 && review_count && review_count > 0 && (
+    <div className="flex items-center gap-1 text-sm">
+      <span className="text-yellow-400">&#9733;</span>
+      <span className="font-medium text-gray-700 dark:text-gray-300">{avg_rating.toFixed(1)}</span>
+      <span className="text-gray-400 dark:text-gray-500">({review_count})</span>
+    </div>
+  );
+}
 ```
 
 **Step 3: Pass rating data from pages that use EventCard**
@@ -980,6 +1057,7 @@ git commit -m "feat: add optional rating props to EventCard"
 ### Task 13: Seed data for testimonials and reviews
 
 **Files:**
+
 - Modify: `scripts/seed.ts`
 
 **Step 1: Add app testimonials data**
@@ -1107,17 +1185,16 @@ async function seedAppTestimonials() {
 **Step 4: Add `seedEventReviews` function**
 
 ```typescript
-async function seedEventReviews(
-  userMap: Map<string, string>,
-  eventMap: Map<string, string>
-) {
+async function seedEventReviews(userMap: Map<string, string>, eventMap: Map<string, string>) {
   log("⭐", "Creating event reviews...");
 
   for (const review of REVIEW_DEFS) {
     const userId = userMap.get(review.userEmail);
     const eventId = eventMap.get(review.eventTitle);
     if (!userId || !eventId) {
-      console.error(`  Missing user or event for review: ${review.userEmail} -> ${review.eventTitle}`);
+      console.error(
+        `  Missing user or event for review: ${review.userEmail} -> ${review.eventTitle}`,
+      );
       continue;
     }
 

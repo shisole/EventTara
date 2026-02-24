@@ -13,6 +13,7 @@
 ## Task 1: Create BetaNoticeModal Component Structure
 
 **Files:**
+
 - Create: `src/components/landing/BetaNoticeModal.tsx`
 
 **Step 1: Create the component directory**
@@ -54,6 +55,7 @@ git commit -m "feat: create BetaNoticeModal component structure"
 ## Task 2: Implement LocalStorage Check Logic
 
 **Files:**
+
 - Modify: `src/components/landing/BetaNoticeModal.tsx`
 
 **Step 1: Add localStorage check in useEffect**
@@ -92,6 +94,7 @@ export default function BetaNoticeModal() {
 **Step 2: Test in browser**
 
 Manual test:
+
 1. Start dev server: `npm run dev`
 2. Open browser console
 3. Clear localStorage: `localStorage.clear()`
@@ -111,6 +114,7 @@ git commit -m "feat: add localStorage check logic to BetaNoticeModal"
 ## Task 3: Build Modal UI Structure
 
 **Files:**
+
 - Modify: `src/components/landing/BetaNoticeModal.tsx`
 
 **Step 1: Add modal backdrop and container**
@@ -139,6 +143,7 @@ return (
 **Step 2: Test backdrop styling**
 
 Manual test:
+
 1. Clear localStorage in browser
 2. Refresh page
 3. Verify: dark backdrop appears, modal box is centered, has rounded corners
@@ -156,6 +161,7 @@ git commit -m "feat: add modal backdrop and container structure"
 ## Task 4: Add Modal Content (Icon, Title, Message)
 
 **Files:**
+
 - Modify: `src/components/landing/BetaNoticeModal.tsx`
 
 **Step 1: Add complete modal content**
@@ -198,6 +204,7 @@ Update the modal box content in `BetaNoticeModal.tsx`:
 **Step 2: Test content display**
 
 Manual test:
+
 1. Clear localStorage
 2. Refresh page
 3. Verify: 🎉 emoji displays at top
@@ -218,6 +225,7 @@ git commit -m "feat: add modal content (icon, title, message, button)"
 ## Task 5: Add Animations with Tailwind
 
 **Files:**
+
 - Modify: `src/components/landing/BetaNoticeModal.tsx`
 
 **Step 1: Add animation state**
@@ -308,6 +316,7 @@ export default function BetaNoticeModal() {
 **Step 2: Test animations**
 
 Manual test:
+
 1. Clear localStorage
 2. Refresh page
 3. Verify: Modal fades in smoothly (opacity 0 → 1)
@@ -328,6 +337,7 @@ git commit -m "feat: add fade-in/out and scale animations to modal"
 ## Task 6: Add Keyboard Support (Escape Key)
 
 **Files:**
+
 - Modify: `src/components/landing/BetaNoticeModal.tsx`
 
 **Step 1: Add keyboard event listener**
@@ -359,6 +369,7 @@ useEffect(() => {
 **Step 2: Test keyboard support**
 
 Manual test:
+
 1. Clear localStorage and refresh
 2. Modal appears
 3. Press Escape key
@@ -377,6 +388,7 @@ git commit -m "feat: add Escape key support to dismiss modal"
 ## Task 7: Integrate Modal into Landing Page
 
 **Files:**
+
 - Modify: `src/app/(frontend)/page.tsx`
 
 **Step 1: Import and render modal**
@@ -402,6 +414,7 @@ return (
 **Step 2: Test integration**
 
 Manual test:
+
 1. Clear localStorage: `localStorage.clear()`
 2. Navigate to `/` (home page)
 3. Verify: Modal appears on page load
@@ -429,11 +442,13 @@ git commit -m "feat: integrate BetaNoticeModal into landing page"
 ## Task 8: Manual Testing & Verification
 
 **Files:**
+
 - None (testing only)
 
 **Step 1: Test localStorage persistence**
 
 Manual test:
+
 1. Clear localStorage
 2. Visit home page → modal appears
 3. Dismiss modal
@@ -445,10 +460,13 @@ Manual test:
 **Step 2: Test localStorage unavailable (private browsing simulation)**
 
 Manual test in browser console:
+
 1. Simulate disabled localStorage by overriding:
    ```js
    const originalGetItem = localStorage.getItem;
-   localStorage.getItem = () => { throw new Error("Disabled") };
+   localStorage.getItem = () => {
+     throw new Error("Disabled");
+   };
    ```
 2. Refresh page
 3. Verify: Modal still appears (graceful degradation)
@@ -457,6 +475,7 @@ Manual test in browser console:
 **Step 3: Test responsive design**
 
 Manual test:
+
 1. Desktop (1920px): Modal should be centered, max-width 500px
 2. Tablet (768px): Modal should adapt, maintain padding
 3. Mobile (375px): Modal should fit screen with outer padding
@@ -465,6 +484,7 @@ Manual test:
 **Step 4: Test dark mode**
 
 Manual test:
+
 1. Toggle system to dark mode (or use browser dev tools)
 2. Clear localStorage and refresh
 3. Verify: Modal has dark background (slate-800)
@@ -475,6 +495,7 @@ Manual test:
 **Step 5: Test keyboard accessibility**
 
 Manual test:
+
 1. Clear localStorage, refresh
 2. Modal appears
 3. Press Tab → focus should stay within modal
@@ -484,6 +505,7 @@ Manual test:
 **Step 6: Test backdrop click**
 
 Manual test:
+
 1. Clear localStorage, refresh
 2. Click on dark backdrop (outside modal box)
 3. Verify: Modal dismisses
@@ -514,12 +536,14 @@ git commit --allow-empty -m "test: verify BetaNoticeModal functionality across b
 ## Task 9: Final Code Review & Cleanup
 
 **Files:**
+
 - Review: `src/components/landing/BetaNoticeModal.tsx`
 - Review: `src/app/(frontend)/page.tsx`
 
 **Step 1: Review BetaNoticeModal.tsx**
 
 Check for:
+
 - [ ] TypeScript types are correct
 - [ ] No console.log statements left
 - [ ] Comments are helpful but not excessive
@@ -530,6 +554,7 @@ Check for:
 **Step 2: Review page.tsx integration**
 
 Check for:
+
 - [ ] Import is at top with other imports
 - [ ] Component placement is logical (top of main)
 - [ ] No unintended side effects
@@ -550,6 +575,7 @@ npm run start
 ```
 
 Test in production mode:
+
 1. Clear localStorage
 2. Visit http://localhost:3000
 3. Verify modal works identically to dev mode

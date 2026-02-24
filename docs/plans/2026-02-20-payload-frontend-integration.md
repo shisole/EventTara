@@ -13,6 +13,7 @@
 ### Task 1: Integrate Site Settings into layout metadata
 
 **Files:**
+
 - Modify: `src/app/(frontend)/layout.tsx`
 
 **Step 1: Replace the static metadata export with generateMetadata**
@@ -26,7 +27,7 @@ import { getPayloadClient } from "@/lib/payload/client";
 
 export async function generateMetadata(): Promise<Metadata> {
   const payload = await getPayloadClient();
-  const settings = await payload.findGlobal({ slug: 'site-settings' });
+  const settings = await payload.findGlobal({ slug: "site-settings" });
 
   const siteUrl = settings.siteUrl || process.env.NEXT_PUBLIC_SITE_URL || "https://eventtara.com";
   const defaultTitle = `${settings.siteName} — ${settings.tagline}`;
@@ -90,6 +91,7 @@ git commit -m "feat: integrate payload site-settings into layout metadata"
 ### Task 2: Integrate Navigation global into Footer
 
 **Files:**
+
 - Modify: `src/components/layout/Footer.tsx`
 
 **Step 1: Make Footer an async Server Component that reads from Payload**
@@ -206,6 +208,7 @@ git commit -m "feat: integrate payload navigation global into footer"
 ### Task 3: Create a dynamic CMS page route
 
 **Files:**
+
 - Create: `src/app/(frontend)/(participant)/[slug]/page.tsx`
 
 **Step 1: Create a catch-all CMS page route**
@@ -302,6 +305,7 @@ git commit -m "feat: add dynamic cms page route for payload pages"
 ### Task 4: Seed CMS pages and remove hardcoded static pages
 
 **Files:**
+
 - Delete: `src/app/(frontend)/(participant)/privacy-policy/page.tsx`
 - Delete: `src/app/(frontend)/(participant)/data-deletion/page.tsx`
 
@@ -310,333 +314,525 @@ git commit -m "feat: add dynamic cms page route for payload pages"
 Create `scripts/seed-cms-pages.ts`:
 
 ```typescript
-import { getPayload } from 'payload'
-import config from '../src/payload.config'
+import { getPayload } from "payload";
+import config from "../src/payload.config";
 
 async function seedCMSPages() {
-  const payload = await getPayload({ config })
+  const payload = await getPayload({ config });
 
   // Check if pages already exist
-  const existing = await payload.find({ collection: 'pages', limit: 100 })
+  const existing = await payload.find({ collection: "pages", limit: 100 });
   if (existing.docs.length > 0) {
-    console.log('Pages already exist, skipping seed.')
-    return
+    console.log("Pages already exist, skipping seed.");
+    return;
   }
 
   // Privacy Policy
   await payload.create({
-    collection: 'pages',
+    collection: "pages",
     data: {
-      title: 'Privacy Policy',
-      slug: 'privacy-policy',
-      description: 'Learn how EventTara collects, uses, and protects your personal information.',
-      status: 'published',
-      lastUpdatedLabel: '2026-02-20',
+      title: "Privacy Policy",
+      slug: "privacy-policy",
+      description: "Learn how EventTara collects, uses, and protects your personal information.",
+      status: "published",
+      lastUpdatedLabel: "2026-02-20",
       content: {
         root: {
-          type: 'root',
+          type: "root",
           children: [
             {
-              type: 'heading',
-              tag: 'h2',
-              children: [{ type: 'text', text: '1. Introduction' }],
+              type: "heading",
+              tag: "h2",
+              children: [{ type: "text", text: "1. Introduction" }],
             },
             {
-              type: 'paragraph',
+              type: "paragraph",
               children: [
                 {
-                  type: 'text',
+                  type: "text",
                   text: 'EventTara ("we," "us," or "our") is a Philippine outdoor adventure event booking platform for hiking, mountain biking, road biking, running, and trail running. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our website and services.',
                 },
               ],
             },
             {
-              type: 'heading',
-              tag: 'h2',
-              children: [{ type: 'text', text: '2. Information We Collect' }],
+              type: "heading",
+              tag: "h2",
+              children: [{ type: "text", text: "2. Information We Collect" }],
             },
             {
-              type: 'paragraph',
+              type: "paragraph",
               children: [
-                { type: 'text', text: 'We may collect the following types of information:' },
+                { type: "text", text: "We may collect the following types of information:" },
               ],
             },
             {
-              type: 'list',
-              listType: 'bullet',
+              type: "list",
+              listType: "bullet",
               children: [
-                { type: 'listitem', children: [{ type: 'text', text: 'Account information: When you sign up or log in using Facebook or other providers, we receive your name, email address, and profile photo.' }] },
-                { type: 'listitem', children: [{ type: 'text', text: 'Profile data: Information you provide to complete your profile, such as your username and contact details.' }] },
-                { type: 'listitem', children: [{ type: 'text', text: 'Booking and event activity: Records of events you book, attend, or organize, including check-in data.' }] },
-                { type: 'listitem', children: [{ type: 'text', text: 'Badge awards: Badges earned through event participation and achievements.' }] },
-                { type: 'listitem', children: [{ type: 'text', text: 'Device and usage data: Browser type, IP address, and pages visited, collected automatically through standard web server logs.' }] },
+                {
+                  type: "listitem",
+                  children: [
+                    {
+                      type: "text",
+                      text: "Account information: When you sign up or log in using Facebook or other providers, we receive your name, email address, and profile photo.",
+                    },
+                  ],
+                },
+                {
+                  type: "listitem",
+                  children: [
+                    {
+                      type: "text",
+                      text: "Profile data: Information you provide to complete your profile, such as your username and contact details.",
+                    },
+                  ],
+                },
+                {
+                  type: "listitem",
+                  children: [
+                    {
+                      type: "text",
+                      text: "Booking and event activity: Records of events you book, attend, or organize, including check-in data.",
+                    },
+                  ],
+                },
+                {
+                  type: "listitem",
+                  children: [
+                    {
+                      type: "text",
+                      text: "Badge awards: Badges earned through event participation and achievements.",
+                    },
+                  ],
+                },
+                {
+                  type: "listitem",
+                  children: [
+                    {
+                      type: "text",
+                      text: "Device and usage data: Browser type, IP address, and pages visited, collected automatically through standard web server logs.",
+                    },
+                  ],
+                },
               ],
             },
             {
-              type: 'heading',
-              tag: 'h2',
-              children: [{ type: 'text', text: '3. How We Use Your Information' }],
+              type: "heading",
+              tag: "h2",
+              children: [{ type: "text", text: "3. How We Use Your Information" }],
             },
             {
-              type: 'list',
-              listType: 'bullet',
+              type: "list",
+              listType: "bullet",
               children: [
-                { type: 'listitem', children: [{ type: 'text', text: 'Account creation and authentication: To create and manage your account, including login via Facebook OAuth.' }] },
-                { type: 'listitem', children: [{ type: 'text', text: 'Event booking and management: To process your event registrations and provide booking confirmations.' }] },
-                { type: 'listitem', children: [{ type: 'text', text: 'Communication: To send transactional emails such as booking confirmations, event updates, and badge award notifications.' }] },
-                { type: 'listitem', children: [{ type: 'text', text: 'Badge system: To track and award badges based on your event participation.' }] },
-                { type: 'listitem', children: [{ type: 'text', text: 'Service improvement: To understand how our platform is used and improve the user experience.' }] },
+                {
+                  type: "listitem",
+                  children: [
+                    {
+                      type: "text",
+                      text: "Account creation and authentication: To create and manage your account, including login via Facebook OAuth.",
+                    },
+                  ],
+                },
+                {
+                  type: "listitem",
+                  children: [
+                    {
+                      type: "text",
+                      text: "Event booking and management: To process your event registrations and provide booking confirmations.",
+                    },
+                  ],
+                },
+                {
+                  type: "listitem",
+                  children: [
+                    {
+                      type: "text",
+                      text: "Communication: To send transactional emails such as booking confirmations, event updates, and badge award notifications.",
+                    },
+                  ],
+                },
+                {
+                  type: "listitem",
+                  children: [
+                    {
+                      type: "text",
+                      text: "Badge system: To track and award badges based on your event participation.",
+                    },
+                  ],
+                },
+                {
+                  type: "listitem",
+                  children: [
+                    {
+                      type: "text",
+                      text: "Service improvement: To understand how our platform is used and improve the user experience.",
+                    },
+                  ],
+                },
               ],
             },
             {
-              type: 'heading',
-              tag: 'h2',
-              children: [{ type: 'text', text: '4. Third-Party Services' }],
+              type: "heading",
+              tag: "h2",
+              children: [{ type: "text", text: "4. Third-Party Services" }],
             },
             {
-              type: 'paragraph',
+              type: "paragraph",
               children: [
-                { type: 'text', text: 'We use the following third-party services to operate our platform:' },
+                {
+                  type: "text",
+                  text: "We use the following third-party services to operate our platform:",
+                },
               ],
             },
             {
-              type: 'list',
-              listType: 'bullet',
+              type: "list",
+              listType: "bullet",
               children: [
-                { type: 'listitem', children: [{ type: 'text', text: 'Supabase: For authentication, database storage, and file storage. Your account data and event information are stored securely on Supabase infrastructure.' }] },
-                { type: 'listitem', children: [{ type: 'text', text: 'Resend: For sending transactional emails such as booking confirmations and badge award notifications.' }] },
-                { type: 'listitem', children: [{ type: 'text', text: 'Facebook Login: If you choose to log in with Facebook, we receive the profile information you authorize. We do not post to your Facebook account or access your friends list.' }] },
+                {
+                  type: "listitem",
+                  children: [
+                    {
+                      type: "text",
+                      text: "Supabase: For authentication, database storage, and file storage. Your account data and event information are stored securely on Supabase infrastructure.",
+                    },
+                  ],
+                },
+                {
+                  type: "listitem",
+                  children: [
+                    {
+                      type: "text",
+                      text: "Resend: For sending transactional emails such as booking confirmations and badge award notifications.",
+                    },
+                  ],
+                },
+                {
+                  type: "listitem",
+                  children: [
+                    {
+                      type: "text",
+                      text: "Facebook Login: If you choose to log in with Facebook, we receive the profile information you authorize. We do not post to your Facebook account or access your friends list.",
+                    },
+                  ],
+                },
               ],
             },
             {
-              type: 'heading',
-              tag: 'h2',
-              children: [{ type: 'text', text: '5. Data Sharing' }],
+              type: "heading",
+              tag: "h2",
+              children: [{ type: "text", text: "5. Data Sharing" }],
             },
             {
-              type: 'paragraph',
+              type: "paragraph",
               children: [
-                { type: 'text', text: 'We do not sell, rent, or trade your personal information. Your information may be shared only in the following circumstances:' },
+                {
+                  type: "text",
+                  text: "We do not sell, rent, or trade your personal information. Your information may be shared only in the following circumstances:",
+                },
               ],
             },
             {
-              type: 'list',
-              listType: 'bullet',
+              type: "list",
+              listType: "bullet",
               children: [
-                { type: 'listitem', children: [{ type: 'text', text: 'Event organizers: When you book an event, the organizer receives your name and contact information necessary to manage the event.' }] },
-                { type: 'listitem', children: [{ type: 'text', text: 'Legal requirements: We may disclose information if required by law or in response to valid legal process.' }] },
+                {
+                  type: "listitem",
+                  children: [
+                    {
+                      type: "text",
+                      text: "Event organizers: When you book an event, the organizer receives your name and contact information necessary to manage the event.",
+                    },
+                  ],
+                },
+                {
+                  type: "listitem",
+                  children: [
+                    {
+                      type: "text",
+                      text: "Legal requirements: We may disclose information if required by law or in response to valid legal process.",
+                    },
+                  ],
+                },
               ],
             },
             {
-              type: 'heading',
-              tag: 'h2',
-              children: [{ type: 'text', text: '6. Cookies and Session Data' }],
+              type: "heading",
+              tag: "h2",
+              children: [{ type: "text", text: "6. Cookies and Session Data" }],
             },
             {
-              type: 'paragraph',
+              type: "paragraph",
               children: [
-                { type: 'text', text: 'We use authentication session cookies managed by Supabase to keep you logged in securely. These cookies are essential for the functioning of the service and are not used for advertising or tracking purposes.' },
+                {
+                  type: "text",
+                  text: "We use authentication session cookies managed by Supabase to keep you logged in securely. These cookies are essential for the functioning of the service and are not used for advertising or tracking purposes.",
+                },
               ],
             },
             {
-              type: 'heading',
-              tag: 'h2',
-              children: [{ type: 'text', text: '7. Data Retention and Deletion' }],
+              type: "heading",
+              tag: "h2",
+              children: [{ type: "text", text: "7. Data Retention and Deletion" }],
             },
             {
-              type: 'paragraph',
+              type: "paragraph",
               children: [
-                { type: 'text', text: 'We retain your personal information for as long as your account is active or as needed to provide our services. If you wish to request deletion of your account and associated data, please contact us at privacy@eventtara.com. We will process your request within 30 days.' },
+                {
+                  type: "text",
+                  text: "We retain your personal information for as long as your account is active or as needed to provide our services. If you wish to request deletion of your account and associated data, please contact us at privacy@eventtara.com. We will process your request within 30 days.",
+                },
               ],
             },
             {
-              type: 'heading',
-              tag: 'h2',
-              children: [{ type: 'text', text: '8. Children\'s Privacy' }],
+              type: "heading",
+              tag: "h2",
+              children: [{ type: "text", text: "8. Children's Privacy" }],
             },
             {
-              type: 'paragraph',
+              type: "paragraph",
               children: [
-                { type: 'text', text: 'Our service is not directed at individuals under the age of 13. We do not knowingly collect personal information from children under 13. If we become aware that we have collected data from a child under 13, we will take steps to delete that information promptly.' },
+                {
+                  type: "text",
+                  text: "Our service is not directed at individuals under the age of 13. We do not knowingly collect personal information from children under 13. If we become aware that we have collected data from a child under 13, we will take steps to delete that information promptly.",
+                },
               ],
             },
             {
-              type: 'heading',
-              tag: 'h2',
-              children: [{ type: 'text', text: '9. Changes to This Policy' }],
+              type: "heading",
+              tag: "h2",
+              children: [{ type: "text", text: "9. Changes to This Policy" }],
             },
             {
-              type: 'paragraph',
+              type: "paragraph",
               children: [
-                { type: 'text', text: 'We may update this Privacy Policy from time to time. When we do, we will revise the "Last updated" date at the top of this page. We encourage you to review this policy periodically to stay informed about how we protect your information.' },
+                {
+                  type: "text",
+                  text: 'We may update this Privacy Policy from time to time. When we do, we will revise the "Last updated" date at the top of this page. We encourage you to review this policy periodically to stay informed about how we protect your information.',
+                },
               ],
             },
             {
-              type: 'heading',
-              tag: 'h2',
-              children: [{ type: 'text', text: '10. Contact Us' }],
+              type: "heading",
+              tag: "h2",
+              children: [{ type: "text", text: "10. Contact Us" }],
             },
             {
-              type: 'paragraph',
+              type: "paragraph",
               children: [
-                { type: 'text', text: 'If you have any questions or concerns about this Privacy Policy or our data practices, please contact us at privacy@eventtara.com.' },
+                {
+                  type: "text",
+                  text: "If you have any questions or concerns about this Privacy Policy or our data practices, please contact us at privacy@eventtara.com.",
+                },
               ],
             },
           ],
-          direction: 'ltr',
-          format: '',
+          direction: "ltr",
+          format: "",
           indent: 0,
           version: 1,
         },
       },
     },
-  })
-  console.log('Created: Privacy Policy')
+  });
+  console.log("Created: Privacy Policy");
 
   // Data Deletion
   await payload.create({
-    collection: 'pages',
+    collection: "pages",
     data: {
-      title: 'Data Deletion Instructions',
-      slug: 'data-deletion',
-      description: 'Learn how to request deletion of your personal data from EventTara.',
-      status: 'published',
-      lastUpdatedLabel: '2026-02-20',
+      title: "Data Deletion Instructions",
+      slug: "data-deletion",
+      description: "Learn how to request deletion of your personal data from EventTara.",
+      status: "published",
+      lastUpdatedLabel: "2026-02-20",
       content: {
         root: {
-          type: 'root',
+          type: "root",
           children: [
             {
-              type: 'heading',
-              tag: 'h2',
-              children: [{ type: 'text', text: '1. Introduction' }],
+              type: "heading",
+              tag: "h2",
+              children: [{ type: "text", text: "1. Introduction" }],
             },
             {
-              type: 'paragraph',
+              type: "paragraph",
               children: [
-                { type: 'text', text: 'At EventTara, we respect your right to control your personal data. You can request deletion of your data at any time by following the instructions below.' },
+                {
+                  type: "text",
+                  text: "At EventTara, we respect your right to control your personal data. You can request deletion of your data at any time by following the instructions below.",
+                },
               ],
             },
             {
-              type: 'heading',
-              tag: 'h2',
-              children: [{ type: 'text', text: '2. What Data We Store' }],
+              type: "heading",
+              tag: "h2",
+              children: [{ type: "text", text: "2. What Data We Store" }],
             },
             {
-              type: 'paragraph',
+              type: "paragraph",
               children: [
-                { type: 'text', text: 'When you use EventTara, we may store the following data associated with your account:' },
+                {
+                  type: "text",
+                  text: "When you use EventTara, we may store the following data associated with your account:",
+                },
               ],
             },
             {
-              type: 'list',
-              listType: 'bullet',
+              type: "list",
+              listType: "bullet",
               children: [
-                { type: 'listitem', children: [{ type: 'text', text: 'Account information: Your name, email address, and profile photo obtained through Facebook Login or other sign-in methods.' }] },
-                { type: 'listitem', children: [{ type: 'text', text: 'Bookings: Records of events you have registered for or booked.' }] },
-                { type: 'listitem', children: [{ type: 'text', text: 'Badges: Badges earned through event participation and achievements.' }] },
-                { type: 'listitem', children: [{ type: 'text', text: 'Check-ins: Records of event check-ins confirming your attendance.' }] },
+                {
+                  type: "listitem",
+                  children: [
+                    {
+                      type: "text",
+                      text: "Account information: Your name, email address, and profile photo obtained through Facebook Login or other sign-in methods.",
+                    },
+                  ],
+                },
+                {
+                  type: "listitem",
+                  children: [
+                    {
+                      type: "text",
+                      text: "Bookings: Records of events you have registered for or booked.",
+                    },
+                  ],
+                },
+                {
+                  type: "listitem",
+                  children: [
+                    {
+                      type: "text",
+                      text: "Badges: Badges earned through event participation and achievements.",
+                    },
+                  ],
+                },
+                {
+                  type: "listitem",
+                  children: [
+                    {
+                      type: "text",
+                      text: "Check-ins: Records of event check-ins confirming your attendance.",
+                    },
+                  ],
+                },
               ],
             },
             {
-              type: 'heading',
-              tag: 'h2',
-              children: [{ type: 'text', text: '3. How to Request Data Deletion' }],
+              type: "heading",
+              tag: "h2",
+              children: [{ type: "text", text: "3. How to Request Data Deletion" }],
             },
             {
-              type: 'paragraph',
+              type: "paragraph",
               children: [
-                { type: 'text', text: 'To request deletion of your data, send an email to privacy@eventtara.com with the subject line "Data Deletion Request" and include the email address associated with your EventTara account.' },
+                {
+                  type: "text",
+                  text: 'To request deletion of your data, send an email to privacy@eventtara.com with the subject line "Data Deletion Request" and include the email address associated with your EventTara account.',
+                },
               ],
             },
             {
-              type: 'heading',
-              tag: 'h2',
-              children: [{ type: 'text', text: '4. What Happens Next' }],
+              type: "heading",
+              tag: "h2",
+              children: [{ type: "text", text: "4. What Happens Next" }],
             },
             {
-              type: 'paragraph',
+              type: "paragraph",
               children: [
-                { type: 'text', text: 'Once we receive your request, we will verify your identity and process the deletion within 30 days. You will receive a confirmation email when the deletion is complete. Please note that once your data is deleted, this action cannot be undone and you will need to create a new account to use EventTara again.' },
+                {
+                  type: "text",
+                  text: "Once we receive your request, we will verify your identity and process the deletion within 30 days. You will receive a confirmation email when the deletion is complete. Please note that once your data is deleted, this action cannot be undone and you will need to create a new account to use EventTara again.",
+                },
               ],
             },
             {
-              type: 'heading',
-              tag: 'h2',
-              children: [{ type: 'text', text: '5. Removing Facebook Connection' }],
+              type: "heading",
+              tag: "h2",
+              children: [{ type: "text", text: "5. Removing Facebook Connection" }],
             },
             {
-              type: 'paragraph',
+              type: "paragraph",
               children: [
-                { type: 'text', text: 'In addition to requesting data deletion from us, you can also revoke EventTara\'s access to your Facebook account by going to Facebook Settings > Apps and Websites, finding "EventTara" in the list, and clicking "Remove" to revoke access.' },
+                {
+                  type: "text",
+                  text: 'In addition to requesting data deletion from us, you can also revoke EventTara\'s access to your Facebook account by going to Facebook Settings > Apps and Websites, finding "EventTara" in the list, and clicking "Remove" to revoke access.',
+                },
               ],
             },
             {
-              type: 'heading',
-              tag: 'h2',
-              children: [{ type: 'text', text: '6. Contact Us' }],
+              type: "heading",
+              tag: "h2",
+              children: [{ type: "text", text: "6. Contact Us" }],
             },
             {
-              type: 'paragraph',
+              type: "paragraph",
               children: [
-                { type: 'text', text: 'If you have any questions about data deletion or our data practices, please contact us at privacy@eventtara.com.' },
+                {
+                  type: "text",
+                  text: "If you have any questions about data deletion or our data practices, please contact us at privacy@eventtara.com.",
+                },
               ],
             },
           ],
-          direction: 'ltr',
-          format: '',
+          direction: "ltr",
+          format: "",
           indent: 0,
           version: 1,
         },
       },
     },
-  })
-  console.log('Created: Data Deletion Instructions')
+  });
+  console.log("Created: Data Deletion Instructions");
 
   // Seed navigation
   await payload.updateGlobal({
-    slug: 'navigation',
+    slug: "navigation",
     data: {
       footer: {
-        tagline: 'Tara na! — Your adventure starts here.',
+        tagline: "Tara na! — Your adventure starts here.",
         sections: [
           {
-            title: 'Explore',
+            title: "Explore",
             links: [
-              { label: 'Browse Events', url: '/events' },
-              { label: 'Hiking', url: '/events?type=hiking' },
-              { label: 'Mountain Biking', url: '/events?type=mtb' },
-              { label: 'Running', url: '/events?type=running' },
+              { label: "Browse Events", url: "/events" },
+              { label: "Hiking", url: "/events?type=hiking" },
+              { label: "Mountain Biking", url: "/events?type=mtb" },
+              { label: "Running", url: "/events?type=running" },
             ],
           },
           {
-            title: 'For Organizers',
+            title: "For Organizers",
             links: [
-              { label: 'Host Your Event', url: '/signup' },
-              { label: 'Organizer Dashboard', url: '/dashboard' },
+              { label: "Host Your Event", url: "/signup" },
+              { label: "Organizer Dashboard", url: "/dashboard" },
             ],
           },
         ],
         legalLinks: [
-          { label: 'Privacy Policy', url: '/privacy-policy' },
-          { label: 'Data Deletion', url: '/data-deletion' },
+          { label: "Privacy Policy", url: "/privacy-policy" },
+          { label: "Data Deletion", url: "/data-deletion" },
         ],
       },
     },
-  })
-  console.log('Seeded: Navigation global')
+  });
+  console.log("Seeded: Navigation global");
 
-  console.log('Done!')
-  process.exit(0)
+  console.log("Done!");
+  process.exit(0);
 }
 
 seedCMSPages().catch((err) => {
-  console.error(err)
-  process.exit(1)
-})
+  console.error(err);
+  process.exit(1);
+});
 ```
 
 Add this script to `package.json`:
+
 ```json
 "seed:cms": "npx tsx scripts/seed-cms-pages.ts"
 ```
@@ -682,6 +878,7 @@ npm run dev
 **Step 2: Verify all pages work**
 
 Test these URLs:
+
 - `http://localhost:3000/` — landing page still works
 - `http://localhost:3000/admin` — admin panel with all collections/globals
 - `http://localhost:3000/privacy-policy` — served from CMS

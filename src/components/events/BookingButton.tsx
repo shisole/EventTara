@@ -11,7 +11,13 @@ interface BookingButtonProps {
   userBooking?: { id: string; status: string; payment_status: string } | null;
 }
 
-export default function BookingButton({ eventId, spotsLeft, price, isPast, userBooking }: BookingButtonProps) {
+export default function BookingButton({
+  eventId,
+  spotsLeft,
+  price,
+  isPast,
+  userBooking,
+}: BookingButtonProps) {
   if (isPast) {
     return (
       <Button disabled className="w-full" size="lg">

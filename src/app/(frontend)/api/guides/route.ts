@@ -9,10 +9,7 @@ export async function GET(request: NextRequest) {
 
   const supabase = await createClient();
 
-  let query = supabase
-    .from("guides")
-    .select("*")
-    .order("created_at", { ascending: false });
+  let query = supabase.from("guides").select("*").order("created_at", { ascending: false });
 
   if (createdBy) {
     query = query.eq("created_by", createdBy);
@@ -66,8 +63,16 @@ export async function GET(request: NextRequest) {
     // Check guide availability for a specific date
     if (checkDate) {
       const dateObj = new Date(checkDate);
-      const dayStart = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate()).toISOString();
-      const dayEnd = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate() + 1).toISOString();
+      const dayStart = new Date(
+        dateObj.getFullYear(),
+        dateObj.getMonth(),
+        dateObj.getDate(),
+      ).toISOString();
+      const dayEnd = new Date(
+        dateObj.getFullYear(),
+        dateObj.getMonth(),
+        dateObj.getDate() + 1,
+      ).toISOString();
 
       const { data: busyRows } = await supabase
         .from("event_guides")
@@ -119,7 +124,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: Request) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

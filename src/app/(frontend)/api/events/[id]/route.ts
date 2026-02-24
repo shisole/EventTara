@@ -6,11 +6,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: event, error } = await supabase
-    .from("events")
-    .select("*")
-    .eq("id", id)
-    .single();
+  const { data: event, error } = await supabase.from("events").select("*").eq("id", id).single();
 
   if (error || !event) {
     return NextResponse.json({ error: "Event not found" }, { status: 404 });
@@ -22,7 +18,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -67,16 +65,15 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { error } = await supabase
-    .from("events")
-    .update({ status: "cancelled" })
-    .eq("id", id);
+  const { error } = await supabase.from("events").update({ status: "cancelled" }).eq("id", id);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

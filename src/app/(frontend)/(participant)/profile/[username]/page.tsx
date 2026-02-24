@@ -55,11 +55,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
   const { username } = await params;
   const supabase = await createClient();
 
-  const { data: user } = await supabase
-    .from("users")
-    .select("*")
-    .eq("username", username)
-    .single();
+  const { data: user } = await supabase.from("users").select("*").eq("username", username).single();
 
   if (!user) notFound();
 
@@ -77,13 +73,16 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
   if (isOwnProfile) {
     const { data: bookingData } = await supabase
       .from("bookings")
-      .select("id, qr_code, payment_status, payment_method, payment_proof_url, events(id, title, type, date, location, price)")
+      .select(
+        "id, qr_code, payment_status, payment_method, payment_proof_url, events(id, title, type, date, location, price)",
+      )
       .eq("user_id", user.id)
       .in("status", ["confirmed", "pending"])
       .order("booked_at", { ascending: false });
 
-    const upcomingBookings = (bookingData || [])
-      .filter((b: any) => b.events && new Date(b.events.date) >= new Date());
+    const upcomingBookings = (bookingData || []).filter(
+      (b: any) => b.events && new Date(b.events.date) >= new Date(),
+    );
 
     // Fetch companions for upcoming bookings
     const upcomingBookingIds = upcomingBookings.map((b: any) => b.id);
@@ -117,8 +116,9 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
       companions: companionsByBooking[b.id] || [],
     }));
 
-    const pastBookings = (bookingData || [])
-      .filter((b: any) => b.events && new Date(b.events.date) < new Date());
+    const pastBookings = (bookingData || []).filter(
+      (b: any) => b.events && new Date(b.events.date) < new Date(),
+    );
 
     const pastEventIds = pastBookings.map((b: any) => b.events.id);
 
@@ -142,7 +142,10 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
 
     const checkinSet = new Set(checkins.map((c: any) => c.event_id));
     const badgeMap = new Map(
-      pastBadges.map((ub: any) => [ub.badges?.event_id, { title: ub.badges?.title, imageUrl: ub.badges?.image_url }])
+      pastBadges.map((ub: any) => [
+        ub.badges?.event_id,
+        { title: ub.badges?.title, imageUrl: ub.badges?.image_url },
+      ]),
     );
 
     past = pastBookings.map((b: any) => ({
@@ -211,7 +214,9 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
       {isOwnProfile && isGuest && (
         <div className="bg-golden-50 border border-golden-200 rounded-2xl p-5 text-center">
           <p className="font-medium mb-2">Create an account to keep your badges forever!</p>
-          <Link href="/signup"><Button size="sm">Create Account</Button></Link>
+          <Link href="/signup">
+            <Button size="sm">Create Account</Button>
+          </Link>
         </div>
       )}
 

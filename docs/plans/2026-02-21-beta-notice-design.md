@@ -25,6 +25,7 @@ As a visitor landing on EventTara for the first time, I want to understand that 
 ### Selected: Inline Client Component
 
 We're implementing a simple client-side modal component that lives alongside the landing page. This approach:
+
 - Requires no additional dependencies
 - Matches existing Tailwind CSS design system
 - Keeps code simple and maintainable
@@ -62,9 +63,11 @@ src/
 **Type:** Client Component (`"use client"`)
 
 **State:**
+
 - `isOpen: boolean` - Controls modal visibility (starts `false`, becomes `true` if localStorage check passes)
 
 **Lifecycle:**
+
 1. Component mounts
 2. `useEffect` checks localStorage for `"beta-notice-dismissed"` key
 3. If not found, sets `isOpen = true` to display modal
@@ -78,11 +81,13 @@ src/
 ### Visual Elements
 
 **Backdrop:**
+
 - Full-screen overlay
 - Semi-transparent dark background (`bg-black/60`)
 - Fixed positioning with z-index to overlay all content
 
 **Modal Box:**
+
 - Centered card (flexbox center)
 - Max width: ~500px for readability
 - White background with shadow (consistent with existing Card component)
@@ -90,6 +95,7 @@ src/
 - Comfortable padding (`p-8`)
 
 **Content:**
+
 - **Icon:** 🎉 or 🚀 emoji at top for friendly feel
 - **Title:** "Welcome to EventTara Beta!" in `font-heading` font (Plus Jakarta Sans)
 - **Message:**
@@ -153,24 +159,27 @@ Stay closed  Show modal
 ### Code Flow
 
 **1. Component Mount:**
+
 ```typescript
 useEffect(() => {
-  const dismissed = localStorage.getItem("beta-notice-dismissed")
+  const dismissed = localStorage.getItem("beta-notice-dismissed");
   if (!dismissed) {
-    setIsOpen(true)
+    setIsOpen(true);
   }
-}, [])
+}, []);
 ```
 
 **2. User Dismisses:**
+
 ```typescript
 const handleDismiss = () => {
-  localStorage.setItem("beta-notice-dismissed", "true")
-  setIsOpen(false)
-}
+  localStorage.setItem("beta-notice-dismissed", "true");
+  setIsOpen(false);
+};
 ```
 
 **3. Future Visits:**
+
 - LocalStorage persists across browser sessions
 - Modal never appears again for that browser/device
 - Only clearing browser data will reset it
@@ -178,21 +187,25 @@ const handleDismiss = () => {
 ## Edge Cases
 
 ### LocalStorage Unavailable
+
 - **Scenario:** Private browsing mode or localStorage disabled
 - **Behavior:** Modal will show on every visit (graceful degradation)
 - **Impact:** Minor annoyance but still functional
 
 ### Server-Side Rendering
+
 - **Issue:** Modal state must start `false` to prevent hydration mismatch
 - **Solution:** Only check localStorage and set `isOpen = true` in `useEffect` (client-side only)
 - **Result:** Modal briefly invisible during hydration, then appears if needed
 
 ### Multiple Tabs/Windows
+
 - **Scenario:** User opens EventTara in multiple tabs
 - **Behavior:** Dismissing in one tab prevents it from showing in new tabs (localStorage is shared per origin)
 - **Impact:** Expected behavior, no issues
 
 ### Browser Data Clearing
+
 - **Scenario:** User clears browsing data
 - **Behavior:** Modal will appear again on next visit
 - **Impact:** Acceptable, user explicitly cleared data
@@ -200,6 +213,7 @@ const handleDismiss = () => {
 ## Future Enhancements
 
 If needed later, we can:
+
 1. **Versioned notices:** Change key to `"beta-notice-dismissed-v2"` for new important messages
 2. **Expiry dates:** Add timestamp to localStorage, re-show after X days
 3. **Different notices per page:** Use page-specific keys like `"beta-notice-dismissed-events"`

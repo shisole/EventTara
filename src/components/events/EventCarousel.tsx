@@ -10,7 +10,13 @@ interface EventCarouselProps {
   speed?: number;
 }
 
-export default function EventCarousel({ children, autoSlide = false, autoSlideInterval = 4000, infinite = false, speed = 30 }: EventCarouselProps) {
+export default function EventCarousel({
+  children,
+  autoSlide = false,
+  autoSlideInterval = 4000,
+  infinite = false,
+  speed = 30,
+}: EventCarouselProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -27,7 +33,10 @@ export default function EventCarousel({ children, autoSlide = false, autoSlideIn
     const el = scrollRef.current;
     if (!el) return;
     const cardWidth = el.querySelector<HTMLElement>(":scope > *")?.offsetWidth || 300;
-    el.scrollBy({ left: direction === "left" ? -cardWidth - 24 : cardWidth + 24, behavior: "smooth" });
+    el.scrollBy({
+      left: direction === "left" ? -cardWidth - 24 : cardWidth + 24,
+      behavior: "smooth",
+    });
   }, []);
 
   useEffect(() => {
@@ -61,7 +70,9 @@ export default function EventCarousel({ children, autoSlide = false, autoSlideIn
   const scroll = (direction: "left" | "right") => {
     isPaused.current = true;
     scrollByOne(direction);
-    setTimeout(() => { isPaused.current = false; }, autoSlideInterval * 2);
+    setTimeout(() => {
+      isPaused.current = false;
+    }, autoSlideInterval * 2);
   };
 
   const infiniteRef = useRef<HTMLDivElement>(null);
@@ -129,14 +140,27 @@ export default function EventCarousel({ children, autoSlide = false, autoSlideIn
       <div
         ref={infiniteRef}
         className="flex gap-6 overflow-x-auto scrollbar-hide cursor-grab select-none"
-        style={{ maskImage: "linear-gradient(to right, transparent, black 5%, black 95%, transparent)" }}
-        onMouseEnter={() => { targetVelocity.current = 0; }}
-        onMouseLeave={() => { targetVelocity.current = 1; onDragEnd(); }}
+        style={{
+          maskImage: "linear-gradient(to right, transparent, black 5%, black 95%, transparent)",
+        }}
+        onMouseEnter={() => {
+          targetVelocity.current = 0;
+        }}
+        onMouseLeave={() => {
+          targetVelocity.current = 1;
+          onDragEnd();
+        }}
         onMouseDown={onDragStart}
         onMouseMove={onDragMove}
         onMouseUp={onDragEnd}
-        onTouchStart={() => { targetVelocity.current = 0; }}
-        onTouchEnd={() => { setTimeout(() => { targetVelocity.current = 1; }, 2000); }}
+        onTouchStart={() => {
+          targetVelocity.current = 0;
+        }}
+        onTouchEnd={() => {
+          setTimeout(() => {
+            targetVelocity.current = 1;
+          }, 2000);
+        }}
       >
         {children}
         {children}
@@ -147,9 +171,7 @@ export default function EventCarousel({ children, autoSlide = false, autoSlideIn
   return (
     <div className="relative">
       {/* Mobile: vertical stack */}
-      <div className="md:hidden grid grid-cols-1 sm:grid-cols-2 gap-6">
-        {children}
-      </div>
+      <div className="md:hidden grid grid-cols-1 sm:grid-cols-2 gap-6">{children}</div>
 
       {/* Desktop: horizontal carousel */}
       <div className="hidden md:block">
@@ -157,10 +179,20 @@ export default function EventCarousel({ children, autoSlide = false, autoSlideIn
           ref={scrollRef}
           className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
           style={{ scrollSnapType: "x mandatory" }}
-          onMouseEnter={() => { isPaused.current = true; }}
-          onMouseLeave={() => { isPaused.current = false; }}
-          onTouchStart={() => { isPaused.current = true; }}
-          onTouchEnd={() => { setTimeout(() => { isPaused.current = false; }, autoSlideInterval); }}
+          onMouseEnter={() => {
+            isPaused.current = true;
+          }}
+          onMouseLeave={() => {
+            isPaused.current = false;
+          }}
+          onTouchStart={() => {
+            isPaused.current = true;
+          }}
+          onTouchEnd={() => {
+            setTimeout(() => {
+              isPaused.current = false;
+            }, autoSlideInterval);
+          }}
         >
           {children}
         </div>
@@ -171,7 +203,14 @@ export default function EventCarousel({ children, autoSlide = false, autoSlideIn
             className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-10 h-10 rounded-full bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors z-10"
             aria-label="Scroll left"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="w-5 h-5"
+            >
               <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
             </svg>
           </button>
@@ -183,7 +222,14 @@ export default function EventCarousel({ children, autoSlide = false, autoSlideIn
             className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-10 h-10 rounded-full bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors z-10"
             aria-label="Scroll right"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="w-5 h-5"
+            >
               <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
             </svg>
           </button>

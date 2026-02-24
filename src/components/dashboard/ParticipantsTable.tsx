@@ -32,7 +32,10 @@ const companionStatusStyle: Record<string, string> = {
   cancelled: "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300 line-through",
 };
 
-export default function ParticipantsTable({ bookings, companionsByBooking }: ParticipantsTableProps) {
+export default function ParticipantsTable({
+  bookings,
+  companionsByBooking,
+}: ParticipantsTableProps) {
   const router = useRouter();
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
@@ -96,12 +99,24 @@ export default function ParticipantsTable({ bookings, companionsByBooking }: Par
       <table className="w-full">
         <thead className="bg-gray-50 dark:bg-gray-800">
           <tr>
-            <th className="text-left px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">Name</th>
-            <th className="text-left px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">Email</th>
-            <th className="text-left px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">Status</th>
-            <th className="text-left px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">Method</th>
-            <th className="text-left px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">Booked</th>
-            <th className="text-right px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">Actions</th>
+            <th className="text-left px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
+              Name
+            </th>
+            <th className="text-left px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
+              Email
+            </th>
+            <th className="text-left px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
+              Status
+            </th>
+            <th className="text-left px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
+              Method
+            </th>
+            <th className="text-left px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
+              Booked
+            </th>
+            <th className="text-right px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
+              Actions
+            </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -109,7 +124,8 @@ export default function ParticipantsTable({ bookings, companionsByBooking }: Par
             const comps = companionsByBooking[booking.id] || [];
             const activeComps = comps.filter((c) => c.status !== "cancelled");
             const isPending = booking.payment_status === "pending";
-            const isEwallet = booking.payment_method === "gcash" || booking.payment_method === "maya";
+            const isEwallet =
+              booking.payment_method === "gcash" || booking.payment_method === "maya";
             const isCash = booking.payment_method === "cash";
             const isBookingLoading = actionLoading === `booking-${booking.id}`;
             const isParticipantLoading = actionLoading === `participant-${booking.id}`;
@@ -195,11 +211,14 @@ export default function ParticipantsTable({ bookings, companionsByBooking }: Par
                   return (
                     <tr key={comp.id} className="bg-gray-50/50 dark:bg-gray-800/50">
                       <td className="px-6 py-3 pl-12 text-sm text-gray-600 dark:text-gray-400">
-                        ↳ {comp.full_name} <span className="text-gray-400 dark:text-gray-500">(companion)</span>
+                        ↳ {comp.full_name}{" "}
+                        <span className="text-gray-400 dark:text-gray-500">(companion)</span>
                       </td>
                       <td className="px-6 py-3 text-sm text-gray-400 dark:text-gray-500">—</td>
                       <td className="px-6 py-3">
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium capitalize ${companionStatusStyle[comp.status] || companionStatusStyle.pending}`}>
+                        <span
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium capitalize ${companionStatusStyle[comp.status] || companionStatusStyle.pending}`}
+                        >
                           {comp.status}
                         </span>
                       </td>

@@ -35,7 +35,9 @@ export default function OrganizerProfileForm({ profile }: OrganizerProfileFormPr
         .update({ org_name: orgName, description, logo_url: logoUrl })
         .eq("id", profile.id);
     } else {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       await supabase.from("organizer_profiles").insert({
         user_id: user!.id,
         org_name: orgName,
@@ -52,10 +54,19 @@ export default function OrganizerProfileForm({ profile }: OrganizerProfileFormPr
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <Input id="orgName" label="Organization Name" value={orgName} onChange={(e) => setOrgName(e.target.value)} placeholder="Trail Runners PH" required />
+      <Input
+        id="orgName"
+        label="Organization Name"
+        value={orgName}
+        onChange={(e) => setOrgName(e.target.value)}
+        placeholder="Trail Runners PH"
+        required
+      />
 
       <div className="space-y-1">
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          Description
+        </label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
@@ -65,7 +76,13 @@ export default function OrganizerProfileForm({ profile }: OrganizerProfileFormPr
         />
       </div>
 
-      <PhotoUploader bucket="organizers" path="logos" value={logoUrl} onChange={setLogoUrl} label="Logo" />
+      <PhotoUploader
+        bucket="organizers"
+        path="logos"
+        value={logoUrl}
+        onChange={setLogoUrl}
+        label="Logo"
+      />
 
       {success && <p className="text-sm text-forest-500">Profile saved!</p>}
 

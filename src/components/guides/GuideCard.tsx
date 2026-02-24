@@ -37,11 +37,7 @@ export default function GuideCard({
               )}
             </p>
           )}
-          {bio && (
-            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-              {bio}
-            </p>
-          )}
+          {bio && <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{bio}</p>}
           {event_count != null && (
             <p className="text-sm text-gray-500 dark:text-gray-400">
               {event_count} event{event_count !== 1 ? "s" : ""} guided

@@ -46,8 +46,9 @@ export default async function BookEventPage({
   }
 
   // Get spots left via RPC
-  const { data: totalParticipants } = await supabase
-    .rpc("get_total_participants", { p_event_id: id });
+  const { data: totalParticipants } = await supabase.rpc("get_total_participants", {
+    p_event_id: id,
+  });
   const spotsLeft = event.max_participants - (totalParticipants || 0);
 
   // Fetch organizer payment info

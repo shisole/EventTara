@@ -29,7 +29,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
   const event = (badge as any).events;
   const title = `${badge.title} — EventTara Badge`;
-  const description = badge.description || `Badge earned at ${event?.title || "an event"} on EventTara.`;
+  const description =
+    badge.description || `Badge earned at ${event?.title || "an event"} on EventTara.`;
 
   const hasRealImage = badge.image_url && !badge.image_url.startsWith("preset:");
 
@@ -69,7 +70,9 @@ export default async function BadgeDetailPage({ params }: { params: Promise<{ id
   const event = (badge as any).events;
 
   const rarityStyle = RARITY_STYLES[(badge.rarity as keyof typeof RARITY_STYLES) || "common"];
-  const categoryStyle = badge.category ? CATEGORY_STYLES[badge.category as keyof typeof CATEGORY_STYLES] : null;
+  const categoryStyle = badge.category
+    ? CATEGORY_STYLES[badge.category as keyof typeof CATEGORY_STYLES]
+    : null;
 
   // Fetch participants who earned this badge
   const { data: userBadges } = await supabase
@@ -133,12 +136,14 @@ export default async function BadgeDetailPage({ params }: { params: Promise<{ id
         {(() => {
           const resolved = resolvePresetImage(badge.image_url);
           return (
-            <div className={cn(
-              "w-32 h-32 rounded-full flex items-center justify-center overflow-hidden shadow-lg",
-              resolved?.type === "emoji" ? resolved.color : "bg-golden-100",
-              rarityStyle.ring,
-              rarityStyle.glow
-            )}>
+            <div
+              className={cn(
+                "w-32 h-32 rounded-full flex items-center justify-center overflow-hidden shadow-lg",
+                resolved?.type === "emoji" ? resolved.color : "bg-golden-100",
+                rarityStyle.ring,
+                rarityStyle.glow,
+              )}
+            >
               {resolved?.type === "url" ? (
                 <Image
                   src={resolved.url}
@@ -148,7 +153,9 @@ export default async function BadgeDetailPage({ params }: { params: Promise<{ id
                   className="object-cover"
                 />
               ) : (
-                <span className="text-6xl">{resolved?.type === "emoji" ? resolved.emoji : "\u{1F3C6}"}</span>
+                <span className="text-6xl">
+                  {resolved?.type === "emoji" ? resolved.emoji : "\u{1F3C6}"}
+                </span>
               )}
             </div>
           );
@@ -158,12 +165,19 @@ export default async function BadgeDetailPage({ params }: { params: Promise<{ id
 
         <div className="flex items-center gap-2 justify-center">
           {badge.rarity && badge.rarity !== "common" && (
-            <span className={cn("inline-block text-xs px-2.5 py-1 rounded-full font-medium", rarityStyle.pill)}>
+            <span
+              className={cn(
+                "inline-block text-xs px-2.5 py-1 rounded-full font-medium",
+                rarityStyle.pill,
+              )}
+            >
               {rarityStyle.label}
             </span>
           )}
           {categoryStyle && (
-            <span className={cn("inline-block text-xs px-2.5 py-1 rounded-full", categoryStyle.pill)}>
+            <span
+              className={cn("inline-block text-xs px-2.5 py-1 rounded-full", categoryStyle.pill)}
+            >
               {categoryStyle.label}
             </span>
           )}
@@ -200,7 +214,9 @@ export default async function BadgeDetailPage({ params }: { params: Promise<{ id
                   className="object-cover w-full h-full"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-2xl">&#127967;</div>
+                <div className="w-full h-full flex items-center justify-center text-2xl">
+                  &#127967;
+                </div>
               )}
             </div>
             <div className="min-w-0">
@@ -269,7 +285,9 @@ export default async function BadgeDetailPage({ params }: { params: Promise<{ id
             )}
           </div>
         ) : (
-          <p className="text-center text-gray-500 dark:text-gray-400">No one has earned this badge yet.</p>
+          <p className="text-center text-gray-500 dark:text-gray-400">
+            No one has earned this badge yet.
+          </p>
         )}
       </div>
 

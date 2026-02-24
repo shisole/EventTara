@@ -18,27 +18,27 @@ Two separate systems with different lifecycles:
 
 ### `app_testimonials` (curated, landing page)
 
-| Column | Type | Notes |
-|---|---|---|
-| id | uuid | PK |
-| name | text | Person's name |
-| role | text | Label (e.g., "Trail Runner") |
-| text | text | Testimonial body |
-| avatar_url | text \| null | Optional photo |
-| display_order | int | Controls sort order |
-| is_active | boolean | Toggle visibility |
-| created_at | timestamptz | Auto |
+| Column        | Type         | Notes                        |
+| ------------- | ------------ | ---------------------------- |
+| id            | uuid         | PK                           |
+| name          | text         | Person's name                |
+| role          | text         | Label (e.g., "Trail Runner") |
+| text          | text         | Testimonial body             |
+| avatar_url    | text \| null | Optional photo               |
+| display_order | int          | Controls sort order          |
+| is_active     | boolean      | Toggle visibility            |
+| created_at    | timestamptz  | Auto                         |
 
 ### `event_reviews` (user-submitted)
 
-| Column | Type | Notes |
-|---|---|---|
-| id | uuid | PK |
-| event_id | uuid | FK to events |
-| user_id | uuid | FK to users |
-| rating | smallint | 1-5 stars |
-| text | text \| null | Optional written review |
-| created_at | timestamptz | Auto |
+| Column     | Type         | Notes                   |
+| ---------- | ------------ | ----------------------- |
+| id         | uuid         | PK                      |
+| event_id   | uuid         | FK to events            |
+| user_id    | uuid         | FK to users             |
+| rating     | smallint     | 1-5 stars               |
+| text       | text \| null | Optional written review |
+| created_at | timestamptz  | Auto                    |
 
 Constraint: unique on (event_id, user_id) — one review per person per event.
 
@@ -54,6 +54,7 @@ Constraint: unique on (event_id, user_id) — one review per person per event.
 ### Submission Flow
 
 **Primary path (events with badges):**
+
 1. Organizer awards badge → email sent via Resend
 2. Badge award email includes "Leave a Review" CTA → links to `/badges/[id]`
 3. Badge page (`/badges/[id]`) shows badge details + inline review form below
@@ -61,6 +62,7 @@ Constraint: unique on (event_id, user_id) — one review per person per event.
 5. Only shown if user has a check-in for this event and hasn't already reviewed
 
 **Fallback path (all completed events):**
+
 1. Event detail page (`/events/[id]`) shows review form below description
 2. Only visible when: event status is `completed`, user has check-in record, user hasn't reviewed yet
 3. Same form: star picker + optional text + submit
@@ -68,6 +70,7 @@ Constraint: unique on (event_id, user_id) — one review per person per event.
 ### API
 
 `POST /api/events/[id]/reviews`
+
 - Validates user is authenticated
 - Validates user has a check-in record for this event
 - Validates no existing review (unique constraint)
@@ -77,15 +80,18 @@ Constraint: unique on (event_id, user_id) — one review per person per event.
 ### Display
 
 **Event detail page** (read-only section):
+
 - Average rating + review count header
 - List of review cards: avatar, name, star rating, text, date
 
 **Organizer profile page:**
+
 - Aggregate average rating across all organizer's events
 - Total review count
 - Recent reviews across their events
 
 **Event cards** (homepage, event list, organizer profile):
+
 - Small average rating badge (e.g., "4.8" with star icon) when event has reviews
 
 ### Badge Award Email Update

@@ -77,10 +77,12 @@ export default function QRScanner({ eventId }: QRScannerProps) {
             });
           } finally {
             // Allow next scan after a short delay
-            setTimeout(() => { processingRef.current = false; }, 2000);
+            setTimeout(() => {
+              processingRef.current = false;
+            }, 2000);
           }
         },
-        () => {} // ignore errors during scanning
+        () => {}, // ignore errors during scanning
       );
       setScanning(true);
     } catch (err: any) {

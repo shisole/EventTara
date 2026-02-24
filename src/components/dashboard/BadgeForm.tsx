@@ -30,7 +30,12 @@ export default function BadgeForm({ eventId, existingBadge }: BadgeFormProps) {
   const [rarity, setRarity] = useState(existingBadge?.rarity || "common");
   const [showTemplatePicker, setShowTemplatePicker] = useState(!existingBadge);
 
-  const handleTemplateSelect = (template: { title: string; description: string; category: string; rarity: string }) => {
+  const handleTemplateSelect = (template: {
+    title: string;
+    description: string;
+    category: string;
+    rarity: string;
+  }) => {
     setTitle(template.title);
     setDescription(template.description);
     setCategory(template.category);
@@ -72,15 +77,37 @@ export default function BadgeForm({ eventId, existingBadge }: BadgeFormProps) {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <Input id="badgeTitle" label="Badge Title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Summit Conqueror" required />
+        <Input
+          id="badgeTitle"
+          label="Badge Title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Summit Conqueror"
+          required
+        />
 
-        <Input id="badgeDesc" label="Description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Awarded to those who reached the summit" />
+        <Input
+          id="badgeDesc"
+          label="Description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Awarded to those who reached the summit"
+        />
 
-        <PhotoUploader bucket="badges" path="images" value={imageUrl} onChange={setImageUrl} label="Badge Image" />
+        <PhotoUploader
+          bucket="badges"
+          path="images"
+          value={imageUrl}
+          onChange={setImageUrl}
+          label="Badge Image"
+        />
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
-            <label htmlFor="badgeCategory" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label
+              htmlFor="badgeCategory"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
               Category
             </label>
             <select
@@ -90,13 +117,18 @@ export default function BadgeForm({ eventId, existingBadge }: BadgeFormProps) {
               className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors"
             >
               {BADGE_CATEGORIES.map((cat) => (
-                <option key={cat.value} value={cat.value}>{cat.label}</option>
+                <option key={cat.value} value={cat.value}>
+                  {cat.label}
+                </option>
               ))}
             </select>
           </div>
 
           <div className="space-y-1">
-            <label htmlFor="badgeRarity" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label
+              htmlFor="badgeRarity"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
               Rarity
             </label>
             <select
@@ -106,7 +138,9 @@ export default function BadgeForm({ eventId, existingBadge }: BadgeFormProps) {
               className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors"
             >
               {BADGE_RARITIES.map((r) => (
-                <option key={r.value} value={r.value}>{r.label}</option>
+                <option key={r.value} value={r.value}>
+                  {r.label}
+                </option>
               ))}
             </select>
           </div>

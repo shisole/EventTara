@@ -28,11 +28,7 @@ export default function Navbar() {
   const [exploreOpen, setExploreOpen] = useState(false);
 
   const fetchRole = async (userId: string) => {
-    const { data } = await supabase
-      .from("users")
-      .select("role")
-      .eq("id", userId)
-      .single();
+    const { data } = await supabase.from("users").select("role").eq("id", userId).single();
     setRole(data?.role ?? null);
   };
 
@@ -101,9 +97,7 @@ export default function Navbar() {
               height={32}
               className="rounded-lg"
             />
-            <span className="text-2xl font-heading font-bold text-lime-500">
-              EventTara
-            </span>
+            <span className="text-2xl font-heading font-bold text-lime-500">EventTara</span>
             <span className="bg-lime-500 text-gray-900 text-xs px-2 py-0.5 rounded-full font-medium">
               BETA
             </span>
@@ -125,7 +119,11 @@ export default function Navbar() {
                   stroke="currentColor"
                   className={`w-4 h-4 transition-transform ${exploreOpen ? "rotate-180" : ""}`}
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                  />
                 </svg>
               </button>
               {exploreOpen && (
@@ -173,7 +171,11 @@ export default function Navbar() {
                       stroke="currentColor"
                       className={`w-4 h-4 text-gray-400 transition-transform ${profileOpen ? "rotate-180" : ""}`}
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                      />
                     </svg>
                   </button>
                   {profileOpen && (
@@ -182,7 +184,9 @@ export default function Navbar() {
                         <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
                           {user.user_metadata?.full_name || "Adventurer"}
                         </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                          {user.email}
+                        </p>
                       </div>
                       {role === "organizer" && (
                         <Link
@@ -241,12 +245,30 @@ export default function Navbar() {
             aria-label={menuOpen ? "Close menu" : "Open menu"}
           >
             {menuOpen ? (
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-6 h-6"
+              >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
             ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-6 h-6"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+                />
               </svg>
             )}
           </button>
@@ -271,7 +293,11 @@ export default function Navbar() {
                   stroke="currentColor"
                   className={`w-4 h-4 transition-transform ${exploreOpen ? "rotate-180" : ""}`}
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                  />
                 </svg>
               </button>
               {exploreOpen && (

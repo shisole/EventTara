@@ -29,9 +29,7 @@ export default function StarRating({
           className={cn(
             "transition-colors",
             readonly ? "cursor-default" : "cursor-pointer hover:scale-110",
-            star <= value
-              ? "text-yellow-400"
-              : "text-gray-300 dark:text-gray-600"
+            star <= value ? "text-yellow-400" : "text-gray-300 dark:text-gray-600",
           )}
         >
           &#9733;
