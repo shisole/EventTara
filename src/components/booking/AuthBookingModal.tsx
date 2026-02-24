@@ -1,6 +1,7 @@
 "use client";
 
 import confetti from "canvas-confetti";
+import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 
 import { Button } from "@/components/ui";
@@ -18,10 +19,10 @@ interface AuthBookingModalProps {
 
 export default function AuthBookingModal({
   eventName,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   eventId,
   onAuthenticated,
 }: AuthBookingModalProps) {
+  const router = useRouter();
   const [state, setState] = useState<ModalState>("email");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState<string[]>(Array.from<string>({ length: CODE_LENGTH }).fill(""));
@@ -254,6 +255,25 @@ export default function AuthBookingModal({
           e.stopPropagation();
         }}
       >
+        {state !== "success" && (
+          <button
+            type="button"
+            onClick={() => router.push(`/events/${eventId}`)}
+            className="absolute top-4 right-4 p-1 rounded-lg text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            aria-label="Close"
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
+
         {state === "email" && (
           <form onSubmit={handleEmailSubmit} className="space-y-5">
             <div className="text-center">
