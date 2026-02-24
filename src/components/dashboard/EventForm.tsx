@@ -7,7 +7,6 @@ import dynamic from "next/dynamic";
 import { Button, Input } from "@/components/ui";
 import PhotoUploader from "./PhotoUploader";
 import { findProvinceFromLocation } from "@/lib/constants/philippine-provinces";
-import { createClient } from "@/lib/supabase/client";
 
 const MapPicker = dynamic(() => import("@/components/maps/MapPicker"), { ssr: false });
 
@@ -74,12 +73,7 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
     }
     const fetchGuides = async () => {
       setLoadingGuides(true);
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) { setLoadingGuides(false); return; }
-      const params = new URLSearchParams({ created_by: user.id, check_date: new Date(date).toISOString() });
+      const params = new URLSearchParams({ check_date: new Date(date).toISOString() });
       if (mode === "edit" && initialData?.id) {
         params.set("exclude_event_id", initialData.id);
       }
