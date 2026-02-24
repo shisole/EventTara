@@ -19,6 +19,10 @@ export async function GET(request: NextRequest) {
   const type = searchParams.get("type") || "";
   const when = searchParams.get("when") || "";
   const search = searchParams.get("search") || "";
+  const org = searchParams.get("org") || "";
+  const guide = searchParams.get("guide") || "";
+  const from = searchParams.get("from") || "";
+  const to = searchParams.get("to") || "";
 
   const supabase = await createClient();
   const today = new Date().toISOString().split("T")[0];
@@ -59,15 +63,71 @@ export async function GET(request: NextRequest) {
   }
 
   if (type) {
-    countQuery = countQuery.eq("type", type as EventType);
-    dataQuery = dataQuery.eq("type", type as EventType);
+    const types = type.split(",").filter(Boolean) as EventType[];
+    if (types.length === 1) {
+      countQuery = countQuery.eq("type", types[0]);
+      dataQuery = dataQuery.eq("type", types[0]);
+    } else if (types.length > 1) {
+      countQuery = countQuery.in("type", types);
+      dataQuery = dataQuery.in("type", types);
+    }
   }
 
   if (search) {
     const pattern = search.trim().replaceAll(/\s+/g, "%");
-    const filter = `title.ilike.%${pattern}%,location.ilike.%${pattern}%`;
+
+    // Also match organizer names
+    const { data: matchingOrgs } = await supabase
+      .from("organizer_profiles")
+      .select("id")
+      .ilike("org_name", `%${pattern}%`);
+    const orgIds = matchingOrgs?.map((o) => o.id) ?? [];
+
+    let filter = `title.ilike.%${pattern}%,location.ilike.%${pattern}%`;
+    if (orgIds.length > 0) {
+      filter += `,organizer_id.in.(${orgIds.join(",")})`;
+    }
     countQuery = countQuery.or(filter);
     dataQuery = dataQuery.or(filter);
+  }
+
+  if (org) {
+    const orgs = org.split(",").filter(Boolean);
+    if (orgs.length === 1) {
+      countQuery = countQuery.eq("organizer_id", orgs[0]);
+      dataQuery = dataQuery.eq("organizer_id", orgs[0]);
+    } else if (orgs.length > 1) {
+      countQuery = countQuery.in("organizer_id", orgs);
+      dataQuery = dataQuery.in("organizer_id", orgs);
+    }
+  }
+
+  if (from) {
+    countQuery = countQuery.gte("date", from);
+    dataQuery = dataQuery.gte("date", from);
+  }
+
+  if (to) {
+    countQuery = countQuery.lte("date", `${to}T23:59:59`);
+    dataQuery = dataQuery.lte("date", `${to}T23:59:59`);
+  }
+
+  // Guide filter: fetch linked event IDs first, then constrain both queries
+  if (guide) {
+    const guideIds = guide.split(",").filter(Boolean);
+    const linksQuery =
+      guideIds.length === 1
+        ? supabase.from("event_guides").select("event_id").eq("guide_id", guideIds[0])
+        : supabase.from("event_guides").select("event_id").in("guide_id", guideIds);
+    const { data: links } = await linksQuery;
+
+    const eventIds = links?.map((l) => l.event_id) ?? [];
+    if (eventIds.length === 0) {
+      return NextResponse.json({ events: [], totalCount: 0 });
+    }
+
+    countQuery = countQuery.in("id", eventIds);
+    dataQuery = dataQuery.in("id", eventIds);
   }
 
   // For "no when filter", we need custom sorting: upcoming first, then past reversed

@@ -3,6 +3,8 @@
 import { useSearchParams } from "next/navigation";
 import { useState, useEffect, useRef, useCallback } from "react";
 
+import { SkeletonEventCard } from "@/components/ui";
+
 import EventsGrid from "./EventsGrid";
 
 const BATCH_SIZE = 9;
@@ -29,9 +31,14 @@ export interface EventData {
 interface EventsListClientProps {
   initialEvents: EventData[];
   totalCount: number;
+  isFiltering?: boolean;
 }
 
-export default function EventsListClient({ initialEvents, totalCount }: EventsListClientProps) {
+export default function EventsListClient({
+  initialEvents,
+  totalCount,
+  isFiltering,
+}: EventsListClientProps) {
   const searchParams = useSearchParams();
   const [currentPage, setCurrentPage] = useState(1);
   const [events, setEvents] = useState<EventData[]>(initialEvents);
@@ -60,9 +67,17 @@ export default function EventsListClient({ initialEvents, totalCount }: EventsLi
       const type = searchParams.get("type");
       const when = searchParams.get("when");
       const search = searchParams.get("search");
+      const org = searchParams.get("org");
+      const guide = searchParams.get("guide");
+      const from = searchParams.get("from");
+      const to = searchParams.get("to");
       if (type) params.set("type", type);
       if (when) params.set("when", when);
       if (search) params.set("search", search);
+      if (org) params.set("org", org);
+      if (guide) params.set("guide", guide);
+      if (from) params.set("from", from);
+      if (to) params.set("to", to);
       return `/api/events?${params.toString()}`;
     },
     [searchParams],
@@ -143,6 +158,16 @@ export default function EventsListClient({ initialEvents, totalCount }: EventsLi
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
+
+  if (isFiltering) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <SkeletonEventCard key={i} />
+        ))}
+      </div>
+    );
+  }
 
   if (events.length === 0 && !isLoadingMore) {
     return (
