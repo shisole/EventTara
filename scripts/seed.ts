@@ -1050,6 +1050,35 @@ const TEST_EVENTS: TestEvent[] = [
     status: "published",
     cover_image_url: COVER_IMAGES.hiking_alt2,
   },
+  // ---- Free events ----
+  {
+    orgProfileName: "Panay Trail Collective",
+    title: "Iloilo River Esplanade Community Walk",
+    description:
+      "A free community walk along the Iloilo River Esplanade open to everyone — families, solo walkers, and dogs welcome. Meet new people, enjoy the morning breeze, and kick off your weekend with good vibes. No registration fee, just show up and walk!",
+    type: "running",
+    date: daysFromNow(7),
+    location: "Iloilo River Esplanade, Iloilo City",
+    coordinates: { lat: 10.695, lng: 122.565 },
+    max_participants: 100,
+    price: 0,
+    status: "published",
+    cover_image_url: COVER_IMAGES.running,
+  },
+  {
+    orgProfileName: "Yenergy Outdoors",
+    title: "Jaro Plaza Yoga & Stretch Session",
+    description:
+      "Start your Sunday right with a free outdoor yoga and stretching session at Jaro Plaza. Suitable for all fitness levels — bring a mat or towel and join the community for an hour of mindful movement under the trees.",
+    type: "running",
+    date: daysFromNow(10),
+    location: "Jaro Plaza, Iloilo City",
+    coordinates: { lat: 10.72, lng: 122.57 },
+    max_participants: 50,
+    price: 0,
+    status: "published",
+    cover_image_url: COVER_IMAGES.running_alt,
+  },
 ];
 
 // ---------------------------------------------------------------------------
