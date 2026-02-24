@@ -12,8 +12,12 @@ interface Activity {
   image: string;
 }
 
-interface ExploreDropdownProps {
+interface LayoutProps {
   activities: Activity[];
+}
+
+interface ExploreDropdownProps extends LayoutProps {
+  navLayout: string;
 }
 
 function AllEventsLink({ className }: { className?: string }) {
@@ -24,7 +28,7 @@ function AllEventsLink({ className }: { className?: string }) {
   );
 }
 
-function StripLayout({ activities }: ExploreDropdownProps) {
+function StripLayout({ activities }: LayoutProps) {
   return (
     <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-[780px] bg-white dark:bg-gray-800 rounded-xl shadow-lg dark:shadow-gray-950/30 border border-gray-100 dark:border-gray-700 p-4 z-50">
       <AllEventsLink className="block text-sm font-semibold text-gray-900 dark:text-white hover:text-lime-500 mb-3" />
@@ -37,7 +41,7 @@ function StripLayout({ activities }: ExploreDropdownProps) {
   );
 }
 
-function GridLayout({ activities }: ExploreDropdownProps) {
+function GridLayout({ activities }: LayoutProps) {
   return (
     <div className="absolute left-0 mt-2 w-[400px] bg-white dark:bg-gray-800 rounded-xl shadow-lg dark:shadow-gray-950/30 border border-gray-100 dark:border-gray-700 p-4 z-50">
       <AllEventsLink className="block text-sm font-semibold text-gray-900 dark:text-white hover:text-lime-500 mb-3" />
@@ -50,7 +54,7 @@ function GridLayout({ activities }: ExploreDropdownProps) {
   );
 }
 
-function ListLayout({ activities }: ExploreDropdownProps) {
+function ListLayout({ activities }: LayoutProps) {
   return (
     <div className="absolute left-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-lg dark:shadow-gray-950/30 border border-gray-100 dark:border-gray-700 py-2 z-50">
       <AllEventsLink className="block px-4 py-2 text-sm font-semibold text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700" />
@@ -62,11 +66,12 @@ function ListLayout({ activities }: ExploreDropdownProps) {
   );
 }
 
-export default function ExploreDropdown({ activities }: ExploreDropdownProps) {
+export default function ExploreDropdown({ activities, navLayout }: ExploreDropdownProps) {
   const searchParams = useSearchParams();
-  const navLayout = searchParams.get("nav") ?? "list";
+  // ?nav= query param overrides the Payload setting
+  const layout = searchParams.get("nav") ?? navLayout;
 
-  switch (navLayout) {
+  switch (layout) {
     case "strip": {
       return <StripLayout activities={activities} />;
     }

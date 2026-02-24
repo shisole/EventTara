@@ -60,6 +60,7 @@ export default function ClientShell({ children }: { children: React.ReactNode })
   const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [navLayout, setNavLayout] = useState<string>("strip");
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
 
@@ -98,6 +99,22 @@ export default function ClientShell({ children }: { children: React.ReactNode })
       subscription.unsubscribe();
     };
   }, [supabase, fetchRole]);
+
+  // Fetch nav layout from Payload site-settings
+  useEffect(() => {
+    const fetchNavLayout = async () => {
+      try {
+        const res = await fetch("/api/globals/site-settings");
+        if (res.ok) {
+          const data = (await res.json()) as { navLayout?: string };
+          if (data.navLayout) setNavLayout(data.navLayout);
+        }
+      } catch {
+        // Payload unavailable — keep default "strip"
+      }
+    };
+    void fetchNavLayout();
+  }, []);
 
   // Edge swipe detection (right 20px edge, swipe left to open)
   useEffect(() => {
@@ -150,7 +167,7 @@ export default function ClientShell({ children }: { children: React.ReactNode })
   return (
     <>
       <div
-        className={`transition-all duration-300 min-h-screen flex flex-col ${
+        className={`transition-all duration-300 origin-top min-h-screen flex flex-col ${
           drawerOpen ? "scale-[0.95] opacity-50 rounded-xl overflow-hidden pointer-events-none" : ""
         }`}
       >
@@ -159,6 +176,7 @@ export default function ClientShell({ children }: { children: React.ReactNode })
           role={role}
           loading={loading}
           activities={activities}
+          navLayout={navLayout}
           onLogout={() => void handleLogout()}
           onMenuOpen={handleMenuOpen}
         />

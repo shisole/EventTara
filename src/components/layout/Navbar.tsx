@@ -22,6 +22,7 @@ interface NavbarProps {
   role: string | null;
   loading: boolean;
   activities: Activity[];
+  navLayout: string;
   onLogout: () => void;
   onMenuOpen: () => void;
 }
@@ -31,6 +32,7 @@ export default function Navbar({
   role,
   loading,
   activities,
+  navLayout,
   onLogout,
   onMenuOpen,
 }: NavbarProps) {
@@ -107,7 +109,7 @@ export default function Navbar({
               </button>
               {exploreOpen && (
                 <Suspense fallback={null}>
-                  <ExploreDropdown activities={activities} />
+                  <ExploreDropdown activities={activities} navLayout={navLayout} />
                 </Suspense>
               )}
             </div>
