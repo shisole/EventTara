@@ -152,7 +152,13 @@ export default function ParticipantsTable({
                     {booking.users?.email || "—"}
                   </td>
                   <td className="px-6 py-4">
-                    <PaymentStatusBadge status={booking.payment_status} />
+                    {booking.payment_method ? (
+                      <PaymentStatusBadge status={booking.payment_status} />
+                    ) : (
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium capitalize bg-forest-100 text-forest-700 dark:bg-forest-900/50 dark:text-forest-300">
+                        confirmed
+                      </span>
+                    )}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                     {booking.payment_method?.toUpperCase() || "Free"}

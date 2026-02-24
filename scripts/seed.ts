@@ -2340,26 +2340,20 @@ async function createCompanions(bookingMap: Map<string, string>, eventMap: Map<s
     const isPendingEwallet = isEwallet && booking.payment_status !== "paid";
 
     for (const comp of def.companions) {
-      const { data, error } = await supabase
-        .from("booking_companions")
-        .insert({
-          booking_id: bookingId,
-          full_name: comp.full_name,
-          phone: comp.phone || null,
-          qr_code: null, // set below if applicable
-        })
-        .select("id")
-        .single();
+      const id = crypto.randomUUID();
+      const qrCode = !isPendingEwallet ? `eventtara:checkin:${eventId}:companion:${id}` : null;
+
+      const { error } = await supabase.from("booking_companions").insert({
+        id,
+        booking_id: bookingId,
+        full_name: comp.full_name,
+        phone: comp.phone || null,
+        qr_code: qrCode,
+      });
 
       if (error) {
         console.error(`  Failed to create companion "${comp.full_name}": ${error.message}`);
         continue;
-      }
-
-      // Generate QR code for paid or cash bookings (not pending e-wallet)
-      if (!isPendingEwallet) {
-        const qrCode = `eventtara:checkin:${eventId}:companion:${data.id}`;
-        await supabase.from("booking_companions").update({ qr_code: qrCode }).eq("id", data.id);
       }
 
       const userName = def.userEmail.split("@")[0];
