@@ -77,6 +77,8 @@ interface FilterChipProps {
   onToggle: (id: string) => void;
   onClear?: () => void;
   popoverClassName?: string;
+  /** Render as full-screen modal on mobile instead of popover */
+  mobileFullscreen?: boolean;
   children: ReactNode;
 }
 
@@ -89,11 +91,12 @@ function FilterChip({
   onToggle,
   onClear,
   popoverClassName,
+  mobileFullscreen,
   children,
 }: FilterChipProps) {
   const chipRef = useRef<HTMLDivElement>(null);
 
-  /* Close on click-outside */
+  /* Close on click-outside (only for popover, not fullscreen) */
   useEffect(() => {
     if (!isOpen) return;
 
@@ -164,11 +167,41 @@ function FilterChip({
         )}
       </button>
 
-      {/* Popover */}
+      {/* Mobile fullscreen overlay */}
+      {isOpen && mobileFullscreen && (
+        <div className="fixed inset-0 z-50 flex flex-col bg-white dark:bg-gray-800 sm:hidden">
+          {/* Header with close */}
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+            <span className="text-base font-semibold text-gray-900 dark:text-gray-100">
+              {label}
+            </span>
+            <button
+              type="button"
+              onClick={() => onToggle("")}
+              className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className="h-5 w-5"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto">{children}</div>
+        </div>
+      )}
+
+      {/* Desktop popover (hidden on mobile when mobileFullscreen) */}
       {isOpen && (
         <div
           className={cn(
             "absolute top-full left-0 mt-2 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg z-50",
+            mobileFullscreen ? "hidden sm:block" : "",
             popoverClassName ?? "min-w-[200px]",
           )}
         >
@@ -824,11 +857,11 @@ export default function EventFilters({
         </button>
       </div>
 
-      {/* Chip bar — remaining filters + clear all */}
+      {/* Chip bar — wrap on mobile, horizontal scroll on sm+ */}
       <div
         className={cn(
-          "flex items-center gap-2 pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide",
-          openId ? "overflow-visible" : "overflow-x-auto",
+          "flex items-center gap-2 pb-1 sm:-mx-0 sm:px-0 scrollbar-hide",
+          openId ? "overflow-visible" : "flex-wrap sm:flex-nowrap sm:overflow-x-auto",
         )}
       >
         {/* ---- When chip ---- */}
@@ -875,7 +908,8 @@ export default function EventFilters({
           isOpen={openId === "date"}
           onToggle={handleToggle}
           onClear={() => updateParams({ from: "", to: "" })}
-          popoverClassName="w-[300px] sm:w-[580px]"
+          mobileFullscreen
+          popoverClassName="sm:w-[580px]"
         >
           <CalendarPicker
             from={draftFrom}
