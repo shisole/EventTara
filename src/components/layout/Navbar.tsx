@@ -11,11 +11,36 @@ import { Button, Avatar } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
 
 const activities = [
-  { slug: "hiking", label: "Hiking", icon: "🏔️" },
-  { slug: "mtb", label: "Mountain Biking", icon: "🚵" },
-  { slug: "road_bike", label: "Road Biking", icon: "🚴" },
-  { slug: "running", label: "Running", icon: "🏃" },
-  { slug: "trail_run", label: "Trail Running", icon: "🥾" },
+  {
+    slug: "hiking",
+    label: "Hiking",
+    icon: "🏔️",
+    image: "https://images.unsplash.com/photo-1551632811-561732d1e306?w=600&h=400&fit=crop",
+  },
+  {
+    slug: "mtb",
+    label: "Mountain Biking",
+    icon: "🚵",
+    image: "https://images.unsplash.com/photo-1544191696-102dbdaeeaa0?w=600&h=400&fit=crop",
+  },
+  {
+    slug: "road_bike",
+    label: "Road Biking",
+    icon: "🚴",
+    image: "https://images.unsplash.com/photo-1517649763962-0c623066013b?w=600&h=400&fit=crop",
+  },
+  {
+    slug: "running",
+    label: "Running",
+    icon: "🏃",
+    image: "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=600&h=400&fit=crop",
+  },
+  {
+    slug: "trail_run",
+    label: "Trail Running",
+    icon: "🥾",
+    image: "https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=600&h=400&fit=crop",
+  },
 ];
 
 export default function Navbar() {
