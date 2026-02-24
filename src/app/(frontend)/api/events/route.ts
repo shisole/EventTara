@@ -75,7 +75,18 @@ export async function GET(request: NextRequest) {
 
   if (search) {
     const pattern = search.trim().replaceAll(/\s+/g, "%");
-    const filter = `title.ilike.%${pattern}%,location.ilike.%${pattern}%`;
+
+    // Also match organizer names
+    const { data: matchingOrgs } = await supabase
+      .from("organizer_profiles")
+      .select("id")
+      .ilike("org_name", `%${pattern}%`);
+    const orgIds = matchingOrgs?.map((o) => o.id) ?? [];
+
+    let filter = `title.ilike.%${pattern}%,location.ilike.%${pattern}%`;
+    if (orgIds.length > 0) {
+      filter += `,organizer_id.in.(${orgIds.join(",")})`;
+    }
     countQuery = countQuery.or(filter);
     dataQuery = dataQuery.or(filter);
   }
