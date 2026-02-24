@@ -81,8 +81,14 @@ export async function GET(request: NextRequest) {
   }
 
   if (org) {
-    countQuery = countQuery.eq("organizer_id", org);
-    dataQuery = dataQuery.eq("organizer_id", org);
+    const orgs = org.split(",").filter(Boolean);
+    if (orgs.length === 1) {
+      countQuery = countQuery.eq("organizer_id", orgs[0]);
+      dataQuery = dataQuery.eq("organizer_id", orgs[0]);
+    } else if (orgs.length > 1) {
+      countQuery = countQuery.in("organizer_id", orgs);
+      dataQuery = dataQuery.in("organizer_id", orgs);
+    }
   }
 
   if (from) {
@@ -97,10 +103,12 @@ export async function GET(request: NextRequest) {
 
   // Guide filter: fetch linked event IDs first, then constrain both queries
   if (guide) {
-    const { data: links } = await supabase
-      .from("event_guides")
-      .select("event_id")
-      .eq("guide_id", guide);
+    const guideIds = guide.split(",").filter(Boolean);
+    const linksQuery =
+      guideIds.length === 1
+        ? supabase.from("event_guides").select("event_id").eq("guide_id", guideIds[0])
+        : supabase.from("event_guides").select("event_id").in("guide_id", guideIds);
+    const { data: links } = await linksQuery;
 
     const eventIds = links?.map((l) => l.event_id) ?? [];
     if (eventIds.length === 0) {

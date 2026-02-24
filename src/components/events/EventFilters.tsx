@@ -465,8 +465,10 @@ export default function EventFilters({
   const currentTypes = parseTypes(currentTypeParam);
   const currentWhen = searchParams.get("when") ?? "";
   const currentSearch = searchParams.get("search") ?? "";
-  const currentOrg = searchParams.get("org") ?? "";
-  const currentGuide = searchParams.get("guide") ?? "";
+  const currentOrgParam = searchParams.get("org") ?? "";
+  const currentOrgs = parseTypes(currentOrgParam);
+  const currentGuideParam = searchParams.get("guide") ?? "";
+  const currentGuides = parseTypes(currentGuideParam);
   const currentFrom = searchParams.get("from") ?? "";
   const currentTo = searchParams.get("to") ?? "";
 
@@ -578,8 +580,8 @@ export default function EventFilters({
   const hasActiveFilters =
     currentTypeParam !== "" ||
     currentWhen !== "" ||
-    currentOrg !== "" ||
-    currentGuide !== "" ||
+    currentOrgParam !== "" ||
+    currentGuideParam !== "" ||
     currentFrom !== "" ||
     currentTo !== "" ||
     currentSearch !== "";
@@ -595,22 +597,30 @@ export default function EventFilters({
     [currentWhen, updateParams],
   );
 
-  const selectOrg = useCallback(
+  const toggleOrg = useCallback(
     (value: string) => {
-      const next = value === currentOrg ? "" : value;
-      updateParams({ org: next });
-      setOpenId("");
+      const next = new Set(currentOrgs);
+      if (next.has(value)) {
+        next.delete(value);
+      } else {
+        next.add(value);
+      }
+      updateParams({ org: serializeTypes(next) });
     },
-    [currentOrg, updateParams],
+    [currentOrgs, updateParams],
   );
 
-  const selectGuide = useCallback(
+  const toggleGuide = useCallback(
     (value: string) => {
-      const next = value === currentGuide ? "" : value;
-      updateParams({ guide: next });
-      setOpenId("");
+      const next = new Set(currentGuides);
+      if (next.has(value)) {
+        next.delete(value);
+      } else {
+        next.add(value);
+      }
+      updateParams({ guide: serializeTypes(next) });
     },
-    [currentGuide, updateParams],
+    [currentGuides, updateParams],
   );
 
   /* ---- Date chip still uses Apply/Clear ---- */
@@ -628,8 +638,19 @@ export default function EventFilters({
   const whenLabelMap: Record<string, string> = {};
   for (const t of TIME_FILTERS) whenLabelMap[t.value] = t.label;
 
-  const orgName = organizers.find((o) => o.id === currentOrg)?.name;
-  const guideName = guides.find((g) => g.id === currentGuide)?.name;
+  const orgLabel =
+    currentOrgs.size === 1
+      ? organizers.find((o) => currentOrgs.has(o.id))?.name
+      : currentOrgs.size > 1
+        ? `${currentOrgs.size} organizers`
+        : undefined;
+
+  const guideLabel =
+    currentGuides.size === 1
+      ? guides.find((g) => currentGuides.has(g.id))?.name
+      : currentGuides.size > 1
+        ? `${currentGuides.size} guides`
+        : undefined;
 
   const dateLabel =
     currentFrom && currentTo
@@ -645,8 +666,8 @@ export default function EventFilters({
 
   return (
     <div className="space-y-4">
-      {/* Activity type selector — centered horizontal avatar row */}
-      <div className="flex justify-center gap-4 sm:gap-5 overflow-x-auto py-3 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
+      {/* Activity type selector — grid on mobile, horizontal row on sm+ */}
+      <div className="grid grid-cols-3 gap-3 py-3 sm:flex sm:justify-center sm:gap-5 sm:overflow-x-auto sm:-mx-0 sm:px-0 scrollbar-hide">
         {/* All Activity avatar */}
         <button
           type="button"
@@ -866,13 +887,13 @@ export default function EventFilters({
           />
         </FilterChip>
 
-        {/* ---- Organizer chip ---- */}
+        {/* ---- Organizer chip (multi-select) ---- */}
         {organizers.length > 0 && (
           <FilterChip
             id="org"
             label="Organizer"
-            activeLabel={orgName}
-            isActive={!!currentOrg}
+            activeLabel={orgLabel}
+            isActive={currentOrgs.size > 0}
             isOpen={openId === "org"}
             onToggle={handleToggle}
             onClear={() => updateParams({ org: "" })}
@@ -882,14 +903,39 @@ export default function EventFilters({
                 <button
                   key={o.id}
                   type="button"
-                  onClick={() => selectOrg(o.id)}
+                  onClick={() => toggleOrg(o.id)}
                   className={cn(
-                    "w-full text-left px-3 py-2 rounded-lg text-sm transition-colors",
-                    currentOrg === o.id
+                    "w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2",
+                    currentOrgs.has(o.id)
                       ? "bg-gray-100 dark:bg-gray-700 font-medium text-gray-900 dark:text-gray-100"
                       : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-750",
                   )}
                 >
+                  <span
+                    className={cn(
+                      "flex items-center justify-center w-4 h-4 rounded border transition-colors shrink-0",
+                      currentOrgs.has(o.id)
+                        ? "bg-lime-500 border-lime-500 text-white"
+                        : "border-gray-300 dark:border-gray-600",
+                    )}
+                  >
+                    {currentOrgs.has(o.id) && (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={3}
+                        stroke="currentColor"
+                        className="h-3 w-3"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="m4.5 12.75 6 6 9-13.5"
+                        />
+                      </svg>
+                    )}
+                  </span>
                   {o.name}
                 </button>
               ))}
@@ -897,13 +943,13 @@ export default function EventFilters({
           </FilterChip>
         )}
 
-        {/* ---- Guide chip (only when hiking is selected) ---- */}
+        {/* ---- Guide chip (only when hiking is selected, multi-select) ---- */}
         {showGuideChip && guides.length > 0 && (
           <FilterChip
             id="guide"
             label="Guide"
-            activeLabel={guideName}
-            isActive={!!currentGuide}
+            activeLabel={guideLabel}
+            isActive={currentGuides.size > 0}
             isOpen={openId === "guide"}
             onToggle={handleToggle}
             onClear={() => updateParams({ guide: "" })}
@@ -913,14 +959,39 @@ export default function EventFilters({
                 <button
                   key={g.id}
                   type="button"
-                  onClick={() => selectGuide(g.id)}
+                  onClick={() => toggleGuide(g.id)}
                   className={cn(
-                    "w-full text-left px-3 py-2 rounded-lg text-sm transition-colors",
-                    currentGuide === g.id
+                    "w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2",
+                    currentGuides.has(g.id)
                       ? "bg-gray-100 dark:bg-gray-700 font-medium text-gray-900 dark:text-gray-100"
                       : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-750",
                   )}
                 >
+                  <span
+                    className={cn(
+                      "flex items-center justify-center w-4 h-4 rounded border transition-colors shrink-0",
+                      currentGuides.has(g.id)
+                        ? "bg-lime-500 border-lime-500 text-white"
+                        : "border-gray-300 dark:border-gray-600",
+                    )}
+                  >
+                    {currentGuides.has(g.id) && (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={3}
+                        stroke="currentColor"
+                        className="h-3 w-3"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="m4.5 12.75 6 6 9-13.5"
+                        />
+                      </svg>
+                    )}
+                  </span>
                   {g.name}
                 </button>
               ))}
