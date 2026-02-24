@@ -23,16 +23,18 @@ export default function DateRangePicker({
   onEndDateChange,
   onStartTimeChange,
 }: DateRangePickerProps) {
+  const resetEndDate = () => onEndDateChange(undefined as Date | undefined);
+
   const handleDayClick = (date: Date | undefined) => {
     if (!date) return;
 
     if (!startDate || (startDate && endDate)) {
       // First click or resetting range
       onStartDateChange(date);
-      onEndDateChange();
+      resetEndDate();
     } else if (date.getTime() === startDate.getTime()) {
       // Same date clicked - single-day event
-      onEndDateChange();
+      resetEndDate();
     } else if (date < startDate) {
       // Clicked date before start - make it the new start
       onStartDateChange(date);
