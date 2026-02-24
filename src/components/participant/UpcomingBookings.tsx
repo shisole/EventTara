@@ -104,7 +104,9 @@ export default function UpcomingBookings({ bookings }: { bookings: Booking[] }) 
                 <UIBadge variant={b.eventType as any}>
                   {typeLabels[b.eventType] || b.eventType}
                 </UIBadge>
-                {b.paymentStatus && <PaymentStatusBadge status={b.paymentStatus as any} />}
+                {b.paymentStatus && b.paymentMethod && (
+                  <PaymentStatusBadge status={b.paymentStatus as any} />
+                )}
               </div>
               <Link href={`/events/${b.eventId}`}>
                 <h3 className="font-heading font-bold text-lg hover:text-lime-600 dark:hover:text-lime-400">
@@ -187,6 +189,10 @@ export default function UpcomingBookings({ bookings }: { bookings: Booking[] }) 
                               Show at check-in
                             </p>
                           </>
+                        ) : b.eventPrice === 0 ? (
+                          <p className="text-xs text-lime-600 dark:text-lime-400 text-center">
+                            Confirmed
+                          </p>
                         ) : (
                           <p className="text-xs text-gray-400 text-center">
                             QR code pending verification

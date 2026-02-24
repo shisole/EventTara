@@ -187,12 +187,19 @@ export async function POST(request: Request) {
   let insertedCompanions: any[] = [];
   if (companions.length > 0) {
     const companionStatus = isFree ? ("confirmed" as const) : ("pending" as const);
-    const companionRows = companions.map((c) => ({
-      booking_id: bookingId,
-      full_name: c.full_name.trim(),
-      phone: c.phone || null,
-      status: companionStatus,
-    }));
+    const generateQr = isFree || isCash;
+
+    const companionRows = companions.map((c) => {
+      const id = crypto.randomUUID();
+      return {
+        id,
+        booking_id: bookingId,
+        full_name: c.full_name.trim(),
+        phone: c.phone || null,
+        status: companionStatus,
+        qr_code: generateQr ? `eventtara:checkin:${eventId}:companion:${id}` : null,
+      };
+    });
 
     const { data: inserted, error: compError } = await supabase
       .from("booking_companions")
@@ -203,18 +210,6 @@ export async function POST(request: Request) {
       console.error("[Companions] Insert failed:", compError);
     } else {
       insertedCompanions = inserted || [];
-    }
-
-    // Generate QR codes for companions for free/cash bookings
-    if (isFree || isCash) {
-      for (const comp of insertedCompanions) {
-        const companionQr = `eventtara:checkin:${eventId}:companion:${comp.id}`;
-        await supabase
-          .from("booking_companions")
-          .update({ qr_code: companionQr })
-          .eq("id", comp.id);
-        comp.qr_code = companionQr;
-      }
     }
   }
 
