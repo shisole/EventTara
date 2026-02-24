@@ -4,6 +4,7 @@ import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 
 import { Button } from "@/components/ui";
+import { formatEventDate } from "@/lib/utils/format-date";
 
 interface CompanionConfirmation {
   full_name: string;
@@ -14,6 +15,7 @@ interface BookingConfirmationProps {
   bookingId: string;
   eventTitle: string;
   eventDate: string;
+  eventEndDate?: string | null;
   qrCode: string | null;
   paymentStatus?: string;
   paymentMethod?: string;
@@ -25,6 +27,7 @@ export default function BookingConfirmation({
   bookingId,
   eventTitle,
   eventDate,
+  eventEndDate,
   qrCode,
   paymentStatus,
   paymentMethod,
@@ -170,15 +173,7 @@ export default function BookingConfirmation({
       )}
 
       <div className="text-sm text-gray-500 dark:text-gray-400">
-        <p>
-          📅{" "}
-          {new Date(eventDate).toLocaleDateString("en-PH", {
-            weekday: "long",
-            month: "long",
-            day: "numeric",
-            year: "numeric",
-          })}
-        </p>
+        <p>📅 {formatEventDate(eventDate, eventEndDate, { includeYear: true })}</p>
         <p className="text-xs mt-1">Booking ID: {bookingId}</p>
       </div>
 

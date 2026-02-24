@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import EventDashboardTabs from "@/components/dashboard/EventDashboardTabs";
 import ParticipantsTable from "@/components/dashboard/ParticipantsTable";
+import PublishButton from "@/components/dashboard/PublishButton";
 import { Button, UIBadge } from "@/components/ui";
 import { createClient } from "@/lib/supabase/server";
 
@@ -63,12 +64,6 @@ export default async function ManageEventPage({ params }: { params: Promise<{ id
       return sum + (mainCount + confirmedComps) * event.price;
     }, 0);
 
-  const handlePublish = async () => {
-    "use server";
-    const supabase = await createClient();
-    await supabase.from("events").update({ status: "published" }).eq("id", id);
-  };
-
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
@@ -85,11 +80,7 @@ export default async function ManageEventPage({ params }: { params: Promise<{ id
           <Link href={`/dashboard/events/${id}/checkin`}>
             <Button variant="secondary">Check-in Tool</Button>
           </Link>
-          {event.status === "draft" && (
-            <form action={handlePublish}>
-              <Button type="submit">Publish</Button>
-            </form>
-          )}
+          {event.status === "draft" && <PublishButton eventId={id} />}
         </div>
       </div>
 

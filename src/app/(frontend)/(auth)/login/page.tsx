@@ -32,7 +32,24 @@ export default function LoginPage() {
       setError(error.message);
       setLoading(false);
     } else {
-      router.push("/events");
+      // Check if user is an organizer to redirect to dashboard
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from("users")
+          .select("role")
+          .eq("id", user.id)
+          .single();
+        if (profile?.role === "organizer") {
+          router.push("/dashboard");
+        } else {
+          router.push("/events");
+        }
+      } else {
+        router.push("/events");
+      }
       router.refresh();
     }
   };

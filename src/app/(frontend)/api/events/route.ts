@@ -251,6 +251,7 @@ export async function POST(request: Request) {
       description: body.description,
       type: body.type,
       date: body.date,
+      end_date: body.end_date || null,
       location: body.location,
       coordinates,
       max_participants: body.max_participants,

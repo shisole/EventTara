@@ -10,6 +10,7 @@ interface BookingPageClientProps {
   eventId: string;
   eventTitle: string;
   eventDate: string;
+  eventEndDate?: string | null;
   price: number;
   organizerPaymentInfo?: {
     gcash_number?: string;
@@ -24,6 +25,7 @@ export default function BookingPageClient({
   eventId,
   eventTitle,
   eventDate,
+  eventEndDate,
   price,
   organizerPaymentInfo,
   spotsLeft,
@@ -50,6 +52,7 @@ export default function BookingPageClient({
           eventId={eventId}
           eventTitle={eventTitle}
           eventDate={eventDate}
+          eventEndDate={eventEndDate}
           price={price}
           organizerPaymentInfo={organizerPaymentInfo}
           spotsLeft={spotsLeft}

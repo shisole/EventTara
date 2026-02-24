@@ -45,6 +45,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       description: body.description,
       type: body.type,
       date: body.date,
+      ...(body.end_date !== undefined && { end_date: body.end_date }),
       location: body.location,
       ...(coordinates !== undefined && { coordinates }),
       max_participants: body.max_participants,

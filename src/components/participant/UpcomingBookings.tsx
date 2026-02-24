@@ -6,6 +6,7 @@ import { useState, useRef } from "react";
 
 import { Card, UIBadge, Button } from "@/components/ui";
 import PaymentStatusBadge from "@/components/ui/PaymentStatusBadge";
+import { formatEventDate } from "@/lib/utils/format-date";
 
 interface BookingCompanion {
   full_name: string;
@@ -18,6 +19,7 @@ interface Booking {
   eventTitle: string;
   eventType: string;
   eventDate: string;
+  eventEndDate?: string | null;
   eventLocation: string;
   eventId: string;
   eventPrice: number;
@@ -114,12 +116,7 @@ export default function UpcomingBookings({ bookings }: { bookings: Booking[] }) 
                 </h3>
               </Link>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                📅{" "}
-                {new Date(b.eventDate).toLocaleDateString("en-PH", {
-                  weekday: "short",
-                  month: "short",
-                  day: "numeric",
-                })}
+                📅 {formatEventDate(b.eventDate, b.eventEndDate, { short: true })}
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400">📍 {b.eventLocation}</p>
               <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">

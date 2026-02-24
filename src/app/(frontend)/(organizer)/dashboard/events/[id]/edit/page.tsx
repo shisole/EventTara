@@ -36,6 +36,7 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
           description: event.description || "",
           type: event.type,
           date: event.date,
+          end_date: event.end_date,
           location: event.location,
           coordinates: event.coordinates as { lat: number; lng: number } | null,
           max_participants: event.max_participants,
