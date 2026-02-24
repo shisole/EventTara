@@ -94,18 +94,21 @@ src/
 │   └── page.tsx             # Landing page
 ├── components/
 │   ├── badges/              # Badge cards and grids
+│   ├── booking/             # Booking flow, auth modal, confirmation
 │   ├── dashboard/           # Organizer dashboard components
-│   ├── events/              # Event cards, gallery, booking
+│   ├── events/              # Event cards, gallery
 │   ├── guides/              # Guide cards
 │   ├── layout/              # Navbar, footer, splash screen
 │   ├── maps/                # Map picker, event location map
+│   ├── participant/         # Upcoming/past bookings
 │   ├── reviews/             # Review form, review list, star rating
-│   └── ui/                  # Shared UI primitives
+│   └── ui/                  # Shared UI primitives (date picker, inputs, badges)
 ├── lib/
 │   ├── constants/           # Preset avatars, Philippine provinces
 │   ├── email/               # Email sending + templates
 │   ├── store/               # Redux Toolkit store
 │   ├── supabase/            # Client, server, and types
+│   ├── utils/               # Date formatting, helpers
 │   └── utils.ts             # cn() helper
 └── middleware.ts             # Session refresh
 ```
@@ -124,7 +127,7 @@ Creating your first event automatically upgrades your account to organizer.
 
 ### Events
 
-Browse, filter, and book outdoor adventure events with infinite scroll and pagination. Events support photos, map pins, badges, and reviews.
+Browse, filter, and book outdoor adventure events with infinite scroll and pagination. Events support single-day and multi-day scheduling with a visual date range picker, cover photos, map pins, badges, and reviews. Free events skip the payment step and auto-confirm participants.
 
 ### Guides (Hiking)
 
@@ -136,7 +139,7 @@ Organizers create badges for events. Participants earn badges after check-in, vi
 
 ### Dashboard
 
-Organizers manage events, guides, bookings, check-ins, and payments from `/dashboard`.
+Organizers manage events, guides, bookings, check-ins, and payments from `/dashboard`. Organizers are redirected to the dashboard automatically on login. Event publishing shows real-time loading feedback.
 
 ## API Routes
 
