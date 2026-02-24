@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
   const createdBy = searchParams.get("created_by") || "";
+  const checkDate = searchParams.get("check_date") || "";
+  const excludeEventId = searchParams.get("exclude_event_id") || "";
 
   const supabase = await createClient();
 
@@ -27,6 +29,8 @@ export async function GET(request: NextRequest) {
 
   let eventCounts: Record<string, number> = {};
   let reviewStats: Record<string, { avg: number; count: number }> = {};
+  // Maps guide_id -> conflicting event title (if busy on check_date)
+  let busyGuides: Record<string, string> = {};
 
   if (guideIds.length > 0) {
     // Get event counts via event_guides
@@ -58,6 +62,45 @@ export async function GET(request: NextRequest) {
         reviewStats[gid] = { avg: stats.sum / stats.count, count: stats.count };
       }
     }
+
+    // Check guide availability for a specific date
+    if (checkDate) {
+      const dateObj = new Date(checkDate);
+      const dayStart = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate()).toISOString();
+      const dayEnd = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate() + 1).toISOString();
+
+      const { data: busyRows } = await supabase
+        .from("event_guides")
+        .select("guide_id, event_id")
+        .in("guide_id", guideIds);
+
+      if (busyRows && busyRows.length > 0) {
+        // Get the events to check their dates
+        const eventIds = [...new Set(busyRows.map((r) => r.event_id))];
+        // Exclude the current event being edited
+        const filteredEventIds = excludeEventId
+          ? eventIds.filter((eid) => eid !== excludeEventId)
+          : eventIds;
+
+        if (filteredEventIds.length > 0) {
+          const { data: events } = await supabase
+            .from("events")
+            .select("id, title, date")
+            .in("id", filteredEventIds)
+            .gte("date", dayStart)
+            .lt("date", dayEnd);
+
+          if (events && events.length > 0) {
+            const eventMap = new Map(events.map((e) => [e.id, e.title]));
+            for (const row of busyRows) {
+              if (eventMap.has(row.event_id)) {
+                busyGuides[row.guide_id] = eventMap.get(row.event_id)!;
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   const result = (guides || []).map((guide) => ({
@@ -65,6 +108,10 @@ export async function GET(request: NextRequest) {
     event_count: eventCounts[guide.id] || 0,
     avg_rating: reviewStats[guide.id]?.avg || null,
     review_count: reviewStats[guide.id]?.count || 0,
+    ...(checkDate && {
+      busy: !!busyGuides[guide.id],
+      busy_event_title: busyGuides[guide.id] || null,
+    }),
   }));
 
   return NextResponse.json({ guides: result });

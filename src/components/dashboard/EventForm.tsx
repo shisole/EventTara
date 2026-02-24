@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import dynamic from "next/dynamic";
 import { Button, Input } from "@/components/ui";
 import PhotoUploader from "./PhotoUploader";
@@ -62,27 +63,34 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
     initialData?.initialGuideIds || []
   );
   const [availableGuides, setAvailableGuides] = useState<
-    { id: string; full_name: string; avatar_url: string | null }[]
+    { id: string; full_name: string; avatar_url: string | null; busy?: boolean; busy_event_title?: string | null }[]
   >([]);
+  const [loadingGuides, setLoadingGuides] = useState(false);
 
   useEffect(() => {
-    if (type !== "hiking") {
+    if (type !== "hiking" || !date) {
       setAvailableGuides([]);
       return;
     }
     const fetchGuides = async () => {
+      setLoadingGuides(true);
       const supabase = createClient();
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) return;
-      const res = await fetch(`/api/guides?created_by=${user.id}`);
-      if (!res.ok) return;
+      if (!user) { setLoadingGuides(false); return; }
+      const params = new URLSearchParams({ created_by: user.id, check_date: new Date(date).toISOString() });
+      if (mode === "edit" && initialData?.id) {
+        params.set("exclude_event_id", initialData.id);
+      }
+      const res = await fetch(`/api/guides?${params}`);
+      if (!res.ok) { setLoadingGuides(false); return; }
       const data = await res.json();
       setAvailableGuides(data.guides || []);
+      setLoadingGuides(false);
     };
     fetchGuides();
-  }, [type]);
+  }, [type, date, mode, initialData?.id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -276,40 +284,65 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
         label="Cover Image"
       />
 
-      {type === "hiking" && availableGuides.length > 0 && (
+      {type === "hiking" && date && (
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             Assign Guides
           </label>
-          <div className="space-y-2">
-            {availableGuides.map((guide) => (
-              <label
-                key={guide.id}
-                className="flex items-center gap-3 p-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedGuideIds.includes(guide.id)}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setSelectedGuideIds((prev) => [...prev, guide.id]);
-                    } else {
-                      setSelectedGuideIds((prev) =>
-                        prev.filter((id) => id !== guide.id)
-                      );
-                    }
-                  }}
-                  className="rounded border-gray-300 text-lime-500 focus:ring-lime-500"
-                />
-                <span className="text-sm dark:text-gray-200">
-                  {guide.full_name}
-                </span>
-              </label>
-            ))}
-          </div>
-          <p className="text-xs text-gray-400 dark:text-gray-500">
-            Select guides to assign to this hiking event.
-          </p>
+          {loadingGuides ? (
+            <p className="text-sm text-gray-400 dark:text-gray-500">Checking guide availability...</p>
+          ) : availableGuides.length === 0 ? (
+            <p className="text-sm text-gray-400 dark:text-gray-500">
+              No guides found. <Link href="/dashboard/guides/new" className="text-teal-600 dark:text-teal-400 underline">Add a guide</Link> first.
+            </p>
+          ) : (
+            <>
+              <div className="space-y-2">
+                {availableGuides.map((guide) => {
+                  const isBusy = guide.busy && !selectedGuideIds.includes(guide.id);
+                  return (
+                    <label
+                      key={guide.id}
+                      className={`flex items-center gap-3 p-3 rounded-xl border transition-colors ${
+                        isBusy
+                          ? "border-gray-200 dark:border-gray-700 opacity-60 cursor-not-allowed"
+                          : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedGuideIds.includes(guide.id)}
+                        disabled={isBusy}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedGuideIds((prev) => [...prev, guide.id]);
+                          } else {
+                            setSelectedGuideIds((prev) =>
+                              prev.filter((id) => id !== guide.id)
+                            );
+                          }
+                        }}
+                        className="rounded border-gray-300 text-lime-500 focus:ring-lime-500 disabled:opacity-50"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <span className={`text-sm ${isBusy ? "text-gray-400 dark:text-gray-500" : "dark:text-gray-200"}`}>
+                          {guide.full_name}
+                        </span>
+                        {isBusy && guide.busy_event_title && (
+                          <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">
+                            Assigned to &ldquo;{guide.busy_event_title}&rdquo; on this date
+                          </p>
+                        )}
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-gray-400 dark:text-gray-500">
+                Select guides to assign to this hiking event.
+              </p>
+            </>
+          )}
         </div>
       )}
 
