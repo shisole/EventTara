@@ -25,13 +25,21 @@ const nextConfig = {
     ],
   },
   async rewrites() {
-    if (!supabaseUrl) return [];
-    return [
+    /** @type {import('next').Rewrite[]} */
+    const rules = [
+      // Payload CMS media: serve from public/media/ instead of Payload API
       {
-        source: "/storage/:path*",
-        destination: `${supabaseUrl}/storage/v1/object/public/:path*`,
+        source: "/api/media/file/:path*",
+        destination: "/media/:path*",
       },
     ];
+    if (supabaseUrl) {
+      rules.push({
+        source: "/storage/:path*",
+        destination: `${supabaseUrl}/storage/v1/object/public/:path*`,
+      });
+    }
+    return rules;
   },
   async headers() {
     return [
