@@ -378,7 +378,12 @@ export default function EventFilters({
       </div>
 
       {/* Chip bar */}
-      <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
+      <div
+        className={cn(
+          "flex gap-2 pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide",
+          openId ? "overflow-visible" : "overflow-x-auto",
+        )}
+      >
         {/* ---- Type chip ---- */}
         <FilterChip
           id="type"
