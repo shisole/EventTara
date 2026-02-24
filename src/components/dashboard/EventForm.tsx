@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -35,6 +35,151 @@ const EVENT_TYPES = [
   { value: "running", label: "Running" },
   { value: "trail_run", label: "Trail Running" },
 ];
+
+interface GuideOption {
+  id: string;
+  full_name: string;
+  avatar_url: string | null;
+  busy?: boolean;
+  busy_event_title?: string | null;
+}
+
+function GuideCombobox({
+  guides,
+  selectedIds,
+  onChange,
+  loading,
+}: {
+  guides: GuideOption[];
+  selectedIds: string[];
+  onChange: (ids: string[]) => void;
+  loading: boolean;
+}) {
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  const selectedGuides = guides.filter((g) => selectedIds.includes(g.id));
+  const filtered = guides.filter(
+    (g) =>
+      !selectedIds.includes(g.id) &&
+      g.full_name.toLowerCase().includes(query.toLowerCase())
+  );
+
+  const select = (id: string) => {
+    onChange([...selectedIds, id]);
+    setQuery("");
+    inputRef.current?.focus();
+  };
+
+  const remove = (id: string) => {
+    onChange(selectedIds.filter((sid) => sid !== id));
+  };
+
+  return (
+    <div className="space-y-2">
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        Assign Guides
+      </label>
+
+      {loading ? (
+        <p className="text-sm text-gray-400 dark:text-gray-500">Checking guide availability...</p>
+      ) : guides.length === 0 ? (
+        <p className="text-sm text-gray-400 dark:text-gray-500">
+          No guides found. <Link href="/dashboard/guides/new" className="text-teal-600 dark:text-teal-400 underline">Add a guide</Link> first.
+        </p>
+      ) : (
+        <div ref={wrapperRef} className="relative">
+          {/* Selected chips + search input */}
+          <div
+            className="flex flex-wrap items-center gap-2 px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 cursor-text min-h-[46px]"
+            onClick={() => inputRef.current?.focus()}
+          >
+            {selectedGuides.map((guide) => (
+              <span
+                key={guide.id}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-lime-100 dark:bg-lime-900 text-lime-700 dark:text-lime-300 text-sm font-medium"
+              >
+                {guide.full_name}
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); remove(guide.id); }}
+                  className="hover:text-lime-900 dark:hover:text-lime-100 ml-0.5"
+                  aria-label={`Remove ${guide.full_name}`}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
+                    <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
+                  </svg>
+                </button>
+              </span>
+            ))}
+            <input
+              ref={inputRef}
+              type="text"
+              value={query}
+              onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
+              onFocus={() => setOpen(true)}
+              placeholder={selectedIds.length === 0 ? "Search guides..." : ""}
+              className="flex-1 min-w-[120px] bg-transparent outline-none text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
+            />
+          </div>
+
+          {/* Dropdown */}
+          {open && (
+            <div className="absolute z-20 mt-1 w-full max-h-60 overflow-y-auto rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg">
+              {filtered.length === 0 ? (
+                <p className="px-4 py-3 text-sm text-gray-400 dark:text-gray-500">
+                  {query ? "No guides match your search." : "All guides have been selected."}
+                </p>
+              ) : (
+                filtered.map((guide) => {
+                  const isBusy = !!guide.busy;
+                  return (
+                    <button
+                      key={guide.id}
+                      type="button"
+                      disabled={isBusy}
+                      onClick={() => { if (!isBusy) select(guide.id); }}
+                      className={`w-full text-left px-4 py-3 flex items-center gap-3 transition-colors ${
+                        isBusy
+                          ? "opacity-50 cursor-not-allowed"
+                          : "hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
+                      }`}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <span className="text-sm font-medium dark:text-gray-200">{guide.full_name}</span>
+                        {isBusy && guide.busy_event_title && (
+                          <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">
+                            Busy &mdash; assigned to &ldquo;{guide.busy_event_title}&rdquo; on this date
+                          </p>
+                        )}
+                      </div>
+                      {isBusy && (
+                        <span className="text-xs text-amber-600 dark:text-amber-400 font-medium flex-shrink-0">Unavailable</span>
+                      )}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function EventForm({ mode, initialData }: EventFormProps) {
   const router = useRouter();
@@ -279,65 +424,12 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
       />
 
       {type === "hiking" && date && (
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Assign Guides
-          </label>
-          {loadingGuides ? (
-            <p className="text-sm text-gray-400 dark:text-gray-500">Checking guide availability...</p>
-          ) : availableGuides.length === 0 ? (
-            <p className="text-sm text-gray-400 dark:text-gray-500">
-              No guides found. <Link href="/dashboard/guides/new" className="text-teal-600 dark:text-teal-400 underline">Add a guide</Link> first.
-            </p>
-          ) : (
-            <>
-              <div className="space-y-2">
-                {availableGuides.map((guide) => {
-                  const isBusy = guide.busy && !selectedGuideIds.includes(guide.id);
-                  return (
-                    <label
-                      key={guide.id}
-                      className={`flex items-center gap-3 p-3 rounded-xl border transition-colors ${
-                        isBusy
-                          ? "border-gray-200 dark:border-gray-700 opacity-60 cursor-not-allowed"
-                          : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedGuideIds.includes(guide.id)}
-                        disabled={isBusy}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedGuideIds((prev) => [...prev, guide.id]);
-                          } else {
-                            setSelectedGuideIds((prev) =>
-                              prev.filter((id) => id !== guide.id)
-                            );
-                          }
-                        }}
-                        className="rounded border-gray-300 text-lime-500 focus:ring-lime-500 disabled:opacity-50"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <span className={`text-sm ${isBusy ? "text-gray-400 dark:text-gray-500" : "dark:text-gray-200"}`}>
-                          {guide.full_name}
-                        </span>
-                        {isBusy && guide.busy_event_title && (
-                          <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">
-                            Assigned to &ldquo;{guide.busy_event_title}&rdquo; on this date
-                          </p>
-                        )}
-                      </div>
-                    </label>
-                  );
-                })}
-              </div>
-              <p className="text-xs text-gray-400 dark:text-gray-500">
-                Select guides to assign to this hiking event.
-              </p>
-            </>
-          )}
-        </div>
+        <GuideCombobox
+          guides={availableGuides}
+          selectedIds={selectedGuideIds}
+          onChange={setSelectedGuideIds}
+          loading={loadingGuides}
+        />
       )}
 
       {error && <p className="text-sm text-red-500">{error}</p>}
