@@ -10,7 +10,7 @@ export default function BetaNoticeModal() {
 
   useEffect(() => {
     try {
-      const dismissed = localStorage.getItem(STORAGE_KEY);
+      const dismissed = sessionStorage.getItem(STORAGE_KEY);
       if (!dismissed) {
         setIsOpen(true);
         setTimeout(() => {
@@ -30,7 +30,7 @@ export default function BetaNoticeModal() {
     setIsVisible(false);
     setTimeout(() => {
       try {
-        localStorage.setItem(STORAGE_KEY, "true");
+        sessionStorage.setItem(STORAGE_KEY, "true");
       } catch {
         // Silently fail — modal won't persist in private browsing
       }
