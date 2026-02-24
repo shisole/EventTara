@@ -8,87 +8,38 @@ import { Suspense, useEffect, useState } from "react";
 
 import ExploreDropdown from "@/components/layout/ExploreDropdown";
 import ThemeToggle from "@/components/layout/ThemeToggle";
-import { Button, Avatar } from "@/components/ui";
-import { createClient } from "@/lib/supabase/client";
+import { Avatar, Button } from "@/components/ui";
 
-const activities = [
-  {
-    slug: "hiking",
-    label: "Hiking",
-    icon: "🏔️",
-    image: "https://images.unsplash.com/photo-1551632811-561732d1e306?w=600&h=400&fit=crop",
-  },
-  {
-    slug: "mtb",
-    label: "Mountain Biking",
-    icon: "🚵",
-    image: "https://images.unsplash.com/photo-1544191696-102dbdaeeaa0?w=600&h=400&fit=crop",
-  },
-  {
-    slug: "road_bike",
-    label: "Road Biking",
-    icon: "🚴",
-    image: "https://images.unsplash.com/photo-1517649763962-0c623066013b?w=600&h=400&fit=crop",
-  },
-  {
-    slug: "running",
-    label: "Running",
-    icon: "🏃",
-    image: "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=600&h=400&fit=crop",
-  },
-  {
-    slug: "trail_run",
-    label: "Trail Running",
-    icon: "🥾",
-    image: "https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=600&h=400&fit=crop",
-  },
-];
+interface Activity {
+  slug: string;
+  label: string;
+  icon: string;
+  image: string;
+}
 
-export default function Navbar() {
-  const supabase = createClient();
+interface NavbarProps {
+  user: User | null;
+  role: string | null;
+  loading: boolean;
+  activities: Activity[];
+  onLogout: () => void;
+  onMenuOpen: () => void;
+}
+
+export default function Navbar({
+  user,
+  role,
+  loading,
+  activities,
+  onLogout,
+  onMenuOpen,
+}: NavbarProps) {
   const pathname = usePathname();
-  const [user, setUser] = useState<User | null>(null);
-  const [role, setRole] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [exploreOpen, setExploreOpen] = useState(false);
 
-  const fetchRole = async (userId: string) => {
-    const { data } = await supabase.from("users").select("role").eq("id", userId).single();
-    setRole(data?.role ?? null);
-  };
-
+  // Close dropdowns on route change
   useEffect(() => {
-    const getUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setUser(user);
-      if (user) await fetchRole(user.id);
-      setLoading(false);
-    };
-    void getUser();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        void fetchRole(session.user.id);
-      } else {
-        setRole(null);
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [supabase]);
-
-  // Close menus on route change
-  useEffect(() => {
-    setMenuOpen(false);
     setProfileOpen(false);
     setExploreOpen(false);
   }, [pathname]);
@@ -110,11 +61,6 @@ export default function Navbar() {
       document.removeEventListener("click", handleClick);
     };
   }, [profileOpen, exploreOpen]);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    globalThis.location.href = "/";
-  };
 
   return (
     <nav className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 sticky top-0 z-50">
@@ -228,7 +174,7 @@ export default function Navbar() {
                         My Events
                       </Link>
                       <button
-                        onClick={handleLogout}
+                        onClick={onLogout}
                         className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
                       >
                         Sign Out
@@ -259,173 +205,27 @@ export default function Navbar() {
 
           {/* Mobile hamburger button */}
           <button
-            onClick={() => {
-              setMenuOpen(!menuOpen);
-            }}
+            onClick={onMenuOpen}
             className="md:hidden flex items-center justify-center w-11 h-11 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-label="Open menu"
           >
-            {menuOpen ? (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="w-6 h-6"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="w-6 h-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
-                />
-              </svg>
-            )}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="w-6 h-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+              />
+            </svg>
           </button>
         </div>
       </div>
-
-      {/* Mobile menu dropdown */}
-      {menuOpen && (
-        <div className="md:hidden border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
-          <div className="px-4 py-4 space-y-2">
-            <div>
-              <button
-                onClick={() => {
-                  setExploreOpen(!exploreOpen);
-                }}
-                className="w-full px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium min-h-[44px] flex items-center justify-between"
-              >
-                Explore Events
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2}
-                  stroke="currentColor"
-                  className={`w-4 h-4 transition-transform ${exploreOpen ? "rotate-180" : ""}`}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M19.5 8.25l-7.5 7.5-7.5-7.5"
-                  />
-                </svg>
-              </button>
-              {exploreOpen && (
-                <div className="ml-4 space-y-1">
-                  <Link
-                    href="/events"
-                    onClick={() => {
-                      setMenuOpen(false);
-                    }}
-                    className="block px-4 py-2 rounded-lg text-sm font-semibold text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800 min-h-[44px] flex items-center"
-                  >
-                    All Events
-                  </Link>
-                  {activities.map((activity) => (
-                    <Link
-                      key={activity.slug}
-                      href={`/events?type=${activity.slug}`}
-                      onClick={() => {
-                        setMenuOpen(false);
-                      }}
-                      className="px-4 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 min-h-[44px] flex items-center gap-2"
-                    >
-                      <span>{activity.icon}</span>
-                      {activity.label}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-            {user ? (
-              <>
-                <Link
-                  href="/profile"
-                  onClick={() => {
-                    setMenuOpen(false);
-                  }}
-                  className="block px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium min-h-[44px] flex items-center"
-                >
-                  Profile
-                </Link>
-                <Link
-                  href="/my-events"
-                  onClick={() => {
-                    setMenuOpen(false);
-                  }}
-                  className="block px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium min-h-[44px] flex items-center"
-                >
-                  My Events
-                </Link>
-                {role === "organizer" && (
-                  <Link
-                    href="/dashboard"
-                    onClick={() => {
-                      setMenuOpen(false);
-                    }}
-                    className="block px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium min-h-[44px] flex items-center"
-                  >
-                    Dashboard
-                  </Link>
-                )}
-                <button
-                  onClick={() => {
-                    setMenuOpen(false);
-                    void handleLogout();
-                  }}
-                  className="w-full text-left px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium min-h-[44px] flex items-center"
-                >
-                  Sign Out
-                </button>
-              </>
-            ) : (
-              <div className="flex flex-col gap-2 pt-2">
-                <Link
-                  href="/signup?role=organizer"
-                  onClick={() => {
-                    setMenuOpen(false);
-                  }}
-                >
-                  <Button variant="ghost" className="w-full min-h-[44px]">
-                    Host Your Event
-                  </Button>
-                </Link>
-                <Link
-                  href="/login"
-                  onClick={() => {
-                    setMenuOpen(false);
-                  }}
-                >
-                  <Button variant="ghost" className="w-full min-h-[44px]">
-                    Sign In
-                  </Button>
-                </Link>
-                <Link
-                  href="/signup"
-                  onClick={() => {
-                    setMenuOpen(false);
-                  }}
-                >
-                  <Button className="w-full min-h-[44px]">Get Started</Button>
-                </Link>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </nav>
   );
 }
