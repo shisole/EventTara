@@ -83,12 +83,12 @@ export default function MobileNav() {
         setProfileHref("/my-events");
       }
     };
-    fetchProfile();
+    void fetchProfile();
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(() => {
-      fetchProfile();
+      void fetchProfile();
     });
 
     return () => {

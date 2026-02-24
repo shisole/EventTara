@@ -72,7 +72,7 @@ function ReuploadButton({ bookingId }: { bookingId: string }) {
         className="hidden"
         onChange={(e) => {
           const file = e.target.files?.[0];
-          if (file) handleUpload(file);
+          if (file) void handleUpload(file);
         }}
       />
     </>

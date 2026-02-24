@@ -74,8 +74,8 @@ export default function CheckinList({
       .subscribe();
 
     return () => {
-      supabase.removeChannel(checkinChannel);
-      supabase.removeChannel(companionChannel);
+      void supabase.removeChannel(checkinChannel);
+      void supabase.removeChannel(companionChannel);
     };
   }, [eventId, supabase]);
 

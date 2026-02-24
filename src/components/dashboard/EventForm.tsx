@@ -265,7 +265,7 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
       setAvailableGuides(data.guides || []);
       setLoadingGuides(false);
     };
-    fetchGuides();
+    void fetchGuides();
   }, [type, date, mode, initialData?.id]);
 
   const handleSubmit = async (e: React.FormEvent) => {

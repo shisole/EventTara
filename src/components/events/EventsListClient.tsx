@@ -107,7 +107,7 @@ export default function EventsListClient({ initialEvents, totalCount }: EventsLi
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
-          loadMore();
+          void loadMore();
         }
       },
       { rootMargin: "200px" },

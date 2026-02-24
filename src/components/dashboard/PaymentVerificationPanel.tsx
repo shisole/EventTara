@@ -39,8 +39,43 @@ interface PaymentVerificationPanelProps {
 
 type FilterTab = "all" | "pending" | "paid" | "rejected";
 
+const paymentMethodLabel = (method: string) => {
+  switch (method) {
+    case "gcash": {
+      return "GCash";
+    }
+    case "maya": {
+      return "Maya";
+    }
+    case "cash": {
+      return "Cash";
+    }
+    default: {
+      return method?.toUpperCase() || "N/A";
+    }
+  }
+};
+
+const paymentMethodStyle = (method: string) => {
+  switch (method) {
+    case "gcash": {
+      return "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300";
+    }
+    case "maya": {
+      return "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300";
+    }
+    case "cash": {
+      return "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400";
+    }
+    default: {
+      return "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400";
+    }
+  }
+};
+
 export default function PaymentVerificationPanel({
   eventId,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   eventPrice,
 }: PaymentVerificationPanelProps) {
   const [bookings, setBookings] = useState<PaymentBooking[]>([]);
@@ -73,7 +108,7 @@ export default function PaymentVerificationPanel({
   };
 
   useEffect(() => {
-    fetchData();
+    void fetchData();
   }, [eventId]);
 
   const handleAction = async (bookingId: string, action: "approve" | "reject") => {
@@ -99,40 +134,6 @@ export default function PaymentVerificationPanel({
     if (filter === "all") return true;
     return b.payment_status === filter;
   });
-
-  const paymentMethodLabel = (method: string) => {
-    switch (method) {
-      case "gcash": {
-        return "GCash";
-      }
-      case "maya": {
-        return "Maya";
-      }
-      case "cash": {
-        return "Cash";
-      }
-      default: {
-        return method?.toUpperCase() || "N/A";
-      }
-    }
-  };
-
-  const paymentMethodStyle = (method: string) => {
-    switch (method) {
-      case "gcash": {
-        return "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300";
-      }
-      case "maya": {
-        return "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300";
-      }
-      case "cash": {
-        return "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400";
-      }
-      default: {
-        return "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400";
-      }
-    }
-  };
 
   if (loading) {
     return (
@@ -328,7 +329,7 @@ export default function PaymentVerificationPanel({
                     variant="ghost"
                     size="sm"
                     onClick={() => {
-                      if (viewingBookingId) handleAction(viewingBookingId, "reject");
+                      if (viewingBookingId) void handleAction(viewingBookingId, "reject");
                     }}
                     disabled={actionLoading === viewingBookingId}
                     className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
@@ -339,7 +340,7 @@ export default function PaymentVerificationPanel({
                     variant="primary"
                     size="sm"
                     onClick={() => {
-                      if (viewingBookingId) handleAction(viewingBookingId, "approve");
+                      if (viewingBookingId) void handleAction(viewingBookingId, "approve");
                     }}
                     disabled={actionLoading === viewingBookingId}
                   >

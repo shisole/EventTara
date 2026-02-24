@@ -18,6 +18,7 @@ interface AuthBookingModalProps {
 
 export default function AuthBookingModal({
   eventName,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   eventId,
   onAuthenticated,
 }: AuthBookingModalProps) {
@@ -52,7 +53,7 @@ export default function AuthBookingModal({
   useEffect(() => {
     if (state !== "success") return;
 
-    confetti({
+    void confetti({
       particleCount: 120,
       spread: 80,
       origin: { y: 0.6 },
@@ -132,8 +133,10 @@ export default function AuthBookingModal({
     if (!pasted) return;
 
     const newCode = [...code];
-    for (const [i, char] of [...pasted].entries()) {
-      newCode[i] = char;
+    let idx = 0;
+    for (const char of pasted) {
+      newCode[idx] = char;
+      idx++;
     }
     setCode(newCode);
     setError("");

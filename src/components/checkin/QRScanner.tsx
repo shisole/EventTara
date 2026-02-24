@@ -83,7 +83,9 @@ export default function QRScanner({ eventId }: QRScannerProps) {
             }, 2000);
           }
         },
-        () => {}, // ignore errors during scanning
+        () => {
+          /* noop: ignore errors during scanning */
+        },
       );
       setScanning(true);
     } catch (error_: any) {
@@ -102,7 +104,9 @@ export default function QRScanner({ eventId }: QRScannerProps) {
   useEffect(() => {
     return () => {
       if (scannerRef.current) {
-        scannerRef.current.stop().catch(() => {});
+        scannerRef.current.stop().catch(() => {
+          /* noop */
+        });
       }
     };
   }, []);

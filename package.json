@@ -6,7 +6,7 @@
     "dev": "next dev --port 3001",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint --ext .ts,.tsx src/",
     "seed": "npx tsx scripts/seed.ts",
     "unseed": "npx tsx scripts/unseed.ts",
     "seed:cms": "node --import tsx scripts/seed-cms-pages.ts",

@@ -10,7 +10,7 @@ export default function HostEventLink() {
 
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    void supabase.auth.getUser().then(({ data: { user } }) => {
       if (user && !user.is_anonymous) {
         setHref("/events");
       }

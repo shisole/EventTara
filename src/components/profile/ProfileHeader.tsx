@@ -22,7 +22,7 @@ export default function ProfileHeader({
   const [copied, setCopied] = useState(false);
 
   const handleShare = () => {
-    navigator.clipboard.writeText(globalThis.location.href);
+    void navigator.clipboard.writeText(globalThis.location.href);
     setCopied(true);
     setTimeout(() => {
       setCopied(false);

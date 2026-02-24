@@ -44,7 +44,7 @@ async function compressImage(file: File): Promise<File> {
           const byteString = atob(base64);
           const byteArray = new Uint8Array(byteString.length);
           for (let i = 0; i < byteString.length; i++) {
-            byteArray[i] = byteString.charCodeAt(i);
+            byteArray[i] = byteString.codePointAt(i)!;
           }
           const blob = new Blob([byteArray], { type: "image/jpeg" });
           resolve(new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg" }));
@@ -52,7 +52,9 @@ async function compressImage(file: File): Promise<File> {
         }
       }
     });
-    img.onerror = reject;
+    img.addEventListener("error", () => {
+      reject(new Error("Failed to load image"));
+    });
     img.src = URL.createObjectURL(file);
   });
 }

@@ -42,14 +42,14 @@ export default function Navbar() {
       if (user) await fetchRole(user.id);
       setLoading(false);
     };
-    getUser();
+    void getUser();
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchRole(session.user.id);
+        void fetchRole(session.user.id);
       } else {
         setRole(null);
       }
@@ -374,7 +374,7 @@ export default function Navbar() {
                 <button
                   onClick={() => {
                     setMenuOpen(false);
-                    handleLogout();
+                    void handleLogout();
                   }}
                   className="w-full text-left px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium min-h-[44px] flex items-center"
                 >
