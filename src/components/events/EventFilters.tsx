@@ -172,7 +172,7 @@ function FilterChip({
         <div
           className={cn(
             "fixed inset-0 z-[60] flex flex-col sm:hidden",
-            mobileFullscreen ? "" : "justify-end pb-20",
+            mobileFullscreen ? "" : "justify-end",
           )}
         >
           {/* Backdrop */}
@@ -213,7 +213,7 @@ function FilterChip({
                 </svg>
               </button>
             </div>
-            <div className="flex-1 min-h-0 overflow-y-auto">{children}</div>
+            <div className="flex-1 min-h-0 overflow-y-auto pb-20 safe-area-bottom">{children}</div>
           </div>
         </div>
       )}
@@ -716,7 +716,7 @@ export default function EventFilters({
           : undefined;
 
   /* Only show Guide chip when hiking is among selected types */
-  const showGuideChip = currentTypes.has("hiking");
+  const showGuideChip = isAllSelected(currentTypes) || currentTypes.has("hiking");
 
   return (
     <div className="space-y-4">
