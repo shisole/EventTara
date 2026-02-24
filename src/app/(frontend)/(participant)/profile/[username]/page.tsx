@@ -75,7 +75,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
     const { data: bookingData } = await supabase
       .from("bookings")
       .select(
-        "id, qr_code, payment_status, payment_method, payment_proof_url, events(id, title, type, date, location, price)",
+        "id, qr_code, payment_status, payment_method, payment_proof_url, events(id, title, type, date, end_date, location, price)",
       )
       .eq("user_id", user.id)
       .in("status", ["confirmed", "pending"])
@@ -108,6 +108,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
       eventTitle: b.events.title,
       eventType: b.events.type,
       eventDate: b.events.date,
+      eventEndDate: b.events.end_date,
       eventLocation: b.events.location,
       eventId: b.events.id,
       eventPrice: b.events.price,
@@ -154,6 +155,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
       eventTitle: b.events.title,
       eventType: b.events.type,
       eventDate: b.events.date,
+      eventEndDate: b.events.end_date,
       eventPrice: b.events.price,
       badgeTitle: badgeMap.get(b.events.id)?.title || null,
       badgeImageUrl: badgeMap.get(b.events.id)?.imageUrl || null,

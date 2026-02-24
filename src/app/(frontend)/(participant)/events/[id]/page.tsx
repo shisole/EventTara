@@ -13,6 +13,7 @@ import ReviewList from "@/components/reviews/ReviewList";
 import { UIBadge } from "@/components/ui";
 import { resolvePresetImage } from "@/lib/constants/avatars";
 import { createClient } from "@/lib/supabase/server";
+import { formatEventDate } from "@/lib/utils/format-date";
 
 const typeLabels: Record<string, string> = {
   hiking: "Hiking",
@@ -212,15 +213,9 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
   }
 
   const spotsLeft = event.max_participants - bookingCount;
-  const formattedDate = new Date(event.date).toLocaleDateString("en-PH", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-  const formattedTime = new Date(event.date).toLocaleTimeString("en-PH", {
-    hour: "numeric",
-    minute: "2-digit",
+  const formattedDate = formatEventDate(event.date, event.end_date, {
+    includeTime: true,
+    includeYear: true,
   });
 
   const organizer = event.organizer_profiles as any;
@@ -243,9 +238,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
             </UIBadge>
             <h1 className="text-3xl md:text-4xl font-heading font-bold mb-4">{event.title}</h1>
             <div className="flex flex-wrap items-center gap-4 text-gray-600 dark:text-gray-400">
-              <span>
-                {formattedDate} at {formattedTime}
-              </span>
+              <span>{formattedDate}</span>
               <span>{event.location}</span>
               <span className="hidden sm:block text-gray-300 dark:text-gray-600">|</span>
               <ShareButtons title={event.title} eventId={id} />

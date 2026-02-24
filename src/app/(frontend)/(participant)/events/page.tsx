@@ -246,6 +246,7 @@ export default async function EventsPage({
       title: event.title,
       type: event.type,
       date: event.date,
+      endDate: event.end_date,
       location: event.location,
       price: Number(event.price),
       cover_image_url: event.cover_image_url,

@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { Button } from "@/components/ui";
+import { formatEventDate } from "@/lib/utils/format-date";
 
 import BookingConfirmation from "./BookingConfirmation";
 import CompanionFields, { type Companion } from "./CompanionFields";
@@ -14,6 +15,7 @@ interface BookingFormProps {
   eventId: string;
   eventTitle: string;
   eventDate: string;
+  eventEndDate?: string | null;
   price: number;
   organizerPaymentInfo?: {
     gcash_number?: string;
@@ -27,6 +29,7 @@ export default function BookingForm({
   eventId,
   eventTitle,
   eventDate,
+  eventEndDate,
   price,
   organizerPaymentInfo,
   spotsLeft = 999,
@@ -133,6 +136,7 @@ export default function BookingForm({
         bookingId={booking.id}
         eventTitle={eventTitle}
         eventDate={eventDate}
+        eventEndDate={eventEndDate}
         qrCode={booking.qr_code}
         paymentStatus={booking.payment_status}
         paymentMethod={booking.payment_method}
@@ -147,11 +151,7 @@ export default function BookingForm({
       <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
         <h3 className="font-heading font-bold">{eventTitle}</h3>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          {new Date(eventDate).toLocaleDateString("en-PH", {
-            weekday: "long",
-            month: "long",
-            day: "numeric",
-          })}
+          {formatEventDate(eventDate, eventEndDate)}
         </p>
         <p className="text-lg font-bold text-lime-600 dark:text-lime-400 mt-2">
           {isFree

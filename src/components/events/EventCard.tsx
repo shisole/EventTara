@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { Card, UIBadge } from "@/components/ui";
 import { cn } from "@/lib/utils";
+import { formatEventDate } from "@/lib/utils/format-date";
 
 import OrganizerLink from "./OrganizerLink";
 
@@ -13,6 +14,7 @@ interface EventCardProps {
   title: string;
   type: string;
   date: string;
+  endDate?: string | null;
   location: string;
   price: number;
   cover_image_url: string | null;
@@ -39,6 +41,7 @@ export default function EventCard({
   title,
   type,
   date,
+  endDate,
   location,
   price,
   cover_image_url,
@@ -52,12 +55,7 @@ export default function EventCard({
   review_count,
 }: EventCardProps) {
   const spotsLeft = max_participants - booking_count;
-  const formattedDate = new Date(date).toLocaleDateString("en-PH", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  const formattedDate = formatEventDate(date, endDate, { short: true });
 
   return (
     <Link href={`/events/${id}`}>

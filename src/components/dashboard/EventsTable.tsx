@@ -5,6 +5,7 @@ import { useState, useMemo } from "react";
 
 import { Button, UIBadge } from "@/components/ui";
 import { cn } from "@/lib/utils";
+import { formatEventDate } from "@/lib/utils/format-date";
 
 const statusStyles: Record<string, string> = {
   draft: "default",
@@ -120,11 +121,7 @@ export default function EventsTable({ events }: EventsTableProps) {
                 </Link>
               </td>
               <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                {new Date(event.date).toLocaleDateString("en-PH", {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                })}
+                {formatEventDate(event.date, event.end_date, { includeYear: true })}
               </td>
               <td className="px-6 py-4">
                 <UIBadge variant={statusStyles[event.status] as any}>{event.status}</UIBadge>

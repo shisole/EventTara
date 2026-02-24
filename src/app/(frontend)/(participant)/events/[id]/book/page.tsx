@@ -17,7 +17,7 @@ export default async function BookEventPage({
 
   const { data: event } = await supabase
     .from("events")
-    .select("id, title, date, price, max_participants, organizer_id")
+    .select("id, title, date, end_date, price, max_participants, organizer_id")
     .eq("id", id)
     .eq("status", "published")
     .single();
@@ -80,6 +80,7 @@ export default async function BookEventPage({
           eventId={event.id}
           eventTitle={event.title}
           eventDate={event.date}
+          eventEndDate={event.end_date}
           price={event.price}
           organizerPaymentInfo={organizerPaymentInfo}
           spotsLeft={spotsLeft}

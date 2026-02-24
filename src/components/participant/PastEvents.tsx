@@ -1,12 +1,14 @@
 import Link from "next/link";
 
 import { Card, UIBadge } from "@/components/ui";
+import { formatEventDate } from "@/lib/utils/format-date";
 
 interface PastEvent {
   eventId: string;
   eventTitle: string;
   eventType: string;
   eventDate: string;
+  eventEndDate?: string | null;
   eventPrice: number;
   badgeTitle: string | null;
   badgeImageUrl: string | null;
@@ -48,11 +50,7 @@ export default function PastEvents({ events }: { events: PastEvent[] }) {
                 </h3>
               </Link>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                {new Date(e.eventDate).toLocaleDateString("en-PH", {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                })}
+                {formatEventDate(e.eventDate, e.eventEndDate, { includeYear: true })}
               </p>
               <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                 {e.eventPrice > 0 ? `₱${e.eventPrice.toLocaleString()}` : "Free"}

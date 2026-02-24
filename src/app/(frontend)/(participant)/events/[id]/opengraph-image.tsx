@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 
 import { createClient } from "@/lib/supabase/server";
+import { formatEventDate } from "@/lib/utils/format-date";
 
 export const alt = "Event on EventTara";
 export const size = { width: 1200, height: 630 };
@@ -28,7 +29,7 @@ export default async function OGImage({ params }: { params: Promise<{ id: string
 
   const { data: event } = await supabase
     .from("events")
-    .select("title, type, date, price, location, cover_image_url")
+    .select("title, type, date, end_date, price, location, cover_image_url")
     .eq("id", id)
     .single();
 
@@ -54,12 +55,7 @@ export default async function OGImage({ params }: { params: Promise<{ id: string
   }
 
   const typeBadgeColor = typeColors[event.type] || "#166534";
-  const formattedDate = new Date(event.date).toLocaleDateString("en-PH", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  const formattedDate = formatEventDate(event.date, event.end_date, { short: true });
   const price = event.price === 0 ? "Free" : `\u20B1${event.price.toLocaleString()}`;
 
   return new ImageResponse(
