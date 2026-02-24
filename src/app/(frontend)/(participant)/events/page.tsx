@@ -1,3 +1,5 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
+
 import EventFilters from "@/components/events/EventFilters";
 import EventsListClient from "@/components/events/EventsListClient";
 import { createClient } from "@/lib/supabase/server";
@@ -18,10 +20,68 @@ function getEventStatus(eventDate: string, today: string): "upcoming" | "happeni
   return dateOnly > today ? "upcoming" : "past";
 }
 
+/** Fetch organizer options: organizers that have at least one published event */
+async function fetchOrganizerOptions(
+  supabase: SupabaseClient<Database>,
+): Promise<{ id: string; name: string }[]> {
+  const { data } = await supabase
+    .from("organizer_profiles")
+    .select("id, org_name, events!inner(id)")
+    .eq("events.status", "published");
+
+  if (!data) return [];
+
+  // Inner join can return duplicate rows — dedupe by organizer id
+  const seen = new Set<string>();
+  const result: { id: string; name: string }[] = [];
+  for (const row of data) {
+    if (!seen.has(row.id)) {
+      seen.add(row.id);
+      result.push({ id: row.id, name: row.org_name });
+    }
+  }
+  return result;
+}
+
+/** Fetch guide options: guides linked to at least one published hiking event */
+async function fetchGuideOptions(
+  supabase: SupabaseClient<Database>,
+): Promise<{ id: string; name: string }[]> {
+  const { data } = await supabase
+    .from("event_guides")
+    .select("guide_id, guides!inner(full_name), events!inner(status, type)")
+    .eq("events.status", "published")
+    .eq("events.type", "hiking");
+
+  if (!data) return [];
+
+  // Dedupe by guide_id
+  const seen = new Set<string>();
+  const result: { id: string; name: string }[] = [];
+  for (const row of data) {
+    if (!seen.has(row.guide_id)) {
+      seen.add(row.guide_id);
+      result.push({
+        id: row.guide_id,
+        name: (row.guides as any).full_name,
+      });
+    }
+  }
+  return result;
+}
+
 export default async function EventsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ type?: string; search?: string; when?: string }>;
+  searchParams: Promise<{
+    type?: string;
+    search?: string;
+    when?: string;
+    org?: string;
+    guide?: string;
+    from?: string;
+    to?: string;
+  }>;
 }) {
   const params = await searchParams;
   const supabase = await createClient();
@@ -73,6 +133,49 @@ export default async function EventsPage({
     const filter = `title.ilike.%${pattern}%,location.ilike.%${pattern}%`;
     countQuery = countQuery.or(filter);
     dataQuery = dataQuery.or(filter);
+  }
+
+  if (params.org) {
+    countQuery = countQuery.eq("organizer_id", params.org);
+    dataQuery = dataQuery.eq("organizer_id", params.org);
+  }
+
+  if (params.from) {
+    countQuery = countQuery.gte("date", params.from);
+    dataQuery = dataQuery.gte("date", params.from);
+  }
+
+  if (params.to) {
+    countQuery = countQuery.lte("date", `${params.to}T23:59:59`);
+    dataQuery = dataQuery.lte("date", `${params.to}T23:59:59`);
+  }
+
+  // Guide filter: fetch linked event IDs first, then constrain both queries
+  if (params.guide) {
+    const { data: links } = await supabase
+      .from("event_guides")
+      .select("event_id")
+      .eq("guide_id", params.guide);
+
+    const eventIds = links?.map((l) => l.event_id) ?? [];
+    if (eventIds.length === 0) {
+      // No events linked to this guide — short-circuit with empty results
+      const organizers = await fetchOrganizerOptions(supabase);
+      const guides = await fetchGuideOptions(supabase);
+      return (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="mb-8">
+            <h1 className="text-3xl font-heading font-bold mb-4">Explore Events</h1>
+            <EventFilters organizers={organizers} guides={guides} />
+          </div>
+
+          <EventsListClient initialEvents={[]} totalCount={0} />
+        </div>
+      );
+    }
+
+    countQuery = countQuery.in("id", eventIds);
+    dataQuery = dataQuery.in("id", eventIds);
   }
 
   // For "no when filter" we need all events to sort upcoming-first, then slice
@@ -135,11 +238,17 @@ export default async function EventsPage({
 
   const totalCount = count ?? 0;
 
+  // Fetch filter dropdown options in parallel
+  const [organizers, guides] = await Promise.all([
+    fetchOrganizerOptions(supabase),
+    fetchGuideOptions(supabase),
+  ]);
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-heading font-bold mb-4">Explore Events</h1>
-        <EventFilters />
+        <EventFilters organizers={organizers} guides={guides} />
       </div>
 
       <EventsListClient initialEvents={gridEvents} totalCount={totalCount} />
