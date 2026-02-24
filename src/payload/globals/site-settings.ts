@@ -45,6 +45,19 @@ export const SiteSettings: GlobalConfig = {
       },
     },
     {
+      name: "navLayout",
+      type: "select",
+      defaultValue: "strip",
+      options: [
+        { label: "Strip (horizontal cards)", value: "strip" },
+        { label: "Grid (2-column)", value: "grid" },
+        { label: "List (narrow)", value: "list" },
+      ],
+      admin: {
+        description: "Layout style for the Explore Events dropdown in the navigation bar.",
+      },
+    },
+    {
       name: "seo",
       type: "group",
       fields: [
