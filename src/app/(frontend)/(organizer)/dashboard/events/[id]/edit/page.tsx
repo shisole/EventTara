@@ -16,6 +16,18 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
 
   if (!event) notFound();
 
+  // Fetch existing event guides for pre-population
+  let initialGuideIds: string[] = [];
+  if (event.type === "hiking") {
+    const { data: eventGuides } = await supabase
+      .from("event_guides")
+      .select("guide_id")
+      .eq("event_id", id);
+    if (eventGuides) {
+      initialGuideIds = eventGuides.map((eg) => eg.guide_id);
+    }
+  }
+
   return (
     <div>
       <h1 className="text-2xl font-heading font-bold mb-8 dark:text-white">Edit Event</h1>
@@ -33,6 +45,7 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
           price: Number(event.price),
           cover_image_url: event.cover_image_url,
           status: event.status,
+          initialGuideIds,
         }}
       />
     </div>

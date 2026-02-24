@@ -29,7 +29,7 @@ export default function Avatar({ src, alt, size = "md", className }: AvatarProps
     return (
       <div
         className={cn(
-          "rounded-full bg-lime-100 dark:bg-lime-900 text-lime-600 dark:text-lime-300 flex items-center justify-center font-semibold",
+          "rounded-full bg-lime-100 dark:bg-lime-900 text-lime-600 dark:text-lime-300 flex items-center justify-center font-semibold flex-shrink-0 aspect-square",
           sizeMap[size],
           className
         )}
@@ -45,7 +45,7 @@ export default function Avatar({ src, alt, size = "md", className }: AvatarProps
       alt={alt}
       width={pixelMap[size]}
       height={pixelMap[size]}
-      className={cn("rounded-full object-cover", sizeMap[size], className)}
+      className={cn("rounded-full object-cover flex-shrink-0", sizeMap[size], className)}
     />
   );
 }

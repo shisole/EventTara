@@ -6,8 +6,9 @@ Adventure event booking platform for the Philippines. Browse, book, and manage o
 
 ## Tech Stack
 
-- **Framework:** Next.js 14 (App Router)
+- **Framework:** Next.js 15 (App Router) + React 19
 - **Database & Auth:** Supabase
+- **CMS:** Payload CMS v3
 - **Styling:** Tailwind CSS
 - **Email:** Resend
 - **AI:** Anthropic Claude SDK
@@ -48,11 +49,11 @@ Fill in your keys:
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3001](http://localhost:3001).
 
 ### 4. Seed the database (optional)
 
-Populate the database with test accounts, events, badges, and bookings:
+Populate the database with test accounts, events, guides, badges, and bookings:
 
 ```bash
 npm run seed
@@ -70,53 +71,79 @@ npm run unseed
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start development server |
+| `npm run dev` | Start development server (port 3001) |
 | `npm run build` | Production build |
 | `npm run start` | Start production server |
 | `npm run lint` | Run ESLint |
 | `npm run seed` | Seed database with test data |
 | `npm run unseed` | Remove seeded data |
+| `npm run seed:cms` | Seed Payload CMS with sample pages |
+| `npm run test:e2e` | Run Playwright E2E tests |
 
 ## Project Structure
 
 ```
 src/
 ├── app/
-│   ├── (auth)/          # Login, signup, guest setup
-│   ├── (participant)/   # Events, bookings, profiles, badges
-│   ├── (organizer)/     # Dashboard, event management, check-ins
-│   ├── api/             # API routes
-│   └── page.tsx         # Landing page
+│   ├── (frontend)/
+│   │   ├── (auth)/          # Login, signup, guest setup
+│   │   ├── (participant)/   # Events, bookings, profiles, guides, badges
+│   │   ├── (organizer)/     # Dashboard, event/guide management, check-ins
+│   │   └── api/             # API routes
+│   ├── (payload)/           # Payload CMS admin (/admin)
+│   └── page.tsx             # Landing page
 ├── components/
-│   ├── badges/          # Badge cards and grids
-│   ├── dashboard/       # Organizer dashboard components
-│   ├── events/          # Event cards, gallery, booking
-│   ├── layout/          # Navbar, footer, splash screen
-│   └── ui/              # Shared UI primitives
+│   ├── badges/              # Badge cards and grids
+│   ├── dashboard/           # Organizer dashboard components
+│   ├── events/              # Event cards, gallery, booking
+│   ├── guides/              # Guide cards
+│   ├── layout/              # Navbar, footer, splash screen
+│   ├── maps/                # Map picker, event location map
+│   ├── reviews/             # Review form, review list, star rating
+│   └── ui/                  # Shared UI primitives
 ├── lib/
-│   ├── constants/       # Preset avatars, config
-│   ├── email/           # Email sending + templates
-│   ├── supabase/        # Client, server, and types
-│   └── utils.ts         # cn() helper
-└── middleware.ts         # Session refresh
+│   ├── constants/           # Preset avatars, Philippine provinces
+│   ├── email/               # Email sending + templates
+│   ├── store/               # Redux Toolkit store
+│   ├── supabase/            # Client, server, and types
+│   └── utils.ts             # cn() helper
+└── middleware.ts             # Session refresh
 ```
 
 ## User Roles
 
 | Role | Description |
 |------|-------------|
-| **Participant** | Browse events, book spots, earn badges |
-| **Organizer** | Create events, manage bookings, check in participants, award badges |
+| **Participant** | Browse events, book spots, earn badges, review events and guides |
+| **Organizer** | Create events, manage guides, manage bookings, check in participants, award badges |
 | **Guest** | Anonymous browsing via Supabase anonymous auth |
 
 Creating your first event automatically upgrades your account to organizer.
+
+## Key Features
+
+### Events
+Browse, filter, and book outdoor adventure events with infinite scroll and pagination. Events support photos, map pins, badges, and reviews.
+
+### Guides (Hiking)
+Organizers manage hiking guide profiles on behalf of local guides. Guides appear on hiking event detail pages and have public profile pages at `/guides/[id]` with bio, contact, ratings, events, and reviews. Participants can review guides after completing events.
+
+### Badges
+Organizers create badges for events. Participants earn badges after check-in, viewable on their profile.
+
+### Dashboard
+Organizers manage events, guides, bookings, check-ins, and payments from `/dashboard`.
 
 ## API Routes
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/api/events` | POST | Create event |
+| `/api/events` | GET, POST | List/create events |
 | `/api/events/[id]` | GET, PATCH, DELETE | Manage event |
+| `/api/events/[id]/guides` | GET, POST, DELETE | Event-guide linking |
+| `/api/guides` | GET, POST | List/create guides |
+| `/api/guides/[id]` | GET, PATCH, DELETE | Manage guide |
+| `/api/guides/[id]/reviews` | GET, POST | Guide reviews |
 | `/api/bookings` | POST | Book an event |
 | `/api/checkins` | POST | Check in participant (QR or manual) |
 | `/api/badges` | GET, POST | List or create badges |

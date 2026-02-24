@@ -1061,6 +1061,237 @@ const TEST_EVENTS: TestEvent[] = [
 ];
 
 // ---------------------------------------------------------------------------
+// Test Guides
+// ---------------------------------------------------------------------------
+
+interface TestGuide {
+  full_name: string;
+  bio: string;
+  contact_number: string;
+  createdByEmail: string;
+}
+
+const TEST_GUIDES: TestGuide[] = [
+  {
+    full_name: "Rodrigo 'Tatay Rod' Espinosa",
+    bio: "Local mountain guide from Culasi, Antique. 20+ years leading treks to Mt. Madja-as summit. Knows every trail, every plant, every bird call in the Madja-as range.",
+    contact_number: "09171234567",
+    createdByEmail: `organizer1${TEST_EMAIL_DOMAIN}`,
+  },
+  {
+    full_name: "Lorna 'Nanay Lorna' Delos Santos",
+    bio: "Community guide from Igbaras, Iloilo. Born and raised in Brgy. Passi at the foot of the mountains. Leads day hikes and waterfall treks across the hiking capital of Iloilo.",
+    contact_number: "09181234568",
+    createdByEmail: `organizer1${TEST_EMAIL_DOMAIN}`,
+  },
+  {
+    full_name: "Benito Salazar Jr.",
+    bio: "Certified mountaineer and trail runner from Leon, Iloilo. Summited all major Panay peaks including Madja-as, Nangtud, and Malinao. Specializes in multi-day expeditions.",
+    contact_number: "09191234569",
+    createdByEmail: `organizer3${TEST_EMAIL_DOMAIN}`,
+  },
+  {
+    full_name: "Maricel 'Cel' Aguirre",
+    bio: "Environmental science graduate turned mountain guide. Passionate about flora and fauna identification along Panay trails. Leads educational eco-hikes through watersheds and forests.",
+    contact_number: "09201234570",
+    createdByEmail: `organizer3${TEST_EMAIL_DOMAIN}`,
+  },
+  {
+    full_name: "Romeo 'Kuya Romy' Bautista",
+    bio: "Former barangay captain of a mountain village in Tubungan. Knows every river crossing, every shortcut, and every kaon-kaon (food stop) in the Tubungan-Igbaras trail network.",
+    contact_number: "09211234571",
+    createdByEmail: `organizer4${TEST_EMAIL_DOMAIN}`,
+  },
+  {
+    full_name: "Josefina 'Joy' Panganiban",
+    bio: "Island trekking specialist from Concepcion, Iloilo. Expert on the Concepcion archipelago and Pan de Azucar trails. Also a licensed boat captain for island crossings.",
+    contact_number: "09221234572",
+    createdByEmail: `organizer4${TEST_EMAIL_DOMAIN}`,
+  },
+  {
+    full_name: "Eduardo 'Edong' Magtibay",
+    bio: "Retired PNP officer turned hiking guide. Calm, safety-first approach on the trail. Specializes in sunrise hikes and highland treks around Igbaras and Alimodian.",
+    contact_number: "09231234573",
+    createdByEmail: `organizer5${TEST_EMAIL_DOMAIN}`,
+  },
+  {
+    full_name: "Arlene 'Leng' Flores",
+    bio: "Chill trail guide from Anini-y, Antique. Believes hiking should be slow, joyful, and full of storytelling. Knows every coastal path and hidden beach in southern Antique.",
+    contact_number: "09241234574",
+    createdByEmail: `organizer6${TEST_EMAIL_DOMAIN}`,
+  },
+];
+
+interface TestEventGuide {
+  guideName: string;
+  eventTitle: string;
+}
+
+const TEST_EVENT_GUIDES: TestEventGuide[] = [
+  // Tatay Rod — Panay Trail Collective's Antique/Madja-as guide
+  { guideName: "Rodrigo 'Tatay Rod' Espinosa", eventTitle: "Mt. Madja-as Summit Trek" },
+  { guideName: "Rodrigo 'Tatay Rod' Espinosa", eventTitle: "Mt. Malinao Summit Hike" },
+  // Nanay Lorna — Panay Trail Collective's Igbaras guide
+  { guideName: "Lorna 'Nanay Lorna' Delos Santos", eventTitle: "Igbaras Mountain Day Hike" },
+  { guideName: "Lorna 'Nanay Lorna' Delos Santos", eventTitle: "Nadsadan Falls Day Hike" },
+  { guideName: "Lorna 'Nanay Lorna' Delos Santos", eventTitle: "Janiuay Highlands Day Hike" },
+  { guideName: "Lorna 'Nanay Lorna' Delos Santos", eventTitle: "Mt. Baloy Ridge Traverse" },
+  // Benito — JTT's expedition guide
+  { guideName: "Benito Salazar Jr.", eventTitle: "Igbaras-Tubungan Traverse" },
+  { guideName: "Benito Salazar Jr.", eventTitle: "Bacolod de Tubungan Heritage Hike" },
+  { guideName: "Benito Salazar Jr.", eventTitle: "Hamtic River Gorge Trek" },
+  // Cel — JTT's eco-hike guide
+  { guideName: "Maricel 'Cel' Aguirre", eventTitle: "Maasin Watershed Trail Hike" },
+  { guideName: "Maricel 'Cel' Aguirre", eventTitle: "Capiz River Valley Trail" },
+  { guideName: "Maricel 'Cel' Aguirre", eventTitle: "Leon River Trail Walk" },
+  { guideName: "Maricel 'Cel' Aguirre", eventTitle: "Nadsadan Falls Day Hike" },
+  // Kuya Romy — Five Tersty Trekkers' local guide
+  { guideName: "Romeo 'Kuya Romy' Bautista", eventTitle: "Baloy Falls Adventure Hike" },
+  { guideName: "Romeo 'Kuya Romy' Bautista", eventTitle: "Dingle Forest Trail Hike" },
+  // Joy — Five Tersty Trekkers' island guide
+  { guideName: "Josefina 'Joy' Panganiban", eventTitle: "Pan de Azucar Island Day Trek" },
+  { guideName: "Josefina 'Joy' Panganiban", eventTitle: "Concepcion Island Hop & Hike" },
+  // Edong — Yenergy Outdoors' sunrise/highland guide
+  { guideName: "Eduardo 'Edong' Magtibay", eventTitle: "Mt. Napulak Sunrise Hike" },
+  { guideName: "Eduardo 'Edong' Magtibay", eventTitle: "Pototan Highland Hike" },
+  { guideName: "Eduardo 'Edong' Magtibay", eventTitle: "Igbaras Mountain Day Hike" },
+  // Leng — Rubo-rubo Lang's coastal guide
+  { guideName: "Arlene 'Leng' Flores", eventTitle: "Anini-y Coastal Trail Walk" },
+  { guideName: "Arlene 'Leng' Flores", eventTitle: "Garin Farm Hilltop Hike" },
+  { guideName: "Arlene 'Leng' Flores", eventTitle: "Guimbal Lighthouse Walk" },
+];
+
+interface TestGuideReview {
+  guideName: string;
+  reviewerEmail: string;
+  eventTitle: string;
+  rating: number;
+  text: string;
+}
+
+const TEST_GUIDE_REVIEWS: TestGuideReview[] = [
+  // Tatay Rod — reviewed on completed Mt. Malinao Summit Hike
+  {
+    guideName: "Rodrigo 'Tatay Rod' Espinosa",
+    reviewerEmail: `participant3${TEST_EMAIL_DOMAIN}`,
+    eventTitle: "Mt. Malinao Summit Hike",
+    rating: 5,
+    text: "Tatay Rod is a legend. He navigated the mossy forest like it was his backyard — because it basically is. His stories about the Ati people and the mountain's history made the trek unforgettable.",
+  },
+  {
+    guideName: "Rodrigo 'Tatay Rod' Espinosa",
+    reviewerEmail: `participant2${TEST_EMAIL_DOMAIN}`,
+    eventTitle: "Mt. Malinao Summit Hike",
+    rating: 5,
+    text: "I felt completely safe with Tatay Rod leading the way. He adjusted the pace for our group perfectly and knew exactly where to stop for the best views. A true master of the mountains.",
+  },
+  // Nanay Lorna — reviewed on completed Igbaras Mountain Day Hike and Nadsadan Falls
+  {
+    guideName: "Lorna 'Nanay Lorna' Delos Santos",
+    reviewerEmail: `participant1${TEST_EMAIL_DOMAIN}`,
+    eventTitle: "Igbaras Mountain Day Hike",
+    rating: 5,
+    text: "Nanay Lorna is the heart and soul of Igbaras hiking. She knows every shortcut, every swimming spot, and she even packed extra snacks for the group. Like hiking with your favorite tita!",
+  },
+  {
+    guideName: "Lorna 'Nanay Lorna' Delos Santos",
+    reviewerEmail: `participant3${TEST_EMAIL_DOMAIN}`,
+    eventTitle: "Igbaras Mountain Day Hike",
+    rating: 4,
+    text: "Very friendly and knowledgeable guide. She pointed out local plants and their uses along the trail. The river dip she took us to was the best part.",
+  },
+  {
+    guideName: "Lorna 'Nanay Lorna' Delos Santos",
+    reviewerEmail: `participant1${TEST_EMAIL_DOMAIN}`,
+    eventTitle: "Nadsadan Falls Day Hike",
+    rating: 5,
+    text: "Second time with Nanay Lorna and she's still amazing. This time she took us on a different route to the falls with even better views. She never runs out of new things to show you.",
+  },
+  {
+    guideName: "Lorna 'Nanay Lorna' Delos Santos",
+    reviewerEmail: `participant2${TEST_EMAIL_DOMAIN}`,
+    eventTitle: "Nadsadan Falls Day Hike",
+    rating: 4,
+    text: "Great guide for beginners. Very patient and encouraging on the steeper sections. Made sure everyone was comfortable before moving on.",
+  },
+  // Benito — reviewed on completed Bacolod de Tubungan Heritage Hike
+  {
+    guideName: "Benito Salazar Jr.",
+    reviewerEmail: `participant1${TEST_EMAIL_DOMAIN}`,
+    eventTitle: "Bacolod de Tubungan Heritage Hike",
+    rating: 4,
+    text: "Benito knows the Tubungan trail network inside out. His fitness level is insane — he was barely breaking a sweat while we were dying on the climbs. Very professional guide.",
+  },
+  {
+    guideName: "Benito Salazar Jr.",
+    reviewerEmail: `participant2${TEST_EMAIL_DOMAIN}`,
+    eventTitle: "Bacolod de Tubungan Heritage Hike",
+    rating: 5,
+    text: "The Spanish ruins were fascinating and Benito's knowledge of the local history really brought them to life. He also showed us a hidden natural spring that wasn't on any map.",
+  },
+  // Cel — reviewed on completed Nadsadan Falls Day Hike (co-guide with Nanay Lorna)
+  {
+    guideName: "Maricel 'Cel' Aguirre",
+    reviewerEmail: `participant1${TEST_EMAIL_DOMAIN}`,
+    eventTitle: "Nadsadan Falls Day Hike",
+    rating: 5,
+    text: "Cel's knowledge of local ecology is incredible. She identified at least 20 different plant species along the trail to the falls. It's like having a walking encyclopedia of Panay wildlife.",
+  },
+  {
+    guideName: "Maricel 'Cel' Aguirre",
+    reviewerEmail: `participant2${TEST_EMAIL_DOMAIN}`,
+    eventTitle: "Nadsadan Falls Day Hike",
+    rating: 4,
+    text: "Really appreciated Cel pointing out the birds and butterflies along the river trail. She made the hike educational without being boring. Great co-guide alongside Nanay Lorna.",
+  },
+  // Kuya Romy — reviewed on completed Baloy Falls Adventure Hike
+  {
+    guideName: "Romeo 'Kuya Romy' Bautista",
+    reviewerEmail: `participant3${TEST_EMAIL_DOMAIN}`,
+    eventTitle: "Baloy Falls Adventure Hike",
+    rating: 5,
+    text: "Kuya Romy is the ultimate adventure guide. He helped us through every river crossing and rope section with confidence. His calm demeanor kept the whole group relaxed on the tricky parts.",
+  },
+  {
+    guideName: "Romeo 'Kuya Romy' Bautista",
+    reviewerEmail: `participant2${TEST_EMAIL_DOMAIN}`,
+    eventTitle: "Baloy Falls Adventure Hike",
+    rating: 4,
+    text: "Strong and reliable guide. He carried extra gear for those who were struggling and always made sure no one was left behind. The falls at the end were worth every step.",
+  },
+  // Edong — reviewed on completed Igbaras Mountain Day Hike (co-guide)
+  {
+    guideName: "Eduardo 'Edong' Magtibay",
+    reviewerEmail: `participant1${TEST_EMAIL_DOMAIN}`,
+    eventTitle: "Igbaras Mountain Day Hike",
+    rating: 4,
+    text: "Edong is super safety-conscious which I appreciate. He checked trail conditions ahead of us and always had a plan B. Former PNP discipline shows — punctual and organized.",
+  },
+  {
+    guideName: "Eduardo 'Edong' Magtibay",
+    reviewerEmail: `participant3${TEST_EMAIL_DOMAIN}`,
+    eventTitle: "Igbaras Mountain Day Hike",
+    rating: 4,
+    text: "Very calm and reassuring guide. You can tell he's seen it all. He made sure we had enough water and rest stops on the way up. Good complement to Nanay Lorna's energy.",
+  },
+  // Leng — reviewed on completed Anini-y Coastal Trail Walk
+  {
+    guideName: "Arlene 'Leng' Flores",
+    reviewerEmail: `participant2${TEST_EMAIL_DOMAIN}`,
+    eventTitle: "Anini-y Coastal Trail Walk",
+    rating: 5,
+    text: "Leng embodies the rubo-rubo spirit. No rushing, just pure enjoyment of the trail. She told local legends at every stop and found us the perfect seafood lunch spot by the beach.",
+  },
+  {
+    guideName: "Arlene 'Leng' Flores",
+    reviewerEmail: `participant3${TEST_EMAIL_DOMAIN}`,
+    eventTitle: "Anini-y Coastal Trail Walk",
+    rating: 5,
+    text: "Best coastal hike guide ever. Leng knows every tide pool, every hidden beach, and every local fisherman by name. Her storytelling made the walk feel like a cultural experience.",
+  },
+];
+
+// ---------------------------------------------------------------------------
 // Seed Functions
 // ---------------------------------------------------------------------------
 
@@ -2153,6 +2384,111 @@ async function seedEventReviews(
   }
 }
 
+/** Create guides. Returns map of guide full_name -> guide id. */
+async function createGuides(
+  userMap: Map<string, string>
+): Promise<Map<string, string>> {
+  log("🧭", "Creating guides...");
+
+  const guideMap = new Map<string, string>();
+
+  for (const guide of TEST_GUIDES) {
+    const createdBy = userMap.get(guide.createdByEmail);
+    if (!createdBy) {
+      console.error(`  User not found for guide creator: ${guide.createdByEmail}`);
+      continue;
+    }
+
+    const { data, error } = await supabase
+      .from("guides")
+      .insert({
+        full_name: guide.full_name,
+        bio: guide.bio,
+        contact_number: guide.contact_number,
+        created_by: createdBy,
+      })
+      .select("id")
+      .single();
+
+    if (error) {
+      console.error(`  Failed to create guide "${guide.full_name}": ${error.message}`);
+    } else {
+      guideMap.set(guide.full_name, data.id);
+      log("  ✅", `${guide.full_name}`);
+    }
+  }
+
+  return guideMap;
+}
+
+/** Link guides to events. */
+async function linkEventGuides(
+  guideMap: Map<string, string>,
+  eventMap: Map<string, string>
+): Promise<void> {
+  log("🔗", "Linking guides to events...");
+
+  for (const link of TEST_EVENT_GUIDES) {
+    const guideId = guideMap.get(link.guideName);
+    const eventId = eventMap.get(link.eventTitle);
+    if (!guideId || !eventId) {
+      console.error(
+        `  Missing guide or event for link: ${link.guideName} -> ${link.eventTitle}`
+      );
+      continue;
+    }
+
+    const { error } = await supabase.from("event_guides").insert({
+      event_id: eventId,
+      guide_id: guideId,
+    });
+
+    if (error) {
+      console.error(
+        `  Failed to link "${link.guideName}" to "${link.eventTitle}": ${error.message}`
+      );
+    } else {
+      log("  ✅", `${link.guideName} -> ${link.eventTitle}`);
+    }
+  }
+}
+
+/** Create guide reviews from participants. */
+async function seedGuideReviews(
+  guideMap: Map<string, string>,
+  userMap: Map<string, string>,
+  eventMap: Map<string, string>
+): Promise<void> {
+  log("📝", "Creating guide reviews...");
+
+  for (const review of TEST_GUIDE_REVIEWS) {
+    const guideId = guideMap.get(review.guideName);
+    const userId = userMap.get(review.reviewerEmail);
+    const eventId = eventMap.get(review.eventTitle);
+    if (!guideId || !userId || !eventId) {
+      console.error(
+        `  Missing guide, user, or event for guide review: ${review.guideName} <- ${review.reviewerEmail} @ ${review.eventTitle}`
+      );
+      continue;
+    }
+
+    const { error } = await supabase.from("guide_reviews").insert({
+      guide_id: guideId,
+      user_id: userId,
+      event_id: eventId,
+      rating: review.rating,
+      text: review.text,
+    });
+
+    if (error) {
+      console.error(`  Failed to create guide review: ${error.message}`);
+    } else {
+      const name = TEST_USERS.find((u) => u.email === review.reviewerEmail)?.full_name;
+      log("  ✅", `${name} reviewed ${review.guideName} @ ${review.eventTitle} (${review.rating}★)`);
+    }
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
@@ -2183,6 +2519,14 @@ async function main() {
     const eventMap = await createEvents(orgMap);
     console.log();
 
+    // Step 4b: Create guides
+    const guideMap = await createGuides(userMap);
+    console.log();
+
+    // Step 4c: Link guides to events
+    await linkEventGuides(guideMap, eventMap);
+    console.log();
+
     // Step 5: Create bookings
     const bookingMap = await createBookings(userMap, eventMap);
     console.log();
@@ -2209,6 +2553,10 @@ async function main() {
 
     // Step 10: Create event reviews
     await seedEventReviews(userMap, eventMap);
+    console.log();
+
+    // Step 11: Create guide reviews
+    await seedGuideReviews(guideMap, userMap, eventMap);
     console.log();
 
     // Summary
