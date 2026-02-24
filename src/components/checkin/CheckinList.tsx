@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+
 import { Avatar } from "@/components/ui";
+import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
 interface Participant {
@@ -41,10 +42,10 @@ export default function CheckinList({
             prev.map((p) =>
               p.type === "user" && p.id === payload.new.user_id
                 ? { ...p, checkedIn: true, checkedInAt: payload.new.checked_in_at }
-                : p
-            )
+                : p,
+            ),
           );
-        }
+        },
       )
       .subscribe();
 
@@ -64,17 +65,17 @@ export default function CheckinList({
               prev.map((p) =>
                 p.type === "companion" && p.id === payload.new.id
                   ? { ...p, checkedIn: true, checkedInAt: payload.new.checked_in_at }
-                  : p
-              )
+                  : p,
+              ),
             );
           }
-        }
+        },
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(checkinChannel);
-      supabase.removeChannel(companionChannel);
+      void supabase.removeChannel(checkinChannel);
+      void supabase.removeChannel(companionChannel);
     };
   }, [eventId, supabase]);
 
@@ -94,7 +95,7 @@ export default function CheckinList({
             key={`${p.type}-${p.id}`}
             className={cn(
               "flex items-center justify-between p-3 rounded-xl",
-              p.checkedIn ? "bg-forest-50" : "bg-white dark:bg-gray-900"
+              p.checkedIn ? "bg-forest-50" : "bg-white dark:bg-gray-900",
             )}
           >
             <div className="flex items-center gap-3">
@@ -104,7 +105,7 @@ export default function CheckinList({
             <span
               className={cn(
                 "text-sm font-medium",
-                p.checkedIn ? "text-forest-600" : "text-gray-400 dark:text-gray-500"
+                p.checkedIn ? "text-forest-600" : "text-gray-400 dark:text-gray-500",
               )}
             >
               {p.checkedIn ? "Checked In" : "Not yet"}

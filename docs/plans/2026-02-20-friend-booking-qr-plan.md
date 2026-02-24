@@ -13,6 +13,7 @@
 ### Task 1: Add `mode` to API response
 
 **Files:**
+
 - Modify: `src/app/(frontend)/api/bookings/route.ts:252-255`
 
 **Step 1: Add mode to the response JSON**
@@ -21,19 +22,19 @@ At line 252, change the return statement from:
 
 ```typescript
 return NextResponse.json({
-    booking: bookingRecord,
-    companions: insertedCompanions,
-  });
+  booking: bookingRecord,
+  companions: insertedCompanions,
+});
 ```
 
 to:
 
 ```typescript
 return NextResponse.json({
-    booking: bookingRecord,
-    companions: insertedCompanions,
-    mode,
-  });
+  booking: bookingRecord,
+  companions: insertedCompanions,
+  mode,
+});
 ```
 
 **Step 2: Verify manually**
@@ -52,6 +53,7 @@ git commit -m "feat: include mode in booking API response"
 ### Task 2: Update BookingConfirmation to hide user QR in friend mode
 
 **Files:**
+
 - Modify: `src/components/booking/BookingConfirmation.tsx`
 
 **Step 1: Add `mode` prop to the interface**
@@ -262,6 +264,7 @@ git commit -m "feat: hide user QR and update messaging in friend booking mode"
 ### Task 3: Pass mode from BookingForm to BookingConfirmation
 
 **Files:**
+
 - Modify: `src/components/booking/BookingForm.tsx:123-134`
 
 **Step 1: Pass mode to BookingConfirmation**
@@ -315,6 +318,7 @@ git commit -m "feat: pass booking mode to BookingConfirmation"
 ### Task 4: Add companion labels in UpcomingBookings
 
 **Files:**
+
 - Modify: `src/components/participant/UpcomingBookings.tsx:142-159`
 
 **Step 1: Add "For a friend" label to companion QR cards**

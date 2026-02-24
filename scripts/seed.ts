@@ -26,7 +26,7 @@ const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
   console.error(
     "Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY.\n" +
-      "Make sure your .env.local file contains both variables."
+      "Make sure your .env.local file contains both variables.",
   );
   process.exit(1);
 }
@@ -83,7 +83,8 @@ const TEST_USERS: TestUser[] = [
     full_name: "Marco Santos",
     username: "marco_trails",
     role: "organizer",
-    avatar_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
+    avatar_url:
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
   },
   {
     email: `organizer2${TEST_EMAIL_DOMAIN}`,
@@ -91,7 +92,8 @@ const TEST_USERS: TestUser[] = [
     full_name: "Ana Reyes",
     username: "ana_pedal",
     role: "organizer",
-    avatar_url: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=face",
+    avatar_url:
+      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=face",
   },
   {
     email: `participant1${TEST_EMAIL_DOMAIN}`,
@@ -129,7 +131,8 @@ const TEST_USERS: TestUser[] = [
     full_name: "Jay Tablatin",
     username: "jtt_trails",
     role: "organizer",
-    avatar_url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face",
+    avatar_url:
+      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face",
   },
   {
     email: `organizer4${TEST_EMAIL_DOMAIN}`,
@@ -137,7 +140,8 @@ const TEST_USERS: TestUser[] = [
     full_name: "Teri Magbanua",
     username: "ftt_treks",
     role: "organizer",
-    avatar_url: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop&crop=face",
+    avatar_url:
+      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop&crop=face",
   },
   {
     email: `organizer5${TEST_EMAIL_DOMAIN}`,
@@ -145,7 +149,8 @@ const TEST_USERS: TestUser[] = [
     full_name: "Yen Casimiro",
     username: "yenergy_out",
     role: "organizer",
-    avatar_url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop&crop=face",
+    avatar_url:
+      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop&crop=face",
   },
   {
     email: `organizer6${TEST_EMAIL_DOMAIN}`,
@@ -153,7 +158,8 @@ const TEST_USERS: TestUser[] = [
     full_name: "Ruben Torres",
     username: "ruborubo",
     role: "organizer",
-    avatar_url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop&crop=face",
+    avatar_url:
+      "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop&crop=face",
   },
 ];
 
@@ -170,74 +176,60 @@ const ORGANIZER_PROFILES: OrgProfile[] = [
     org_name: "Panay Trail Collective",
     description:
       "Exploring the mountains and trails of Panay Island — from the highlands of Igbaras and Tubungan to the summit of Mt. Madja-as. We organize hiking, trail running, and outdoor adventures across Iloilo, Antique, and beyond.",
-    logo_url:
-      "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=200&h=200&fit=crop",
+    logo_url: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=200&h=200&fit=crop",
   },
   {
     ownerEmail: `organizer2${TEST_EMAIL_DOMAIN}`,
     org_name: "Iloilo Pedal Club",
     description:
       "Road cycling and mountain biking events across Panay Island. From the coastal roads of Iloilo-Antique to the highland trails of Tubungan and Guimaras, we bring the Western Visayas cycling community together.",
-    logo_url:
-      "https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=200&h=200&fit=crop",
+    logo_url: "https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=200&h=200&fit=crop",
   },
   {
     ownerEmail: `organizer3${TEST_EMAIL_DOMAIN}`,
     org_name: "JTT (Journey Through Trails)",
     description:
       "Journey Through Trails — discovering the hidden paths of Panay Island one trail at a time. We organize weekend hikes, multi-day treks, and trail exploration events across Iloilo, Antique, and Capiz.",
-    logo_url:
-      "https://images.unsplash.com/photo-1501555088652-021faa106b9b?w=200&h=200&fit=crop",
+    logo_url: "https://images.unsplash.com/photo-1501555088652-021faa106b9b?w=200&h=200&fit=crop",
   },
   {
     ownerEmail: `organizer4${TEST_EMAIL_DOMAIN}`,
     org_name: "Five Tersty Trekkers",
     description:
       "Five friends turned trail community — Five Tersty Trekkers brings the fun to every mountain adventure. From Igbaras to Antique, we hike with energy, laughter, and lots of water (we're always thirsty!).",
-    logo_url:
-      "https://images.unsplash.com/photo-1522163182402-834f871fd851?w=200&h=200&fit=crop",
+    logo_url: "https://images.unsplash.com/photo-1522163182402-834f871fd851?w=200&h=200&fit=crop",
   },
   {
     ownerEmail: `organizer5${TEST_EMAIL_DOMAIN}`,
     org_name: "Yenergy Outdoors",
     description:
       "Fueled by positive energy! Yenergy Outdoors organizes hiking, trail running, and outdoor fitness events across Western Visayas. We believe every mountain is a chance to recharge your soul.",
-    logo_url:
-      "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=200&h=200&fit=crop",
+    logo_url: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=200&h=200&fit=crop",
   },
   {
     ownerEmail: `organizer6${TEST_EMAIL_DOMAIN}`,
     org_name: "Rubo-rubo Lang",
     description:
       "Rubo-rubo lang — just wandering! A laid-back hiking community that explores the trails of Panay at our own pace. No pressure, no rush. Just good vibes, good views, and good company.",
-    logo_url:
-      "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=200&h=200&fit=crop",
+    logo_url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=200&h=200&fit=crop",
   },
 ];
 
 // Unsplash cover images for different event types
 const COVER_IMAGES = {
-  hiking:
-    "https://images.unsplash.com/photo-1551632811-561732d1e306?w=1200&h=630&fit=crop",
-  trail_run:
-    "https://images.unsplash.com/photo-1452626038306-9aae5e071dd3?w=1200&h=630&fit=crop",
-  road_bike:
-    "https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=1200&h=630&fit=crop",
+  hiking: "https://images.unsplash.com/photo-1551632811-561732d1e306?w=1200&h=630&fit=crop",
+  trail_run: "https://images.unsplash.com/photo-1452626038306-9aae5e071dd3?w=1200&h=630&fit=crop",
+  road_bike: "https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=1200&h=630&fit=crop",
   mtb: "https://images.unsplash.com/photo-1544191696-102dbdaeeaa0?w=1200&h=630&fit=crop",
-  running:
-    "https://images.unsplash.com/photo-1571008887538-b36bb32f4571?w=1200&h=630&fit=crop",
-  hiking_alt:
-    "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1200&h=630&fit=crop",
+  running: "https://images.unsplash.com/photo-1571008887538-b36bb32f4571?w=1200&h=630&fit=crop",
+  hiking_alt: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1200&h=630&fit=crop",
   trail_run_alt:
     "https://images.unsplash.com/photo-1510227272981-87123e259b17?w=1200&h=630&fit=crop",
-  mtb_alt:
-    "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=1200&h=630&fit=crop",
-  hiking_alt2:
-    "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=630&fit=crop",
+  mtb_alt: "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=1200&h=630&fit=crop",
+  hiking_alt2: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=630&fit=crop",
   road_bike_alt:
     "https://images.unsplash.com/photo-1534787238916-9ba6764efd4f?w=1200&h=630&fit=crop",
-  running_alt:
-    "https://images.unsplash.com/photo-1513593771513-7b58b6c4af38?w=1200&h=630&fit=crop",
+  running_alt: "https://images.unsplash.com/photo-1513593771513-7b58b6c4af38?w=1200&h=630&fit=crop",
 };
 
 interface TestEvent {
@@ -264,7 +256,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "hiking",
     date: daysFromNow(14),
     location: "Mt. Madja-as, Culasi, Antique",
-    coordinates: { lat: 11.3850, lng: 122.0600 },
+    coordinates: { lat: 11.385, lng: 122.06 },
     max_participants: 20,
     price: 2500,
     status: "published",
@@ -292,7 +284,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "hiking",
     date: daysFromNow(-14),
     location: "Igbaras, Iloilo",
-    coordinates: { lat: 10.7200, lng: 122.2700 },
+    coordinates: { lat: 10.72, lng: 122.27 },
     max_participants: 35,
     price: 350,
     status: "completed",
@@ -306,7 +298,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "trail_run",
     date: daysFromNow(45),
     location: "Mt. Nangtud, Sebaste, Antique",
-    coordinates: { lat: 11.3500, lng: 122.0200 },
+    coordinates: { lat: 11.35, lng: 122.02 },
     max_participants: 15,
     price: 3500,
     status: "draft",
@@ -335,7 +327,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "mtb",
     date: daysFromNow(14),
     location: "Tubungan, Iloilo",
-    coordinates: { lat: 10.7500, lng: 122.3000 },
+    coordinates: { lat: 10.75, lng: 122.3 },
     max_participants: 25,
     price: 500,
     status: "published",
@@ -349,7 +341,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "running",
     date: daysFromNow(7),
     location: "Esplanade, Iloilo City",
-    coordinates: { lat: 10.7130, lng: 122.5650 },
+    coordinates: { lat: 10.713, lng: 122.565 },
     max_participants: 100,
     price: 400,
     status: "published",
@@ -363,7 +355,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "mtb",
     date: daysFromNow(35),
     location: "Guimaras Island",
-    coordinates: { lat: 10.5880, lng: 122.6280 },
+    coordinates: { lat: 10.588, lng: 122.628 },
     max_participants: 20,
     price: 900,
     status: "cancelled",
@@ -379,7 +371,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "hiking",
     date: daysFromNow(-21),
     location: "Nadsadan Falls, Igbaras, Iloilo",
-    coordinates: { lat: 10.7150, lng: 122.2650 },
+    coordinates: { lat: 10.715, lng: 122.265 },
     max_participants: 30,
     price: 300,
     status: "completed",
@@ -393,7 +385,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "trail_run",
     date: daysFromNow(-45),
     location: "Miag-ao, Iloilo",
-    coordinates: { lat: 10.6440, lng: 122.2340 },
+    coordinates: { lat: 10.644, lng: 122.234 },
     max_participants: 50,
     price: 650,
     status: "completed",
@@ -407,7 +399,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "hiking",
     date: daysFromNow(-75),
     location: "Mt. Malinao, Malinao, Aklan",
-    coordinates: { lat: 11.6900, lng: 122.1800 },
+    coordinates: { lat: 11.69, lng: 122.18 },
     max_participants: 20,
     price: 1200,
     status: "completed",
@@ -422,7 +414,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "road_bike",
     date: daysFromNow(-30),
     location: "Panay Island Circumferential",
-    coordinates: { lat: 11.0000, lng: 122.5000 },
+    coordinates: { lat: 11.0, lng: 122.5 },
     max_participants: 30,
     price: 2500,
     status: "completed",
@@ -436,7 +428,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "mtb",
     date: daysFromNow(-60),
     location: "Malalison Island, Culasi, Antique",
-    coordinates: { lat: 11.4400, lng: 121.9600 },
+    coordinates: { lat: 11.44, lng: 121.96 },
     max_participants: 15,
     price: 1500,
     status: "completed",
@@ -450,7 +442,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "running",
     date: daysFromNow(-90),
     location: "Iloilo City",
-    coordinates: { lat: 10.6920, lng: 122.5640 },
+    coordinates: { lat: 10.692, lng: 122.564 },
     max_participants: 200,
     price: 250,
     status: "completed",
@@ -465,7 +457,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "hiking",
     date: daysFromNow(10),
     location: "Igbaras to Tubungan, Iloilo",
-    coordinates: { lat: 10.7350, lng: 122.2850 },
+    coordinates: { lat: 10.735, lng: 122.285 },
     max_participants: 25,
     price: 450,
     status: "published",
@@ -479,7 +471,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "hiking",
     date: daysFromNow(-35),
     location: "Tubungan, Iloilo",
-    coordinates: { lat: 10.7480, lng: 122.3100 },
+    coordinates: { lat: 10.748, lng: 122.31 },
     max_participants: 30,
     price: 300,
     status: "completed",
@@ -494,7 +486,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "hiking",
     date: daysFromNow(18),
     location: "Pan de Azucar Island, Concepcion, Iloilo",
-    coordinates: { lat: 11.2700, lng: 123.0800 },
+    coordinates: { lat: 11.27, lng: 123.08 },
     max_participants: 20,
     price: 700,
     status: "published",
@@ -508,7 +500,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "hiking",
     date: daysFromNow(-50),
     location: "San Joaquin, Iloilo",
-    coordinates: { lat: 10.5900, lng: 122.2100 },
+    coordinates: { lat: 10.59, lng: 122.21 },
     max_participants: 20,
     price: 400,
     status: "completed",
@@ -523,7 +515,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "hiking",
     date: daysFromNow(5),
     location: "Mt. Napulak, Igbaras, Iloilo",
-    coordinates: { lat: 10.7100, lng: 122.2800 },
+    coordinates: { lat: 10.71, lng: 122.28 },
     max_participants: 30,
     price: 350,
     status: "published",
@@ -537,7 +529,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "trail_run",
     date: daysFromNow(-25),
     location: "Calinog, Iloilo",
-    coordinates: { lat: 10.8500, lng: 122.3500 },
+    coordinates: { lat: 10.85, lng: 122.35 },
     max_participants: 40,
     price: 500,
     status: "completed",
@@ -552,7 +544,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "hiking",
     date: daysFromNow(12),
     location: "Garin Farm, San Joaquin, Iloilo",
-    coordinates: { lat: 10.5950, lng: 122.1950 },
+    coordinates: { lat: 10.595, lng: 122.195 },
     max_participants: 40,
     price: 500,
     status: "published",
@@ -566,7 +558,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "hiking",
     date: daysFromNow(-40),
     location: "Anini-y, Antique",
-    coordinates: { lat: 10.4600, lng: 121.9500 },
+    coordinates: { lat: 10.46, lng: 121.95 },
     max_participants: 25,
     price: 350,
     status: "completed",
@@ -584,7 +576,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "hiking",
     date: daysFromNow(8),
     location: "San Joaquin, Iloilo",
-    coordinates: { lat: 10.5950, lng: 122.2000 },
+    coordinates: { lat: 10.595, lng: 122.2 },
     max_participants: 25,
     price: 400,
     status: "published",
@@ -598,7 +590,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "trail_run",
     date: daysFromNow(16),
     location: "Cabatuan, Iloilo",
-    coordinates: { lat: 10.8600, lng: 122.4900 },
+    coordinates: { lat: 10.86, lng: 122.49 },
     max_participants: 50,
     price: 350,
     status: "published",
@@ -612,7 +604,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "hiking",
     date: daysFromNow(-10),
     location: "Janiuay, Iloilo",
-    coordinates: { lat: 10.9500, lng: 122.5000 },
+    coordinates: { lat: 10.95, lng: 122.5 },
     max_participants: 30,
     price: 300,
     status: "completed",
@@ -626,7 +618,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "hiking",
     date: daysFromNow(25),
     location: "Lambunao, Iloilo",
-    coordinates: { lat: 10.9400, lng: 122.3700 },
+    coordinates: { lat: 10.94, lng: 122.37 },
     max_participants: 20,
     price: 450,
     status: "published",
@@ -640,7 +632,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "running",
     date: daysFromNow(-55),
     location: "Passi City, Iloilo",
-    coordinates: { lat: 11.1100, lng: 122.6400 },
+    coordinates: { lat: 11.11, lng: 122.64 },
     max_participants: 80,
     price: 200,
     status: "completed",
@@ -655,7 +647,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "road_bike",
     date: daysFromNow(6),
     location: "Oton to Tigbauan, Iloilo",
-    coordinates: { lat: 10.6900, lng: 122.4800 },
+    coordinates: { lat: 10.69, lng: 122.48 },
     max_participants: 40,
     price: 300,
     status: "published",
@@ -669,7 +661,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "mtb",
     date: daysFromNow(20),
     location: "Santa Barbara, Iloilo",
-    coordinates: { lat: 10.8200, lng: 122.5300 },
+    coordinates: { lat: 10.82, lng: 122.53 },
     max_participants: 30,
     price: 350,
     status: "published",
@@ -683,7 +675,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "road_bike",
     date: daysFromNow(-20),
     location: "Iloilo City to Dumangas",
-    coordinates: { lat: 10.8300, lng: 122.7100 },
+    coordinates: { lat: 10.83, lng: 122.71 },
     max_participants: 30,
     price: 600,
     status: "completed",
@@ -697,7 +689,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "road_bike",
     date: daysFromNow(32),
     location: "Jaro, Iloilo City",
-    coordinates: { lat: 10.7200, lng: 122.5700 },
+    coordinates: { lat: 10.72, lng: 122.57 },
     max_participants: 50,
     price: 150,
     status: "published",
@@ -711,7 +703,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "running",
     date: daysFromNow(-65),
     location: "Pavia, Iloilo",
-    coordinates: { lat: 10.7700, lng: 122.5500 },
+    coordinates: { lat: 10.77, lng: 122.55 },
     max_participants: 60,
     price: 500,
     status: "completed",
@@ -726,7 +718,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "hiking",
     date: daysFromNow(22),
     location: "Tapaz, Capiz",
-    coordinates: { lat: 11.2600, lng: 122.5200 },
+    coordinates: { lat: 11.26, lng: 122.52 },
     max_participants: 20,
     price: 500,
     status: "published",
@@ -740,7 +732,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "hiking",
     date: daysFromNow(-8),
     location: "Maasin, Iloilo",
-    coordinates: { lat: 10.8300, lng: 122.4300 },
+    coordinates: { lat: 10.83, lng: 122.43 },
     max_participants: 20,
     price: 350,
     status: "completed",
@@ -754,7 +746,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "trail_run",
     date: daysFromNow(40),
     location: "Malinao, Aklan",
-    coordinates: { lat: 11.6900, lng: 122.1800 },
+    coordinates: { lat: 11.69, lng: 122.18 },
     max_participants: 30,
     price: 700,
     status: "published",
@@ -768,7 +760,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "hiking",
     date: daysFromNow(-70),
     location: "Leon, Iloilo",
-    coordinates: { lat: 10.7800, lng: 122.3700 },
+    coordinates: { lat: 10.78, lng: 122.37 },
     max_participants: 35,
     price: 250,
     status: "completed",
@@ -783,7 +775,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "hiking",
     date: daysFromNow(30),
     location: "Concepcion, Iloilo",
-    coordinates: { lat: 11.2500, lng: 123.0900 },
+    coordinates: { lat: 11.25, lng: 123.09 },
     max_participants: 15,
     price: 1200,
     status: "published",
@@ -797,7 +789,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "running",
     date: daysFromNow(15),
     location: "Sicogon Island, Concepcion, Iloilo",
-    coordinates: { lat: 11.3400, lng: 123.1700 },
+    coordinates: { lat: 11.34, lng: 123.17 },
     max_participants: 30,
     price: 800,
     status: "published",
@@ -811,7 +803,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "hiking",
     date: daysFromNow(-28),
     location: "Dingle, Iloilo",
-    coordinates: { lat: 10.9900, lng: 122.6600 },
+    coordinates: { lat: 10.99, lng: 122.66 },
     max_participants: 25,
     price: 300,
     status: "completed",
@@ -825,7 +817,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "trail_run",
     date: daysFromNow(38),
     location: "Tigbauan, Iloilo",
-    coordinates: { lat: 10.6700, lng: 122.3800 },
+    coordinates: { lat: 10.67, lng: 122.38 },
     max_participants: 35,
     price: 400,
     status: "published",
@@ -840,7 +832,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "trail_run",
     date: daysFromNow(9),
     location: "Alimodian, Iloilo",
-    coordinates: { lat: 10.8200, lng: 122.4000 },
+    coordinates: { lat: 10.82, lng: 122.4 },
     max_participants: 35,
     price: 400,
     status: "published",
@@ -854,7 +846,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "running",
     date: daysFromNow(3),
     location: "Iloilo City",
-    coordinates: { lat: 10.7130, lng: 122.5650 },
+    coordinates: { lat: 10.713, lng: 122.565 },
     max_participants: 150,
     price: 250,
     status: "published",
@@ -868,7 +860,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "hiking",
     date: daysFromNow(-15),
     location: "Pototan, Iloilo",
-    coordinates: { lat: 10.9400, lng: 122.6300 },
+    coordinates: { lat: 10.94, lng: 122.63 },
     max_participants: 25,
     price: 300,
     status: "completed",
@@ -882,7 +874,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "mtb",
     date: daysFromNow(27),
     location: "Barotac Viejo, Iloilo",
-    coordinates: { lat: 10.9900, lng: 122.7700 },
+    coordinates: { lat: 10.99, lng: 122.77 },
     max_participants: 20,
     price: 450,
     status: "published",
@@ -896,7 +888,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "running",
     date: daysFromNow(-85),
     location: "Mandurriao, Iloilo City",
-    coordinates: { lat: 10.7200, lng: 122.5600 },
+    coordinates: { lat: 10.72, lng: 122.56 },
     max_participants: 100,
     price: 300,
     status: "completed",
@@ -911,7 +903,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "hiking",
     date: daysFromNow(11),
     location: "Guimbal, Iloilo",
-    coordinates: { lat: 10.6600, lng: 122.3200 },
+    coordinates: { lat: 10.66, lng: 122.32 },
     max_participants: 30,
     price: 250,
     status: "published",
@@ -925,7 +917,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "hiking",
     date: daysFromNow(19),
     location: "Miag-ao, Iloilo",
-    coordinates: { lat: 10.6440, lng: 122.2340 },
+    coordinates: { lat: 10.644, lng: 122.234 },
     max_participants: 25,
     price: 200,
     status: "published",
@@ -939,7 +931,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "hiking",
     date: daysFromNow(-5),
     location: "San Joaquin, Iloilo",
-    coordinates: { lat: 10.5800, lng: 122.1800 },
+    coordinates: { lat: 10.58, lng: 122.18 },
     max_participants: 30,
     price: 150,
     status: "completed",
@@ -953,7 +945,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "hiking",
     date: daysFromNow(42),
     location: "Carles, Iloilo",
-    coordinates: { lat: 11.5700, lng: 123.1500 },
+    coordinates: { lat: 11.57, lng: 123.15 },
     max_participants: 15,
     price: 900,
     status: "published",
@@ -967,7 +959,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "running",
     date: daysFromNow(-32),
     location: "Iloilo City Esplanade",
-    coordinates: { lat: 10.6950, lng: 122.5650 },
+    coordinates: { lat: 10.695, lng: 122.565 },
     max_participants: 40,
     price: 0,
     status: "completed",
@@ -982,7 +974,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "hiking",
     date: daysFromNow(50),
     location: "Dumarao, Capiz",
-    coordinates: { lat: 11.2700, lng: 122.6700 },
+    coordinates: { lat: 11.27, lng: 122.67 },
     max_participants: 15,
     price: 800,
     status: "published",
@@ -996,7 +988,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "road_bike",
     date: daysFromNow(35),
     location: "Roxas City, Capiz",
-    coordinates: { lat: 11.5850, lng: 122.7510 },
+    coordinates: { lat: 11.585, lng: 122.751 },
     max_participants: 35,
     price: 500,
     status: "published",
@@ -1010,7 +1002,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "hiking",
     date: daysFromNow(17),
     location: "Hamtic, Antique",
-    coordinates: { lat: 10.7000, lng: 121.9800 },
+    coordinates: { lat: 10.7, lng: 121.98 },
     max_participants: 15,
     price: 550,
     status: "published",
@@ -1024,7 +1016,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "mtb",
     date: daysFromNow(24),
     location: "Badiangan, Iloilo",
-    coordinates: { lat: 10.9200, lng: 122.5500 },
+    coordinates: { lat: 10.92, lng: 122.55 },
     max_participants: 20,
     price: 300,
     status: "published",
@@ -1038,7 +1030,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "running",
     date: daysFromNow(48),
     location: "Iloilo City",
-    coordinates: { lat: 10.7000, lng: 122.5600 },
+    coordinates: { lat: 10.7, lng: 122.56 },
     max_participants: 120,
     price: 600,
     status: "published",
@@ -1052,7 +1044,7 @@ const TEST_EVENTS: TestEvent[] = [
     type: "hiking",
     date: daysFromNow(55),
     location: "Sibalom, Antique",
-    coordinates: { lat: 10.7700, lng: 121.9900 },
+    coordinates: { lat: 10.77, lng: 121.99 },
     max_participants: 20,
     price: 400,
     status: "published",
@@ -1301,10 +1293,7 @@ async function cleanExistingTestData() {
 
   // Find existing test auth users
   const { data: authUsers } = await supabase.auth.admin.listUsers();
-  const testUsers =
-    authUsers?.users?.filter((u) =>
-      u.email?.endsWith(TEST_EMAIL_DOMAIN)
-    ) ?? [];
+  const testUsers = authUsers?.users?.filter((u) => u.email?.endsWith(TEST_EMAIL_DOMAIN)) ?? [];
 
   if (testUsers.length === 0) {
     log("✅", "No existing test data found.");
@@ -1319,7 +1308,10 @@ async function cleanExistingTestData() {
   // Because events FK to organizer_profiles (which FK to public.users),
   // deleting public.users cascades everything.
   // Clean app testimonials (not tied to user cascade)
-  await supabase.from("app_testimonials").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+  await supabase
+    .from("app_testimonials")
+    .delete()
+    .neq("id", "00000000-0000-0000-0000-000000000000");
 
   for (const user of testUsers) {
     const { error } = await supabase.auth.admin.deleteUser(user.id);
@@ -1340,15 +1332,14 @@ async function createUsers(): Promise<Map<string, string>> {
 
   for (const user of TEST_USERS) {
     // 1. Create auth user (trigger auto-creates public.users row)
-    const { data: authData, error: authError } =
-      await supabase.auth.admin.createUser({
-        email: user.email,
-        password: user.password,
-        email_confirm: true,
-        user_metadata: {
-          full_name: user.full_name,
-        },
-      });
+    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      email: user.email,
+      password: user.password,
+      email_confirm: true,
+      user_metadata: {
+        full_name: user.full_name,
+      },
+    });
 
     if (authError) {
       console.error(`  Failed to create auth user ${user.email}: ${authError.message}`);
@@ -1374,9 +1365,7 @@ async function createUsers(): Promise<Map<string, string>> {
       .eq("id", userId);
 
     if (updateError) {
-      console.error(
-        `  Failed to update public.users for ${user.email}: ${updateError.message}`
-      );
+      console.error(`  Failed to update public.users for ${user.email}: ${updateError.message}`);
     } else {
       log("  ✅", `${user.full_name} (${user.email}) - ${user.role}`);
     }
@@ -1386,9 +1375,7 @@ async function createUsers(): Promise<Map<string, string>> {
 }
 
 /** Create organizer profiles. Returns map of org_name -> profile id. */
-async function createOrganizerProfiles(
-  userMap: Map<string, string>
-): Promise<Map<string, string>> {
+async function createOrganizerProfiles(userMap: Map<string, string>): Promise<Map<string, string>> {
   log("🏢", "Creating organizer profiles...");
 
   const orgMap = new Map<string, string>();
@@ -1416,9 +1403,7 @@ async function createOrganizerProfiles(
       .single();
 
     if (error) {
-      console.error(
-        `  Failed to create org profile "${profile.org_name}": ${error.message}`
-      );
+      console.error(`  Failed to create org profile "${profile.org_name}": ${error.message}`);
     } else {
       orgMap.set(profile.org_name, data.id);
       log("  ✅", `${profile.org_name}`);
@@ -1429,9 +1414,7 @@ async function createOrganizerProfiles(
 }
 
 /** Create events. Returns map of event title -> event id. */
-async function createEvents(
-  orgMap: Map<string, string>
-): Promise<Map<string, string>> {
+async function createEvents(orgMap: Map<string, string>): Promise<Map<string, string>> {
   log("📅", "Creating events...");
 
   const eventMap = new Map<string, string>();
@@ -1462,9 +1445,7 @@ async function createEvents(
       .single();
 
     if (error) {
-      console.error(
-        `  Failed to create event "${event.title}": ${error.message}`
-      );
+      console.error(`  Failed to create event "${event.title}": ${error.message}`);
     } else {
       eventMap.set(event.title, data.id);
       log("  ✅", `${event.title} [${event.status}]`);
@@ -1477,7 +1458,7 @@ async function createEvents(
 /** Create bookings with QR codes. Returns map of "userEmail:eventTitle" -> bookingId. */
 async function createBookings(
   userMap: Map<string, string>,
-  eventMap: Map<string, string>
+  eventMap: Map<string, string>,
 ): Promise<Map<string, string>> {
   log("🎫", "Creating bookings...");
 
@@ -1728,7 +1709,7 @@ async function createBookings(
     const eventId = eventMap.get(booking.eventTitle);
     if (!userId || !eventId) {
       console.error(
-        `  Missing user or event for booking: ${booking.userEmail} -> ${booking.eventTitle}`
+        `  Missing user or event for booking: ${booking.userEmail} -> ${booking.eventTitle}`,
       );
       continue;
     }
@@ -1738,25 +1719,29 @@ async function createBookings(
     const isPendingEwallet = isEwallet && booking.payment_status !== "paid";
     const qrCode = isPendingEwallet ? null : `eventtara:checkin:${eventId}:${userId}`;
 
-    const { data, error } = await supabase.from("bookings").insert({
-      event_id: eventId,
-      user_id: userId,
-      status: booking.status,
-      payment_status: booking.payment_status,
-      payment_method: booking.payment_method,
-      qr_code: qrCode,
-    }).select("id").single();
+    const { data, error } = await supabase
+      .from("bookings")
+      .insert({
+        event_id: eventId,
+        user_id: userId,
+        status: booking.status,
+        payment_status: booking.payment_status,
+        payment_method: booking.payment_method,
+        qr_code: qrCode,
+      })
+      .select("id")
+      .single();
 
     if (error) {
       console.error(
-        `  Failed to create booking (${booking.userEmail} -> ${booking.eventTitle}): ${error.message}`
+        `  Failed to create booking (${booking.userEmail} -> ${booking.eventTitle}): ${error.message}`,
       );
     } else {
       bookingMap.set(`${booking.userEmail}:${booking.eventTitle}`, data.id);
       const userName = booking.userEmail.split("@")[0];
       log(
         "  ✅",
-        `${userName} -> ${booking.eventTitle} [${booking.status}/${booking.payment_status}]`
+        `${userName} -> ${booking.eventTitle} [${booking.status}/${booking.payment_status}]`,
       );
     }
   }
@@ -1769,8 +1754,8 @@ interface BadgeDef {
   title: string;
   description: string;
   image_url: string;
-  category: 'distance' | 'adventure' | 'location' | 'special';
-  rarity: 'common' | 'rare' | 'epic' | 'legendary';
+  category: "distance" | "adventure" | "location" | "special";
+  rarity: "common" | "rare" | "epic" | "legendary";
 }
 
 const BADGE_DEFS: BadgeDef[] = [
@@ -1780,8 +1765,7 @@ const BADGE_DEFS: BadgeDef[] = [
     title: "Madja-as Summiteer",
     description:
       "Conquered the highest peak on Panay Island — Mt. Madja-as at 2,117m. You earned this above the clouds.",
-    image_url:
-      "https://images.unsplash.com/photo-1551632811-561732d1e306?w=200&h=200&fit=crop",
+    image_url: "https://images.unsplash.com/photo-1551632811-561732d1e306?w=200&h=200&fit=crop",
     category: "adventure",
     rarity: "epic",
   },
@@ -1790,8 +1774,7 @@ const BADGE_DEFS: BadgeDef[] = [
     title: "Bucari Trailblazer",
     description:
       "Ran through the highland pine forests of Bucari at 900m elevation. A unique Visayan trail experience!",
-    image_url:
-      "https://images.unsplash.com/photo-1452626038306-9aae5e071dd3?w=200&h=200&fit=crop",
+    image_url: "https://images.unsplash.com/photo-1452626038306-9aae5e071dd3?w=200&h=200&fit=crop",
     category: "adventure",
     rarity: "rare",
   },
@@ -1800,8 +1783,7 @@ const BADGE_DEFS: BadgeDef[] = [
     title: "Esplanade Night Runner",
     description:
       "Finished the Iloilo Esplanade Night Run 10K under the city lights. You owned the riverside!",
-    image_url:
-      "https://images.unsplash.com/photo-1571008887538-b36bb32f4571?w=200&h=200&fit=crop",
+    image_url: "https://images.unsplash.com/photo-1571008887538-b36bb32f4571?w=200&h=200&fit=crop",
     category: "distance",
     rarity: "common",
   },
@@ -1810,8 +1792,7 @@ const BADGE_DEFS: BadgeDef[] = [
     title: "Coastal Road Warrior",
     description:
       "Completed the 120km coastal ride from Iloilo to Antique. Your legs earned this one!",
-    image_url:
-      "https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=200&h=200&fit=crop",
+    image_url: "https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=200&h=200&fit=crop",
     category: "distance",
     rarity: "rare",
   },
@@ -1820,8 +1801,7 @@ const BADGE_DEFS: BadgeDef[] = [
     title: "Tubungan MTB Crusher",
     description:
       "Conquered the highland trails and river crossings of Tubungan on two wheels. Mountain biker certified!",
-    image_url:
-      "https://images.unsplash.com/photo-1544191696-102dbdaeeaa0?w=200&h=200&fit=crop",
+    image_url: "https://images.unsplash.com/photo-1544191696-102dbdaeeaa0?w=200&h=200&fit=crop",
     category: "adventure",
     rarity: "epic",
   },
@@ -1830,8 +1810,7 @@ const BADGE_DEFS: BadgeDef[] = [
     title: "Napulak Sunrise Chaser",
     description:
       "Caught the sunrise from Mt. Napulak's summit. The early morning trek was worth every step!",
-    image_url:
-      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=200&h=200&fit=crop",
+    image_url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=200&h=200&fit=crop",
     category: "adventure",
     rarity: "rare",
   },
@@ -1841,8 +1820,7 @@ const BADGE_DEFS: BadgeDef[] = [
     title: "Igbaras Hiker",
     description:
       "Explored the lush mountains of Igbaras, the hiking capital of Iloilo. A true Panay adventurer!",
-    image_url:
-      "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=200&h=200&fit=crop",
+    image_url: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=200&h=200&fit=crop",
     category: "adventure",
     rarity: "common",
   },
@@ -1851,8 +1829,7 @@ const BADGE_DEFS: BadgeDef[] = [
     title: "Nadsadan Falls Explorer",
     description:
       "Trekked through bamboo groves to reach the stunning Nadsadan Falls. You earned a river dip!",
-    image_url:
-      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=200&h=200&fit=crop",
+    image_url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=200&h=200&fit=crop",
     category: "adventure",
     rarity: "common",
   },
@@ -1861,8 +1838,7 @@ const BADGE_DEFS: BadgeDef[] = [
     title: "Miag-ao Heritage Runner",
     description:
       "Ran 21K from the UNESCO Heritage Miag-ao Church through rice paddies and coastal paths. History meets endurance!",
-    image_url:
-      "https://images.unsplash.com/photo-1510227272981-87123e259b17?w=200&h=200&fit=crop",
+    image_url: "https://images.unsplash.com/photo-1510227272981-87123e259b17?w=200&h=200&fit=crop",
     category: "adventure",
     rarity: "rare",
   },
@@ -1871,8 +1847,7 @@ const BADGE_DEFS: BadgeDef[] = [
     title: "Mt. Malinao Summiteer",
     description:
       "Stood on the sacred summit of Mt. Malinao in Aklan with views of Boracay and the Sibuyan Sea. Legendary!",
-    image_url:
-      "https://images.unsplash.com/photo-1551632811-561732d1e306?w=200&h=200&fit=crop",
+    image_url: "https://images.unsplash.com/photo-1551632811-561732d1e306?w=200&h=200&fit=crop",
     category: "adventure",
     rarity: "legendary",
   },
@@ -1881,8 +1856,7 @@ const BADGE_DEFS: BadgeDef[] = [
     title: "Panay Circuit Finisher",
     description:
       "Pedaled 300km around the entire island of Panay in 2 days. Your legs are legends.",
-    image_url:
-      "https://images.unsplash.com/photo-1534787238916-9ba6764efd4f?w=200&h=200&fit=crop",
+    image_url: "https://images.unsplash.com/photo-1534787238916-9ba6764efd4f?w=200&h=200&fit=crop",
     category: "distance",
     rarity: "epic",
   },
@@ -1891,8 +1865,7 @@ const BADGE_DEFS: BadgeDef[] = [
     title: "Malalison Island Rider",
     description:
       "Rode through coastal cliffs and white sand coves on the remote Malalison Island. Island MTB at its finest!",
-    image_url:
-      "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=200&h=200&fit=crop",
+    image_url: "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=200&h=200&fit=crop",
     category: "location",
     rarity: "rare",
   },
@@ -1901,8 +1874,7 @@ const BADGE_DEFS: BadgeDef[] = [
     title: "Iloilo Fun Runner",
     description:
       "Crossed the finish line at the Iloilo City 5K. Every adventure starts with the first stride — and a bowl of La Paz batchoy!",
-    image_url:
-      "https://images.unsplash.com/photo-1513593771513-7b58b6c4af38?w=200&h=200&fit=crop",
+    image_url: "https://images.unsplash.com/photo-1513593771513-7b58b6c4af38?w=200&h=200&fit=crop",
     category: "distance",
     rarity: "common",
   },
@@ -1960,15 +1932,13 @@ const BADGE_AWARDS: BadgeAwardDef[] = [
     badgeTitle: "Iloilo Fun Runner",
     userEmails: [
       `participant2${TEST_EMAIL_DOMAIN}`, // Maria
-      `guest${TEST_EMAIL_DOMAIN}`,        // Guest
+      `guest${TEST_EMAIL_DOMAIN}`, // Guest
     ],
   },
 ];
 
 /** Create badges for events. */
-async function createBadges(
-  eventMap: Map<string, string>
-): Promise<Map<string, string>> {
+async function createBadges(eventMap: Map<string, string>): Promise<Map<string, string>> {
   log("🏅", "Creating badges...");
 
   const badgeMap = new Map<string, string>();
@@ -2005,10 +1975,7 @@ async function createBadges(
 }
 
 /** Award badges to participants. */
-async function awardBadges(
-  userMap: Map<string, string>,
-  badgeMap: Map<string, string>
-) {
+async function awardBadges(userMap: Map<string, string>, badgeMap: Map<string, string>) {
   log("🎖️", "Awarding badges...");
 
   for (const award of BADGE_AWARDS) {
@@ -2044,24 +2011,65 @@ interface CheckinDef {
 }
 
 const CHECKIN_DEFS: CheckinDef[] = [
-  { eventTitle: "Igbaras Mountain Day Hike",          daysAgo: 14, userEmails: [`participant1${TEST_EMAIL_DOMAIN}`, `participant3${TEST_EMAIL_DOMAIN}`] },
-  { eventTitle: "Nadsadan Falls Day Hike",            daysAgo: 21, userEmails: [`participant1${TEST_EMAIL_DOMAIN}`, `participant2${TEST_EMAIL_DOMAIN}`] },
-  { eventTitle: "Calinog Highland Trail Run 15K",     daysAgo: 25, userEmails: [`participant1${TEST_EMAIL_DOMAIN}`, `participant3${TEST_EMAIL_DOMAIN}`] },
-  { eventTitle: "Panay Circumferential Road Ride",    daysAgo: 30, userEmails: [`participant1${TEST_EMAIL_DOMAIN}`, `participant2${TEST_EMAIL_DOMAIN}`] },
-  { eventTitle: "Bacolod de Tubungan Heritage Hike",  daysAgo: 35, userEmails: [`participant1${TEST_EMAIL_DOMAIN}`, `participant2${TEST_EMAIL_DOMAIN}`] },
-  { eventTitle: "Anini-y Coastal Trail Walk",         daysAgo: 40, userEmails: [`participant2${TEST_EMAIL_DOMAIN}`, `participant3${TEST_EMAIL_DOMAIN}`] },
-  { eventTitle: "Miag-ao Heritage Trail Run",         daysAgo: 45, userEmails: [`participant1${TEST_EMAIL_DOMAIN}`, `participant3${TEST_EMAIL_DOMAIN}`] },
-  { eventTitle: "Baloy Falls Adventure Hike",         daysAgo: 50, userEmails: [`participant3${TEST_EMAIL_DOMAIN}`, `participant2${TEST_EMAIL_DOMAIN}`] },
-  { eventTitle: "Malalison Island Trail Ride",        daysAgo: 60, userEmails: [`participant3${TEST_EMAIL_DOMAIN}`, `participant1${TEST_EMAIL_DOMAIN}`] },
-  { eventTitle: "Mt. Malinao Summit Hike",            daysAgo: 75, userEmails: [`participant3${TEST_EMAIL_DOMAIN}`, `participant2${TEST_EMAIL_DOMAIN}`] },
-  { eventTitle: "Iloilo City Fun Run 5K",             daysAgo: 90, userEmails: [`participant2${TEST_EMAIL_DOMAIN}`, `guest${TEST_EMAIL_DOMAIN}`] },
+  {
+    eventTitle: "Igbaras Mountain Day Hike",
+    daysAgo: 14,
+    userEmails: [`participant1${TEST_EMAIL_DOMAIN}`, `participant3${TEST_EMAIL_DOMAIN}`],
+  },
+  {
+    eventTitle: "Nadsadan Falls Day Hike",
+    daysAgo: 21,
+    userEmails: [`participant1${TEST_EMAIL_DOMAIN}`, `participant2${TEST_EMAIL_DOMAIN}`],
+  },
+  {
+    eventTitle: "Calinog Highland Trail Run 15K",
+    daysAgo: 25,
+    userEmails: [`participant1${TEST_EMAIL_DOMAIN}`, `participant3${TEST_EMAIL_DOMAIN}`],
+  },
+  {
+    eventTitle: "Panay Circumferential Road Ride",
+    daysAgo: 30,
+    userEmails: [`participant1${TEST_EMAIL_DOMAIN}`, `participant2${TEST_EMAIL_DOMAIN}`],
+  },
+  {
+    eventTitle: "Bacolod de Tubungan Heritage Hike",
+    daysAgo: 35,
+    userEmails: [`participant1${TEST_EMAIL_DOMAIN}`, `participant2${TEST_EMAIL_DOMAIN}`],
+  },
+  {
+    eventTitle: "Anini-y Coastal Trail Walk",
+    daysAgo: 40,
+    userEmails: [`participant2${TEST_EMAIL_DOMAIN}`, `participant3${TEST_EMAIL_DOMAIN}`],
+  },
+  {
+    eventTitle: "Miag-ao Heritage Trail Run",
+    daysAgo: 45,
+    userEmails: [`participant1${TEST_EMAIL_DOMAIN}`, `participant3${TEST_EMAIL_DOMAIN}`],
+  },
+  {
+    eventTitle: "Baloy Falls Adventure Hike",
+    daysAgo: 50,
+    userEmails: [`participant3${TEST_EMAIL_DOMAIN}`, `participant2${TEST_EMAIL_DOMAIN}`],
+  },
+  {
+    eventTitle: "Malalison Island Trail Ride",
+    daysAgo: 60,
+    userEmails: [`participant3${TEST_EMAIL_DOMAIN}`, `participant1${TEST_EMAIL_DOMAIN}`],
+  },
+  {
+    eventTitle: "Mt. Malinao Summit Hike",
+    daysAgo: 75,
+    userEmails: [`participant3${TEST_EMAIL_DOMAIN}`, `participant2${TEST_EMAIL_DOMAIN}`],
+  },
+  {
+    eventTitle: "Iloilo City Fun Run 5K",
+    daysAgo: 90,
+    userEmails: [`participant2${TEST_EMAIL_DOMAIN}`, `guest${TEST_EMAIL_DOMAIN}`],
+  },
 ];
 
 /** Create check-ins for all completed events. */
-async function createCheckins(
-  userMap: Map<string, string>,
-  eventMap: Map<string, string>
-) {
+async function createCheckins(userMap: Map<string, string>, eventMap: Map<string, string>) {
   log("📋", "Creating check-ins...");
 
   for (const def of CHECKIN_DEFS) {
@@ -2087,7 +2095,9 @@ async function createCheckins(
       });
 
       if (error) {
-        console.error(`  Failed to create check-in for ${email} at "${def.eventTitle}": ${error.message}`);
+        console.error(
+          `  Failed to create check-in for ${email} at "${def.eventTitle}": ${error.message}`,
+        );
       } else {
         const name = TEST_USERS.find((u) => u.email === email)?.full_name;
         log("  ✅", `${name} checked in at ${def.eventTitle}`);
@@ -2116,25 +2126,19 @@ const COMPANION_DEFS: CompanionDef[] = [
   {
     userEmail: `participant2${TEST_EMAIL_DOMAIN}`,
     eventTitle: "Iloilo Esplanade Night Run 10K",
-    companions: [
-      { full_name: "Sofia Reyes", phone: "09199876543" },
-    ],
+    companions: [{ full_name: "Sofia Reyes", phone: "09199876543" }],
   },
   // Carlos has a pending booking to Bucari with 1 companion (pending e-wallet — no QR yet)
   {
     userEmail: `participant3${TEST_EMAIL_DOMAIN}`,
     eventTitle: "Bucari Pine Forest Trail Run",
-    companions: [
-      { full_name: "Daniel Torres", phone: "09201234567" },
-    ],
+    companions: [{ full_name: "Daniel Torres", phone: "09201234567" }],
   },
   // Carlos brought a friend to Esplanade Night Run (cash/pending — companions get QR codes)
   {
     userEmail: `participant3${TEST_EMAIL_DOMAIN}`,
     eventTitle: "Iloilo Esplanade Night Run 10K",
-    companions: [
-      { full_name: "Andrea Santos", phone: "" },
-    ],
+    companions: [{ full_name: "Andrea Santos", phone: "" }],
   },
 ];
 
@@ -2282,10 +2286,7 @@ const REVIEW_DEFS: ReviewDef[] = [
 ];
 
 /** Create booking companions with QR codes. */
-async function createCompanions(
-  bookingMap: Map<string, string>,
-  eventMap: Map<string, string>
-) {
+async function createCompanions(bookingMap: Map<string, string>, eventMap: Map<string, string>) {
   log("👥", "Creating booking companions...");
 
   for (const def of COMPANION_DEFS) {
@@ -2329,10 +2330,7 @@ async function createCompanions(
       // Generate QR code for paid or cash bookings (not pending e-wallet)
       if (!isPendingEwallet) {
         const qrCode = `eventtara:checkin:${eventId}:companion:${data.id}`;
-        await supabase
-          .from("booking_companions")
-          .update({ qr_code: qrCode })
-          .eq("id", data.id);
+        await supabase.from("booking_companions").update({ qr_code: qrCode }).eq("id", data.id);
       }
 
       const userName = def.userEmail.split("@")[0];
@@ -2354,17 +2352,16 @@ async function seedAppTestimonials() {
   }
 }
 
-async function seedEventReviews(
-  userMap: Map<string, string>,
-  eventMap: Map<string, string>
-) {
+async function seedEventReviews(userMap: Map<string, string>, eventMap: Map<string, string>) {
   log("⭐", "Creating event reviews...");
 
   for (const review of REVIEW_DEFS) {
     const userId = userMap.get(review.userEmail);
     const eventId = eventMap.get(review.eventTitle);
     if (!userId || !eventId) {
-      console.error(`  Missing user or event for review: ${review.userEmail} -> ${review.eventTitle}`);
+      console.error(
+        `  Missing user or event for review: ${review.userEmail} -> ${review.eventTitle}`,
+      );
       continue;
     }
 
@@ -2385,9 +2382,7 @@ async function seedEventReviews(
 }
 
 /** Create guides. Returns map of guide full_name -> guide id. */
-async function createGuides(
-  userMap: Map<string, string>
-): Promise<Map<string, string>> {
+async function createGuides(userMap: Map<string, string>): Promise<Map<string, string>> {
   log("🧭", "Creating guides...");
 
   const guideMap = new Map<string, string>();
@@ -2424,7 +2419,7 @@ async function createGuides(
 /** Link guides to events. */
 async function linkEventGuides(
   guideMap: Map<string, string>,
-  eventMap: Map<string, string>
+  eventMap: Map<string, string>,
 ): Promise<void> {
   log("🔗", "Linking guides to events...");
 
@@ -2432,9 +2427,7 @@ async function linkEventGuides(
     const guideId = guideMap.get(link.guideName);
     const eventId = eventMap.get(link.eventTitle);
     if (!guideId || !eventId) {
-      console.error(
-        `  Missing guide or event for link: ${link.guideName} -> ${link.eventTitle}`
-      );
+      console.error(`  Missing guide or event for link: ${link.guideName} -> ${link.eventTitle}`);
       continue;
     }
 
@@ -2445,7 +2438,7 @@ async function linkEventGuides(
 
     if (error) {
       console.error(
-        `  Failed to link "${link.guideName}" to "${link.eventTitle}": ${error.message}`
+        `  Failed to link "${link.guideName}" to "${link.eventTitle}": ${error.message}`,
       );
     } else {
       log("  ✅", `${link.guideName} -> ${link.eventTitle}`);
@@ -2457,7 +2450,7 @@ async function linkEventGuides(
 async function seedGuideReviews(
   guideMap: Map<string, string>,
   userMap: Map<string, string>,
-  eventMap: Map<string, string>
+  eventMap: Map<string, string>,
 ): Promise<void> {
   log("📝", "Creating guide reviews...");
 
@@ -2467,7 +2460,7 @@ async function seedGuideReviews(
     const eventId = eventMap.get(review.eventTitle);
     if (!guideId || !userId || !eventId) {
       console.error(
-        `  Missing guide, user, or event for guide review: ${review.guideName} <- ${review.reviewerEmail} @ ${review.eventTitle}`
+        `  Missing guide, user, or event for guide review: ${review.guideName} <- ${review.reviewerEmail} @ ${review.eventTitle}`,
       );
       continue;
     }
@@ -2484,7 +2477,10 @@ async function seedGuideReviews(
       console.error(`  Failed to create guide review: ${error.message}`);
     } else {
       const name = TEST_USERS.find((u) => u.email === review.reviewerEmail)?.full_name;
-      log("  ✅", `${name} reviewed ${review.guideName} @ ${review.eventTitle} (${review.rating}★)`);
+      log(
+        "  ✅",
+        `${name} reviewed ${review.guideName} @ ${review.eventTitle} (${review.rating}★)`,
+      );
     }
   }
 }

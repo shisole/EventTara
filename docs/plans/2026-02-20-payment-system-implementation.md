@@ -17,6 +17,7 @@
 ## Task 1: Database Migration — Add Payment Fields
 
 **Files:**
+
 - Create: `supabase/migrations/003_payment_proof.sql`
 - Modify: `src/lib/supabase/types.ts:150-182` (bookings type)
 
@@ -91,6 +92,7 @@ git commit -m "feat: add payment proof fields and update constraints"
 This reusable badge is used across multiple components, so build it first.
 
 **Files:**
+
 - Create: `src/components/ui/PaymentStatusBadge.tsx`
 
 **Step 1: Create the component**
@@ -120,7 +122,12 @@ const statusConfig: Record<string, { label: string; className: string }> = {
 export default function PaymentStatusBadge({ status }: { status: string }) {
   const config = statusConfig[status] || statusConfig.pending;
   return (
-    <span className={cn("inline-flex items-center px-3 py-1 rounded-full text-sm font-medium", config.className)}>
+    <span
+      className={cn(
+        "inline-flex items-center px-3 py-1 rounded-full text-sm font-medium",
+        config.className,
+      )}
+    >
       {config.label}
     </span>
   );
@@ -145,6 +152,7 @@ git commit -m "feat: add PaymentStatusBadge component"
 ## Task 3: Update PaymentMethodPicker — Add Cash Option
 
 **Files:**
+
 - Modify: `src/components/booking/PaymentMethodPicker.tsx:10-13`
 
 **Step 1: Add "cash" to the PAYMENT_METHODS array**
@@ -181,6 +189,7 @@ git commit -m "feat: add cash payment method option"
 Shows organizer's GCash/Maya number and payment instructions to participants.
 
 **Files:**
+
 - Create: `src/components/booking/PaymentInstructions.tsx`
 
 **Step 1: Create the component**
@@ -198,11 +207,23 @@ interface PaymentInstructionsProps {
 }
 
 const methodConfig = {
-  gcash: { name: "GCash", numberKey: "gcash_number" as const, color: "text-blue-600 dark:text-blue-400" },
-  maya: { name: "Maya", numberKey: "maya_number" as const, color: "text-green-600 dark:text-green-400" },
+  gcash: {
+    name: "GCash",
+    numberKey: "gcash_number" as const,
+    color: "text-blue-600 dark:text-blue-400",
+  },
+  maya: {
+    name: "Maya",
+    numberKey: "maya_number" as const,
+    color: "text-green-600 dark:text-green-400",
+  },
 };
 
-export default function PaymentInstructions({ paymentMethod, amount, paymentInfo }: PaymentInstructionsProps) {
+export default function PaymentInstructions({
+  paymentMethod,
+  amount,
+  paymentInfo,
+}: PaymentInstructionsProps) {
   const config = methodConfig[paymentMethod];
   const number = paymentInfo[config.numberKey];
 
@@ -224,8 +245,12 @@ export default function PaymentInstructions({ paymentMethod, amount, paymentInfo
           Open your <span className={`font-semibold ${config.color}`}>{config.name}</span> app
         </li>
         <li>
-          Send <span className="font-bold text-gray-900 dark:text-gray-100">{"\u20B1"}{amount.toLocaleString()}</span> to{" "}
-          <span className="font-mono font-bold text-gray-900 dark:text-gray-100">{number}</span>
+          Send{" "}
+          <span className="font-bold text-gray-900 dark:text-gray-100">
+            {"\u20B1"}
+            {amount.toLocaleString()}
+          </span>{" "}
+          to <span className="font-mono font-bold text-gray-900 dark:text-gray-100">{number}</span>
         </li>
         <li>Take a screenshot of your payment confirmation</li>
         <li>Upload the screenshot below</li>
@@ -255,6 +280,7 @@ git commit -m "feat: add PaymentInstructions component"
 File upload with image preview for payment proof screenshots.
 
 **Files:**
+
 - Create: `src/components/booking/PaymentProofUpload.tsx`
 
 **Step 1: Create the component**
@@ -317,7 +343,11 @@ export default function PaymentProofUpload({ onFileSelect }: PaymentProofUploadP
       </label>
       {preview ? (
         <div className="relative">
-          <img src={preview} alt="Payment proof" className="w-full rounded-xl border dark:border-gray-700 max-h-64 object-contain bg-gray-50 dark:bg-gray-800" />
+          <img
+            src={preview}
+            alt="Payment proof"
+            className="w-full rounded-xl border dark:border-gray-700 max-h-64 object-contain bg-gray-50 dark:bg-gray-800"
+          />
           <button
             type="button"
             onClick={handleRemove}
@@ -328,7 +358,10 @@ export default function PaymentProofUpload({ onFileSelect }: PaymentProofUploadP
         </div>
       ) : (
         <div
-          onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setDragOver(true);
+          }}
           onDragLeave={() => setDragOver(false)}
           onDrop={handleDrop}
           onClick={() => inputRef.current?.click()}
@@ -340,12 +373,19 @@ export default function PaymentProofUpload({ onFileSelect }: PaymentProofUploadP
         >
           <p className="text-3xl mb-2">{"\u{1F4F8}"}</p>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Drag and drop your screenshot here, or <span className="text-lime-600 dark:text-lime-400 font-medium">click to browse</span>
+            Drag and drop your screenshot here, or{" "}
+            <span className="text-lime-600 dark:text-lime-400 font-medium">click to browse</span>
           </p>
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">JPG, PNG or WebP, max 5MB</p>
         </div>
       )}
-      <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleChange} className="hidden" />
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        onChange={handleChange}
+        className="hidden"
+      />
       {error && <p className="text-sm text-red-500">{error}</p>}
     </div>
   );
@@ -372,6 +412,7 @@ git commit -m "feat: add PaymentProofUpload component"
 The booking page server component needs to fetch the organizer's GCash/Maya numbers so they can be shown in the booking form.
 
 **Files:**
+
 - Modify: `src/app/(participant)/events/[id]/book/page.tsx:9-14` (query)
 - Modify: `src/components/booking/BookingForm.tsx` (full rewrite)
 
@@ -429,6 +470,7 @@ interface BookingFormProps {
 ```
 
 Submit handler changes:
+
 - For e-wallet (gcash/maya) with price > 0: send as `FormData` with file
 - For cash or free: send as JSON (no file)
 - After successful booking: if `payment_status === "pending"` and method is gcash/maya, show pending message instead of QR code
@@ -453,6 +495,7 @@ git commit -m "feat: update booking flow with payment instructions and proof upl
 ## Task 7: Update BookingConfirmation — Pending vs Confirmed States
 
 **Files:**
+
 - Modify: `src/components/booking/BookingConfirmation.tsx`
 
 **Step 1: Add paymentStatus and paymentMethod props**
@@ -492,6 +535,7 @@ git commit -m "feat: update BookingConfirmation for pending payment states"
 ## Task 8: Update Bookings API — Handle Payment Proof Upload
 
 **Files:**
+
 - Modify: `src/app/api/bookings/route.ts` (full update)
 
 **Step 1: Rewrite the POST handler**
@@ -563,6 +607,7 @@ git commit -m "feat: update bookings API with payment proof upload and pending s
 ## Task 9: Payment Verification API — Organizer Approves/Rejects
 
 **Files:**
+
 - Create: `src/app/api/bookings/[id]/verify/route.ts`
 
 **Step 1: Create the verify endpoint**
@@ -574,15 +619,14 @@ import { sendEmail } from "@/lib/email/send";
 import { bookingConfirmationHtml } from "@/lib/email/templates/booking-confirmation";
 import { paymentRejectedHtml } from "@/lib/email/templates/payment-rejected";
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();
 
   // Auth check
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -595,7 +639,9 @@ export async function PATCH(
   // Get booking with event and user info
   const { data: booking } = await supabase
     .from("bookings")
-    .select("*, events:event_id(title, date, location, organizer_id, organizer_profiles:organizer_id(user_id)), users:user_id(full_name, email)")
+    .select(
+      "*, events:event_id(title, date, location, organizer_id, organizer_profiles:organizer_id(user_id)), users:user_id(full_name, email)",
+    )
     .eq("id", id)
     .single();
 
@@ -631,7 +677,12 @@ export async function PATCH(
     const email = (booking.users as any)?.email;
     if (email) {
       const eventDate = new Date((booking.events as any).date).toLocaleDateString("en-US", {
-        weekday: "long", year: "numeric", month: "long", day: "numeric", hour: "numeric", minute: "2-digit",
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
       });
       sendEmail({
         to: email,
@@ -681,6 +732,7 @@ export async function PATCH(
 **Step 2: Create payment-rejected email template**
 
 Create `src/lib/email/templates/payment-rejected.ts` following the same HTML email pattern as `booking-confirmation.ts`:
+
 - Same header with teal gradient
 - Body: "Payment could not be verified for {eventTitle}. Please check your payment or re-upload your proof screenshot from My Events."
 - Same footer
@@ -703,6 +755,7 @@ git commit -m "feat: add payment verification API and rejection email template"
 ## Task 10: Payment Proof Re-upload API
 
 **Files:**
+
 - Create: `src/app/api/bookings/[id]/proof/route.ts`
 
 **Step 1: Create the proof re-upload endpoint**
@@ -711,14 +764,13 @@ git commit -m "feat: add payment verification API and rejection email template"
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -795,6 +847,7 @@ git commit -m "feat: add payment proof re-upload API"
 ## Task 11: Payments Summary API for Organizer Dashboard
 
 **Files:**
+
 - Create: `src/app/api/events/[id]/payments/route.ts`
 
 **Step 1: Create the payments endpoint**
@@ -803,14 +856,13 @@ git commit -m "feat: add payment proof re-upload API"
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -829,7 +881,9 @@ export async function GET(
   // Get bookings with user info
   const { data: bookings } = await supabase
     .from("bookings")
-    .select("id, status, payment_status, payment_method, payment_proof_url, booked_at, users:user_id(full_name, email, avatar_url)")
+    .select(
+      "id, status, payment_status, payment_method, payment_proof_url, booked_at, users:user_id(full_name, email, avatar_url)",
+    )
     .eq("event_id", id)
     .in("status", ["pending", "confirmed"])
     .order("booked_at", { ascending: false });
@@ -872,11 +926,13 @@ git commit -m "feat: add payments summary API for organizer dashboard"
 ## Task 12: PaymentVerificationPanel — Organizer Dashboard Component
 
 **Files:**
+
 - Create: `src/components/dashboard/PaymentVerificationPanel.tsx`
 
 **Step 1: Create the component**
 
 This is a client component that:
+
 - Fetches from `/api/events/{id}/payments`
 - Shows stat cards (Revenue, Pending, Cash)
 - Lists bookings with payment status filter (All / Pending / Paid / Rejected)
@@ -890,6 +946,7 @@ Props: `{ eventId: string; eventPrice: number }`
 Use existing UI components: `Button`, `Card`, `UIBadge`, and the new `PaymentStatusBadge`.
 
 The component should:
+
 1. Fetch data on mount with `useEffect`
 2. Show loading skeleton while fetching
 3. Support filter tabs: All | Pending | Paid | Rejected
@@ -915,6 +972,7 @@ git commit -m "feat: add PaymentVerificationPanel for organizer dashboard"
 ## Task 13: Update Organizer Event Dashboard — Add Payments Tab
 
 **Files:**
+
 - Modify: `src/app/(organizer)/dashboard/events/[id]/page.tsx`
 
 **Step 1: Add a tab system and Payments tab**
@@ -927,12 +985,14 @@ Currently this page is a single-view server component (115 lines). Add a simple 
 4. "Payments" tab: render `PaymentVerificationPanel` component
 
 Since the page is currently a server component, you have two options:
+
 - **Option A:** Make the tab switching a client component wrapper that conditionally renders server-fetched data vs the client `PaymentVerificationPanel`. Create a small `EventDashboardTabs` client component.
 - **Option B:** Keep it simple — add a link/button that navigates to a sub-route.
 
 **Recommended: Option A** — Create `src/components/dashboard/EventDashboardTabs.tsx` as a client component that receives the server-rendered overview content as children and switches between Overview and Payments tabs.
 
 The server page passes:
+
 - `eventId` and `eventPrice` (for PaymentVerificationPanel)
 - The existing stats and participant list as the "overview" children
 
@@ -956,6 +1016,7 @@ git commit -m "feat: add payments tab to organizer event dashboard"
 ## Task 14: Update My Events — Show Payment Status and Re-upload
 
 **Files:**
+
 - Modify: `src/app/(participant)/my-events/page.tsx:20-37` (fetch payment fields)
 - Modify: `src/components/participant/UpcomingBookings.tsx` (show payment status, re-upload)
 
@@ -989,6 +1050,7 @@ At lines 27-37, add the new fields to the mapped booking objects:
 Add `paymentStatus`, `paymentMethod`, `paymentProofUrl` to the `Booking` interface.
 
 For each booking card:
+
 - Show `PaymentStatusBadge` next to the event type badge
 - If `paymentStatus === "pending"` and method is gcash/maya: show "Waiting for verification"
 - If `paymentStatus === "rejected"`: show "Payment rejected" + "Re-upload Proof" button
@@ -1020,6 +1082,7 @@ git commit -m "feat: show payment status and re-upload option in My Events"
 **Step 1: Create the `payment-proofs` storage bucket**
 
 Via Supabase Dashboard:
+
 1. Go to Storage in the Supabase dashboard
 2. Create a new bucket called `payment-proofs`
 3. Set it as **public** (so images can be viewed by organizers)
@@ -1101,6 +1164,7 @@ git commit -m "feat: complete payment system integration"
 ## Summary of All Files
 
 ### New files (10):
+
 - `supabase/migrations/003_payment_proof.sql`
 - `src/components/ui/PaymentStatusBadge.tsx`
 - `src/components/booking/PaymentInstructions.tsx`
@@ -1113,6 +1177,7 @@ git commit -m "feat: complete payment system integration"
 - `src/lib/email/templates/payment-rejected.ts`
 
 ### Modified files (7):
+
 - `src/lib/supabase/types.ts` — add payment proof fields to bookings type
 - `src/components/booking/PaymentMethodPicker.tsx` — add Cash option
 - `src/components/booking/BookingForm.tsx` — payment instructions, proof upload, FormData submit

@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+
 import { createClient } from "@/lib/supabase/server";
 
 export const alt = "Event on EventTara";
@@ -33,24 +34,22 @@ export default async function OGImage({ params }: { params: Promise<{ id: string
 
   if (!event) {
     return new ImageResponse(
-      (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: "100%",
-            height: "100%",
-            background: "#166534",
-            color: "white",
-            fontSize: 48,
-            fontFamily: "sans-serif",
-          }}
-        >
-          Event Not Found
-        </div>
-      ),
-      { ...size }
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: "100%",
+          height: "100%",
+          background: "#166534",
+          color: "white",
+          fontSize: 48,
+          fontFamily: "sans-serif",
+        }}
+      >
+        Event Not Found
+      </div>,
+      { ...size },
     );
   }
 
@@ -61,52 +60,36 @@ export default async function OGImage({ params }: { params: Promise<{ id: string
     day: "numeric",
     year: "numeric",
   });
-  const price =
-    Number(event.price) === 0 ? "Free" : `\u20B1${Number(event.price).toLocaleString()}`;
+  const price = event.price === 0 ? "Free" : `\u20B1${event.price.toLocaleString()}`;
 
   return new ImageResponse(
-    (
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          width: "100%",
-          height: "100%",
-          fontFamily: "sans-serif",
-          position: "relative",
-        }}
-      >
-        {/* Background: event cover image or gradient fallback */}
-        {event.cover_image_url ? (
-          <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={event.cover_image_url}
-              alt=""
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-              }}
-            />
-            {/* Dark overlay for text readability */}
-            <div
-              style={{
-                display: "flex",
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: "100%",
-                background:
-                  "linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.15) 40%, rgba(0,0,0,0.65) 100%)",
-              }}
-            />
-          </>
-        ) : (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        width: "100%",
+        height: "100%",
+        fontFamily: "sans-serif",
+        position: "relative",
+      }}
+    >
+      {/* Background: event cover image or gradient fallback */}
+      {event.cover_image_url ? (
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={event.cover_image_url}
+            alt=""
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+            }}
+          />
+          {/* Dark overlay for text readability */}
           <div
             style={{
               display: "flex",
@@ -116,115 +99,182 @@ export default async function OGImage({ params }: { params: Promise<{ id: string
               width: "100%",
               height: "100%",
               background:
-                "linear-gradient(135deg, #166534 0%, #15803d 50%, #ca8a04 100%)",
+                "linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.15) 40%, rgba(0,0,0,0.65) 100%)",
             }}
           />
-        )}
-
-        {/* Content overlay */}
+        </>
+      ) : (
         <div
           style={{
             display: "flex",
-            flexDirection: "column",
+            position: "absolute",
+            top: 0,
+            left: 0,
             width: "100%",
             height: "100%",
-            padding: 60,
-            position: "relative",
+            background: "linear-gradient(135deg, #166534 0%, #15803d 50%, #ca8a04 100%)",
+          }}
+        />
+      )}
+
+      {/* Content overlay */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          width: "100%",
+          height: "100%",
+          padding: 60,
+          position: "relative",
+        }}
+      >
+        {/* Type badge */}
+        <div
+          style={{
+            display: "flex",
+            alignSelf: "flex-start",
+            padding: "8px 24px",
+            borderRadius: 9999,
+            backgroundColor: typeBadgeColor,
+            color: "white",
+            fontSize: 22,
+            fontWeight: 600,
+            marginBottom: 24,
           }}
         >
-          {/* Type badge */}
-          <div
-            style={{
-              display: "flex",
-              alignSelf: "flex-start",
-              padding: "8px 24px",
-              borderRadius: 9999,
-              backgroundColor: typeBadgeColor,
-              color: "white",
-              fontSize: 22,
-              fontWeight: 600,
-              marginBottom: 24,
-            }}
-          >
-            {typeLabels[event.type] || event.type}
-          </div>
+          {typeLabels[event.type] || event.type}
+        </div>
 
-          {/* Title */}
-          <div
-            style={{
-              display: "flex",
-              fontSize: 56,
-              fontWeight: 800,
-              color: "white",
-              lineHeight: 1.2,
-              marginBottom: 24,
-              maxWidth: "90%",
-              textShadow: "0 2px 8px rgba(0,0,0,0.5)",
-            }}
-          >
-            {event.title.length > 60 ? event.title.slice(0, 57) + "..." : event.title}
-          </div>
+        {/* Title */}
+        <div
+          style={{
+            display: "flex",
+            fontSize: 56,
+            fontWeight: 800,
+            color: "white",
+            lineHeight: 1.2,
+            marginBottom: 24,
+            maxWidth: "90%",
+            textShadow: "0 2px 8px rgba(0,0,0,0.5)",
+          }}
+        >
+          {event.title.length > 60 ? event.title.slice(0, 57) + "..." : event.title}
+        </div>
 
-          {/* Spacer */}
-          <div style={{ display: "flex", flex: 1 }} />
+        {/* Spacer */}
+        <div style={{ display: "flex", flex: 1 }} />
 
-          {/* Bottom info row */}
-          <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
-            {/* Date */}
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              <div style={{ fontSize: 16, color: "rgba(255,255,255,0.8)", textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>Date</div>
-              <div style={{ fontSize: 24, color: "white", fontWeight: 600, textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>{formattedDate}</div>
+        {/* Bottom info row */}
+        <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
+          {/* Date */}
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <div
+              style={{
+                fontSize: 16,
+                color: "rgba(255,255,255,0.8)",
+                textShadow: "0 1px 4px rgba(0,0,0,0.5)",
+              }}
+            >
+              Date
             </div>
+            <div
+              style={{
+                fontSize: 24,
+                color: "white",
+                fontWeight: 600,
+                textShadow: "0 1px 4px rgba(0,0,0,0.5)",
+              }}
+            >
+              {formattedDate}
+            </div>
+          </div>
 
-            {/* Location */}
-            {event.location && (
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                <div style={{ fontSize: 16, color: "rgba(255,255,255,0.8)", textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>Location</div>
-                <div style={{ fontSize: 24, color: "white", fontWeight: 600, textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>
-                  {event.location.length > 30
-                    ? event.location.slice(0, 27) + "..."
-                    : event.location}
-                </div>
+          {/* Location */}
+          {event.location && (
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <div
+                style={{
+                  fontSize: 16,
+                  color: "rgba(255,255,255,0.8)",
+                  textShadow: "0 1px 4px rgba(0,0,0,0.5)",
+                }}
+              >
+                Location
               </div>
-            )}
+              <div
+                style={{
+                  fontSize: 24,
+                  color: "white",
+                  fontWeight: 600,
+                  textShadow: "0 1px 4px rgba(0,0,0,0.5)",
+                }}
+              >
+                {event.location.length > 30 ? event.location.slice(0, 27) + "..." : event.location}
+              </div>
+            </div>
+          )}
 
-            {/* Price */}
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              <div style={{ fontSize: 16, color: "rgba(255,255,255,0.8)", textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>Price</div>
-              <div style={{ fontSize: 24, color: "white", fontWeight: 600, textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>{price}</div>
+          {/* Price */}
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <div
+              style={{
+                fontSize: 16,
+                color: "rgba(255,255,255,0.8)",
+                textShadow: "0 1px 4px rgba(0,0,0,0.5)",
+              }}
+            >
+              Price
+            </div>
+            <div
+              style={{
+                fontSize: 24,
+                color: "white",
+                fontWeight: 600,
+                textShadow: "0 1px 4px rgba(0,0,0,0.5)",
+              }}
+            >
+              {price}
             </div>
           </div>
+        </div>
 
-          {/* Branding footer */}
+        {/* Branding footer */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            marginTop: 32,
+            gap: 12,
+          }}
+        >
           <div
             style={{
               display: "flex",
               alignItems: "center",
-              marginTop: 32,
-              gap: 12,
+              justifyContent: "center",
+              width: 36,
+              height: 36,
+              borderRadius: 18,
+              backgroundColor: "rgba(255,255,255,0.3)",
+              fontSize: 16,
+              fontWeight: 700,
+              color: "white",
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: 36,
-                height: 36,
-                borderRadius: 18,
-                backgroundColor: "rgba(255,255,255,0.3)",
-                fontSize: 16,
-                fontWeight: 700,
-                color: "white",
-              }}
-            >
-              ET
-            </div>
-            <div style={{ fontSize: 20, color: "rgba(255,255,255,0.9)", textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>EventTara</div>
+            ET
+          </div>
+          <div
+            style={{
+              fontSize: 20,
+              color: "rgba(255,255,255,0.9)",
+              textShadow: "0 1px 4px rgba(0,0,0,0.5)",
+            }}
+          >
+            EventTara
           </div>
         </div>
       </div>
-    ),
-    { ...size }
+    </div>,
+    { ...size },
   );
 }

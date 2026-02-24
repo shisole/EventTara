@@ -26,7 +26,10 @@ export default function Loading() {
       {/* Stats row: 3 stat boxes */}
       <div className="grid grid-cols-3 gap-4">
         {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="bg-white dark:bg-gray-900 rounded-2xl shadow-md p-4 space-y-2 text-center">
+          <div
+            key={i}
+            className="bg-white dark:bg-gray-900 rounded-2xl shadow-md p-4 space-y-2 text-center"
+          >
             <Skeleton className="h-8 w-10 mx-auto" />
             <SkeletonText className="w-16 mx-auto" />
           </div>

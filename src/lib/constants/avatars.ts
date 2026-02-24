@@ -1,4 +1,6 @@
-export function resolvePresetImage(imageUrl: string | null): { type: "url"; url: string } | { type: "emoji"; emoji: string; color: string } | null {
+export function resolvePresetImage(
+  imageUrl: string | null,
+): { type: "url"; url: string } | { type: "emoji"; emoji: string; color: string } | null {
   if (!imageUrl) return null;
   if (!imageUrl.startsWith("preset:")) return { type: "url", url: imageUrl };
   const presetId = imageUrl.replace("preset:", "");

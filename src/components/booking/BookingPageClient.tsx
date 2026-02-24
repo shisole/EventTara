@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import BookingForm from "./BookingForm";
+
 import AuthBookingModal from "./AuthBookingModal";
+import BookingForm from "./BookingForm";
 
 interface BookingPageClientProps {
   isAuthenticated: boolean;
@@ -44,7 +45,7 @@ export default function BookingPageClient({
         />
       )}
 
-      <div className={!authenticated ? "pointer-events-none select-none blur-sm" : undefined}>
+      <div className={authenticated ? undefined : "pointer-events-none select-none blur-sm"}>
         <BookingForm
           eventId={eventId}
           eventTitle={eventTitle}

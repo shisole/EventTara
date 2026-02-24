@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
+
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {
@@ -9,10 +10,7 @@ export async function GET(request: NextRequest) {
 
   const supabase = await createClient();
 
-  let query = supabase
-    .from("guides")
-    .select("*")
-    .order("created_at", { ascending: false });
+  let query = supabase.from("guides").select("*").order("created_at", { ascending: false });
 
   if (createdBy) {
     query = query.eq("created_by", createdBy);
@@ -27,10 +25,10 @@ export async function GET(request: NextRequest) {
   // Fetch event counts and avg ratings separately
   const guideIds = (guides || []).map((g) => g.id);
 
-  let eventCounts: Record<string, number> = {};
-  let reviewStats: Record<string, { avg: number; count: number }> = {};
+  const eventCounts: Record<string, number> = {};
+  const reviewStats: Record<string, { avg: number; count: number }> = {};
   // Maps guide_id -> conflicting event title (if busy on check_date)
-  let busyGuides: Record<string, string> = {};
+  const busyGuides: Record<string, string> = {};
 
   if (guideIds.length > 0) {
     // Get event counts via event_guides
@@ -66,8 +64,16 @@ export async function GET(request: NextRequest) {
     // Check guide availability for a specific date
     if (checkDate) {
       const dateObj = new Date(checkDate);
-      const dayStart = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate()).toISOString();
-      const dayEnd = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate() + 1).toISOString();
+      const dayStart = new Date(
+        dateObj.getFullYear(),
+        dateObj.getMonth(),
+        dateObj.getDate(),
+      ).toISOString();
+      const dayEnd = new Date(
+        dateObj.getFullYear(),
+        dateObj.getMonth(),
+        dateObj.getDate() + 1,
+      ).toISOString();
 
       const { data: busyRows } = await supabase
         .from("event_guides")
@@ -119,7 +125,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: Request) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

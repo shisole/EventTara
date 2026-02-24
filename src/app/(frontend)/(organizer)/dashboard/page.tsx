@@ -1,7 +1,8 @@
-import { createClient } from "@/lib/supabase/server";
-import DashboardStats from "@/components/dashboard/DashboardStats";
 import Link from "next/link";
+
+import DashboardStats from "@/components/dashboard/DashboardStats";
 import { Button } from "@/components/ui";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata = {
   title: "Dashboard — EventTara",
@@ -9,7 +10,9 @@ export const metadata = {
 
 export default async function DashboardPage() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   // Get organizer profile
   const { data: profile } = await supabase
@@ -72,8 +75,12 @@ export default async function DashboardPage() {
 
       {!profile && (
         <div className="bg-golden-50 dark:bg-golden-900/20 border border-golden-200 dark:border-golden-800 rounded-2xl p-6 text-center">
-          <h2 className="text-lg font-heading font-bold mb-2 dark:text-white">Set Up Your Organizer Profile</h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">Complete your profile to start creating events.</p>
+          <h2 className="text-lg font-heading font-bold mb-2 dark:text-white">
+            Set Up Your Organizer Profile
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
+            Complete your profile to start creating events.
+          </p>
           <Link href="/dashboard/settings">
             <Button variant="secondary">Complete Profile</Button>
           </Link>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+
 import { Button } from "@/components/ui";
 
 interface QRScannerProps {
@@ -77,14 +78,18 @@ export default function QRScanner({ eventId }: QRScannerProps) {
             });
           } finally {
             // Allow next scan after a short delay
-            setTimeout(() => { processingRef.current = false; }, 2000);
+            setTimeout(() => {
+              processingRef.current = false;
+            }, 2000);
           }
         },
-        () => {} // ignore errors during scanning
+        () => {
+          /* noop: ignore errors during scanning */
+        },
       );
       setScanning(true);
-    } catch (err: any) {
-      setError(err?.message || "Failed to start camera");
+    } catch (error_: any) {
+      setError(error_?.message || "Failed to start camera");
     }
   };
 
@@ -99,7 +104,9 @@ export default function QRScanner({ eventId }: QRScannerProps) {
   useEffect(() => {
     return () => {
       if (scannerRef.current) {
-        scannerRef.current.stop().catch(() => {});
+        scannerRef.current.stop().catch(() => {
+          /* noop */
+        });
       }
     };
   }, []);

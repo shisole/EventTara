@@ -25,15 +25,18 @@ function ClickHandler({ onChange }: { onChange: (coords: { lat: number; lng: num
   return null;
 }
 
-function RecenterMap({ center, hasPin }: { center: { lat: number; lng: number }; hasPin: boolean }) {
+function RecenterMap({
+  center,
+  hasPin,
+}: {
+  center: { lat: number; lng: number };
+  hasPin: boolean;
+}) {
   const map = useMap();
   const prevCenterRef = useRef(center);
 
   useEffect(() => {
-    if (
-      center.lat !== prevCenterRef.current.lat ||
-      center.lng !== prevCenterRef.current.lng
-    ) {
+    if (center.lat !== prevCenterRef.current.lat || center.lng !== prevCenterRef.current.lng) {
       map.flyTo([center.lat, center.lng], hasPin ? PIN_ZOOM : 10, { duration: 0.8 });
       prevCenterRef.current = center;
     }
@@ -50,17 +53,20 @@ export default function MapPicker({ value, onChange, center }: MapPickerProps) {
     (coords: { lat: number; lng: number }) => {
       onChange(coords);
     },
-    [onChange]
+    [onChange],
   );
 
   const markerPosition = useMemo(
-    () => (value ? [value.lat, value.lng] as [number, number] : null),
-    [value]
+    () => (value ? ([value.lat, value.lng] as [number, number]) : null),
+    [value],
   );
 
   return (
     <div className="space-y-2">
-      <div className="rounded-xl overflow-hidden border border-gray-300 dark:border-gray-600" style={{ height: 300 }}>
+      <div
+        className="rounded-xl overflow-hidden border border-gray-300 dark:border-gray-600"
+        style={{ height: 300 }}
+      >
         <MapContainer
           center={[mapCenter.lat, mapCenter.lng]}
           zoom={zoom}
@@ -95,7 +101,9 @@ export default function MapPicker({ value, onChange, center }: MapPickerProps) {
           </span>
           <button
             type="button"
-            onClick={() => onChange(null)}
+            onClick={() => {
+              onChange(null);
+            }}
             className="text-red-500 hover:text-red-600 transition-colors"
           >
             Remove pin

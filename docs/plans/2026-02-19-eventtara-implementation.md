@@ -17,12 +17,14 @@
 ### Task 1: Scaffold Next.js Project
 
 **Files:**
+
 - Create: `package.json`, `next.config.js`, `tsconfig.json`, `tailwind.config.ts`, `postcss.config.js`
 - Create: `src/app/layout.tsx`, `src/app/page.tsx`, `src/app/globals.css`
 
 **Step 1: Create Next.js app with TypeScript and Tailwind**
 
 Run:
+
 ```bash
 npx create-next-app@14 . --typescript --tailwind --eslint --app --src-dir --import-alias "@/*" --use-npm
 ```
@@ -46,6 +48,7 @@ git commit -m "chore: scaffold Next.js 14 project with TypeScript and Tailwind"
 ### Task 2: Configure Tailwind Design System (Brand Colors & Theme)
 
 **Files:**
+
 - Modify: `tailwind.config.ts`
 - Modify: `src/app/globals.css`
 
@@ -199,11 +202,7 @@ export const metadata: Metadata = {
     "EventTara is an adventure event booking platform for hiking, mountain biking, road biking, running, and more.",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable} ${plusJakarta.variable}`}>
       <body className="font-sans">{children}</body>
@@ -224,6 +223,7 @@ git commit -m "feat: configure Tailwind design system with EventTara brand color
 ### Task 3: Install and Configure Supabase Client
 
 **Files:**
+
 - Create: `src/lib/supabase/client.ts` (browser client)
 - Create: `src/lib/supabase/server.ts` (server client)
 - Create: `src/lib/supabase/middleware.ts` (auth middleware)
@@ -233,6 +233,7 @@ git commit -m "feat: configure Tailwind design system with EventTara brand color
 **Step 1: Install Supabase packages**
 
 Run:
+
 ```bash
 npm install @supabase/supabase-js @supabase/ssr
 ```
@@ -260,7 +261,7 @@ import { createBrowserClient } from "@supabase/ssr";
 export function createClient() {
   return createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   );
 }
 ```
@@ -287,7 +288,7 @@ export async function createClient() {
         setAll(cookiesToSet) {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
+              cookieStore.set(name, value, options),
             );
           } catch {
             // The `setAll` method is called from a Server Component
@@ -296,7 +297,7 @@ export async function createClient() {
           }
         },
       },
-    }
+    },
   );
 }
 ```
@@ -321,16 +322,14 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          );
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
           supabaseResponse = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
+            supabaseResponse.cookies.set(name, value, options),
           );
         },
       },
-    }
+    },
   );
 
   // Refresh session if expired
@@ -353,9 +352,7 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
-  ],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
 };
 ```
 
@@ -376,6 +373,7 @@ git commit -m "feat: configure Supabase client (browser, server, middleware)"
 ### Task 4: Install and Configure Redux RTK
 
 **Files:**
+
 - Create: `src/lib/store/store.ts`
 - Create: `src/lib/store/hooks.ts`
 - Create: `src/lib/store/provider.tsx`
@@ -384,6 +382,7 @@ git commit -m "feat: configure Supabase client (browser, server, middleware)"
 **Step 1: Install Redux RTK**
 
 Run:
+
 ```bash
 npm install @reduxjs/toolkit react-redux
 ```
@@ -432,11 +431,7 @@ import { useRef } from "react";
 import { Provider } from "react-redux";
 import { makeStore, AppStore } from "./store";
 
-export default function StoreProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function StoreProvider({ children }: { children: React.ReactNode }) {
   const storeRef = useRef<AppStore>(undefined);
   if (!storeRef.current) {
     storeRef.current = makeStore();
@@ -472,11 +467,7 @@ export const metadata: Metadata = {
     "EventTara is an adventure event booking platform for hiking, mountain biking, road biking, running, and more.",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable} ${plusJakarta.variable}`}>
       <body className="font-sans">
@@ -504,6 +495,7 @@ git commit -m "feat: configure Redux RTK store with typed hooks and provider"
 ### Task 5: Set Up Supabase Database Schema
 
 **Files:**
+
 - Create: `supabase/migrations/001_initial_schema.sql`
 
 **Step 1: Create the migration file**
@@ -741,6 +733,7 @@ CREATE OR REPLACE TRIGGER on_auth_user_created
 Run this SQL in the Supabase Dashboard SQL Editor (Project > SQL Editor > New Query > paste and run).
 
 Alternatively, if using Supabase CLI:
+
 ```bash
 npx supabase db push
 ```
@@ -761,11 +754,13 @@ git commit -m "feat: add initial database schema with RLS policies"
 ### Task 6: Generate Supabase TypeScript Types
 
 **Files:**
+
 - Create: `src/lib/supabase/types.ts`
 
 **Step 1: Generate types from Supabase**
 
 Run:
+
 ```bash
 npx supabase gen types typescript --project-id YOUR_PROJECT_ID > src/lib/supabase/types.ts
 ```
@@ -785,7 +780,7 @@ import { Database } from "./types";
 export function createClient() {
   return createBrowserClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   );
 }
 ```
@@ -804,6 +799,7 @@ git commit -m "feat: add generated Supabase TypeScript types"
 ### Task 7: Create Shared UI Components
 
 **Files:**
+
 - Create: `src/components/ui/Button.tsx`
 - Create: `src/components/ui/Card.tsx`
 - Create: `src/components/ui/Badge.tsx`
@@ -842,12 +838,12 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             "py-3 px-6": size === "md",
             "text-lg py-4 px-8": size === "lg",
           },
-          className
+          className,
         )}
         {...props}
       />
     );
-  }
+  },
 );
 
 Button.displayName = "Button";
@@ -884,7 +880,7 @@ const Card = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
       className={cn("bg-white rounded-2xl shadow-md hover:shadow-lg transition-shadow", className)}
       {...props}
     />
-  )
+  ),
 );
 
 Card.displayName = "Card";
@@ -892,14 +888,12 @@ Card.displayName = "Card";
 const CardHeader = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
     <div ref={ref} className={cn("p-6 pb-0", className)} {...props} />
-  )
+  ),
 );
 CardHeader.displayName = "CardHeader";
 
 const CardContent = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn("p-6", className)} {...props} />
-  )
+  ({ className, ...props }, ref) => <div ref={ref} className={cn("p-6", className)} {...props} />,
 );
 CardContent.displayName = "CardContent";
 
@@ -935,11 +929,11 @@ const UIBadge = forwardRef<HTMLSpanElement, BadgeProps>(
       className={cn(
         "inline-flex items-center px-3 py-1 rounded-full text-sm font-medium",
         variantStyles[variant],
-        className
+        className,
       )}
       {...props}
     />
-  )
+  ),
 );
 
 UIBadge.displayName = "UIBadge";
@@ -973,13 +967,13 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         className={cn(
           "w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-coral-500 focus:ring-2 focus:ring-coral-200 outline-none transition-colors",
           error && "border-red-500 focus:border-red-500 focus:ring-red-200",
-          className
+          className,
         )}
         {...props}
       />
       {error && <p className="text-sm text-red-500">{error}</p>}
     </div>
-  )
+  ),
 );
 
 Input.displayName = "Input";
@@ -1024,7 +1018,7 @@ export default function Avatar({ src, alt, size = "md", className }: AvatarProps
         className={cn(
           "rounded-full bg-coral-100 text-coral-600 flex items-center justify-center font-semibold",
           sizeMap[size],
-          className
+          className,
         )}
       >
         {initials}
@@ -1075,6 +1069,7 @@ git commit -m "feat: add shared UI components (Button, Card, Badge, Input, Avata
 ### Task 8: Build Auth Pages (Login & Signup)
 
 **Files:**
+
 - Create: `src/app/(auth)/login/page.tsx`
 - Create: `src/app/(auth)/signup/page.tsx`
 - Create: `src/app/(auth)/layout.tsx`
@@ -1161,7 +1156,11 @@ export default function LoginPage() {
     <div className="bg-white rounded-2xl shadow-md p-8 space-y-6">
       <h2 className="text-2xl font-heading font-bold text-center">Welcome Back!</h2>
 
-      <Button onClick={handleFacebookLogin} className="w-full bg-[#1877F2] hover:bg-[#166FE5]" size="lg">
+      <Button
+        onClick={handleFacebookLogin}
+        className="w-full bg-[#1877F2] hover:bg-[#166FE5]"
+        size="lg"
+      >
         Continue with Facebook
       </Button>
 
@@ -1277,7 +1276,11 @@ export default function SignupPage() {
     <div className="bg-white rounded-2xl shadow-md p-8 space-y-6">
       <h2 className="text-2xl font-heading font-bold text-center">Join the Adventure!</h2>
 
-      <Button onClick={handleFacebookLogin} className="w-full bg-[#1877F2] hover:bg-[#166FE5]" size="lg">
+      <Button
+        onClick={handleFacebookLogin}
+        className="w-full bg-[#1877F2] hover:bg-[#166FE5]"
+        size="lg"
+      >
         Continue with Facebook
       </Button>
 
@@ -1377,6 +1380,7 @@ git commit -m "feat: add login and signup pages with Facebook OAuth, email, and 
 ### Task 9: Build Guest Setup Page (Avatar Picker)
 
 **Files:**
+
 - Create: `src/app/(auth)/guest-setup/page.tsx`
 - Create: `src/lib/constants/avatars.ts`
 
@@ -1434,7 +1438,9 @@ export default function GuestSetupPage() {
     setLoading(true);
     setError("");
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) {
       setError("Session expired. Please try again.");
       setLoading(false);
@@ -1476,10 +1482,15 @@ export default function GuestSetupPage() {
                 "flex flex-col items-center gap-1 p-3 rounded-xl border-2 transition-all",
                 selectedAvatar === avatar.id
                   ? "border-coral-500 bg-coral-50 scale-105"
-                  : "border-gray-200 hover:border-gray-300"
+                  : "border-gray-200 hover:border-gray-300",
               )}
             >
-              <span className={cn("w-12 h-12 rounded-full flex items-center justify-center text-2xl", avatar.color)}>
+              <span
+                className={cn(
+                  "w-12 h-12 rounded-full flex items-center justify-center text-2xl",
+                  avatar.color,
+                )}
+              >
                 {avatar.emoji}
               </span>
               <span className="text-xs text-gray-600">{avatar.label}</span>
@@ -1529,6 +1540,7 @@ git commit -m "feat: add guest setup page with adventure avatar picker"
 ### Task 10: Build Landing Page
 
 **Files:**
+
 - Create: `src/components/layout/Navbar.tsx`
 - Create: `src/components/layout/Footer.tsx`
 - Modify: `src/app/page.tsx`
@@ -1553,12 +1565,16 @@ export default function Navbar() {
 
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       setUser(user);
     };
     getUser();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
 
@@ -1604,7 +1620,9 @@ export default function Navbar() {
             ) : (
               <div className="flex items-center gap-3">
                 <Link href="/login">
-                  <Button variant="ghost" size="sm">Sign In</Button>
+                  <Button variant="ghost" size="sm">
+                    Sign In
+                  </Button>
                 </Link>
                 <Link href="/signup">
                   <Button size="sm">Get Started</Button>
@@ -1638,17 +1656,29 @@ export default function Footer() {
           <div>
             <h4 className="text-white font-medium mb-3">Explore</h4>
             <div className="space-y-2 text-sm">
-              <Link href="/events" className="block hover:text-white">Browse Events</Link>
-              <Link href="/events?type=hiking" className="block hover:text-white">Hiking</Link>
-              <Link href="/events?type=mtb" className="block hover:text-white">Mountain Biking</Link>
-              <Link href="/events?type=running" className="block hover:text-white">Running</Link>
+              <Link href="/events" className="block hover:text-white">
+                Browse Events
+              </Link>
+              <Link href="/events?type=hiking" className="block hover:text-white">
+                Hiking
+              </Link>
+              <Link href="/events?type=mtb" className="block hover:text-white">
+                Mountain Biking
+              </Link>
+              <Link href="/events?type=running" className="block hover:text-white">
+                Running
+              </Link>
             </div>
           </div>
           <div>
             <h4 className="text-white font-medium mb-3">For Organizers</h4>
             <div className="space-y-2 text-sm">
-              <Link href="/signup" className="block hover:text-white">List Your Event</Link>
-              <Link href="/dashboard" className="block hover:text-white">Organizer Dashboard</Link>
+              <Link href="/signup" className="block hover:text-white">
+                List Your Event
+              </Link>
+              <Link href="/dashboard" className="block hover:text-white">
+                Organizer Dashboard
+              </Link>
             </div>
           </div>
         </div>
@@ -1664,6 +1694,7 @@ export default function Footer() {
 **Step 3: Build landing page**
 
 Replace `src/app/page.tsx` with full landing page including:
+
 - Hero with tagline and CTA
 - How it works (3 steps)
 - Event type categories (hiking, MTB, road bike, running, trail run)
@@ -1692,6 +1723,7 @@ git commit -m "feat: build landing page with navbar, hero, categories, and foote
 ### Task 11: Build Event Discovery Page
 
 **Files:**
+
 - Create: `src/app/(participant)/events/page.tsx`
 - Create: `src/components/events/EventCard.tsx`
 - Create: `src/components/events/EventFilters.tsx`
@@ -1707,6 +1739,7 @@ Create `src/components/events/EventFilters.tsx` — filter bar with: event type 
 **Step 3: Create events listing page**
 
 Create `src/app/(participant)/events/page.tsx` — server component that:
+
 - Reads search params for filters
 - Queries Supabase for published events with filters applied
 - Renders EventFilters + grid of EventCards
@@ -1729,6 +1762,7 @@ git commit -m "feat: build event discovery page with filters and event cards"
 ### Task 12: Build Event Detail Page
 
 **Files:**
+
 - Create: `src/app/(participant)/events/[id]/page.tsx`
 - Create: `src/components/events/EventGallery.tsx`
 - Create: `src/components/events/OrganizerCard.tsx`
@@ -1762,6 +1796,7 @@ git commit -m "feat: build event detail page with gallery, organizer card, and b
 ### Task 13: Build Booking Flow
 
 **Files:**
+
 - Create: `src/app/(participant)/events/[id]/book/page.tsx`
 - Create: `src/components/booking/BookingForm.tsx`
 - Create: `src/components/booking/PaymentMethodPicker.tsx`
@@ -1804,6 +1839,7 @@ git commit -m "feat: build booking flow with payment method selection and QR con
 ### Task 14: Build Organizer Dashboard Layout
 
 **Files:**
+
 - Create: `src/app/(organizer)/dashboard/layout.tsx`
 - Create: `src/app/(organizer)/dashboard/page.tsx`
 - Create: `src/components/dashboard/DashboardSidebar.tsx`
@@ -1837,6 +1873,7 @@ git commit -m "feat: build organizer dashboard layout with sidebar and overview 
 ### Task 15: Build Event CRUD (Create/Edit/Manage)
 
 **Files:**
+
 - Create: `src/app/(organizer)/dashboard/events/page.tsx` (events list)
 - Create: `src/app/(organizer)/dashboard/events/new/page.tsx` (create event)
 - Create: `src/app/(organizer)/dashboard/events/[id]/page.tsx` (manage event)
@@ -1889,6 +1926,7 @@ git commit -m "feat: build event CRUD with form, photo upload, and management pa
 ### Task 16: Build Organizer Settings Page
 
 **Files:**
+
 - Create: `src/app/(organizer)/dashboard/settings/page.tsx`
 - Create: `src/components/dashboard/OrganizerProfileForm.tsx`
 - Create: `src/components/dashboard/PaymentSettingsForm.tsx`
@@ -1919,6 +1957,7 @@ git commit -m "feat: build organizer settings page with profile and payment conf
 ### Task 17: Build QR Check-in System
 
 **Files:**
+
 - Create: `src/app/(organizer)/dashboard/events/[id]/checkin/page.tsx`
 - Create: `src/components/checkin/QRScanner.tsx`
 - Create: `src/components/checkin/CheckinList.tsx`
@@ -1956,6 +1995,7 @@ git commit -m "feat: build QR check-in system with scanner and real-time partici
 ### Task 18: Build Badge System
 
 **Files:**
+
 - Create: `src/components/dashboard/BadgeForm.tsx`
 - Create: `src/components/dashboard/BadgeAwarder.tsx`
 - Create: `src/components/badges/BadgeCard.tsx`
@@ -1996,6 +2036,7 @@ git commit -m "feat: build badge system with creation, bulk awarding, and displa
 ### Task 19: Build Participant Profile Page
 
 **Files:**
+
 - Create: `src/app/(participant)/profile/[username]/page.tsx`
 - Create: `src/components/profile/ProfileHeader.tsx`
 - Create: `src/components/profile/ProfileStats.tsx`
@@ -2024,6 +2065,7 @@ git commit -m "feat: build public participant profile with badges and adventure 
 ### Task 20: Build My Events Page
 
 **Files:**
+
 - Create: `src/app/(participant)/my-events/page.tsx`
 - Create: `src/components/participant/UpcomingBookings.tsx`
 - Create: `src/components/participant/PastEvents.tsx`
@@ -2054,6 +2096,7 @@ git commit -m "feat: build my events page with upcoming bookings and past event 
 ### Task 21: Add Email Notifications
 
 **Files:**
+
 - Create: `src/lib/email/send.ts`
 - Create: `src/lib/email/templates/booking-confirmation.tsx`
 - Create: `src/lib/email/templates/badge-awarded.tsx`
@@ -2086,6 +2129,7 @@ git commit -m "feat: add email notifications for bookings, badges, and reminders
 ### Task 22: Responsive Mobile UX Polish
 
 **Files:**
+
 - Modify: Various component files
 
 **Step 1: Audit all pages at mobile viewport (375px)**
@@ -2112,6 +2156,7 @@ git commit -m "feat: polish responsive mobile UX across all pages"
 ### Task 23: SEO & Meta Tags
 
 **Files:**
+
 - Modify: `src/app/layout.tsx`
 - Modify: `src/app/(participant)/events/[id]/page.tsx`
 - Modify: `src/app/(participant)/profile/[username]/page.tsx`
@@ -2144,6 +2189,7 @@ git commit -m "feat: add SEO meta tags, dynamic OG images, sitemap, and robots.t
 **Step 1: End-to-end flow test**
 
 Manually test the complete flows:
+
 1. Sign up as organizer → create event → add photos → publish → create badge
 2. Sign up as participant → browse events → book event → receive QR
 3. Organizer: scan QR check-in → award badges
@@ -2165,11 +2211,11 @@ git commit -m "chore: final integration testing and cleanup for beta launch"
 
 ## Summary
 
-| Phase | Tasks | Description |
-|-------|-------|-------------|
-| 1. Foundation | Tasks 1-7 | Project scaffold, design system, Supabase, Redux, DB schema, UI components |
-| 2. Auth | Tasks 8-9 | Login, signup, Facebook OAuth, guest mode with avatar picker |
-| 3. Core Events | Tasks 10-13 | Landing page, event discovery, event detail, booking flow |
-| 4. Organizer | Tasks 14-16 | Dashboard layout, event CRUD, settings |
-| 5. Gamification | Tasks 17-20 | QR check-in, badge system, profiles, my events |
-| 6. Polish | Tasks 21-24 | Emails, mobile UX, SEO, integration testing |
+| Phase           | Tasks       | Description                                                                |
+| --------------- | ----------- | -------------------------------------------------------------------------- |
+| 1. Foundation   | Tasks 1-7   | Project scaffold, design system, Supabase, Redux, DB schema, UI components |
+| 2. Auth         | Tasks 8-9   | Login, signup, Facebook OAuth, guest mode with avatar picker               |
+| 3. Core Events  | Tasks 10-13 | Landing page, event discovery, event detail, booking flow                  |
+| 4. Organizer    | Tasks 14-16 | Dashboard layout, event CRUD, settings                                     |
+| 5. Gamification | Tasks 17-20 | QR check-in, badge system, profiles, my events                             |
+| 6. Polish       | Tasks 21-24 | Emails, mobile UX, SEO, integration testing                                |

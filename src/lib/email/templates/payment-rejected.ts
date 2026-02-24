@@ -3,10 +3,7 @@ interface PaymentRejectedProps {
   eventTitle: string;
 }
 
-export function paymentRejectedHtml({
-  userName,
-  eventTitle,
-}: PaymentRejectedProps): string {
+export function paymentRejectedHtml({ userName, eventTitle }: PaymentRejectedProps): string {
   return `
 <!DOCTYPE html>
 <html>

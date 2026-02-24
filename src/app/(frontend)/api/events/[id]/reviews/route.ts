@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
+
 import { createClient } from "@/lib/supabase/server";
 
-export async function POST(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id: eventId } = await params;
   const supabase = await createClient();
 
@@ -27,11 +25,17 @@ export async function POST(
   }
 
   if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
-    return NextResponse.json({ error: "Rating must be an integer between 1 and 5" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Rating must be an integer between 1 and 5" },
+      { status: 400 },
+    );
   }
 
   if (text && typeof text === "string" && text.trim().length > 500) {
-    return NextResponse.json({ error: "Review text must be 500 characters or less" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Review text must be 500 characters or less" },
+      { status: 400 },
+    );
   }
 
   // Verify the event exists and is completed
@@ -46,7 +50,10 @@ export async function POST(
   }
 
   if (event.status !== "completed") {
-    return NextResponse.json({ error: "Reviews can only be left for completed events" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Reviews can only be left for completed events" },
+      { status: 400 },
+    );
   }
 
   // Verify user has a check-in for this event
@@ -58,7 +65,10 @@ export async function POST(
     .single();
 
   if (!checkin) {
-    return NextResponse.json({ error: "Only checked-in participants can leave reviews" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Only checked-in participants can leave reviews" },
+      { status: 403 },
+    );
   }
 
   // Check for existing review
@@ -90,4 +100,3 @@ export async function POST(
 
   return NextResponse.json({ review });
 }
-

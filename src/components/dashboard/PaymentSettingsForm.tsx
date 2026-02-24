@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { useState } from "react";
+
 import { Button, Input } from "@/components/ui";
+import { createClient } from "@/lib/supabase/client";
 
 interface PaymentSettingsFormProps {
   profileId: string;
@@ -43,8 +44,24 @@ export default function PaymentSettingsForm({ profileId, paymentInfo }: PaymentS
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <Input id="gcash" label="GCash Number" value={gcashNumber} onChange={(e) => setGcashNumber(e.target.value)} placeholder="09XX XXX XXXX" />
-      <Input id="maya" label="Maya Number" value={mayaNumber} onChange={(e) => setMayaNumber(e.target.value)} placeholder="09XX XXX XXXX" />
+      <Input
+        id="gcash"
+        label="GCash Number"
+        value={gcashNumber}
+        onChange={(e) => {
+          setGcashNumber(e.target.value);
+        }}
+        placeholder="09XX XXX XXXX"
+      />
+      <Input
+        id="maya"
+        label="Maya Number"
+        value={mayaNumber}
+        onChange={(e) => {
+          setMayaNumber(e.target.value);
+        }}
+        placeholder="09XX XXX XXXX"
+      />
 
       {success && <p className="text-sm text-forest-500">Payment settings saved!</p>}
 

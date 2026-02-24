@@ -1,4 +1,5 @@
-import { HTMLAttributes, forwardRef } from "react";
+import { type HTMLAttributes, forwardRef } from "react";
+
 import { cn } from "@/lib/utils";
 
 interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
@@ -22,11 +23,11 @@ const UIBadge = forwardRef<HTMLSpanElement, BadgeProps>(
       className={cn(
         "inline-flex items-center px-3 py-1 rounded-full text-sm font-medium",
         variantStyles[variant],
-        className
+        className,
       )}
       {...props}
     />
-  )
+  ),
 );
 
 UIBadge.displayName = "UIBadge";

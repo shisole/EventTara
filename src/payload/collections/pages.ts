@@ -1,27 +1,27 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig } from "payload";
 
 export const Pages: CollectionConfig = {
-  slug: 'pages',
+  slug: "pages",
   labels: {
-    singular: 'Page',
-    plural: 'Pages',
+    singular: "Page",
+    plural: "Pages",
   },
   admin: {
-    useAsTitle: 'title',
-    defaultColumns: ['title', 'slug', 'status', 'updatedAt'],
+    useAsTitle: "title",
+    defaultColumns: ["title", "slug", "status", "updatedAt"],
   },
   access: {
     read: () => true,
   },
   fields: [
     {
-      name: 'title',
-      type: 'text',
+      name: "title",
+      type: "text",
       required: true,
     },
     {
-      name: 'slug',
-      type: 'text',
+      name: "slug",
+      type: "text",
       required: true,
       unique: true,
       admin: {
@@ -29,35 +29,35 @@ export const Pages: CollectionConfig = {
       },
     },
     {
-      name: 'description',
-      type: 'textarea',
+      name: "description",
+      type: "textarea",
       admin: {
-        description: 'Meta description for SEO.',
+        description: "Meta description for SEO.",
       },
     },
     {
-      name: 'content',
-      type: 'richText',
+      name: "content",
+      type: "richText",
     },
     {
-      name: 'status',
-      type: 'select',
-      defaultValue: 'draft',
+      name: "status",
+      type: "select",
+      defaultValue: "draft",
       options: [
-        { label: 'Draft', value: 'draft' },
-        { label: 'Published', value: 'published' },
+        { label: "Draft", value: "draft" },
+        { label: "Published", value: "published" },
       ],
     },
     {
-      name: 'lastUpdatedLabel',
-      type: 'date',
+      name: "lastUpdatedLabel",
+      type: "date",
       admin: {
         description: 'Displayed "Last updated" date on the page.',
         date: {
-          pickerAppearance: 'dayOnly',
-          displayFormat: 'MMMM d, yyyy',
+          pickerAppearance: "dayOnly",
+          displayFormat: "MMMM d, yyyy",
         },
       },
     },
   ],
-}
+};

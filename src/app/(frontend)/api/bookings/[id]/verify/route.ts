@@ -1,17 +1,17 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+
 import { sendEmail } from "@/lib/email/send";
 import { bookingConfirmationHtml } from "@/lib/email/templates/booking-confirmation";
 import { paymentRejectedHtml } from "@/lib/email/templates/payment-rejected";
+import { createClient } from "@/lib/supabase/server";
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -24,7 +24,9 @@ export async function PATCH(
   // Get booking with event and user info
   const { data: booking } = await supabase
     .from("bookings")
-    .select("*, events:event_id(title, date, location, organizer_id, organizer_profiles:organizer_id(user_id)), users:user_id(full_name, email)")
+    .select(
+      "*, events:event_id(title, date, location, organizer_id, organizer_profiles:organizer_id(user_id)), users:user_id(full_name, email)",
+    )
     .eq("id", id)
     .single();
 
@@ -76,7 +78,12 @@ export async function PATCH(
     const email = (booking.users as any)?.email;
     if (email) {
       const eventDate = new Date((booking.events as any).date).toLocaleDateString("en-US", {
-        weekday: "long", year: "numeric", month: "long", day: "numeric", hour: "numeric", minute: "2-digit",
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
       });
       sendEmail({
         to: email,
@@ -89,7 +96,9 @@ export async function PATCH(
           bookingId: booking.id,
           qrCode,
         }),
-      }).catch((err) => console.error("[Email] Confirmation failed:", err));
+      }).catch((error_) => {
+        console.error("[Email] Confirmation failed:", error_);
+      });
     }
 
     return NextResponse.json({ message: "Payment approved", qrCode });
@@ -120,7 +129,9 @@ export async function PATCH(
           userName: (booking.users as any)?.full_name ?? "",
           eventTitle: (booking.events as any).title,
         }),
-      }).catch((err) => console.error("[Email] Rejection email failed:", err));
+      }).catch((error_) => {
+        console.error("[Email] Rejection email failed:", error_);
+      });
     }
 
     return NextResponse.json({ message: "Payment rejected" });

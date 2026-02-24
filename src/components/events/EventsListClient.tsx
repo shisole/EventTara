@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
+import { useState, useEffect, useRef, useCallback } from "react";
+
 import EventsGrid from "./EventsGrid";
 
 const BATCH_SIZE = 9;
@@ -64,7 +65,7 @@ export default function EventsListClient({ initialEvents, totalCount }: EventsLi
       if (search) params.set("search", search);
       return `/api/events?${params.toString()}`;
     },
-    [searchParams]
+    [searchParams],
   );
 
   const loadMore = useCallback(async () => {
@@ -106,14 +107,16 @@ export default function EventsListClient({ initialEvents, totalCount }: EventsLi
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
-          loadMore();
+          void loadMore();
         }
       },
-      { rootMargin: "200px" }
+      { rootMargin: "200px" },
     );
 
     observer.observe(sentinel);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+    };
   }, [loadMore]);
 
   const handlePageChange = async (page: number) => {
@@ -164,9 +167,25 @@ export default function EventsListClient({ initialEvents, totalCount }: EventsLi
         <div ref={sentinelRef} className="flex justify-center py-8">
           {isLoadingMore && (
             <div className="flex items-center gap-2 text-gray-400 dark:text-gray-500">
-              <svg className="h-5 w-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
-                <path className="opacity-75" fill="currentColor" d="M12 2a10 10 0 0 1 10 10h-3a7 7 0 0 0-7-7V2z" />
+              <svg
+                className="h-5 w-5 animate-spin"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M12 2a10 10 0 0 1 10 10h-3a7 7 0 0 0-7-7V2z"
+                />
               </svg>
               <span className="text-sm">Loading more events...</span>
             </div>
@@ -187,13 +206,16 @@ export default function EventsListClient({ initialEvents, totalCount }: EventsLi
 
           {generatePageNumbers(currentPage, totalPages).map((page, i) =>
             page === "..." ? (
-              <span key={`ellipsis-${i}`} className="px-2 py-2 text-sm text-gray-400 dark:text-gray-500">
+              <span
+                key={`ellipsis-${i}`}
+                className="px-2 py-2 text-sm text-gray-400 dark:text-gray-500"
+              >
                 ...
               </span>
             ) : (
               <button
                 key={page}
-                onClick={() => handlePageChange(page as number)}
+                onClick={() => handlePageChange(page)}
                 className={`min-w-[40px] px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   currentPage === page
                     ? "bg-lime-500 text-gray-900"
@@ -202,7 +224,7 @@ export default function EventsListClient({ initialEvents, totalCount }: EventsLi
               >
                 {page}
               </button>
-            )
+            ),
           )}
 
           <button

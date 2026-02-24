@@ -28,18 +28,21 @@ An auth modal that appears on the booking page for unauthenticated users. The mo
 ## Modal States
 
 ### State 1: Email Input
+
 - Event name displayed for context
 - Single email input field with inline validation
 - "Continue" submit button
 - No password, no OAuth, no guest option
 
 ### State 2: Check Your Email
+
 - Confirmation message: "We sent a link to **[email]**. Click it to continue."
 - Background polling: `supabase.auth.getSession()` every ~3s
 - "Resend email" link (with rate limiting)
 - Polling timeout after 10 minutes → "Link expired. Send a new one?"
 
 ### State 3: Success
+
 - `canvas-confetti` burst animation
 - Checkmark icon
 - "Welcome, [name/email]! You're all set!"
@@ -49,6 +52,7 @@ An auth modal that appears on the booking page for unauthenticated users. The mo
 ## Component Architecture
 
 ### `AuthBookingModal` (new client component)
+
 - **Location:** `src/components/auth-booking-modal.tsx`
 - Manages 3 internal states (email → check email → success)
 - Props: `eventName`, `isOpen`, `onAuthenticated`
@@ -56,25 +60,27 @@ An auth modal that appears on the booking page for unauthenticated users. The mo
 - Fires `canvas-confetti` on success
 
 ### Booking Page Changes
+
 - Server Component checks auth via `supabase.auth.getUser()`
 - If authenticated: render `BookingForm` normally (no modal)
 - If not authenticated: render `BookingForm` (blurred/disabled) + `AuthBookingModal`
 - `onAuthenticated` callback re-fetches session and enables the form
 
 ### Auth Callback
+
 - `/auth/callback/route.ts` already supports `?next=` parameter
 - Magic link's `emailRedirectTo` points to `/auth/callback?next=/events/[id]/book`
 - No changes needed to existing callback logic
 
 ## Error Handling
 
-| Error | UX |
-|-------|-----|
-| Invalid email format | Inline validation before submit |
-| Supabase OTP rate limit | "Too many attempts. Try again in a few minutes." |
-| Network error on OTP send | "Something went wrong. Please try again." |
-| Polling timeout (10 min) | "Link expired. Send a new one?" with resend button |
-| API-level 401 on booking | Safety net — should not occur if modal flow works correctly |
+| Error                     | UX                                                          |
+| ------------------------- | ----------------------------------------------------------- |
+| Invalid email format      | Inline validation before submit                             |
+| Supabase OTP rate limit   | "Too many attempts. Try again in a few minutes."            |
+| Network error on OTP send | "Something went wrong. Please try again."                   |
+| Polling timeout (10 min)  | "Link expired. Send a new one?" with resend button          |
+| API-level 401 on booking  | Safety net — should not occur if modal flow works correctly |
 
 ## Dependencies
 

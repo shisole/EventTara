@@ -12,7 +12,11 @@ const typeLabels: Record<string, string> = {
   trail_run: "Trail Runs",
 };
 
-export default function ProfileStats({ totalEvents, badgeCount, typeBreakdown }: ProfileStatsProps) {
+export default function ProfileStats({
+  totalEvents,
+  badgeCount,
+  typeBreakdown,
+}: ProfileStatsProps) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
@@ -29,7 +33,10 @@ export default function ProfileStats({ totalEvents, badgeCount, typeBreakdown }:
       {Object.keys(typeBreakdown).length > 0 && (
         <div className="flex flex-wrap gap-2 justify-center">
           {Object.entries(typeBreakdown).map(([type, count]) => (
-            <span key={type} className="bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full text-sm">
+            <span
+              key={type}
+              className="bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full text-sm"
+            >
               {count} {typeLabels[type] || type}
             </span>
           ))}

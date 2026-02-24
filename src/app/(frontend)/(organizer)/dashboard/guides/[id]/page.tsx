@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+
 import GuideForm from "@/components/dashboard/GuideForm";
+import { createClient } from "@/lib/supabase/server";
+
 import DeleteGuideButton from "./DeleteGuideButton";
 
 export const metadata = { title: "Edit Guide — EventTara" };
@@ -9,13 +11,11 @@ export default async function EditGuidePage({ params }: { params: Promise<{ id: 
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  const { data: guide } = await supabase
-    .from("guides")
-    .select("*")
-    .eq("id", id)
-    .single();
+  const { data: guide } = await supabase.from("guides").select("*").eq("id", id).single();
 
   if (!guide) notFound();
 

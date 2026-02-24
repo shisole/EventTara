@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
 import Link from "next/link";
+import { useState, useMemo } from "react";
+
 import { Button, UIBadge } from "@/components/ui";
 import { cn } from "@/lib/utils";
 
@@ -34,7 +35,12 @@ export default function EventsTable({ events }: EventsTableProps) {
   };
 
   const sorted = useMemo(() => {
-    const statusOrder: Record<string, number> = { draft: 0, published: 1, completed: 2, cancelled: 3 };
+    const statusOrder: Record<string, number> = {
+      draft: 0,
+      published: 1,
+      completed: 2,
+      cancelled: 3,
+    };
     const isActive = (e: any) => e.status === "draft" || e.status === "published";
 
     // Default sort: active events by upcoming date, then completed/cancelled
@@ -51,18 +57,22 @@ export default function EventsTable({ events }: EventsTableProps) {
     return [...events].sort((a, b) => {
       let cmp = 0;
       switch (sortKey) {
-        case "title":
+        case "title": {
           cmp = a.title.localeCompare(b.title);
           break;
-        case "date":
+        }
+        case "date": {
           cmp = new Date(a.date).getTime() - new Date(b.date).getTime();
           break;
-        case "status":
+        }
+        case "status": {
           cmp = (statusOrder[a.status] ?? 99) - (statusOrder[b.status] ?? 99);
           break;
-        case "bookings":
+        }
+        case "bookings": {
           cmp = (a.bookings?.[0]?.count || 0) - (b.bookings?.[0]?.count || 0);
           break;
+        }
       }
       return sortDir === "asc" ? cmp : -cmp;
     });
@@ -71,7 +81,9 @@ export default function EventsTable({ events }: EventsTableProps) {
   const SortHeader = ({ label, field }: { label: string; field: SortKey }) => (
     <th
       className="text-left px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400 cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
-      onClick={() => handleSort(field)}
+      onClick={() => {
+        handleSort(field);
+      }}
     >
       <span className="inline-flex items-center gap-1">
         {label}
@@ -91,27 +103,40 @@ export default function EventsTable({ events }: EventsTableProps) {
             <SortHeader label="Date" field="date" />
             <SortHeader label="Status" field="status" />
             <SortHeader label="Bookings" field="bookings" />
-            <th className="text-right px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">Actions</th>
+            <th className="text-right px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
+              Actions
+            </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
           {sorted.map((event: any) => (
             <tr key={event.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
               <td className="px-6 py-4">
-                <Link href={`/dashboard/events/${event.id}`} className="font-medium dark:text-white hover:text-lime-600 dark:hover:text-lime-400">
+                <Link
+                  href={`/dashboard/events/${event.id}`}
+                  className="font-medium dark:text-white hover:text-lime-600 dark:hover:text-lime-400"
+                >
                   {event.title}
                 </Link>
               </td>
               <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                {new Date(event.date).toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" })}
+                {new Date(event.date).toLocaleDateString("en-PH", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })}
               </td>
               <td className="px-6 py-4">
                 <UIBadge variant={statusStyles[event.status] as any}>{event.status}</UIBadge>
               </td>
-              <td className="px-6 py-4 text-sm dark:text-gray-300">{event.bookings?.[0]?.count || 0}</td>
+              <td className="px-6 py-4 text-sm dark:text-gray-300">
+                {event.bookings?.[0]?.count || 0}
+              </td>
               <td className="px-6 py-4 text-right">
                 <Link href={`/dashboard/events/${event.id}/edit`}>
-                  <Button variant="ghost" size="sm">Edit</Button>
+                  <Button variant="ghost" size="sm">
+                    Edit
+                  </Button>
                 </Link>
               </td>
             </tr>

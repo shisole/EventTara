@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
+
 import { createClient } from "@/lib/supabase/server";
 
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -27,7 +27,9 @@ export async function GET(
   // Get bookings with user info
   const { data: bookings } = await supabase
     .from("bookings")
-    .select("id, status, payment_status, payment_method, payment_proof_url, participant_cancelled, booked_at, users:user_id(full_name, email, avatar_url)")
+    .select(
+      "id, status, payment_status, payment_method, payment_proof_url, participant_cancelled, booked_at, users:user_id(full_name, email, avatar_url)",
+    )
     .eq("event_id", id)
     .in("status", ["pending", "confirmed"])
     .order("booked_at", { ascending: false });
@@ -36,8 +38,8 @@ export async function GET(
   const bookingIds = allBookings.map((b) => b.id);
 
   // Fetch companion counts per booking (only non-cancelled)
-  let companionCounts: Record<string, number> = {};
-  let confirmedCompanionCounts: Record<string, number> = {};
+  const companionCounts: Record<string, number> = {};
+  const confirmedCompanionCounts: Record<string, number> = {};
   if (bookingIds.length > 0) {
     const { data: companions } = await supabase
       .from("booking_companions")
@@ -49,7 +51,8 @@ export async function GET(
       for (const c of companions) {
         companionCounts[c.booking_id] = (companionCounts[c.booking_id] || 0) + 1;
         if (c.status === "confirmed") {
-          confirmedCompanionCounts[c.booking_id] = (confirmedCompanionCounts[c.booking_id] || 0) + 1;
+          confirmedCompanionCounts[c.booking_id] =
+            (confirmedCompanionCounts[c.booking_id] || 0) + 1;
         }
       }
     }
@@ -72,7 +75,7 @@ export async function GET(
     .reduce((sum, b) => {
       const mainCount = (b as any).participant_cancelled ? 0 : 1;
       const compCount = confirmedCompanionCounts[b.id] || 0;
-      return sum + (mainCount + compCount) * Number(event.price);
+      return sum + (mainCount + compCount) * event.price;
     }, 0);
 
   return NextResponse.json({

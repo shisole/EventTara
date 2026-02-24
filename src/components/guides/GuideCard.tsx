@@ -1,4 +1,5 @@
 import Link from "next/link";
+
 import { Avatar } from "@/components/ui";
 
 interface GuideCardProps {
@@ -32,19 +33,15 @@ export default function GuideCard({
               {review_count != null && (
                 <span className="text-gray-500 dark:text-gray-400">
                   {" "}
-                  ({review_count} review{review_count !== 1 ? "s" : ""})
+                  ({review_count} review{review_count === 1 ? "" : "s"})
                 </span>
               )}
             </p>
           )}
-          {bio && (
-            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-              {bio}
-            </p>
-          )}
+          {bio && <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{bio}</p>}
           {event_count != null && (
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              {event_count} event{event_count !== 1 ? "s" : ""} guided
+              {event_count} event{event_count === 1 ? "" : "s"} guided
             </p>
           )}
         </div>

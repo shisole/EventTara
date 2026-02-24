@@ -13,6 +13,7 @@
 ### Task 1: Database Types — Add guides, event_guides, guide_reviews
 
 **Files:**
+
 - Modify: `src/lib/supabase/types.ts`
 
 **Step 1:** Add `guides` table types after the `events` table definition. Follow the exact Row/Insert/Update pattern.
@@ -95,6 +96,7 @@ CREATE POLICY "Users can delete own reviews" ON public.guide_reviews FOR DELETE 
 ### Task 3: API Routes — Guide CRUD
 
 **Files:**
+
 - Create: `src/app/(frontend)/api/guides/route.ts` (GET list, POST create)
 - Create: `src/app/(frontend)/api/guides/[id]/route.ts` (GET one, PATCH update, DELETE)
 
@@ -117,6 +119,7 @@ CREATE POLICY "Users can delete own reviews" ON public.guide_reviews FOR DELETE 
 ### Task 4: API Routes — Event-Guide Linking
 
 **Files:**
+
 - Create: `src/app/(frontend)/api/events/[id]/guides/route.ts` (GET, POST, DELETE)
 
 **Step 1:** Create `GET /api/events/[id]/guides` — list guides for an event.
@@ -134,6 +137,7 @@ CREATE POLICY "Users can delete own reviews" ON public.guide_reviews FOR DELETE 
 ### Task 5: API Routes — Guide Reviews
 
 **Files:**
+
 - Create: `src/app/(frontend)/api/guides/[id]/reviews/route.ts` (GET, POST)
 
 **Step 1:** Create `GET /api/guides/[id]/reviews` — list reviews for a guide. Joins user info (full_name, avatar_url).
@@ -149,6 +153,7 @@ CREATE POLICY "Users can delete own reviews" ON public.guide_reviews FOR DELETE 
 ### Task 6: GuideCard Component
 
 **Files:**
+
 - Create: `src/components/guides/GuideCard.tsx`
 
 **Step 1:** Create `GuideCard` component. Props: `id`, `full_name`, `avatar_url`, `bio`, `avg_rating?`, `review_count?`, `event_count?`. Links to `/guides/[id]`. Follow `OrganizerCard` style — `Avatar` + name + rating stars + event count.
@@ -162,14 +167,17 @@ CREATE POLICY "Users can delete own reviews" ON public.guide_reviews FOR DELETE 
 ### Task 7: Public Guide Profile Page — `/guides/[id]`
 
 **Files:**
+
 - Create: `src/app/(frontend)/(participant)/guides/[id]/page.tsx`
 
 **Step 1:** Server component. Fetch guide by id, along with:
+
 - Events they're tagged on (via `event_guides` join, with event details)
 - Reviews with user info
 - Aggregate stats (avg rating, review count, events guided)
 
 **Step 2:** Layout sections:
+
 - **Header:** Avatar, full name, bio, contact number, avg rating
 - **Stats row:** Events guided, avg rating, total reviews
 - **Upcoming events** list (using `EventCard`)
@@ -187,6 +195,7 @@ CREATE POLICY "Users can delete own reviews" ON public.guide_reviews FOR DELETE 
 ### Task 8: Event Detail Page — Show Guides
 
 **Files:**
+
 - Modify: `src/app/(frontend)/(participant)/events/[id]/page.tsx`
 
 **Step 1:** Fetch `event_guides` with guide info for this event. Also fetch guide review aggregates.
@@ -202,6 +211,7 @@ CREATE POLICY "Users can delete own reviews" ON public.guide_reviews FOR DELETE 
 ### Task 9: Dashboard — Guide Management Pages
 
 **Files:**
+
 - Create: `src/app/(frontend)/(organizer)/dashboard/guides/page.tsx` (list)
 - Create: `src/app/(frontend)/(organizer)/dashboard/guides/new/page.tsx` (create)
 - Create: `src/app/(frontend)/(organizer)/dashboard/guides/[id]/page.tsx` (view/edit)
@@ -226,6 +236,7 @@ CREATE POLICY "Users can delete own reviews" ON public.guide_reviews FOR DELETE 
 ### Task 10: EventForm — Guide Selection
 
 **Files:**
+
 - Modify: `src/components/dashboard/EventForm.tsx`
 
 **Step 1:** When event type is `hiking`, show a "Guides" multi-select section. Fetch available guides created by the current user via `GET /api/guides?created_by={userId}`.
@@ -243,6 +254,7 @@ CREATE POLICY "Users can delete own reviews" ON public.guide_reviews FOR DELETE 
 ### Task 11: Seed Data — Test Guides
 
 **Files:**
+
 - Modify: `scripts/seed.ts`
 
 **Step 1:** Add `TestGuide` interface and `TEST_GUIDES` array (8-10 guides across organizers, focused on hiking).

@@ -1,19 +1,13 @@
 import { NextResponse } from "next/server";
+
 import { createClient } from "@/lib/supabase/server";
 
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id: guideId } = await params;
   const supabase = await createClient();
 
   // Verify guide exists
-  const { data: guide } = await supabase
-    .from("guides")
-    .select("id")
-    .eq("id", guideId)
-    .single();
+  const { data: guide } = await supabase.from("guides").select("id").eq("id", guideId).single();
 
   if (!guide) {
     return NextResponse.json({ error: "Guide not found" }, { status: 404 });
@@ -33,10 +27,7 @@ export async function GET(
   return NextResponse.json({ reviews: reviews || [] });
 }
 
-export async function POST(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id: guideId } = await params;
   const supabase = await createClient();
 
@@ -57,30 +48,24 @@ export async function POST(
     rating = body.rating;
     text = body.text;
   } catch {
-    return NextResponse.json(
-      { error: "Invalid request body" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
 
   if (!event_id) {
-    return NextResponse.json(
-      { error: "event_id is required" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "event_id is required" }, { status: 400 });
   }
 
   if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
     return NextResponse.json(
       { error: "Rating must be an integer between 1 and 5" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   if (text && typeof text === "string" && text.trim().length > 500) {
     return NextResponse.json(
       { error: "Review text must be 500 characters or less" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -98,7 +83,7 @@ export async function POST(
   if (event.status !== "completed") {
     return NextResponse.json(
       { error: "Reviews can only be left for completed events" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -113,7 +98,7 @@ export async function POST(
   if (!eventGuide) {
     return NextResponse.json(
       { error: "This guide is not associated with the specified event" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -129,7 +114,7 @@ export async function POST(
   if (!booking) {
     return NextResponse.json(
       { error: "You must have a confirmed booking on this event to review the guide" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -145,7 +130,7 @@ export async function POST(
   if (existing) {
     return NextResponse.json(
       { error: "You have already reviewed this guide for this event" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 

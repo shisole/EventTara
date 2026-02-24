@@ -1,22 +1,22 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig } from "payload";
 
 export const Media: CollectionConfig = {
-  slug: 'media',
+  slug: "media",
   access: {
     read: () => true,
   },
   upload: {
-    mimeTypes: ['image/*'],
-    staticDir: 'public/media',
+    mimeTypes: ["image/*"],
+    staticDir: "public/media",
   },
   fields: [
     {
-      name: 'alt',
-      type: 'text',
+      name: "alt",
+      type: "text",
       required: true,
       admin: {
-        description: 'Alt text for accessibility.',
+        description: "Alt text for accessibility.",
       },
     },
   ],
-}
+};

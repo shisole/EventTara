@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+
 import BookingPageClient from "@/components/booking/BookingPageClient";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function BookEventPage({
   params,
@@ -46,13 +47,14 @@ export default async function BookEventPage({
   }
 
   // Get spots left via RPC
-  const { data: totalParticipants } = await supabase
-    .rpc("get_total_participants", { p_event_id: id });
+  const { data: totalParticipants } = await supabase.rpc("get_total_participants", {
+    p_event_id: id,
+  });
   const spotsLeft = event.max_participants - (totalParticipants || 0);
 
   // Fetch organizer payment info
   let organizerPaymentInfo = null;
-  if (Number(event.price) > 0) {
+  if (event.price > 0) {
     const { data: organizer } = await supabase
       .from("organizer_profiles")
       .select("payment_info")
@@ -78,7 +80,7 @@ export default async function BookEventPage({
           eventId={event.id}
           eventTitle={event.title}
           eventDate={event.date}
-          price={Number(event.price)}
+          price={event.price}
           organizerPaymentInfo={organizerPaymentInfo}
           spotsLeft={spotsLeft}
           mode={mode}

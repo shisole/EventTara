@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+
 import { Button, Input } from "@/components/ui";
+import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,7 +16,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    void supabase.auth.getUser().then(({ data: { user } }) => {
       if (user && !user.is_anonymous) router.replace("/");
     });
   }, [supabase, router]);
@@ -40,7 +41,7 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "facebook",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${globalThis.location.origin}/auth/callback`,
       },
     });
     if (error) setError(error.message);
@@ -60,7 +61,11 @@ export default function LoginPage() {
     <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md p-8 space-y-6">
       <h2 className="text-2xl font-heading font-bold text-center">Welcome Back!</h2>
 
-      <Button onClick={handleFacebookLogin} className="w-full bg-[#1877F2] hover:bg-[#166FE5]" size="lg">
+      <Button
+        onClick={handleFacebookLogin}
+        className="w-full bg-[#1877F2] hover:bg-[#166FE5]"
+        size="lg"
+      >
         Continue with Facebook
       </Button>
 
@@ -69,7 +74,9 @@ export default function LoginPage() {
           <div className="w-full border-t border-gray-200 dark:border-gray-700" />
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="bg-white dark:bg-gray-900 px-4 text-gray-400 dark:text-gray-500">or</span>
+          <span className="bg-white dark:bg-gray-900 px-4 text-gray-400 dark:text-gray-500">
+            or
+          </span>
         </div>
       </div>
 
@@ -79,7 +86,9 @@ export default function LoginPage() {
           label="Email"
           type="email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => {
+            setEmail(e.target.value);
+          }}
           placeholder="you@example.com"
           required
         />
@@ -88,7 +97,9 @@ export default function LoginPage() {
           label="Password"
           type="password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => {
+            setPassword(e.target.value);
+          }}
           placeholder="Your password"
           required
         />
@@ -101,7 +112,10 @@ export default function LoginPage() {
       <div className="text-center space-y-3">
         <p className="text-sm text-gray-500 dark:text-gray-400">
           Don&apos;t have an account?{" "}
-          <Link href="/signup" className="text-lime-600 dark:text-lime-400 hover:text-lime-600 dark:hover:text-lime-400 font-medium">
+          <Link
+            href="/signup"
+            className="text-lime-600 dark:text-lime-400 hover:text-lime-600 dark:hover:text-lime-400 font-medium"
+          >
             Sign Up
           </Link>
         </p>

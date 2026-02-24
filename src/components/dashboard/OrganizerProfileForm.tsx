@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { useState } from "react";
+
 import { Button, Input } from "@/components/ui";
+import { createClient } from "@/lib/supabase/client";
+
 import PhotoUploader from "./PhotoUploader";
 
 interface OrganizerProfileFormProps {
@@ -35,7 +37,9 @@ export default function OrganizerProfileForm({ profile }: OrganizerProfileFormPr
         .update({ org_name: orgName, description, logo_url: logoUrl })
         .eq("id", profile.id);
     } else {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       await supabase.from("organizer_profiles").insert({
         user_id: user!.id,
         org_name: orgName,
@@ -52,20 +56,39 @@ export default function OrganizerProfileForm({ profile }: OrganizerProfileFormPr
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <Input id="orgName" label="Organization Name" value={orgName} onChange={(e) => setOrgName(e.target.value)} placeholder="Trail Runners PH" required />
+      <Input
+        id="orgName"
+        label="Organization Name"
+        value={orgName}
+        onChange={(e) => {
+          setOrgName(e.target.value);
+        }}
+        placeholder="Trail Runners PH"
+        required
+      />
 
       <div className="space-y-1">
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          Description
+        </label>
         <textarea
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={(e) => {
+            setDescription(e.target.value);
+          }}
           rows={3}
           className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600"
           placeholder="Tell adventurers about your organization..."
         />
       </div>
 
-      <PhotoUploader bucket="organizers" path="logos" value={logoUrl} onChange={setLogoUrl} label="Logo" />
+      <PhotoUploader
+        bucket="organizers"
+        path="logos"
+        value={logoUrl}
+        onChange={setLogoUrl}
+        label="Logo"
+      />
 
       {success && <p className="text-sm text-forest-500">Profile saved!</p>}
 

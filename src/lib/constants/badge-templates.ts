@@ -2,8 +2,8 @@ export interface BadgeTemplate {
   id: string;
   title: string;
   description: string;
-  category: 'distance' | 'adventure' | 'location' | 'special';
-  rarity: 'common' | 'rare' | 'epic' | 'legendary';
+  category: "distance" | "adventure" | "location" | "special";
+  rarity: "common" | "rare" | "epic" | "legendary";
   suggestedImage: string | null;
 }
 
@@ -86,7 +86,8 @@ export const BADGE_TEMPLATES: BadgeTemplate[] = [
   {
     id: "3-summits",
     title: "3 Summits",
-    description: "Conquered three different peaks. The mountains are calling and you keep answering.",
+    description:
+      "Conquered three different peaks. The mountains are calling and you keep answering.",
     category: "adventure",
     rarity: "rare",
     suggestedImage: null,
@@ -127,7 +128,8 @@ export const BADGE_TEMPLATES: BadgeTemplate[] = [
   {
     id: "luzon-explorer",
     title: "Luzon Explorer",
-    description: "Adventured across Luzon. From the mountains of Cordillera to the trails of Batangas.",
+    description:
+      "Adventured across Luzon. From the mountains of Cordillera to the trails of Batangas.",
     category: "location",
     rarity: "rare",
     suggestedImage: null,
@@ -151,7 +153,8 @@ export const BADGE_TEMPLATES: BadgeTemplate[] = [
   {
     id: "philippine-adventurer",
     title: "Philippine Adventurer",
-    description: "Joined events across 3 major island groups. The whole archipelago is your playground.",
+    description:
+      "Joined events across 3 major island groups. The whole archipelago is your playground.",
     category: "location",
     rarity: "epic",
     suggestedImage: null,

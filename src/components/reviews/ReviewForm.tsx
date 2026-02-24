@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+
 import { Button } from "@/components/ui";
+
 import StarRating from "./StarRating";
 
 interface ReviewFormProps {
@@ -34,11 +36,11 @@ export default function ReviewForm({ eventId, onSubmitted }: ReviewFormProps) {
       });
 
       const data = await res.json();
-      if (!res.ok) {
-        setError(data.error);
-      } else {
+      if (res.ok) {
         setSubmitted(true);
         onSubmitted?.();
+      } else {
+        setError(data.error);
       }
     } catch {
       setError("Something went wrong. Please try again.");
@@ -51,7 +53,9 @@ export default function ReviewForm({ eventId, onSubmitted }: ReviewFormProps) {
     return (
       <div className="text-center py-4">
         <p className="text-lg font-medium text-gray-900 dark:text-white">Thanks for your review!</p>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Your feedback helps the community.</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          Your feedback helps the community.
+        </p>
       </div>
     );
   }
@@ -67,7 +71,9 @@ export default function ReviewForm({ eventId, onSubmitted }: ReviewFormProps) {
       <div>
         <textarea
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => {
+            setText(e.target.value);
+          }}
           placeholder="Share your experience (optional)"
           rows={3}
           maxLength={500}

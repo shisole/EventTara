@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+
 import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
@@ -26,24 +27,21 @@ export async function POST(request: Request) {
       .single();
 
     if (!companion) {
-      return NextResponse.json(
-        { error: "Companion not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Companion not found" }, { status: 404 });
     }
 
     const booking = companion.bookings as any;
     if (booking?.event_id !== event_id) {
       return NextResponse.json(
         { error: "Companion is not registered for this event" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (companion.checked_in) {
       return NextResponse.json(
         { message: `${companion.full_name} is already checked in`, userName: companion.full_name },
-        { status: 200 }
+        { status: 200 },
       );
     }
 
@@ -72,10 +70,7 @@ export async function POST(request: Request) {
     .single();
 
   if (!booking) {
-    return NextResponse.json(
-      { error: "No booking found for this participant" },
-      { status: 404 }
-    );
+    return NextResponse.json({ error: "No booking found for this participant" }, { status: 404 });
   }
 
   // Check if already checked in
@@ -90,7 +85,7 @@ export async function POST(request: Request) {
     const userName = (booking.users as any)?.full_name || "Participant";
     return NextResponse.json(
       { message: `${userName} is already checked in`, userName },
-      { status: 200 }
+      { status: 200 },
     );
   }
 

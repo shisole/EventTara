@@ -2,7 +2,7 @@
 
 Adventure event booking platform for the Philippines. Browse, book, and manage outdoor events — hiking, mountain biking, road biking, running, and trail running.
 
-**Tara na!** *(Let's go!)*
+**Tara na!** _(Let's go!)_
 
 ## Tech Stack
 
@@ -35,13 +35,13 @@ cp .env.local.example .env.local
 
 Fill in your keys:
 
-| Variable | Required | Where to get it |
-|----------|----------|-----------------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase Dashboard > Settings > API |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Supabase Dashboard > Settings > API |
-| `RESEND_API_KEY` | No | [resend.com](https://resend.com) — emails are skipped if absent |
-| `ANTHROPIC_API_KEY` | No | [console.anthropic.com](https://console.anthropic.com) — for AI features |
-| `SUPABASE_SERVICE_ROLE_KEY` | No | Supabase Dashboard > Settings > API — only for seed scripts |
+| Variable                        | Required | Where to get it                                                          |
+| ------------------------------- | -------- | ------------------------------------------------------------------------ |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Yes      | Supabase Dashboard > Settings > API                                      |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes      | Supabase Dashboard > Settings > API                                      |
+| `RESEND_API_KEY`                | No       | [resend.com](https://resend.com) — emails are skipped if absent          |
+| `ANTHROPIC_API_KEY`             | No       | [console.anthropic.com](https://console.anthropic.com) — for AI features |
+| `SUPABASE_SERVICE_ROLE_KEY`     | No       | Supabase Dashboard > Settings > API — only for seed scripts              |
 
 ### 3. Run the dev server
 
@@ -69,16 +69,16 @@ npm run unseed
 
 ## Scripts
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start development server (port 3001) |
-| `npm run build` | Production build |
-| `npm run start` | Start production server |
-| `npm run lint` | Run ESLint |
-| `npm run seed` | Seed database with test data |
-| `npm run unseed` | Remove seeded data |
-| `npm run seed:cms` | Seed Payload CMS with sample pages |
-| `npm run test:e2e` | Run Playwright E2E tests |
+| Command            | Description                          |
+| ------------------ | ------------------------------------ |
+| `npm run dev`      | Start development server (port 3001) |
+| `npm run build`    | Production build                     |
+| `npm run start`    | Start production server              |
+| `npm run lint`     | Run ESLint                           |
+| `npm run seed`     | Seed database with test data         |
+| `npm run unseed`   | Remove seeded data                   |
+| `npm run seed:cms` | Seed Payload CMS with sample pages   |
+| `npm run test:e2e` | Run Playwright E2E tests             |
 
 ## Project Structure
 
@@ -112,42 +112,46 @@ src/
 
 ## User Roles
 
-| Role | Description |
-|------|-------------|
-| **Participant** | Browse events, book spots, earn badges, review events and guides |
-| **Organizer** | Create events, manage guides, manage bookings, check in participants, award badges |
-| **Guest** | Anonymous browsing via Supabase anonymous auth |
+| Role            | Description                                                                        |
+| --------------- | ---------------------------------------------------------------------------------- |
+| **Participant** | Browse events, book spots, earn badges, review events and guides                   |
+| **Organizer**   | Create events, manage guides, manage bookings, check in participants, award badges |
+| **Guest**       | Anonymous browsing via Supabase anonymous auth                                     |
 
 Creating your first event automatically upgrades your account to organizer.
 
 ## Key Features
 
 ### Events
+
 Browse, filter, and book outdoor adventure events with infinite scroll and pagination. Events support photos, map pins, badges, and reviews.
 
 ### Guides (Hiking)
+
 Organizers manage hiking guide profiles on behalf of local guides. Guides appear on hiking event detail pages and have public profile pages at `/guides/[id]` with bio, contact, ratings, events, and reviews. Participants can review guides after completing events.
 
 ### Badges
+
 Organizers create badges for events. Participants earn badges after check-in, viewable on their profile.
 
 ### Dashboard
+
 Organizers manage events, guides, bookings, check-ins, and payments from `/dashboard`.
 
 ## API Routes
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/events` | GET, POST | List/create events |
-| `/api/events/[id]` | GET, PATCH, DELETE | Manage event |
-| `/api/events/[id]/guides` | GET, POST, DELETE | Event-guide linking |
-| `/api/guides` | GET, POST | List/create guides |
-| `/api/guides/[id]` | GET, PATCH, DELETE | Manage guide |
-| `/api/guides/[id]/reviews` | GET, POST | Guide reviews |
-| `/api/bookings` | POST | Book an event |
-| `/api/checkins` | POST | Check in participant (QR or manual) |
-| `/api/badges` | GET, POST | List or create badges |
-| `/api/badges/award` | POST | Award badge to participants |
+| Endpoint                   | Method             | Description                         |
+| -------------------------- | ------------------ | ----------------------------------- |
+| `/api/events`              | GET, POST          | List/create events                  |
+| `/api/events/[id]`         | GET, PATCH, DELETE | Manage event                        |
+| `/api/events/[id]/guides`  | GET, POST, DELETE  | Event-guide linking                 |
+| `/api/guides`              | GET, POST          | List/create guides                  |
+| `/api/guides/[id]`         | GET, PATCH, DELETE | Manage guide                        |
+| `/api/guides/[id]/reviews` | GET, POST          | Guide reviews                       |
+| `/api/bookings`            | POST               | Book an event                       |
+| `/api/checkins`            | POST               | Check in participant (QR or manual) |
+| `/api/badges`              | GET, POST          | List or create badges               |
+| `/api/badges/award`        | POST               | Award badge to participants         |
 
 ## License
 

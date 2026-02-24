@@ -1,7 +1,8 @@
 "use client";
 
-import { QRCodeSVG } from "qrcode.react";
 import Link from "next/link";
+import { QRCodeSVG } from "qrcode.react";
+
 import { Button } from "@/components/ui";
 
 interface CompanionConfirmation {
@@ -21,8 +22,14 @@ interface BookingConfirmationProps {
 }
 
 export default function BookingConfirmation({
-  bookingId, eventTitle, eventDate, qrCode, paymentStatus, paymentMethod,
-  companions = [], mode = "self",
+  bookingId,
+  eventTitle,
+  eventDate,
+  qrCode,
+  paymentStatus,
+  paymentMethod,
+  companions = [],
+  mode = "self",
 }: BookingConfirmationProps) {
   const isPendingEwallet = paymentStatus === "pending" && paymentMethod !== "cash";
   const isPendingCash = paymentStatus === "pending" && paymentMethod === "cash";
@@ -33,7 +40,10 @@ export default function BookingConfirmation({
       <h3 className="font-heading font-bold text-lg">Companion QR Codes</h3>
       <div className="grid gap-4">
         {companions.map((c, i) => (
-          <div key={i} className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-4 inline-block">
+          <div
+            key={i}
+            className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-4 inline-block"
+          >
             <p className="font-medium text-sm mb-2">{c.full_name}</p>
             {c.qr_code ? (
               <>
@@ -58,9 +68,18 @@ export default function BookingConfirmation({
             {isFriendMode ? "Friends Registered!" : "Proof Submitted!"}
           </h2>
           <p className="text-gray-600 dark:text-gray-400">
-            {isFriendMode
-              ? <>Payment proof for your companions at <span className="font-semibold">{eventTitle}</span> has been submitted. The organizer will verify it shortly.</>
-              : <>Your payment proof for <span className="font-semibold">{eventTitle}</span> has been submitted. The organizer will verify it shortly.</>}
+            {isFriendMode ? (
+              <>
+                Payment proof for your companions at{" "}
+                <span className="font-semibold">{eventTitle}</span> has been submitted. The
+                organizer will verify it shortly.
+              </>
+            ) : (
+              <>
+                Your payment proof for <span className="font-semibold">{eventTitle}</span> has been
+                submitted. The organizer will verify it shortly.
+              </>
+            )}
           </p>
           <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4">
             <p className="text-sm text-yellow-700 dark:text-yellow-300">
@@ -88,9 +107,16 @@ export default function BookingConfirmation({
             {isFriendMode ? "Friends Registered!" : "Spot Reserved!"}
           </h2>
           <p className="text-gray-600 dark:text-gray-400">
-            {isFriendMode
-              ? <>Spots for your companions at <span className="font-semibold">{eventTitle}</span> are reserved.</>
-              : <>Your spot for <span className="font-semibold">{eventTitle}</span> is reserved.</>}
+            {isFriendMode ? (
+              <>
+                Spots for your companions at <span className="font-semibold">{eventTitle}</span> are
+                reserved.
+              </>
+            ) : (
+              <>
+                Your spot for <span className="font-semibold">{eventTitle}</span> is reserved.
+              </>
+            )}
           </p>
           <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
             <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -99,9 +125,13 @@ export default function BookingConfirmation({
           </div>
           {!isFriendMode && qrCode && (
             <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-6 inline-block">
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 font-medium">Your QR Code</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 font-medium">
+                Your QR Code
+              </p>
               <QRCodeSVG value={qrCode} size={200} />
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-3">Show this QR code at check-in</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-3">
+                Show this QR code at check-in
+              </p>
             </div>
           )}
           {companionQRSection}
@@ -113,15 +143,26 @@ export default function BookingConfirmation({
             {isFriendMode ? "Friends Registered!" : "You\u0027re In!"}
           </h2>
           <p className="text-gray-600 dark:text-gray-400">
-            {isFriendMode
-              ? <>Spots for your companions at <span className="font-semibold">{eventTitle}</span> are confirmed.</>
-              : <>Your spot for <span className="font-semibold">{eventTitle}</span> is confirmed.</>}
+            {isFriendMode ? (
+              <>
+                Spots for your companions at <span className="font-semibold">{eventTitle}</span> are
+                confirmed.
+              </>
+            ) : (
+              <>
+                Your spot for <span className="font-semibold">{eventTitle}</span> is confirmed.
+              </>
+            )}
           </p>
           {!isFriendMode && qrCode && (
             <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-6 inline-block">
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 font-medium">Your QR Code</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 font-medium">
+                Your QR Code
+              </p>
               <QRCodeSVG value={qrCode} size={200} />
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-3">Show this QR code at check-in</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-3">
+                Show this QR code at check-in
+              </p>
             </div>
           )}
           {companionQRSection}
@@ -129,9 +170,15 @@ export default function BookingConfirmation({
       )}
 
       <div className="text-sm text-gray-500 dark:text-gray-400">
-        <p>📅 {new Date(eventDate).toLocaleDateString("en-PH", {
-          weekday: "long", month: "long", day: "numeric", year: "numeric",
-        })}</p>
+        <p>
+          📅{" "}
+          {new Date(eventDate).toLocaleDateString("en-PH", {
+            weekday: "long",
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+          })}
+        </p>
         <p className="text-xs mt-1">Booking ID: {bookingId}</p>
       </div>
 

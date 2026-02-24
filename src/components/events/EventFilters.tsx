@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useState, useEffect, useRef, useTransition } from "react";
+
 import { Button } from "@/components/ui";
 
 const EVENT_TYPES = [
@@ -59,7 +60,7 @@ export default function EventFilters() {
         router.push(`/events?${params.toString()}`);
       });
     },
-    [router, searchParams, startTransition]
+    [router, searchParams, startTransition],
   );
 
   const handleTypeChange = useCallback(
@@ -67,7 +68,7 @@ export default function EventFilters() {
       setOptimisticType(type);
       updateParams({ type });
     },
-    [updateParams]
+    [updateParams],
   );
 
   const handleWhenChange = useCallback(
@@ -75,7 +76,7 @@ export default function EventFilters() {
       setOptimisticWhen(when);
       updateParams({ when });
     },
-    [updateParams]
+    [updateParams],
   );
 
   const handleSearchChange = useCallback(
@@ -90,7 +91,7 @@ export default function EventFilters() {
         setIsSearching(false);
       }, 400);
     },
-    [updateParams]
+    [updateParams],
   );
 
   useEffect(() => {
@@ -106,17 +107,28 @@ export default function EventFilters() {
           <input
             type="text"
             value={searchValue}
-            onChange={(e) => handleSearchChange(e.target.value)}
+            onChange={(e) => {
+              handleSearchChange(e.target.value);
+            }}
             placeholder="Search events by name or location..."
             className="w-full px-4 pr-10 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors"
           />
           {searchValue && (
             <button
               type="button"
-              onClick={() => handleSearchChange("")}
+              onClick={() => {
+                handleSearchChange("");
+              }}
               className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-4 w-4">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className="h-4 w-4"
+              >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
               </svg>
             </button>
@@ -125,17 +137,46 @@ export default function EventFilters() {
         <button
           type="button"
           disabled={isSearching}
-          onClick={() => updateParams({ search: searchValue })}
+          onClick={() => {
+            updateParams({ search: searchValue });
+          }}
           className="shrink-0 h-[50px] w-[50px] flex items-center justify-center rounded-xl bg-lime-500 hover:bg-lime-400 text-gray-900 transition-colors disabled:opacity-70"
         >
           {isSearching ? (
-            <svg className="h-5 w-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
-              <path className="opacity-75" fill="currentColor" d="M12 2a10 10 0 0 1 10 10h-3a7 7 0 0 0-7-7V2z" />
+            <svg
+              className="h-5 w-5 animate-spin"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="3"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M12 2a10 10 0 0 1 10 10h-3a7 7 0 0 0-7-7V2z"
+              />
             </svg>
           ) : (
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="h-5 w-5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2.5}
+              stroke="currentColor"
+              className="h-5 w-5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+              />
             </svg>
           )}
         </button>
@@ -148,7 +189,9 @@ export default function EventFilters() {
             variant={optimisticType === type.value ? "primary" : "ghost"}
             size="sm"
             className="whitespace-nowrap shrink-0 sm:shrink min-h-[44px]"
-            onClick={() => handleTypeChange(type.value)}
+            onClick={() => {
+              handleTypeChange(type.value);
+            }}
           >
             {type.label}
           </Button>
@@ -162,7 +205,9 @@ export default function EventFilters() {
             variant={optimisticWhen === filter.value ? "primary" : "ghost"}
             size="sm"
             className="whitespace-nowrap shrink-0 sm:shrink min-h-[44px]"
-            onClick={() => handleWhenChange(filter.value)}
+            onClick={() => {
+              handleWhenChange(filter.value);
+            }}
           >
             {filter.value === "now" && optimisticWhen === "now" && (
               <span className="relative flex h-2 w-2 mr-1.5">

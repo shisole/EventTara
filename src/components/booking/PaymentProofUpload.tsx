@@ -8,7 +8,7 @@ interface PaymentProofUploadProps {
 }
 
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
-const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const ACCEPTED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 export default function PaymentProofUpload({ file, onFileChange }: PaymentProofUploadProps) {
   const [dragOver, setDragOver] = useState(false);
@@ -17,7 +17,7 @@ export default function PaymentProofUpload({ file, onFileChange }: PaymentProofU
 
   const validateAndSet = (f: File) => {
     setError("");
-    if (!ACCEPTED_TYPES.includes(f.type)) {
+    if (!ACCEPTED_TYPES.has(f.type)) {
       setError("Only JPG, PNG, and WebP images are accepted.");
       return;
     }
@@ -52,7 +52,9 @@ export default function PaymentProofUpload({ file, onFileChange }: PaymentProofU
           />
           <button
             type="button"
-            onClick={() => onFileChange(null)}
+            onClick={() => {
+              onFileChange(null);
+            }}
             className="absolute top-2 right-2 bg-black/60 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm hover:bg-black/80"
           >
             ✕
@@ -60,8 +62,13 @@ export default function PaymentProofUpload({ file, onFileChange }: PaymentProofU
         </div>
       ) : (
         <div
-          onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-          onDragLeave={() => setDragOver(false)}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setDragOver(true);
+          }}
+          onDragLeave={() => {
+            setDragOver(false);
+          }}
           onDrop={handleDrop}
           onClick={() => inputRef.current?.click()}
           className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${

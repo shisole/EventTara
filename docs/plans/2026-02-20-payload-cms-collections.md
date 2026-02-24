@@ -13,6 +13,7 @@
 ### Task 1: Create site-settings global
 
 **Files:**
+
 - Create: `src/payload/globals/site-settings.ts`
 - Modify: `src/payload.config.ts` (register the global)
 
@@ -21,82 +22,82 @@
 Create `src/payload/globals/site-settings.ts`:
 
 ```typescript
-import type { GlobalConfig } from 'payload'
+import type { GlobalConfig } from "payload";
 
 export const SiteSettings: GlobalConfig = {
-  slug: 'site-settings',
-  label: 'Site Settings',
+  slug: "site-settings",
+  label: "Site Settings",
   access: {
     read: () => true,
   },
   fields: [
     {
-      name: 'siteName',
-      type: 'text',
+      name: "siteName",
+      type: "text",
       required: true,
-      defaultValue: 'EventTara',
+      defaultValue: "EventTara",
     },
     {
-      name: 'tagline',
-      type: 'text',
+      name: "tagline",
+      type: "text",
       required: true,
-      defaultValue: 'Tara na! Book Your Next Adventure',
+      defaultValue: "Tara na! Book Your Next Adventure",
     },
     {
-      name: 'siteDescription',
-      type: 'textarea',
+      name: "siteDescription",
+      type: "textarea",
       required: true,
       defaultValue:
-        'EventTara is an adventure event booking platform for hiking, mountain biking, road biking, running, and more. Tara na!',
+        "EventTara is an adventure event booking platform for hiking, mountain biking, road biking, running, and more. Tara na!",
     },
     {
-      name: 'siteUrl',
-      type: 'text',
-      defaultValue: 'https://eventtara.com',
+      name: "siteUrl",
+      type: "text",
+      defaultValue: "https://eventtara.com",
     },
     {
-      name: 'contactEmail',
-      type: 'email',
-      defaultValue: 'privacy@eventtara.com',
+      name: "contactEmail",
+      type: "email",
+      defaultValue: "privacy@eventtara.com",
     },
     {
-      name: 'copyrightText',
-      type: 'text',
-      defaultValue: '© {year} EventTara. All rights reserved.',
+      name: "copyrightText",
+      type: "text",
+      defaultValue: "© {year} EventTara. All rights reserved.",
       admin: {
-        description: 'Use {year} as a placeholder for the current year.',
+        description: "Use {year} as a placeholder for the current year.",
       },
     },
     {
-      name: 'seo',
-      type: 'group',
+      name: "seo",
+      type: "group",
       fields: [
         {
-          name: 'titleTemplate',
-          type: 'text',
-          defaultValue: '%s — EventTara',
+          name: "titleTemplate",
+          type: "text",
+          defaultValue: "%s — EventTara",
           admin: {
-            description: 'Use %s as a placeholder for the page title.',
+            description: "Use %s as a placeholder for the page title.",
           },
         },
         {
-          name: 'keywords',
-          type: 'text',
+          name: "keywords",
+          type: "text",
           defaultValue:
-            'events, adventure, hiking, mountain biking, road biking, running, trail running, Philippines, outdoor, booking',
+            "events, adventure, hiking, mountain biking, road biking, running, trail running, Philippines, outdoor, booking",
           admin: {
-            description: 'Comma-separated keywords for SEO.',
+            description: "Comma-separated keywords for SEO.",
           },
         },
         {
-          name: 'ogLocale',
-          type: 'text',
-          defaultValue: 'en_PH',
+          name: "ogLocale",
+          type: "text",
+          defaultValue: "en_PH",
         },
       ],
     },
   ],
-}
+};
 ```
 
 **Step 2: Register the global in payload.config.ts**
@@ -121,6 +122,7 @@ git commit -m "feat: add site-settings global to payload cms"
 ### Task 2: Create navigation global
 
 **Files:**
+
 - Create: `src/payload/globals/navigation.ts`
 - Modify: `src/payload.config.ts` (register the global)
 
@@ -129,52 +131,52 @@ git commit -m "feat: add site-settings global to payload cms"
 Create `src/payload/globals/navigation.ts`:
 
 ```typescript
-import type { GlobalConfig } from 'payload'
+import type { GlobalConfig } from "payload";
 
 export const Navigation: GlobalConfig = {
-  slug: 'navigation',
-  label: 'Navigation',
+  slug: "navigation",
+  label: "Navigation",
   access: {
     read: () => true,
   },
   fields: [
     {
-      name: 'header',
-      type: 'group',
+      name: "header",
+      type: "group",
       fields: [
         {
-          name: 'links',
-          type: 'array',
+          name: "links",
+          type: "array",
           fields: [
             {
-              name: 'label',
-              type: 'text',
+              name: "label",
+              type: "text",
               required: true,
             },
             {
-              name: 'url',
-              type: 'text',
+              name: "url",
+              type: "text",
               required: true,
             },
             {
-              name: 'requiresAuth',
-              type: 'checkbox',
+              name: "requiresAuth",
+              type: "checkbox",
               defaultValue: false,
               admin: {
-                description: 'Only show this link to logged-in users.',
+                description: "Only show this link to logged-in users.",
               },
             },
             {
-              name: 'roles',
-              type: 'select',
+              name: "roles",
+              type: "select",
               hasMany: true,
               options: [
-                { label: 'Participant', value: 'participant' },
-                { label: 'Organizer', value: 'organizer' },
-                { label: 'Guest', value: 'guest' },
+                { label: "Participant", value: "participant" },
+                { label: "Organizer", value: "organizer" },
+                { label: "Guest", value: "guest" },
               ],
               admin: {
-                description: 'Show only to these roles. Leave empty for all roles.',
+                description: "Show only to these roles. Leave empty for all roles.",
               },
             },
           ],
@@ -182,35 +184,35 @@ export const Navigation: GlobalConfig = {
       ],
     },
     {
-      name: 'footer',
-      type: 'group',
+      name: "footer",
+      type: "group",
       fields: [
         {
-          name: 'tagline',
-          type: 'text',
-          defaultValue: 'Tara na! — Your adventure starts here.',
+          name: "tagline",
+          type: "text",
+          defaultValue: "Tara na! — Your adventure starts here.",
         },
         {
-          name: 'sections',
-          type: 'array',
+          name: "sections",
+          type: "array",
           fields: [
             {
-              name: 'title',
-              type: 'text',
+              name: "title",
+              type: "text",
               required: true,
             },
             {
-              name: 'links',
-              type: 'array',
+              name: "links",
+              type: "array",
               fields: [
                 {
-                  name: 'label',
-                  type: 'text',
+                  name: "label",
+                  type: "text",
                   required: true,
                 },
                 {
-                  name: 'url',
-                  type: 'text',
+                  name: "url",
+                  type: "text",
                   required: true,
                 },
               ],
@@ -218,17 +220,17 @@ export const Navigation: GlobalConfig = {
           ],
         },
         {
-          name: 'legalLinks',
-          type: 'array',
+          name: "legalLinks",
+          type: "array",
           fields: [
             {
-              name: 'label',
-              type: 'text',
+              name: "label",
+              type: "text",
               required: true,
             },
             {
-              name: 'url',
-              type: 'text',
+              name: "url",
+              type: "text",
               required: true,
             },
           ],
@@ -236,7 +238,7 @@ export const Navigation: GlobalConfig = {
       ],
     },
   ],
-}
+};
 ```
 
 **Step 2: Register the global in payload.config.ts**
@@ -261,6 +263,7 @@ git commit -m "feat: add navigation global to payload cms"
 ### Task 3: Create pages collection
 
 **Files:**
+
 - Create: `src/payload/collections/pages.ts`
 - Modify: `src/payload.config.ts` (register the collection)
 
@@ -269,27 +272,27 @@ git commit -m "feat: add navigation global to payload cms"
 Create `src/payload/collections/pages.ts`:
 
 ```typescript
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig } from "payload";
 
 export const Pages: CollectionConfig = {
-  slug: 'pages',
-  label: 'Pages',
+  slug: "pages",
+  label: "Pages",
   admin: {
-    useAsTitle: 'title',
-    defaultColumns: ['title', 'slug', 'status', 'updatedAt'],
+    useAsTitle: "title",
+    defaultColumns: ["title", "slug", "status", "updatedAt"],
   },
   access: {
     read: () => true,
   },
   fields: [
     {
-      name: 'title',
-      type: 'text',
+      name: "title",
+      type: "text",
       required: true,
     },
     {
-      name: 'slug',
-      type: 'text',
+      name: "slug",
+      type: "text",
       required: true,
       unique: true,
       admin: {
@@ -297,38 +300,38 @@ export const Pages: CollectionConfig = {
       },
     },
     {
-      name: 'description',
-      type: 'textarea',
+      name: "description",
+      type: "textarea",
       admin: {
-        description: 'Meta description for SEO.',
+        description: "Meta description for SEO.",
       },
     },
     {
-      name: 'content',
-      type: 'richText',
+      name: "content",
+      type: "richText",
     },
     {
-      name: 'status',
-      type: 'select',
-      defaultValue: 'draft',
+      name: "status",
+      type: "select",
+      defaultValue: "draft",
       options: [
-        { label: 'Draft', value: 'draft' },
-        { label: 'Published', value: 'published' },
+        { label: "Draft", value: "draft" },
+        { label: "Published", value: "published" },
       ],
     },
     {
-      name: 'lastUpdatedLabel',
-      type: 'date',
+      name: "lastUpdatedLabel",
+      type: "date",
       admin: {
         description: 'Displayed "Last updated" date on the page.',
         date: {
-          pickerAppearance: 'dayOnly',
-          displayFormat: 'MMMM d, yyyy',
+          pickerAppearance: "dayOnly",
+          displayFormat: "MMMM d, yyyy",
         },
       },
     },
   ],
-}
+};
 ```
 
 **Step 2: Register the collection in payload.config.ts**
@@ -353,6 +356,7 @@ git commit -m "feat: add pages collection to payload cms"
 ### Task 4: Create media collection
 
 **Files:**
+
 - Create: `src/payload/collections/media.ts`
 - Modify: `src/payload.config.ts` (register the collection)
 
@@ -361,29 +365,29 @@ git commit -m "feat: add pages collection to payload cms"
 Create `src/payload/collections/media.ts`:
 
 ```typescript
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig } from "payload";
 
 export const Media: CollectionConfig = {
-  slug: 'media',
-  label: 'Media',
+  slug: "media",
+  label: "Media",
   access: {
     read: () => true,
   },
   upload: {
-    mimeTypes: ['image/*'],
-    staticDir: 'public/media',
+    mimeTypes: ["image/*"],
+    staticDir: "public/media",
   },
   fields: [
     {
-      name: 'alt',
-      type: 'text',
+      name: "alt",
+      type: "text",
       required: true,
       admin: {
-        description: 'Alt text for accessibility.',
+        description: "Alt text for accessibility.",
       },
     },
   ],
-}
+};
 ```
 
 **Step 2: Create the upload directory**
@@ -414,6 +418,7 @@ git commit -m "feat: add media collection to payload cms"
 ### Task 5: Create Payload client helper
 
 **Files:**
+
 - Create: `src/lib/payload/client.ts`
 
 **Step 1: Create the Payload Local API helper**
@@ -421,11 +426,11 @@ git commit -m "feat: add media collection to payload cms"
 Create `src/lib/payload/client.ts`:
 
 ```typescript
-import config from '@payload-config'
-import { getPayload } from 'payload'
+import config from "@payload-config";
+import { getPayload } from "payload";
 
 export async function getPayloadClient() {
-  return getPayload({ config })
+  return getPayload({ config });
 }
 ```
 
@@ -459,6 +464,7 @@ npm run dev
 **Step 2: Visit admin panel**
 
 Open `http://localhost:3000/admin`. You should see:
+
 - **Collections:** Payload Admins, Pages, Media
 - **Globals:** Site Settings, Navigation
 
@@ -471,6 +477,7 @@ Open `http://localhost:3000/admin`. You should see:
 **Step 4: Verify Payload Local API works**
 
 Test by making a request:
+
 ```bash
 curl -s http://localhost:3000/api/pages | head -20
 ```

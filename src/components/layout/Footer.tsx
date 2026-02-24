@@ -1,11 +1,12 @@
 import Link from "next/link";
+
 import { getPayloadClient } from "@/lib/payload/client";
 
 export default async function Footer() {
   let navigation;
   try {
     const payload = await getPayloadClient();
-    navigation = await payload.findGlobal({ slug: 'navigation' });
+    navigation = await payload.findGlobal({ slug: "navigation" });
   } catch {
     navigation = null;
   }
@@ -52,24 +53,33 @@ export default async function Footer() {
             </h3>
             <p className="text-sm">{footerTagline}</p>
           </div>
-          {displaySections.map((section: { title: string; links: { label: string; url: string; id?: string }[]; id?: string }, i: number) => (
-            <div key={section.id || i}>
-              <h4 className="text-gray-900 dark:text-white font-medium mb-3">
-                {section.title}
-              </h4>
-              <div className="space-y-2 text-sm">
-                {section.links?.map((link: { label: string; url: string; id?: string }, j: number) => (
-                  <Link
-                    key={link.id || j}
-                    href={link.url}
-                    className="block hover:text-gray-900 dark:hover:text-white"
-                  >
-                    {link.label}
-                  </Link>
-                ))}
+          {displaySections.map(
+            (
+              section: {
+                title: string;
+                links: { label: string; url: string; id?: string }[];
+                id?: string;
+              },
+              i: number,
+            ) => (
+              <div key={section.id || i}>
+                <h4 className="text-gray-900 dark:text-white font-medium mb-3">{section.title}</h4>
+                <div className="space-y-2 text-sm">
+                  {section.links?.map(
+                    (link: { label: string; url: string; id?: string }, j: number) => (
+                      <Link
+                        key={link.id || j}
+                        href={link.url}
+                        className="block hover:text-gray-900 dark:hover:text-white"
+                      >
+                        {link.label}
+                      </Link>
+                    ),
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            ),
+          )}
         </div>
         <div className="border-t border-gray-200 dark:border-gray-800 mt-8 pt-8 text-sm text-center flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4">
           <span>&copy; {new Date().getFullYear()} EventTara. All rights reserved.</span>

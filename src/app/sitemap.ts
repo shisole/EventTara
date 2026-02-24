@@ -1,4 +1,5 @@
-import { MetadataRoute } from "next";
+import { type MetadataRoute } from "next";
+
 import { createClient } from "@/lib/supabase/server";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://eventtara.com";
@@ -12,7 +13,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: siteUrl,
       lastModified: new Date(),
       changeFrequency: "weekly",
-      priority: 1.0,
+      priority: 1,
     },
     {
       url: `${siteUrl}/events`,

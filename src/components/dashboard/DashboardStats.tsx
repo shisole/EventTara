@@ -22,7 +22,11 @@ interface DashboardStatsProps {
   upcomingEvents: number;
 }
 
-export default function DashboardStats({ totalEvents, totalBookings, upcomingEvents }: DashboardStatsProps) {
+export default function DashboardStats({
+  totalEvents,
+  totalBookings,
+  upcomingEvents,
+}: DashboardStatsProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
       <StatCard label="Total Events" value={totalEvents} icon="🗓️" />

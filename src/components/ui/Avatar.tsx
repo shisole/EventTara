@@ -1,4 +1,5 @@
 import Image from "next/image";
+
 import { cn } from "@/lib/utils";
 
 interface AvatarProps {
@@ -31,7 +32,7 @@ export default function Avatar({ src, alt, size = "md", className }: AvatarProps
         className={cn(
           "rounded-full bg-lime-100 dark:bg-lime-900 text-lime-600 dark:text-lime-300 flex items-center justify-center font-semibold flex-shrink-0 aspect-square",
           sizeMap[size],
-          className
+          className,
         )}
       >
         {initials}

@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import BadgeCard from "./BadgeCard";
+
 import { CATEGORY_STYLES } from "@/lib/constants/badge-rarity";
 import { cn } from "@/lib/utils";
+
+import BadgeCard from "./BadgeCard";
 
 interface Badge {
   id: string;
@@ -32,7 +34,9 @@ export default function BadgeGrid({ badges }: { badges: Badge[] }) {
     return (
       <div className="text-center py-8">
         <p className="text-3xl mb-2">&#127941;</p>
-        <p className="text-gray-500 dark:text-gray-400">No badges yet. Join events to earn badges!</p>
+        <p className="text-gray-500 dark:text-gray-400">
+          No badges yet. Join events to earn badges!
+        </p>
       </div>
     );
   }
@@ -42,23 +46,31 @@ export default function BadgeGrid({ badges }: { badges: Badge[] }) {
       {showTabs && (
         <div className="flex flex-wrap gap-2 justify-center mb-4">
           <button
-            onClick={() => setActiveCategory(null)}
+            onClick={() => {
+              setActiveCategory(null);
+            }}
             className={cn(
               "px-3 py-1 rounded-full text-sm font-medium transition-colors",
-              !activeCategory ? "bg-teal-600 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+              activeCategory
+                ? "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                : "bg-teal-600 text-white",
             )}
           >
             All
           </button>
-          {Array.from(categories).map((cat) => {
+          {[...categories].map((cat) => {
             const style = CATEGORY_STYLES[cat as keyof typeof CATEGORY_STYLES];
             return (
               <button
                 key={cat}
-                onClick={() => setActiveCategory(cat)}
+                onClick={() => {
+                  setActiveCategory(cat);
+                }}
                 className={cn(
                   "px-3 py-1 rounded-full text-sm font-medium transition-colors",
-                  activeCategory === cat ? "bg-teal-600 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                  activeCategory === cat
+                    ? "bg-teal-600 text-white"
+                    : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700",
                 )}
               >
                 {style?.label || cat}

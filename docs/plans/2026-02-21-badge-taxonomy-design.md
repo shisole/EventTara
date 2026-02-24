@@ -22,25 +22,26 @@ ALTER TABLE badges
 
 ### Category Values
 
-| Value | Use case |
-|-------|----------|
-| `distance` | 5KM Finisher, Century Rider, Marathoner |
-| `adventure` | First Summit, Mountain Conqueror, Trail Blazer |
-| `location` | Cebu Trail Seeker, Luzon Explorer |
-| `special` | Event-specific, limited edition, sponsored (default) |
+| Value       | Use case                                             |
+| ----------- | ---------------------------------------------------- |
+| `distance`  | 5KM Finisher, Century Rider, Marathoner              |
+| `adventure` | First Summit, Mountain Conqueror, Trail Blazer       |
+| `location`  | Cebu Trail Seeker, Luzon Explorer                    |
+| `special`   | Event-specific, limited edition, sponsored (default) |
 
 ### Rarity Values
 
-| Value | Visual treatment | Meaning |
-|-------|-----------------|---------|
-| `common` | Gray border | Standard milestone |
-| `rare` | Blue/teal glow | Requires effort |
-| `epic` | Purple glow | Major achievement |
-| `legendary` | Golden glow + shimmer | Elite |
+| Value       | Visual treatment      | Meaning            |
+| ----------- | --------------------- | ------------------ |
+| `common`    | Gray border           | Standard milestone |
+| `rare`      | Blue/teal glow        | Requires effort    |
+| `epic`      | Purple glow           | Major achievement  |
+| `legendary` | Golden glow + shimmer | Elite              |
 
 ### TypeScript Types
 
 Update `src/lib/supabase/types.ts` badges table to include:
+
 - `category: 'distance' | 'adventure' | 'location' | 'special'`
 - `rarity: 'common' | 'rare' | 'epic' | 'legendary'`
 
@@ -53,20 +54,20 @@ interface BadgeTemplate {
   id: string;
   title: string;
   description: string;
-  category: 'distance' | 'adventure' | 'location' | 'special';
-  rarity: 'common' | 'rare' | 'epic' | 'legendary';
+  category: "distance" | "adventure" | "location" | "special";
+  rarity: "common" | "rare" | "epic" | "legendary";
   suggestedImage: string | null;
 }
 ```
 
 ### Starter Templates (~20)
 
-| Category | Templates |
-|----------|-----------|
-| **Distance** | 5KM Finisher (common), 10KM Finisher (common), Half Marathoner (rare), Marathoner (epic), Ultra Runner (legendary), 25KM Rider (common), 50KM Rider (rare), Century Rider (epic) |
-| **Adventure** | First Summit (common), 3 Summits (rare), Mountain Conqueror (epic), Trail Blazer (common), Peak Seeker (rare) |
-| **Location** | Cebu Trail Seeker (rare), Luzon Explorer (rare), Visayas Voyager (rare), Mindanao Pathfinder (rare), Philippine Adventurer (epic) |
-| **Special** | Event Finisher (common), EventTara Pioneer (legendary) |
+| Category      | Templates                                                                                                                                                                        |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Distance**  | 5KM Finisher (common), 10KM Finisher (common), Half Marathoner (rare), Marathoner (epic), Ultra Runner (legendary), 25KM Rider (common), 50KM Rider (rare), Century Rider (epic) |
+| **Adventure** | First Summit (common), 3 Summits (rare), Mountain Conqueror (epic), Trail Blazer (common), Peak Seeker (rare)                                                                    |
+| **Location**  | Cebu Trail Seeker (rare), Luzon Explorer (rare), Visayas Voyager (rare), Mindanao Pathfinder (rare), Philippine Adventurer (epic)                                                |
+| **Special**   | Event Finisher (common), EventTara Pioneer (legendary)                                                                                                                           |
 
 ### UX Flow
 

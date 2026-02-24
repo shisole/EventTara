@@ -1,13 +1,14 @@
 "use client";
 
-import Link from "next/link";
+import type { User } from "@supabase/supabase-js";
 import Image from "next/image";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
-import { Button, Avatar } from "@/components/ui";
+
 import ThemeToggle from "@/components/layout/ThemeToggle";
-import type { User } from "@supabase/supabase-js";
+import { Button, Avatar } from "@/components/ui";
+import { createClient } from "@/lib/supabase/client";
 
 const activities = [
   { slug: "hiking", label: "Hiking", icon: "🏔️" },
@@ -28,11 +29,7 @@ export default function Navbar() {
   const [exploreOpen, setExploreOpen] = useState(false);
 
   const fetchRole = async (userId: string) => {
-    const { data } = await supabase
-      .from("users")
-      .select("role")
-      .eq("id", userId)
-      .single();
+    const { data } = await supabase.from("users").select("role").eq("id", userId).single();
     setRole(data?.role ?? null);
   };
 
@@ -45,20 +42,22 @@ export default function Navbar() {
       if (user) await fetchRole(user.id);
       setLoading(false);
     };
-    getUser();
+    void getUser();
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchRole(session.user.id);
+        void fetchRole(session.user.id);
       } else {
         setRole(null);
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [supabase]);
 
   // Close menus on route change
@@ -81,12 +80,14 @@ export default function Navbar() {
       }
     };
     document.addEventListener("click", handleClick);
-    return () => document.removeEventListener("click", handleClick);
+    return () => {
+      document.removeEventListener("click", handleClick);
+    };
   }, [profileOpen, exploreOpen]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    window.location.href = "/";
+    globalThis.location.href = "/";
   };
 
   return (
@@ -101,9 +102,7 @@ export default function Navbar() {
               height={32}
               className="rounded-lg"
             />
-            <span className="text-2xl font-heading font-bold text-lime-500">
-              EventTara
-            </span>
+            <span className="text-2xl font-heading font-bold text-lime-500">EventTara</span>
             <span className="bg-lime-500 text-gray-900 text-xs px-2 py-0.5 rounded-full font-medium">
               BETA
             </span>
@@ -113,7 +112,9 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-6">
             <div className="relative" data-explore-dropdown>
               <button
-                onClick={() => setExploreOpen(!exploreOpen)}
+                onClick={() => {
+                  setExploreOpen(!exploreOpen);
+                }}
                 className="flex items-center gap-1 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium"
               >
                 Explore Events
@@ -125,7 +126,11 @@ export default function Navbar() {
                   stroke="currentColor"
                   className={`w-4 h-4 transition-transform ${exploreOpen ? "rotate-180" : ""}`}
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                  />
                 </svg>
               </button>
               {exploreOpen && (
@@ -157,7 +162,9 @@ export default function Navbar() {
                 <ThemeToggle />
                 <div className="relative" data-profile-dropdown>
                   <button
-                    onClick={() => setProfileOpen(!profileOpen)}
+                    onClick={() => {
+                      setProfileOpen(!profileOpen);
+                    }}
                     className="flex items-center gap-1 rounded-full hover:ring-2 hover:ring-lime-200 dark:hover:ring-lime-800 transition-all"
                   >
                     <Avatar
@@ -173,7 +180,11 @@ export default function Navbar() {
                       stroke="currentColor"
                       className={`w-4 h-4 text-gray-400 transition-transform ${profileOpen ? "rotate-180" : ""}`}
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                      />
                     </svg>
                   </button>
                   {profileOpen && (
@@ -182,7 +193,9 @@ export default function Navbar() {
                         <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
                           {user.user_metadata?.full_name || "Adventurer"}
                         </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                          {user.email}
+                        </p>
                       </div>
                       {role === "organizer" && (
                         <Link
@@ -236,17 +249,37 @@ export default function Navbar() {
 
           {/* Mobile hamburger button */}
           <button
-            onClick={() => setMenuOpen(!menuOpen)}
+            onClick={() => {
+              setMenuOpen(!menuOpen);
+            }}
             className="md:hidden flex items-center justify-center w-11 h-11 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             aria-label={menuOpen ? "Close menu" : "Open menu"}
           >
             {menuOpen ? (
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-6 h-6"
+              >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
             ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-6 h-6"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+                />
               </svg>
             )}
           </button>
@@ -259,7 +292,9 @@ export default function Navbar() {
           <div className="px-4 py-4 space-y-2">
             <div>
               <button
-                onClick={() => setExploreOpen(!exploreOpen)}
+                onClick={() => {
+                  setExploreOpen(!exploreOpen);
+                }}
                 className="w-full px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium min-h-[44px] flex items-center justify-between"
               >
                 Explore Events
@@ -271,14 +306,20 @@ export default function Navbar() {
                   stroke="currentColor"
                   className={`w-4 h-4 transition-transform ${exploreOpen ? "rotate-180" : ""}`}
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                  />
                 </svg>
               </button>
               {exploreOpen && (
                 <div className="ml-4 space-y-1">
                   <Link
                     href="/events"
-                    onClick={() => setMenuOpen(false)}
+                    onClick={() => {
+                      setMenuOpen(false);
+                    }}
                     className="block px-4 py-2 rounded-lg text-sm font-semibold text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800 min-h-[44px] flex items-center"
                   >
                     All Events
@@ -287,7 +328,9 @@ export default function Navbar() {
                     <Link
                       key={activity.slug}
                       href={`/events?type=${activity.slug}`}
-                      onClick={() => setMenuOpen(false)}
+                      onClick={() => {
+                        setMenuOpen(false);
+                      }}
                       className="px-4 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 min-h-[44px] flex items-center gap-2"
                     >
                       <span>{activity.icon}</span>
@@ -301,14 +344,18 @@ export default function Navbar() {
               <>
                 <Link
                   href="/profile"
-                  onClick={() => setMenuOpen(false)}
+                  onClick={() => {
+                    setMenuOpen(false);
+                  }}
                   className="block px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium min-h-[44px] flex items-center"
                 >
                   Profile
                 </Link>
                 <Link
                   href="/my-events"
-                  onClick={() => setMenuOpen(false)}
+                  onClick={() => {
+                    setMenuOpen(false);
+                  }}
                   className="block px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium min-h-[44px] flex items-center"
                 >
                   My Events
@@ -316,7 +363,9 @@ export default function Navbar() {
                 {role === "organizer" && (
                   <Link
                     href="/dashboard"
-                    onClick={() => setMenuOpen(false)}
+                    onClick={() => {
+                      setMenuOpen(false);
+                    }}
                     className="block px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium min-h-[44px] flex items-center"
                   >
                     Dashboard
@@ -325,7 +374,7 @@ export default function Navbar() {
                 <button
                   onClick={() => {
                     setMenuOpen(false);
-                    handleLogout();
+                    void handleLogout();
                   }}
                   className="w-full text-left px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium min-h-[44px] flex items-center"
                 >
@@ -334,17 +383,32 @@ export default function Navbar() {
               </>
             ) : (
               <div className="flex flex-col gap-2 pt-2">
-                <Link href="/signup?role=organizer" onClick={() => setMenuOpen(false)}>
+                <Link
+                  href="/signup?role=organizer"
+                  onClick={() => {
+                    setMenuOpen(false);
+                  }}
+                >
                   <Button variant="ghost" className="w-full min-h-[44px]">
                     Host Your Event
                   </Button>
                 </Link>
-                <Link href="/login" onClick={() => setMenuOpen(false)}>
+                <Link
+                  href="/login"
+                  onClick={() => {
+                    setMenuOpen(false);
+                  }}
+                >
                   <Button variant="ghost" className="w-full min-h-[44px]">
                     Sign In
                   </Button>
                 </Link>
-                <Link href="/signup" onClick={() => setMenuOpen(false)}>
+                <Link
+                  href="/signup"
+                  onClick={() => {
+                    setMenuOpen(false);
+                  }}
+                >
                   <Button className="w-full min-h-[44px]">Get Started</Button>
                 </Link>
               </div>

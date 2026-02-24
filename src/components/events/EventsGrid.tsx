@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
+
+import { haversineDistance } from "@/lib/utils/geo";
+
 import EventCard from "./EventCard";
 import NearbySort from "./NearbySort";
-import { haversineDistance } from "@/lib/utils/geo";
 
 interface EventData {
   id: string;
@@ -41,7 +43,8 @@ export default function EventsGrid({ events }: EventsGridProps) {
   }, []);
 
   const eventsWithDistance = useMemo(() => {
-    if (!nearbyState) return events.map((e) => ({ ...e, distance: undefined as number | undefined }));
+    if (!nearbyState)
+      return events.map((e) => ({ ...e, distance: undefined as number | undefined }));
 
     return events
       .map((e) => {

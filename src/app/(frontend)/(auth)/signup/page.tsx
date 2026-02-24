@@ -1,10 +1,11 @@
 "use client";
 
-import { Suspense, useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState, useEffect } from "react";
+
 import { Button, Input } from "@/components/ui";
+import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
 function SignupForm() {
@@ -20,7 +21,7 @@ function SignupForm() {
   const isOrganizerEntry = searchParams.get("role") === "organizer";
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    void supabase.auth.getUser().then(({ data: { user } }) => {
       if (user && !user.is_anonymous) router.replace("/");
     });
   }, [supabase, router]);
@@ -51,7 +52,7 @@ function SignupForm() {
       password,
       options: {
         data: metadata,
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: `${globalThis.location.origin}/auth/callback`,
       },
     });
 
@@ -71,7 +72,7 @@ function SignupForm() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "facebook",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${globalThis.location.origin}/auth/callback`,
       },
     });
     if (error) setError(error.message);
@@ -88,7 +89,11 @@ function SignupForm() {
         </p>
       )}
 
-      <Button onClick={handleFacebookLogin} className="w-full bg-[#1877F2] hover:bg-[#166FE5]" size="lg">
+      <Button
+        onClick={handleFacebookLogin}
+        className="w-full bg-[#1877F2] hover:bg-[#166FE5]"
+        size="lg"
+      >
         Continue with Facebook
       </Button>
 
@@ -97,7 +102,9 @@ function SignupForm() {
           <div className="w-full border-t border-gray-200 dark:border-gray-700" />
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="bg-white dark:bg-gray-900 px-4 text-gray-400 dark:text-gray-500">or</span>
+          <span className="bg-white dark:bg-gray-900 px-4 text-gray-400 dark:text-gray-500">
+            or
+          </span>
         </div>
       </div>
 
@@ -106,7 +113,9 @@ function SignupForm() {
           id="fullName"
           label="Full Name"
           value={fullName}
-          onChange={(e) => setFullName(e.target.value)}
+          onChange={(e) => {
+            setFullName(e.target.value);
+          }}
           placeholder="Juan Dela Cruz"
           required
         />
@@ -115,7 +124,9 @@ function SignupForm() {
           label="Email"
           type="email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => {
+            setEmail(e.target.value);
+          }}
           placeholder="you@example.com"
           required
         />
@@ -124,7 +135,9 @@ function SignupForm() {
           label="Password"
           type="password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => {
+            setPassword(e.target.value);
+          }}
           placeholder="At least 6 characters"
           minLength={6}
           required
@@ -136,7 +149,9 @@ function SignupForm() {
             <input
               type="checkbox"
               checked={isOrganizer}
-              onChange={(e) => setIsOrganizer(e.target.checked)}
+              onChange={(e) => {
+                setIsOrganizer(e.target.checked);
+              }}
               className="sr-only peer"
             />
             <div className="w-10 h-6 bg-gray-200 dark:bg-gray-700 rounded-full peer-checked:bg-lime-500 transition-colors" />
@@ -151,7 +166,7 @@ function SignupForm() {
         <div
           className={cn(
             "grid transition-all duration-300 ease-in-out",
-            isOrganizer ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+            isOrganizer ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
           )}
         >
           <div className="overflow-hidden">
@@ -166,7 +181,9 @@ function SignupForm() {
                 id="orgName"
                 label="Organization Name"
                 value={orgName}
-                onChange={(e) => setOrgName(e.target.value)}
+                onChange={(e) => {
+                  setOrgName(e.target.value);
+                }}
                 placeholder="e.g. Summit Trail Events"
                 required={isOrganizer}
               />
@@ -190,21 +207,30 @@ function SignupForm() {
 
       <p className="text-center text-sm text-gray-500 dark:text-gray-400">
         Already have an account?{" "}
-        <Link href="/login" className="text-lime-600 dark:text-lime-400 hover:text-lime-600 dark:hover:text-lime-400 font-medium">
+        <Link
+          href="/login"
+          className="text-lime-600 dark:text-lime-400 hover:text-lime-600 dark:hover:text-lime-400 font-medium"
+        >
           Sign In
         </Link>
       </p>
       {isOrganizerEntry ? (
         <p className="text-center text-sm text-gray-500 dark:text-gray-400">
           Just looking for events?{" "}
-          <Link href="/signup" className="text-lime-600 dark:text-lime-400 hover:text-lime-600 dark:hover:text-lime-400 font-medium">
+          <Link
+            href="/signup"
+            className="text-lime-600 dark:text-lime-400 hover:text-lime-600 dark:hover:text-lime-400 font-medium"
+          >
             Sign up as a participant
           </Link>
         </p>
       ) : (
         <p className="text-center text-sm text-gray-500 dark:text-gray-400">
           Want to host events?{" "}
-          <Link href="/signup?role=organizer" className="text-lime-600 dark:text-lime-400 hover:text-lime-600 dark:hover:text-lime-400 font-medium">
+          <Link
+            href="/signup?role=organizer"
+            className="text-lime-600 dark:text-lime-400 hover:text-lime-600 dark:hover:text-lime-400 font-medium"
+          >
             Sign up as an organizer
           </Link>
         </p>

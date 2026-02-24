@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui";
 import confetti from "canvas-confetti";
+import { useState, useEffect, useRef } from "react";
+
+import { Button } from "@/components/ui";
+import { createClient } from "@/lib/supabase/client";
 
 type ModalState = "email" | "verify-code" | "success";
 
@@ -17,12 +18,13 @@ interface AuthBookingModalProps {
 
 export default function AuthBookingModal({
   eventName,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   eventId,
   onAuthenticated,
 }: AuthBookingModalProps) {
   const [state, setState] = useState<ModalState>("email");
   const [email, setEmail] = useState("");
-  const [code, setCode] = useState<string[]>(Array(CODE_LENGTH).fill(""));
+  const [code, setCode] = useState<string[]>(Array.from<string>({ length: CODE_LENGTH }).fill(""));
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
@@ -31,8 +33,12 @@ export default function AuthBookingModal({
 
   // Animate in on mount
   useEffect(() => {
-    const timer = setTimeout(() => setIsVisible(true), 10);
-    return () => clearTimeout(timer);
+    const timer = setTimeout(() => {
+      setIsVisible(true);
+    }, 10);
+    return () => {
+      clearTimeout(timer);
+    };
   }, []);
 
   // Lock body scroll while modal is open
@@ -47,7 +53,7 @@ export default function AuthBookingModal({
   useEffect(() => {
     if (state !== "success") return;
 
-    confetti({
+    void confetti({
       particleCount: 120,
       spread: 80,
       origin: { y: 0.6 },
@@ -56,10 +62,14 @@ export default function AuthBookingModal({
 
     const timer = setTimeout(() => {
       setIsVisible(false);
-      setTimeout(() => onAuthenticated(userDisplay), 200);
+      setTimeout(() => {
+        onAuthenticated(userDisplay);
+      }, 200);
     }, 2000);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+    };
   }, [state, userDisplay, onAuthenticated]);
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
@@ -119,12 +129,14 @@ export default function AuthBookingModal({
 
   const handleCodePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, CODE_LENGTH);
+    const pasted = e.clipboardData.getData("text").replaceAll(/\D/g, "").slice(0, CODE_LENGTH);
     if (!pasted) return;
 
     const newCode = [...code];
-    for (let i = 0; i < pasted.length; i++) {
-      newCode[i] = pasted[i];
+    let idx = 0;
+    for (const char of pasted) {
+      newCode[idx] = char;
+      idx++;
     }
     setCode(newCode);
     setError("");
@@ -155,7 +167,7 @@ export default function AuthBookingModal({
 
       if (verifyError) {
         setError(verifyError.message || "Invalid code. Please try again.");
-        setCode(Array(CODE_LENGTH).fill(""));
+        setCode(Array.from<string>({ length: CODE_LENGTH }).fill(""));
         inputRefs.current[0]?.focus();
         return;
       }
@@ -169,7 +181,10 @@ export default function AuthBookingModal({
           .single();
 
         if (existingUser && !existingUser.username) {
-          const prefix = userDisplay.split("@")[0].toLowerCase().replace(/[^a-z0-9._-]/g, "");
+          const prefix = userDisplay
+            .split("@")[0]
+            .toLowerCase()
+            .replaceAll(/[^a-z0-9._-]/g, "");
           let username = prefix || "user";
 
           // Check if taken, append random number if so
@@ -183,17 +198,11 @@ export default function AuthBookingModal({
             username = `${username}${Math.floor(Math.random() * 9000) + 1000}`;
           }
 
-          await supabase
-            .from("users")
-            .update({ username })
-            .eq("id", data.user.id);
+          await supabase.from("users").update({ username }).eq("id", data.user.id);
         }
       }
 
-      const displayName =
-        data.user?.user_metadata?.full_name ||
-        data.user?.email ||
-        userDisplay;
+      const displayName = data.user?.user_metadata?.full_name || data.user?.email || userDisplay;
       setUserDisplay(displayName);
       setState("success");
     } catch {
@@ -218,7 +227,7 @@ export default function AuthBookingModal({
           setError(otpError.message || "Something went wrong. Please try again.");
         }
       } else {
-        setCode(Array(CODE_LENGTH).fill(""));
+        setCode(Array.from<string>({ length: CODE_LENGTH }).fill(""));
         inputRefs.current[0]?.focus();
       }
     } catch {
@@ -241,33 +250,51 @@ export default function AuthBookingModal({
         className={`relative w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8 transition-all duration-200 ${
           isVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
         }`}
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation();
+        }}
       >
         {state === "email" && (
           <form onSubmit={handleEmailSubmit} className="space-y-5">
             <div className="text-center">
               <div className="w-14 h-14 bg-lime-100 dark:bg-lime-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-7 h-7 text-lime-600 dark:text-lime-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                <svg
+                  className="w-7 h-7 text-lime-600 dark:text-lime-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"
+                  />
                 </svg>
               </div>
-              <h2 id="auth-modal-title" className="text-xl font-heading font-bold text-gray-900 dark:text-white">
+              <h2
+                id="auth-modal-title"
+                className="text-xl font-heading font-bold text-gray-900 dark:text-white"
+              >
                 Sign in to continue booking
               </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                {eventName}
-              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{eventName}</p>
             </div>
 
             <div>
-              <label htmlFor="auth-email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              <label
+                htmlFor="auth-email"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
+              >
                 Email address
               </label>
               <input
                 id="auth-email"
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                }}
                 placeholder="you@example.com"
                 autoFocus
                 className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-lime-500 focus:border-transparent outline-none transition-colors"
@@ -275,7 +302,9 @@ export default function AuthBookingModal({
             </div>
 
             {error && (
-              <p className="text-sm text-red-500" role="alert">{error}</p>
+              <p className="text-sm text-red-500" role="alert">
+                {error}
+              </p>
             )}
 
             <Button type="submit" className="w-full" size="lg" disabled={loading}>
@@ -292,8 +321,18 @@ export default function AuthBookingModal({
           <form onSubmit={handleVerifyCode} className="space-y-5">
             <div className="text-center">
               <div className="w-14 h-14 bg-teal-100 dark:bg-teal-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-7 h-7 text-teal-600 dark:text-teal-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                <svg
+                  className="w-7 h-7 text-teal-600 dark:text-teal-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
+                  />
                 </svg>
               </div>
               <h2 className="text-xl font-heading font-bold text-gray-900 dark:text-white">
@@ -309,13 +348,19 @@ export default function AuthBookingModal({
               {code.map((digit, i) => (
                 <input
                   key={i}
-                  ref={(el) => { inputRefs.current[i] = el; }}
+                  ref={(el) => {
+                    inputRefs.current[i] = el;
+                  }}
                   type="text"
                   inputMode="numeric"
                   maxLength={1}
                   value={digit}
-                  onChange={(e) => handleCodeChange(i, e.target.value)}
-                  onKeyDown={(e) => handleCodeKeyDown(i, e)}
+                  onChange={(e) => {
+                    handleCodeChange(i, e.target.value);
+                  }}
+                  onKeyDown={(e) => {
+                    handleCodeKeyDown(i, e);
+                  }}
                   autoFocus={i === 0}
                   className="w-12 h-14 text-center text-xl font-bold rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-lime-500 focus:border-transparent outline-none transition-colors"
                 />
@@ -323,10 +368,17 @@ export default function AuthBookingModal({
             </div>
 
             {error && (
-              <p className="text-sm text-red-500 text-center" role="alert">{error}</p>
+              <p className="text-sm text-red-500 text-center" role="alert">
+                {error}
+              </p>
             )}
 
-            <Button type="submit" className="w-full" size="lg" disabled={loading || code.join("").length !== CODE_LENGTH}>
+            <Button
+              type="submit"
+              className="w-full"
+              size="lg"
+              disabled={loading || code.join("").length !== CODE_LENGTH}
+            >
               {loading ? "Verifying..." : "Verify"}
             </Button>
 
@@ -344,7 +396,7 @@ export default function AuthBookingModal({
                 type="button"
                 onClick={() => {
                   setError("");
-                  setCode(Array(CODE_LENGTH).fill(""));
+                  setCode(Array.from<string>({ length: CODE_LENGTH }).fill(""));
                   setState("email");
                 }}
                 className="text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
@@ -358,15 +410,26 @@ export default function AuthBookingModal({
         {state === "success" && (
           <div className="text-center space-y-3">
             <div className="w-14 h-14 bg-lime-100 dark:bg-lime-900/30 rounded-full flex items-center justify-center mx-auto">
-              <svg className="w-7 h-7 text-lime-600 dark:text-lime-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg
+                className="w-7 h-7 text-lime-600 dark:text-lime-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
             </div>
             <h2 className="text-xl font-heading font-bold text-gray-900 dark:text-white">
               You&apos;re all set!
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Welcome, <span className="font-medium text-gray-900 dark:text-white">{userDisplay}</span>!
+              Welcome,{" "}
+              <span className="font-medium text-gray-900 dark:text-white">{userDisplay}</span>!
             </p>
           </div>
         )}

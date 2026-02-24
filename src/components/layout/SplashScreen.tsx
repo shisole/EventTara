@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 export default function SplashScreen() {
   const [visible, setVisible] = useState(() => {
-    if (typeof window === "undefined") return true;
+    if (typeof globalThis === "undefined") return true;
     return !sessionStorage.getItem("splash_shown");
   });
   const [fadeOut, setFadeOut] = useState(false);
@@ -15,8 +15,12 @@ export default function SplashScreen() {
     sessionStorage.setItem("splash_shown", "1");
 
     // Start fade immediately — just enough for a branded flash
-    const timer = setTimeout(() => setFadeOut(true), 150);
-    const removeTimer = setTimeout(() => setVisible(false), 400);
+    const timer = setTimeout(() => {
+      setFadeOut(true);
+    }, 150);
+    const removeTimer = setTimeout(() => {
+      setVisible(false);
+    }, 400);
 
     return () => {
       clearTimeout(timer);
@@ -34,15 +38,8 @@ export default function SplashScreen() {
     >
       <div className="flex flex-col items-center gap-4">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/favicon-192x192.png"
-          alt="EventTara"
-          width={80}
-          height={80}
-        />
-        <span className="text-4xl font-heading font-bold text-lime-500">
-          EventTara
-        </span>
+        <img src="/favicon-192x192.png" alt="EventTara" width={80} height={80} />
+        <span className="text-4xl font-heading font-bold text-lime-500">EventTara</span>
         <span className="text-sm text-gray-400">Tara na!</span>
       </div>
     </div>

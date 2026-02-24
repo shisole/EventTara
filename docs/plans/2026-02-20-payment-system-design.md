@@ -9,14 +9,14 @@ Manual payment system for EventTara where participants pay organizers directly v
 
 ## Decisions
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Payment model | Manual (no gateway) | Simplest to build, common in PH outdoor events |
-| Payment methods | GCash, Maya, Cash | All 3 always available for paid events |
-| Payment proof | Screenshot upload | Stored in Supabase Storage |
-| Verification | Dashboard only | Organizer reviews proof in event dashboard |
-| Free events | Skip payment flow | Current instant-confirmation behavior unchanged |
-| Storage | Supabase Storage | Already integrated, consistent with stack |
+| Decision        | Choice              | Rationale                                       |
+| --------------- | ------------------- | ----------------------------------------------- |
+| Payment model   | Manual (no gateway) | Simplest to build, common in PH outdoor events  |
+| Payment methods | GCash, Maya, Cash   | All 3 always available for paid events          |
+| Payment proof   | Screenshot upload   | Stored in Supabase Storage                      |
+| Verification    | Dashboard only      | Organizer reviews proof in event dashboard      |
+| Free events     | Skip payment flow   | Current instant-confirmation behavior unchanged |
+| Storage         | Supabase Storage    | Already integrated, consistent with stack       |
 
 ## Participant Booking Flow
 
@@ -27,6 +27,7 @@ Manual payment system for EventTara where participants pay organizers directly v
 3. Payment method selection: GCash, Maya, or Cash
 
 **GCash/Maya path:**
+
 - Display organizer's GCash/Maya number (from `organizer_profiles.payment_info`)
 - Show instructions: "Send {price} to {number}, then upload your payment screenshot"
 - File upload for screenshot (image only, max 5MB)
@@ -35,6 +36,7 @@ Manual payment system for EventTara where participants pay organizers directly v
 - No QR code until organizer approves
 
 **Cash path:**
+
 - Show notice: "You'll pay {price} in cash on the event day"
 - Submit creates booking with `payment_status: "pending"`, `payment_method: "cash"`
 - QR code issued immediately (needed for check-in tracking)
@@ -49,25 +51,30 @@ Current behavior unchanged — instant confirmation + QR code.
 ### New "Payments" tab on event dashboard
 
 **Payment overview cards:**
+
 - Total Revenue (confirmed payments only)
 - Pending Payments (count)
 - Cash Payments (count, pending on day)
 
 **Booking list with payment status:**
+
 - Table of all bookings: participant name, payment method, payment status, date
 - Filter by: All / Pending / Paid / Rejected
 - Status badges: pending (yellow), paid (green), rejected (red)
 
 **E-wallet verification:**
+
 - Click pending booking -> modal opens
 - Shows: participant info, payment method, uploaded screenshot
 - Two buttons: "Approve" (marks paid, sends confirmation email + QR code) and "Reject" (sends rejection notice)
 
 **Cash payment:**
+
 - "Mark as Paid" button on cash bookings
 - Can be done from payments tab or during check-in
 
 **Rejection flow:**
+
 - Rejected participant gets email: "Payment could not be verified. Please re-upload or contact the organizer."
 - Participant can re-upload proof from "My Events" page
 
@@ -105,6 +112,7 @@ payment-proofs/
 ### Modified endpoints
 
 **`POST /api/bookings`** — Updated booking creation:
+
 - Accept `payment_method` (gcash/maya/cash)
 - If e-wallet + paid event: require `payment_proof` (file) in FormData
 - Upload proof to Supabase Storage
@@ -116,17 +124,20 @@ payment-proofs/
 ### New endpoints
 
 **`PATCH /api/bookings/[id]/verify`** — Organizer verifies payment:
+
 - Auth: must be the event's organizer
 - Body: `{ action: "approve" | "reject" }`
 - If approve: set `payment_status: "paid"`, `payment_verified_at`, `payment_verified_by`, generate QR code, send confirmation email
 - If reject: set `payment_status: "rejected"`, send rejection email
 
 **`PATCH /api/bookings/[id]/proof`** — Participant re-uploads proof:
+
 - Auth: must be the booking's participant
 - Only allowed when `payment_status` is "pending" or "rejected"
 - Upload new screenshot, update `payment_proof_url`, reset status to "pending"
 
 **`GET /api/events/[id]/payments`** — Payment summary for organizer:
+
 - Returns booking list with payment details + aggregate stats
 - Auth: must be the event's organizer
 

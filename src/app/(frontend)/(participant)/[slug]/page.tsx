@@ -1,11 +1,12 @@
-import { notFound } from "next/navigation";
-import type { Metadata } from "next";
-import { getPayloadClient } from "@/lib/payload/client";
 import { RichText } from "@payloadcms/richtext-lexical/react";
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 
-type Props = {
+import { getPayloadClient } from "@/lib/payload/client";
+
+interface Props {
   params: Promise<{ slug: string }>;
-};
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -62,9 +63,7 @@ export default async function CMSPage({ params }: Props) {
         {page.title}
       </h1>
       {lastUpdated && (
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">
-          Last updated: {lastUpdated}
-        </p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">Last updated: {lastUpdated}</p>
       )}
       {page.content && (
         <div className="prose prose-gray dark:prose-invert max-w-none">

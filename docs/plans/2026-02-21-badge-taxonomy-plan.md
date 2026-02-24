@@ -13,6 +13,7 @@
 ### Task 1: Update Supabase Types
 
 **Files:**
+
 - Modify: `src/lib/supabase/types.ts:225-251`
 
 **Step 1: Add category and rarity to badges Row type**
@@ -20,8 +21,8 @@
 In the `badges` table `Row` type, add after `image_url`:
 
 ```ts
-category: 'distance' | 'adventure' | 'location' | 'special'
-rarity: 'common' | 'rare' | 'epic' | 'legendary'
+category: "distance" | "adventure" | "location" | "special";
+rarity: "common" | "rare" | "epic" | "legendary";
 ```
 
 **Step 2: Add category and rarity to badges Insert type**
@@ -55,6 +56,7 @@ git commit -m "feat: add category and rarity types to badges schema"
 ### Task 2: Add Supabase Migration
 
 **Files:**
+
 - Create: `supabase/migrations/20260221_badge_category_rarity.sql`
 
 **Step 1: Write migration SQL**
@@ -81,6 +83,7 @@ git commit -m "feat: add category and rarity columns to badges table"
 ### Task 3: Create Badge Templates Constant
 
 **Files:**
+
 - Create: `src/lib/constants/badge-templates.ts`
 
 **Step 1: Define the BadgeTemplate type and array**
@@ -90,8 +93,8 @@ export interface BadgeTemplate {
   id: string;
   title: string;
   description: string;
-  category: 'distance' | 'adventure' | 'location' | 'special';
-  rarity: 'common' | 'rare' | 'epic' | 'legendary';
+  category: "distance" | "adventure" | "location" | "special";
+  rarity: "common" | "rare" | "epic" | "legendary";
   suggestedImage: string | null;
 }
 
@@ -174,7 +177,8 @@ export const BADGE_TEMPLATES: BadgeTemplate[] = [
   {
     id: "3-summits",
     title: "3 Summits",
-    description: "Conquered three different peaks. The mountains are calling and you keep answering.",
+    description:
+      "Conquered three different peaks. The mountains are calling and you keep answering.",
     category: "adventure",
     rarity: "rare",
     suggestedImage: null,
@@ -215,7 +219,8 @@ export const BADGE_TEMPLATES: BadgeTemplate[] = [
   {
     id: "luzon-explorer",
     title: "Luzon Explorer",
-    description: "Adventured across Luzon. From the mountains of Cordillera to the trails of Batangas.",
+    description:
+      "Adventured across Luzon. From the mountains of Cordillera to the trails of Batangas.",
     category: "location",
     rarity: "rare",
     suggestedImage: null,
@@ -239,7 +244,8 @@ export const BADGE_TEMPLATES: BadgeTemplate[] = [
   {
     id: "philippine-adventurer",
     title: "Philippine Adventurer",
-    description: "Joined events across 3 major island groups. The whole archipelago is your playground.",
+    description:
+      "Joined events across 3 major island groups. The whole archipelago is your playground.",
     category: "location",
     rarity: "epic",
     suggestedImage: null,
@@ -295,6 +301,7 @@ git commit -m "feat: add badge templates, categories, and rarities constants"
 ### Task 4: Create Rarity Visual Utilities
 
 **Files:**
+
 - Create: `src/lib/constants/badge-rarity.ts`
 
 **Step 1: Create rarity style mapping**
@@ -364,6 +371,7 @@ git commit -m "feat: add rarity and category visual style constants"
 ### Task 5: Update API Route
 
 **Files:**
+
 - Modify: `src/app/(frontend)/api/badges/route.ts`
 
 **Step 1: Accept category and rarity in the POST handler**
@@ -403,6 +411,7 @@ git commit -m "feat: accept category and rarity in badge API route"
 ### Task 6: Add Legendary Shimmer Animation
 
 **Files:**
+
 - Modify: `tailwind.config.ts`
 
 **Step 1: Add shimmer keyframe and animation**
@@ -434,6 +443,7 @@ git commit -m "feat: add shimmer animation for legendary badge rarity"
 ### Task 7: Update BadgeCard Component
 
 **Files:**
+
 - Modify: `src/components/badges/BadgeCard.tsx`
 
 **Step 1: Update BadgeCardProps interface**
@@ -447,8 +457,8 @@ interface BadgeCardProps {
   eventName: string;
   imageUrl: string | null;
   awardedAt: string;
-  category?: 'distance' | 'adventure' | 'location' | 'special';
-  rarity?: 'common' | 'rare' | 'epic' | 'legendary';
+  category?: "distance" | "adventure" | "location" | "special";
+  rarity?: "common" | "rare" | "epic" | "legendary";
 }
 ```
 
@@ -485,11 +495,13 @@ On the image circle div, add the rarity ring and glow classes:
 After the event name paragraph, add:
 
 ```tsx
-{categoryStyle && (
-  <span className={cn("inline-block text-xs px-2 py-0.5 rounded-full mt-1", categoryStyle.pill)}>
-    {categoryStyle.label}
-  </span>
-)}
+{
+  categoryStyle && (
+    <span className={cn("inline-block text-xs px-2 py-0.5 rounded-full mt-1", categoryStyle.pill)}>
+      {categoryStyle.label}
+    </span>
+  );
+}
 ```
 
 **Step 5: Verify build**
@@ -508,6 +520,7 @@ git commit -m "feat: add rarity ring and category pill to BadgeCard"
 ### Task 8: Update BadgeGrid with Category Filter
 
 **Files:**
+
 - Modify: `src/components/badges/BadgeGrid.tsx`
 
 **Step 1: Convert to client component and add filter state**
@@ -551,34 +564,40 @@ const filteredBadges = activeCategory
 Only when `showTabs` is true:
 
 ```tsx
-{showTabs && (
-  <div className="flex flex-wrap gap-2 justify-center mb-4">
-    <button
-      onClick={() => setActiveCategory(null)}
-      className={cn(
-        "px-3 py-1 rounded-full text-sm font-medium transition-colors",
-        !activeCategory ? "bg-teal-600 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
-      )}
-    >
-      All
-    </button>
-    {Array.from(categories).map((cat) => {
-      const style = CATEGORY_STYLES[cat as keyof typeof CATEGORY_STYLES];
-      return (
-        <button
-          key={cat}
-          onClick={() => setActiveCategory(cat)}
-          className={cn(
-            "px-3 py-1 rounded-full text-sm font-medium transition-colors",
-            activeCategory === cat ? "bg-teal-600 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
-          )}
-        >
-          {style?.label || cat}
-        </button>
-      );
-    })}
-  </div>
-)}
+{
+  showTabs && (
+    <div className="flex flex-wrap gap-2 justify-center mb-4">
+      <button
+        onClick={() => setActiveCategory(null)}
+        className={cn(
+          "px-3 py-1 rounded-full text-sm font-medium transition-colors",
+          !activeCategory
+            ? "bg-teal-600 text-white"
+            : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700",
+        )}
+      >
+        All
+      </button>
+      {Array.from(categories).map((cat) => {
+        const style = CATEGORY_STYLES[cat as keyof typeof CATEGORY_STYLES];
+        return (
+          <button
+            key={cat}
+            onClick={() => setActiveCategory(cat)}
+            className={cn(
+              "px-3 py-1 rounded-full text-sm font-medium transition-colors",
+              activeCategory === cat
+                ? "bg-teal-600 text-white"
+                : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700",
+            )}
+          >
+            {style?.label || cat}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 ```
 
 **Step 5: Pass category/rarity through to BadgeCard**
@@ -586,9 +605,16 @@ Only when `showTabs` is true:
 Map `filteredBadges` instead of `badges`, and spread `category` and `rarity` to BadgeCard:
 
 ```tsx
-{filteredBadges.map((badge) => (
-  <BadgeCard key={badge.id} {...badge} category={badge.category as any} rarity={badge.rarity as any} />
-))}
+{
+  filteredBadges.map((badge) => (
+    <BadgeCard
+      key={badge.id}
+      {...badge}
+      category={badge.category as any}
+      rarity={badge.rarity as any}
+    />
+  ));
+}
 ```
 
 **Step 6: Verify build**
@@ -607,6 +633,7 @@ git commit -m "feat: add category filter tabs to BadgeGrid"
 ### Task 9: Update Badge Detail Page
 
 **Files:**
+
 - Modify: `src/app/(frontend)/(participant)/badges/[id]/page.tsx`
 
 **Step 1: Import rarity/category styles**
@@ -622,7 +649,9 @@ After the badge is fetched (line 63), extract the styles:
 
 ```ts
 const rarityStyle = RARITY_STYLES[(badge.rarity as keyof typeof RARITY_STYLES) || "common"];
-const categoryStyle = badge.category ? CATEGORY_STYLES[badge.category as keyof typeof CATEGORY_STYLES] : null;
+const categoryStyle = badge.category
+  ? CATEGORY_STYLES[badge.category as keyof typeof CATEGORY_STYLES]
+  : null;
 ```
 
 **Step 3: Add rarity ring to the hero image circle (line 131)**
@@ -634,21 +663,27 @@ Apply the same `ring` and `glow` classes plus legendary shimmer as in BadgeCard.
 Only show for non-common:
 
 ```tsx
-{badge.rarity && badge.rarity !== "common" && (
-  <span className={cn("inline-block text-xs px-2.5 py-1 rounded-full font-medium", rarityStyle.pill)}>
-    {rarityStyle.label}
-  </span>
-)}
+{
+  badge.rarity && badge.rarity !== "common" && (
+    <span
+      className={cn("inline-block text-xs px-2.5 py-1 rounded-full font-medium", rarityStyle.pill)}
+    >
+      {rarityStyle.label}
+    </span>
+  );
+}
 ```
 
 **Step 5: Add category below the description**
 
 ```tsx
-{categoryStyle && (
-  <span className={cn("inline-block text-xs px-2.5 py-1 rounded-full", categoryStyle.pill)}>
-    {categoryStyle.label}
-  </span>
-)}
+{
+  categoryStyle && (
+    <span className={cn("inline-block text-xs px-2.5 py-1 rounded-full", categoryStyle.pill)}>
+      {categoryStyle.label}
+    </span>
+  );
+}
 ```
 
 **Step 6: Verify build**
@@ -667,6 +702,7 @@ git commit -m "feat: add rarity and category display to badge detail page"
 ### Task 10: Create BadgeTemplatePicker Component
 
 **Files:**
+
 - Create: `src/components/dashboard/BadgeTemplatePicker.tsx`
 
 **Step 1: Build the template picker component**
@@ -682,7 +718,12 @@ import { RARITY_STYLES } from "@/lib/constants/badge-rarity";
 import { cn } from "@/lib/utils";
 
 interface BadgeTemplatePickerProps {
-  onSelect: (template: { title: string; description: string; category: string; rarity: string }) => void;
+  onSelect: (template: {
+    title: string;
+    description: string;
+    category: string;
+    rarity: string;
+  }) => void;
   onSkip: () => void;
 }
 
@@ -717,7 +758,7 @@ export default function BadgeTemplatePicker({ onSelect, onSkip }: BadgeTemplateP
             "px-3 py-1 rounded-full text-xs font-medium transition-colors",
             !activeCategory
               ? "bg-teal-600 text-white"
-              : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
+              : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400",
           )}
         >
           All
@@ -731,7 +772,7 @@ export default function BadgeTemplatePicker({ onSelect, onSkip }: BadgeTemplateP
               "px-3 py-1 rounded-full text-xs font-medium transition-colors",
               activeCategory === cat.value
                 ? "bg-teal-600 text-white"
-                : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
+                : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400",
             )}
           >
             {cat.label}
@@ -751,7 +792,9 @@ export default function BadgeTemplatePicker({ onSelect, onSkip }: BadgeTemplateP
               className="text-left p-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-teal-400 dark:hover:border-teal-500 transition-colors"
             >
               <p className="text-sm font-medium truncate">{t.title}</p>
-              <span className={cn("inline-block text-xs px-1.5 py-0.5 rounded-full mt-1", rStyle.pill)}>
+              <span
+                className={cn("inline-block text-xs px-1.5 py-0.5 rounded-full mt-1", rStyle.pill)}
+              >
                 {rStyle.label}
               </span>
             </button>
@@ -779,6 +822,7 @@ git commit -m "feat: add BadgeTemplatePicker component"
 ### Task 11: Update BadgeForm with Template Picker and New Fields
 
 **Files:**
+
 - Modify: `src/components/dashboard/BadgeForm.tsx`
 
 **Step 1: Import new dependencies**
@@ -827,7 +871,12 @@ body: JSON.stringify({
 **Step 5: Add template selection handler**
 
 ```ts
-const handleTemplateSelect = (template: { title: string; description: string; category: string; rarity: string }) => {
+const handleTemplateSelect = (template: {
+  title: string;
+  description: string;
+  category: string;
+  rarity: string;
+}) => {
   setTitle(template.title);
   setDescription(template.description);
   setCategory(template.category);
@@ -841,12 +890,14 @@ const handleTemplateSelect = (template: { title: string; description: string; ca
 Before the existing form fields, add the template picker (only when creating a new badge and `showTemplatePicker` is true):
 
 ```tsx
-{showTemplatePicker && !existingBadge && (
-  <BadgeTemplatePicker
-    onSelect={handleTemplateSelect}
-    onSkip={() => setShowTemplatePicker(false)}
-  />
-)}
+{
+  showTemplatePicker && !existingBadge && (
+    <BadgeTemplatePicker
+      onSelect={handleTemplateSelect}
+      onSkip={() => setShowTemplatePicker(false)}
+    />
+  );
+}
 ```
 
 After the PhotoUploader, add category and rarity selects:
@@ -854,7 +905,10 @@ After the PhotoUploader, add category and rarity selects:
 ```tsx
 <div className="grid grid-cols-2 gap-4">
   <div className="space-y-1">
-    <label htmlFor="badgeCategory" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+    <label
+      htmlFor="badgeCategory"
+      className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+    >
       Category
     </label>
     <select
@@ -864,13 +918,18 @@ After the PhotoUploader, add category and rarity selects:
       className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors"
     >
       {BADGE_CATEGORIES.map((cat) => (
-        <option key={cat.value} value={cat.value}>{cat.label}</option>
+        <option key={cat.value} value={cat.value}>
+          {cat.label}
+        </option>
       ))}
     </select>
   </div>
 
   <div className="space-y-1">
-    <label htmlFor="badgeRarity" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+    <label
+      htmlFor="badgeRarity"
+      className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+    >
       Rarity
     </label>
     <select
@@ -880,7 +939,9 @@ After the PhotoUploader, add category and rarity selects:
       className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors"
     >
       {BADGE_RARITIES.map((r) => (
-        <option key={r.value} value={r.value}>{r.label}</option>
+        <option key={r.value} value={r.value}>
+          {r.label}
+        </option>
       ))}
     </select>
   </div>
@@ -903,6 +964,7 @@ git commit -m "feat: add template picker, category, and rarity to BadgeForm"
 ### Task 12: Update Profile Page Badge Query
 
 **Files:**
+
 - Modify: `src/app/(frontend)/(participant)/profile/[username]/page.tsx:161-191`
 
 **Step 1: Update the badge select query to include category and rarity**
@@ -951,6 +1013,7 @@ git commit -m "feat: pass category and rarity to BadgeGrid on profile page"
 ### Task 13: Update Seed Data
 
 **Files:**
+
 - Modify: `scripts/seed.ts:792-993`
 
 **Step 1: Update BadgeDef interface to include category and rarity**
@@ -961,27 +1024,27 @@ interface BadgeDef {
   title: string;
   description: string;
   image_url: string;
-  category: 'distance' | 'adventure' | 'location' | 'special';
-  rarity: 'common' | 'rare' | 'epic' | 'legendary';
+  category: "distance" | "adventure" | "location" | "special";
+  rarity: "common" | "rare" | "epic" | "legendary";
 }
 ```
 
 **Step 2: Add category and rarity to each badge in BADGE_DEFS**
 
-| Badge | category | rarity |
-|-------|----------|--------|
-| Taal Volcano Summit Badge | adventure | common |
-| Sea of Clouds Chaser | adventure | epic |
-| Masungi Trailblazer | adventure | rare |
-| BGC Night Runner | distance | common |
-| Tagaytay Road Warrior | distance | rare |
-| Banahaw MTB Crusher | adventure | epic |
-| Pinatubo Crater Explorer | adventure | rare |
-| Bataan Trailblazer | adventure | rare |
-| Mt. Apo Summiteer | adventure | legendary |
-| Gran Fondo Finisher | distance | epic |
-| Corregidor Island Rider | location | rare |
-| QC Fun Runner | distance | common |
+| Badge                     | category  | rarity    |
+| ------------------------- | --------- | --------- |
+| Taal Volcano Summit Badge | adventure | common    |
+| Sea of Clouds Chaser      | adventure | epic      |
+| Masungi Trailblazer       | adventure | rare      |
+| BGC Night Runner          | distance  | common    |
+| Tagaytay Road Warrior     | distance  | rare      |
+| Banahaw MTB Crusher       | adventure | epic      |
+| Pinatubo Crater Explorer  | adventure | rare      |
+| Bataan Trailblazer        | adventure | rare      |
+| Mt. Apo Summiteer         | adventure | legendary |
+| Gran Fondo Finisher       | distance  | epic      |
+| Corregidor Island Rider   | location  | rare      |
+| QC Fun Runner             | distance  | common    |
 
 **Step 3: Update createBadges function insert (line 975-980)**
 
@@ -1019,6 +1082,7 @@ Expected: No errors
 Run: `npm run dev`
 
 Check these pages:
+
 - `/badges/[id]` — rarity ring, rarity pill, category pill visible
 - `/profile/[username]` — BadgeGrid shows category filter tabs (if 2+ categories), BadgeCards show rarity rings
 - Organizer dashboard badge form — template picker visible, category/rarity dropdowns work

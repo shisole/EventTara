@@ -1,49 +1,49 @@
-import type { GlobalConfig } from 'payload'
+import type { GlobalConfig } from "payload";
 
 export const Navigation: GlobalConfig = {
-  slug: 'navigation',
-  label: 'Navigation',
+  slug: "navigation",
+  label: "Navigation",
   access: {
     read: () => true,
   },
   fields: [
     {
-      name: 'header',
-      type: 'group',
+      name: "header",
+      type: "group",
       fields: [
         {
-          name: 'links',
-          type: 'array',
+          name: "links",
+          type: "array",
           fields: [
             {
-              name: 'label',
-              type: 'text',
+              name: "label",
+              type: "text",
               required: true,
             },
             {
-              name: 'url',
-              type: 'text',
+              name: "url",
+              type: "text",
               required: true,
             },
             {
-              name: 'requiresAuth',
-              type: 'checkbox',
+              name: "requiresAuth",
+              type: "checkbox",
               defaultValue: false,
               admin: {
-                description: 'Only show this link to logged-in users.',
+                description: "Only show this link to logged-in users.",
               },
             },
             {
-              name: 'roles',
-              type: 'select',
+              name: "roles",
+              type: "select",
               hasMany: true,
               options: [
-                { label: 'Participant', value: 'participant' },
-                { label: 'Organizer', value: 'organizer' },
-                { label: 'Guest', value: 'guest' },
+                { label: "Participant", value: "participant" },
+                { label: "Organizer", value: "organizer" },
+                { label: "Guest", value: "guest" },
               ],
               admin: {
-                description: 'Show only to these roles. Leave empty for all roles.',
+                description: "Show only to these roles. Leave empty for all roles.",
               },
             },
           ],
@@ -51,35 +51,35 @@ export const Navigation: GlobalConfig = {
       ],
     },
     {
-      name: 'footer',
-      type: 'group',
+      name: "footer",
+      type: "group",
       fields: [
         {
-          name: 'tagline',
-          type: 'text',
-          defaultValue: 'Tara na! — Your adventure starts here.',
+          name: "tagline",
+          type: "text",
+          defaultValue: "Tara na! — Your adventure starts here.",
         },
         {
-          name: 'sections',
-          type: 'array',
+          name: "sections",
+          type: "array",
           fields: [
             {
-              name: 'title',
-              type: 'text',
+              name: "title",
+              type: "text",
               required: true,
             },
             {
-              name: 'links',
-              type: 'array',
+              name: "links",
+              type: "array",
               fields: [
                 {
-                  name: 'label',
-                  type: 'text',
+                  name: "label",
+                  type: "text",
                   required: true,
                 },
                 {
-                  name: 'url',
-                  type: 'text',
+                  name: "url",
+                  type: "text",
                   required: true,
                 },
               ],
@@ -87,17 +87,17 @@ export const Navigation: GlobalConfig = {
           ],
         },
         {
-          name: 'legalLinks',
-          type: 'array',
+          name: "legalLinks",
+          type: "array",
           fields: [
             {
-              name: 'label',
-              type: 'text',
+              name: "label",
+              type: "text",
               required: true,
             },
             {
-              name: 'url',
-              type: 'text',
+              name: "url",
+              type: "text",
               required: true,
             },
           ],
@@ -105,4 +105,4 @@ export const Navigation: GlobalConfig = {
       ],
     },
   ],
-}
+};

@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { type NextRequest, NextResponse } from "next/server";
+
 import { findProvinceFromLocation } from "@/lib/constants/philippine-provinces";
+import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 
 type EventType = Database["public"]["Tables"]["events"]["Row"]["type"];
@@ -13,8 +14,8 @@ function getEventStatus(eventDate: string, today: string): "upcoming" | "happeni
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
-  const offset = parseInt(searchParams.get("offset") || "0", 10);
-  const limit = parseInt(searchParams.get("limit") || "9", 10);
+  const offset = Number.parseInt(searchParams.get("offset") || "0", 10);
+  const limit = Number.parseInt(searchParams.get("limit") || "9", 10);
   const type = searchParams.get("type") || "";
   const when = searchParams.get("when") || "";
   const search = searchParams.get("search") || "";
@@ -35,15 +36,26 @@ export async function GET(request: NextRequest) {
     .in("status", ["published", "completed"]);
 
   // Apply filters to both queries
-  if (when === "upcoming") {
-    countQuery = countQuery.gt("date", today);
-    dataQuery = dataQuery.gt("date", today);
-  } else if (when === "now") {
-    countQuery = countQuery.gte("date", today).lte("date", `${today}T23:59:59`);
-    dataQuery = dataQuery.gte("date", today).lte("date", `${today}T23:59:59`);
-  } else if (when === "past") {
-    countQuery = countQuery.lt("date", today);
-    dataQuery = dataQuery.lt("date", today);
+  switch (when) {
+    case "upcoming": {
+      countQuery = countQuery.gt("date", today);
+      dataQuery = dataQuery.gt("date", today);
+
+      break;
+    }
+    case "now": {
+      countQuery = countQuery.gte("date", today).lte("date", `${today}T23:59:59`);
+      dataQuery = dataQuery.gte("date", today).lte("date", `${today}T23:59:59`);
+
+      break;
+    }
+    case "past": {
+      countQuery = countQuery.lt("date", today);
+      dataQuery = dataQuery.lt("date", today);
+
+      break;
+    }
+    // No default
   }
 
   if (type) {
@@ -52,7 +64,7 @@ export async function GET(request: NextRequest) {
   }
 
   if (search) {
-    const pattern = search.trim().replace(/\s+/g, "%");
+    const pattern = search.trim().replaceAll(/\s+/g, "%");
     const filter = `title.ilike.%${pattern}%,location.ilike.%${pattern}%`;
     countQuery = countQuery.or(filter);
     dataQuery = dataQuery.or(filter);
@@ -60,18 +72,14 @@ export async function GET(request: NextRequest) {
 
   // For "no when filter", we need custom sorting: upcoming first, then past reversed
   // We'll fetch with a basic order and sort in-memory for this case
-  if (!when) {
-    dataQuery = dataQuery.order("date", { ascending: true });
-  } else {
-    dataQuery = dataQuery.order("date", { ascending: when !== "past" });
-  }
+  dataQuery = when
+    ? dataQuery.order("date", { ascending: when !== "past" })
+    : dataQuery.order("date", { ascending: true });
 
   const [{ count }, { data: allEvents }] = await Promise.all([
     countQuery,
     // For "no when filter", we need all events to sort properly, then slice
-    !when
-      ? dataQuery
-      : dataQuery.range(offset, offset + limit - 1),
+    when ? dataQuery.range(offset, offset + limit - 1) : dataQuery,
   ]);
 
   let events = allEvents || [];
@@ -132,7 +140,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: Request) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -176,7 +186,7 @@ export async function POST(request: Request) {
   const { data: event, error } = await supabase
     .from("events")
     .insert({
-      organizer_id: profile!.id,
+      organizer_id: profile.id,
       title: body.title,
       description: body.description,
       type: body.type,

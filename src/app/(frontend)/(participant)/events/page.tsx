@@ -1,7 +1,7 @@
-import { createClient } from "@/lib/supabase/server";
-import type { Database } from "@/lib/supabase/types";
 import EventFilters from "@/components/events/EventFilters";
 import EventsListClient from "@/components/events/EventsListClient";
+import { createClient } from "@/lib/supabase/server";
+import type { Database } from "@/lib/supabase/types";
 
 type EventType = Database["public"]["Tables"]["events"]["Row"]["type"];
 
@@ -9,8 +9,7 @@ const BATCH_SIZE = 9;
 
 export const metadata = {
   title: "Explore Events \u2014 EventTara",
-  description:
-    "Find your next adventure. Browse hiking, biking, running, and trail events.",
+  description: "Find your next adventure. Browse hiking, biking, running, and trail events.",
 };
 
 function getEventStatus(eventDate: string, today: string): "upcoming" | "happening_now" | "past" {
@@ -42,15 +41,26 @@ export default async function EventsPage({
     .order("date", { ascending: true });
 
   // Apply filters to both
-  if (params.when === "upcoming") {
-    countQuery = countQuery.gt("date", today);
-    dataQuery = dataQuery.gt("date", today);
-  } else if (params.when === "now") {
-    countQuery = countQuery.gte("date", today).lte("date", `${today}T23:59:59`);
-    dataQuery = dataQuery.gte("date", today).lte("date", `${today}T23:59:59`);
-  } else if (params.when === "past") {
-    countQuery = countQuery.lt("date", today);
-    dataQuery = dataQuery.lt("date", today);
+  switch (params.when) {
+    case "upcoming": {
+      countQuery = countQuery.gt("date", today);
+      dataQuery = dataQuery.gt("date", today);
+
+      break;
+    }
+    case "now": {
+      countQuery = countQuery.gte("date", today).lte("date", `${today}T23:59:59`);
+      dataQuery = dataQuery.gte("date", today).lte("date", `${today}T23:59:59`);
+
+      break;
+    }
+    case "past": {
+      countQuery = countQuery.lt("date", today);
+      dataQuery = dataQuery.lt("date", today);
+
+      break;
+    }
+    // No default
   }
 
   if (params.type) {
@@ -59,7 +69,7 @@ export default async function EventsPage({
   }
 
   if (params.search) {
-    const pattern = params.search.trim().replace(/\s+/g, "%");
+    const pattern = params.search.trim().replaceAll(/\s+/g, "%");
     const filter = `title.ilike.%${pattern}%,location.ilike.%${pattern}%`;
     countQuery = countQuery.or(filter);
     dataQuery = dataQuery.or(filter);
@@ -68,7 +78,7 @@ export default async function EventsPage({
   // For "no when filter" we need all events to sort upcoming-first, then slice
   const [{ count }, { data: allEvents }] = await Promise.all([
     countQuery,
-    !params.when ? dataQuery : dataQuery.range(0, BATCH_SIZE - 1),
+    params.when ? dataQuery.range(0, BATCH_SIZE - 1) : dataQuery,
   ]);
 
   let events = allEvents || [];
@@ -128,9 +138,7 @@ export default async function EventsPage({
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-heading font-bold mb-4">
-          Explore Events
-        </h1>
+        <h1 className="text-3xl font-heading font-bold mb-4">Explore Events</h1>
         <EventFilters />
       </div>
 

@@ -7,7 +7,7 @@
 
 **EventTara** is a SaaS platform for adventure event organizers in the Philippines, with plans for international expansion.
 
-**Tagline:** *"Tara na! — Book Your Next Adventure"*
+**Tagline:** _"Tara na! — Book Your Next Adventure"_
 ("Tara" means "Let's go!" in Tagalog)
 
 ### User Types
@@ -153,6 +153,7 @@ event_checkins
 ## 4. Features & UI (MVP)
 
 ### Landing Page (`/`)
+
 - Hero: Bold tagline with adventure action shot background
 - Upcoming events carousel (filterable by type)
 - How it works: 3-step visual (Browse → Book → Adventure!)
@@ -161,12 +162,14 @@ event_checkins
 - Beta badge visible
 
 ### Event Discovery (`/events`)
+
 - Grid/list of published events with cover photos
 - Filters: event type, date range, location, price range
 - Search bar
 - Event cards: cover image, title, type tag, date, location, price, spots remaining
 
 ### Event Detail (`/events/[id]`)
+
 - Hero cover image
 - Event info: title, description, date/time, location with map pin, price, spots left
 - Past event photo gallery (carousel/grid)
@@ -175,11 +178,13 @@ event_checkins
 - Social proof ("23 adventurers joined!")
 
 ### Booking Flow
+
 - Select spots → Pay via GCash/Maya → Confirmation
 - Guests: pick avatar + display name before payment
 - Confirmation with event details + QR code for check-in
 
 ### Organizer Dashboard (`/dashboard`)
+
 - Overview: upcoming events, total bookings, recent activity
 - Events CRUD: create/edit/publish/cancel
   - Form: title, description, type, date, location, price, max participants, cover image, gallery photos
@@ -189,18 +194,21 @@ event_checkins
 - Settings: profile, payment info
 
 ### Participant Profile (`/profile/[username]`)
+
 - Public: avatar, display name, badge collection grid, events joined count
 - Stats: total events, type breakdown
 - Shareable link for social media
 - "Join EventTara" CTA for visitors
 
 ### My Events (`/my-events`)
+
 - Upcoming bookings with QR codes
 - Past events with earned badges
 
 ## 5. Gamification: Badge System
 
 ### How It Works
+
 1. Organizer creates a badge when creating/editing an event (upload custom design or use template)
 2. During event: participants scan QR code to check in
 3. After event: organizer sees participant list with check-in status
@@ -208,6 +216,7 @@ event_checkins
 5. Badges appear on participant profiles immediately
 
 ### Badge Display
+
 - Profile page: grid of all earned badges
 - Each badge shows: event name, date, badge image
 - Publicly visible and shareable

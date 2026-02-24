@@ -36,15 +36,16 @@ EventTara Space
 
 The script scans these paths:
 
-| Source | Confluence Output |
-|--------|------------------|
-| `src/app/api/**/route.ts` | API Routes (method, path, description) |
-| `supabase/migrations/*.sql` | Database Schema (tables, columns, types) |
-| `src/app/**/page.tsx` | App pages/routes |
-| `src/components/**/*.tsx` | Component inventory (name, props) |
-| `git diff` + commit messages | Changelog narrative context |
+| Source                       | Confluence Output                        |
+| ---------------------------- | ---------------------------------------- |
+| `src/app/api/**/route.ts`    | API Routes (method, path, description)   |
+| `supabase/migrations/*.sql`  | Database Schema (tables, columns, types) |
+| `src/app/**/page.tsx`        | App pages/routes                         |
+| `src/components/**/*.tsx`    | Component inventory (name, props)        |
+| `git diff` + commit messages | Changelog narrative context              |
 
 Claude API generates:
+
 1. **Changelog entry** — human-readable summary of what changed and why (appended)
 2. **Technical reference** — structured docs for routes, schema, components (full overwrite)
 

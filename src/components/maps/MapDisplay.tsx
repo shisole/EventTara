@@ -12,7 +12,10 @@ interface MapDisplayProps {
 
 export default function MapDisplay({ lat, lng, label }: MapDisplayProps) {
   return (
-    <div className="rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700" style={{ height: 250 }}>
+    <div
+      className="rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700"
+      style={{ height: 250 }}
+    >
       <MapContainer
         center={[lat, lng]}
         zoom={13}
@@ -25,9 +28,7 @@ export default function MapDisplay({ lat, lng, label }: MapDisplayProps) {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <Marker position={[lat, lng]}>
-          {label && <Popup>{label}</Popup>}
-        </Marker>
+        <Marker position={[lat, lng]}>{label && <Popup>{label}</Popup>}</Marker>
       </MapContainer>
     </div>
   );

@@ -9,18 +9,24 @@ interface PaymentInstructionsProps {
   amount?: number;
 }
 
-export default function PaymentInstructions({ method, paymentInfo, amount }: PaymentInstructionsProps) {
+export default function PaymentInstructions({
+  method,
+  paymentInfo,
+  amount,
+}: PaymentInstructionsProps) {
   const number = method === "gcash" ? paymentInfo.gcash_number : paymentInfo.maya_number;
   const label = method === "gcash" ? "GCash" : "Maya";
-  const wrapperClass = method === "gcash"
-    ? "bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800"
-    : "bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800";
+  const wrapperClass =
+    method === "gcash"
+      ? "bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800"
+      : "bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800";
 
   if (!number) {
     return (
       <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4">
         <p className="text-sm text-yellow-700 dark:text-yellow-300">
-          The organizer hasn&apos;t set up their {label} number yet. Please try another payment method.
+          The organizer hasn&apos;t set up their {label} number yet. Please try another payment
+          method.
         </p>
       </div>
     );
@@ -35,7 +41,9 @@ export default function PaymentInstructions({ method, paymentInfo, amount }: Pay
       </div>
       <ol className="text-sm text-gray-600 dark:text-gray-400 space-y-1 list-decimal list-inside">
         <li>Open your {label} app</li>
-        <li>Send{amount ? ` ₱${amount.toLocaleString()}` : " the exact amount"} to the number above</li>
+        <li>
+          Send{amount ? ` ₱${amount.toLocaleString()}` : " the exact amount"} to the number above
+        </li>
         <li>Take a screenshot of the confirmation</li>
         <li>Upload the screenshot below</li>
       </ol>

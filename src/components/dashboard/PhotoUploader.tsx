@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useRef } from "react";
 import Image from "next/image";
-import { createClient } from "@/lib/supabase/client";
-import { cdnUrl } from "@/lib/storage";
+import { useState, useRef } from "react";
+
 import { Button } from "@/components/ui";
+import { cdnUrl } from "@/lib/storage";
+import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
 const MAX_SIZE_BYTES = 1 * 1024 * 1024; // 1 MB
@@ -12,8 +13,8 @@ const MAX_DIMENSION = 2000; // cap longest side at 2000px
 
 async function compressImage(file: File): Promise<File> {
   return new Promise((resolve, reject) => {
-    const img = new window.Image();
-    img.onload = () => {
+    const img = new globalThis.Image();
+    img.addEventListener("load", () => {
       let { width, height } = img;
 
       // Scale down if either dimension exceeds MAX_DIMENSION
@@ -39,19 +40,21 @@ async function compressImage(file: File): Promise<File> {
         const dataUrl = canvas.toDataURL("image/jpeg", quality);
         const base64 = dataUrl.split(",")[1];
         const bytes = Math.ceil((base64.length * 3) / 4);
-        if (bytes <= MAX_SIZE_BYTES || quality === qualities[qualities.length - 1]) {
+        if (bytes <= MAX_SIZE_BYTES || quality === qualities.at(-1)) {
           const byteString = atob(base64);
           const byteArray = new Uint8Array(byteString.length);
           for (let i = 0; i < byteString.length; i++) {
-            byteArray[i] = byteString.charCodeAt(i);
+            byteArray[i] = byteString.codePointAt(i)!;
           }
           const blob = new Blob([byteArray], { type: "image/jpeg" });
           resolve(new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg" }));
           return;
         }
       }
-    };
-    img.onerror = reject;
+    });
+    img.addEventListener("error", () => {
+      reject(new Error("Failed to load image"));
+    });
     img.src = URL.createObjectURL(file);
   });
 }
@@ -64,7 +67,13 @@ interface PhotoUploaderProps {
   label?: string;
 }
 
-export default function PhotoUploader({ bucket, path, value, onChange, label }: PhotoUploaderProps) {
+export default function PhotoUploader({
+  bucket,
+  path,
+  value,
+  onChange,
+  label,
+}: PhotoUploaderProps) {
   const supabase = createClient();
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -101,19 +110,27 @@ export default function PhotoUploader({ bucket, path, value, onChange, label }: 
       return;
     }
 
-    const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(fileName);
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from(bucket).getPublicUrl(fileName);
     onChange(cdnUrl(publicUrl) || publicUrl);
     setUploading(false);
   };
 
   return (
     <div className="space-y-2">
-      {label && <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{label}</label>}
+      {label && (
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          {label}
+        </label>
+      )}
       <div
         onClick={() => inputRef.current?.click()}
         className={cn(
           "border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-colors",
-          value ? "border-forest-300 bg-forest-50" : "border-gray-300 dark:border-gray-600 hover:border-lime-300"
+          value
+            ? "border-forest-300 bg-forest-50"
+            : "border-gray-300 dark:border-gray-600 hover:border-lime-300",
         )}
       >
         {value ? (
@@ -122,15 +139,32 @@ export default function PhotoUploader({ bucket, path, value, onChange, label }: 
           </div>
         ) : (
           <div className="py-8">
-            <p className="text-gray-500 dark:text-gray-400">{uploading ? "Compressing & uploading..." : "Click to upload image"}</p>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Max 1 MB · auto-compressed to JPEG</p>
+            <p className="text-gray-500 dark:text-gray-400">
+              {uploading ? "Compressing & uploading..." : "Click to upload image"}
+            </p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+              Max 1 MB · auto-compressed to JPEG
+            </p>
           </div>
         )}
       </div>
-      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleUpload}
+      />
       {error && <p className="text-sm text-red-500">{error}</p>}
       {value && (
-        <Button type="button" variant="ghost" size="sm" onClick={() => onChange(null)}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            onChange(null);
+          }}
+        >
           Remove
         </Button>
       )}

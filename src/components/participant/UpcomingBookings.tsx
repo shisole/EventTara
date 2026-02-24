@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 import { useState, useRef } from "react";
+
 import { Card, UIBadge, Button } from "@/components/ui";
 import PaymentStatusBadge from "@/components/ui/PaymentStatusBadge";
 
@@ -27,8 +28,11 @@ interface Booking {
 }
 
 const typeLabels: Record<string, string> = {
-  hiking: "Hiking", mtb: "Mountain Biking", road_bike: "Road Biking",
-  running: "Running", trail_run: "Trail Running",
+  hiking: "Hiking",
+  mtb: "Mountain Biking",
+  road_bike: "Road Biking",
+  running: "Running",
+  trail_run: "Trail Running",
 };
 
 function ReuploadButton({ bookingId }: { bookingId: string }) {
@@ -46,7 +50,7 @@ function ReuploadButton({ bookingId }: { bookingId: string }) {
     });
 
     if (res.ok) {
-      window.location.reload();
+      globalThis.location.reload();
     }
     setUploading(false);
   };
@@ -68,7 +72,7 @@ function ReuploadButton({ bookingId }: { bookingId: string }) {
         className="hidden"
         onChange={(e) => {
           const file = e.target.files?.[0];
-          if (file) handleUpload(file);
+          if (file) void handleUpload(file);
         }}
       />
     </>
@@ -83,7 +87,9 @@ export default function UpcomingBookings({ bookings }: { bookings: Booking[] }) 
       <div className="text-center py-12">
         <p className="text-4xl mb-3">🗓️</p>
         <p className="text-gray-500 dark:text-gray-400 mb-4">No upcoming events.</p>
-        <Link href="/events"><Button>Browse Events</Button></Link>
+        <Link href="/events">
+          <Button>Browse Events</Button>
+        </Link>
       </div>
     );
   }
@@ -95,14 +101,23 @@ export default function UpcomingBookings({ bookings }: { bookings: Booking[] }) 
           <div className="flex items-start justify-between">
             <div className="space-y-1">
               <div className="flex gap-2 items-center">
-                <UIBadge variant={b.eventType as any}>{typeLabels[b.eventType] || b.eventType}</UIBadge>
+                <UIBadge variant={b.eventType as any}>
+                  {typeLabels[b.eventType] || b.eventType}
+                </UIBadge>
                 {b.paymentStatus && <PaymentStatusBadge status={b.paymentStatus as any} />}
               </div>
               <Link href={`/events/${b.eventId}`}>
-                <h3 className="font-heading font-bold text-lg hover:text-lime-600 dark:hover:text-lime-400">{b.eventTitle}</h3>
+                <h3 className="font-heading font-bold text-lg hover:text-lime-600 dark:hover:text-lime-400">
+                  {b.eventTitle}
+                </h3>
               </Link>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                📅 {new Date(b.eventDate).toLocaleDateString("en-PH", { weekday: "short", month: "short", day: "numeric" })}
+                📅{" "}
+                {new Date(b.eventDate).toLocaleDateString("en-PH", {
+                  weekday: "short",
+                  month: "short",
+                  day: "numeric",
+                })}
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400">📍 {b.eventLocation}</p>
               <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
@@ -114,10 +129,14 @@ export default function UpcomingBookings({ bookings }: { bookings: Booking[] }) 
                 </p>
               )}
               {b.paymentStatus === "pending" && b.paymentMethod !== "cash" && (
-                <p className="text-sm text-yellow-600 dark:text-yellow-400">Waiting for payment verification</p>
+                <p className="text-sm text-yellow-600 dark:text-yellow-400">
+                  Waiting for payment verification
+                </p>
               )}
               {b.paymentStatus === "pending" && b.paymentMethod === "cash" && (
-                <p className="text-sm text-yellow-600 dark:text-yellow-400">Pay cash on event day</p>
+                <p className="text-sm text-yellow-600 dark:text-yellow-400">
+                  Pay cash on event day
+                </p>
               )}
               {b.paymentStatus === "rejected" && (
                 <div className="space-y-2">
@@ -128,7 +147,9 @@ export default function UpcomingBookings({ bookings }: { bookings: Booking[] }) 
             </div>
             {b.qrCode && (
               <button
-                onClick={() => setExpandedQR(expandedQR === b.id ? null : b.id)}
+                onClick={() => {
+                  setExpandedQR(expandedQR === b.id ? null : b.id);
+                }}
                 className="text-sm text-lime-600 dark:text-lime-400 font-medium hover:text-lime-600"
               >
                 {expandedQR === b.id ? "Hide QR" : "Show QR"}
@@ -139,25 +160,37 @@ export default function UpcomingBookings({ bookings }: { bookings: Booking[] }) 
             <div className="mt-4 space-y-3">
               <div className="flex justify-center">
                 <div className="bg-white dark:bg-gray-900 p-4 rounded-xl border dark:border-gray-700">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 text-center mb-2 font-medium">Your QR Code</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 text-center mb-2 font-medium">
+                    Your QR Code
+                  </p>
                   <QRCodeSVG value={b.qrCode} size={160} />
-                  <p className="text-xs text-gray-400 dark:text-gray-500 text-center mt-2">Show at check-in</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 text-center mt-2">
+                    Show at check-in
+                  </p>
                 </div>
               </div>
               {b.companions && b.companions.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 text-center font-medium">Companions (booked for friends)</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 text-center font-medium">
+                    Companions (booked for friends)
+                  </p>
                   {b.companions.map((comp, i) => (
                     <div key={i} className="flex justify-center">
                       <div className="bg-white dark:bg-gray-900 p-4 rounded-xl border dark:border-gray-700">
-                        <p className="text-xs text-gray-500 dark:text-gray-400 text-center mb-2 font-medium">👤 {comp.full_name}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 text-center mb-2 font-medium">
+                          👤 {comp.full_name}
+                        </p>
                         {comp.qr_code ? (
                           <>
                             <QRCodeSVG value={comp.qr_code} size={140} />
-                            <p className="text-xs text-gray-400 dark:text-gray-500 text-center mt-2">Show at check-in</p>
+                            <p className="text-xs text-gray-400 dark:text-gray-500 text-center mt-2">
+                              Show at check-in
+                            </p>
                           </>
                         ) : (
-                          <p className="text-xs text-gray-400 text-center">QR code pending verification</p>
+                          <p className="text-xs text-gray-400 text-center">
+                            QR code pending verification
+                          </p>
                         )}
                       </div>
                     </div>

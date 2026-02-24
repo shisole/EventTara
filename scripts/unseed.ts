@@ -27,7 +27,7 @@ const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
   console.error(
     "Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY.\n" +
-      "Make sure your .env.local file contains both variables."
+      "Make sure your .env.local file contains both variables.",
   );
   process.exit(1);
 }
@@ -63,18 +63,14 @@ async function main() {
   try {
     // 1. List all auth users and filter for test accounts
     console.log("Searching for test accounts...");
-    const { data: authUsers, error: listError } =
-      await supabase.auth.admin.listUsers();
+    const { data: authUsers, error: listError } = await supabase.auth.admin.listUsers();
 
     if (listError) {
       console.error(`Failed to list users: ${listError.message}`);
       process.exit(1);
     }
 
-    const testUsers =
-      authUsers?.users?.filter((u) =>
-        u.email?.endsWith(TEST_EMAIL_DOMAIN)
-      ) ?? [];
+    const testUsers = authUsers?.users?.filter((u) => u.email?.endsWith(TEST_EMAIL_DOMAIN)) ?? [];
 
     if (testUsers.length === 0) {
       console.log("No test accounts found. Nothing to clean up.");
@@ -89,7 +85,10 @@ async function main() {
 
     // 2. Clean non-cascading tables (not tied to auth user FK)
     console.log("Cleaning app_testimonials...");
-    await supabase.from("app_testimonials").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    await supabase
+      .from("app_testimonials")
+      .delete()
+      .neq("id", "00000000-0000-0000-0000-000000000000");
 
     // 3. Delete each test user (cascades through FK constraints)
     //    auth.users -> public.users -> organizer_profiles -> events -> bookings,
@@ -114,9 +113,7 @@ async function main() {
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
     console.log();
     console.log("=".repeat(60));
-    console.log(
-      `  Cleanup completed in ${elapsed}s: ${deleted} deleted, ${failed} failed.`
-    );
+    console.log(`  Cleanup completed in ${elapsed}s: ${deleted} deleted, ${failed} failed.`);
     console.log("=".repeat(60));
 
     if (failed > 0) {
