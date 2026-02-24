@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+
 import { Button } from "@/components/ui";
+
 import StarRating from "./StarRating";
 
 interface ReviewFormProps {
@@ -34,11 +36,11 @@ export default function ReviewForm({ eventId, onSubmitted }: ReviewFormProps) {
       });
 
       const data = await res.json();
-      if (!res.ok) {
-        setError(data.error);
-      } else {
+      if (res.ok) {
         setSubmitted(true);
         onSubmitted?.();
+      } else {
+        setError(data.error);
       }
     } catch {
       setError("Something went wrong. Please try again.");
@@ -69,7 +71,7 @@ export default function ReviewForm({ eventId, onSubmitted }: ReviewFormProps) {
       <div>
         <textarea
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => { setText(e.target.value); }}
           placeholder="Share your experience (optional)"
           rows={3}
           maxLength={500}

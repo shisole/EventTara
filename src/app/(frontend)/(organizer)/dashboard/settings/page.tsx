@@ -1,6 +1,6 @@
-import { createClient } from "@/lib/supabase/server";
 import OrganizerProfileForm from "@/components/dashboard/OrganizerProfileForm";
 import PaymentSettingsForm from "@/components/dashboard/PaymentSettingsForm";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata = { title: "Settings — EventTara" };
 

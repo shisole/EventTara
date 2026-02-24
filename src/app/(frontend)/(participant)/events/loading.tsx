@@ -1,4 +1,4 @@
-import { Skeleton, SkeletonText, SkeletonEventCard } from "@/components/ui";
+import { Skeleton, SkeletonEventCard } from "@/components/ui";
 
 export default function Loading() {
   return (

@@ -1,4 +1,5 @@
 import Link from "next/link";
+
 import { Avatar } from "@/components/ui";
 
 interface OrganizerCardProps {
@@ -21,7 +22,7 @@ export default function OrganizerCard({
         <div>
           <h3 className="font-heading font-bold">{orgName}</h3>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            {eventCount} event{eventCount !== 1 ? "s" : ""} organized
+            {eventCount} event{eventCount === 1 ? "" : "s"} organized
           </p>
         </div>
       </div>

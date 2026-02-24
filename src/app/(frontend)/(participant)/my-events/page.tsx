@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = { title: "My Events — EventTara" };

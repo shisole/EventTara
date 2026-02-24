@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+
 import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -14,7 +15,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const { data: profile } = await supabase.from("users").select("role").eq("id", user.id).single();
 
-  if (!profile || profile.role !== "organizer") {
+  if (profile?.role !== "organizer") {
     redirect("/events");
   }
 

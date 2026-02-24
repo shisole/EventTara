@@ -1,9 +1,10 @@
-import { notFound } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
-import { Button, UIBadge } from "@/components/ui";
+import { notFound } from "next/navigation";
+
 import EventDashboardTabs from "@/components/dashboard/EventDashboardTabs";
 import ParticipantsTable from "@/components/dashboard/ParticipantsTable";
+import { Button, UIBadge } from "@/components/ui";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function ManageEventPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -22,7 +23,7 @@ export default async function ManageEventPage({ params }: { params: Promise<{ id
 
   // Get companions per booking
   const bookingIds = (bookings || []).map((b: any) => b.id);
-  let companionsByBooking: Record<string, any[]> = {};
+  const companionsByBooking: Record<string, any[]> = {};
   if (bookingIds.length > 0) {
     const { data: companions } = await supabase
       .from("booking_companions")
@@ -59,7 +60,7 @@ export default async function ManageEventPage({ params }: { params: Promise<{ id
       const confirmedComps = (companionsByBooking[b.id] || []).filter(
         (c: any) => c.status === "confirmed",
       ).length;
-      return sum + (mainCount + confirmedComps) * Number(event.price);
+      return sum + (mainCount + confirmedComps) * event.price;
     }, 0);
 
   const handlePublish = async () => {
@@ -92,7 +93,7 @@ export default async function ManageEventPage({ params }: { params: Promise<{ id
         </div>
       </div>
 
-      <EventDashboardTabs eventId={id} eventPrice={Number(event.price)}>
+      <EventDashboardTabs eventId={id} eventPrice={event.price}>
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4">
           <div className="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm dark:shadow-gray-950/30">

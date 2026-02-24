@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useState, useEffect, useRef, useTransition } from "react";
+
 import { Button } from "@/components/ui";
 
 const EVENT_TYPES = [
@@ -106,14 +107,14 @@ export default function EventFilters() {
           <input
             type="text"
             value={searchValue}
-            onChange={(e) => handleSearchChange(e.target.value)}
+            onChange={(e) => { handleSearchChange(e.target.value); }}
             placeholder="Search events by name or location..."
             className="w-full px-4 pr-10 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors"
           />
           {searchValue && (
             <button
               type="button"
-              onClick={() => handleSearchChange("")}
+              onClick={() => { handleSearchChange(""); }}
               className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             >
               <svg
@@ -132,7 +133,7 @@ export default function EventFilters() {
         <button
           type="button"
           disabled={isSearching}
-          onClick={() => updateParams({ search: searchValue })}
+          onClick={() => { updateParams({ search: searchValue }); }}
           className="shrink-0 h-[50px] w-[50px] flex items-center justify-center rounded-xl bg-lime-500 hover:bg-lime-400 text-gray-900 transition-colors disabled:opacity-70"
         >
           {isSearching ? (
@@ -182,7 +183,7 @@ export default function EventFilters() {
             variant={optimisticType === type.value ? "primary" : "ghost"}
             size="sm"
             className="whitespace-nowrap shrink-0 sm:shrink min-h-[44px]"
-            onClick={() => handleTypeChange(type.value)}
+            onClick={() => { handleTypeChange(type.value); }}
           >
             {type.label}
           </Button>
@@ -196,7 +197,7 @@ export default function EventFilters() {
             variant={optimisticWhen === filter.value ? "primary" : "ghost"}
             size="sm"
             className="whitespace-nowrap shrink-0 sm:shrink min-h-[44px]"
-            onClick={() => handleWhenChange(filter.value)}
+            onClick={() => { handleWhenChange(filter.value); }}
           >
             {filter.value === "now" && optimisticWhen === "now" && (
               <span className="relative flex h-2 w-2 mr-1.5">

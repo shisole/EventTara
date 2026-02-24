@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
-import { Button } from "@/components/ui";
+
 import EventsTable from "@/components/dashboard/EventsTable";
+import { Button } from "@/components/ui";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata = { title: "My Events — EventTara" };
 

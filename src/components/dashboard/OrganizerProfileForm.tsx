@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { useState } from "react";
+
 import { Button, Input } from "@/components/ui";
+import { createClient } from "@/lib/supabase/client";
+
 import PhotoUploader from "./PhotoUploader";
 
 interface OrganizerProfileFormProps {
@@ -58,7 +60,7 @@ export default function OrganizerProfileForm({ profile }: OrganizerProfileFormPr
         id="orgName"
         label="Organization Name"
         value={orgName}
-        onChange={(e) => setOrgName(e.target.value)}
+        onChange={(e) => { setOrgName(e.target.value); }}
         placeholder="Trail Runners PH"
         required
       />
@@ -69,7 +71,7 @@ export default function OrganizerProfileForm({ profile }: OrganizerProfileFormPr
         </label>
         <textarea
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={(e) => { setDescription(e.target.value); }}
           rows={3}
           className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600"
           placeholder="Tell adventurers about your organization..."

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
+import { useState, useEffect, useRef, useCallback } from "react";
+
 import EventsGrid from "./EventsGrid";
 
 const BATCH_SIZE = 9;
@@ -113,7 +114,7 @@ export default function EventsListClient({ initialEvents, totalCount }: EventsLi
     );
 
     observer.observe(sentinel);
-    return () => observer.disconnect();
+    return () => { observer.disconnect(); };
   }, [loadMore]);
 
   const handlePageChange = async (page: number) => {
@@ -212,7 +213,7 @@ export default function EventsListClient({ initialEvents, totalCount }: EventsLi
             ) : (
               <button
                 key={page}
-                onClick={() => handlePageChange(page as number)}
+                onClick={() => handlePageChange(page)}
                 className={`min-w-[40px] px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   currentPage === page
                     ? "bg-lime-500 text-gray-900"

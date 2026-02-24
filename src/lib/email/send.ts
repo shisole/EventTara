@@ -44,8 +44,8 @@ export async function sendEmail({ to, subject, html }: SendEmailOptions) {
     }
 
     return { success: true, data };
-  } catch (err) {
-    console.error("[Email] Unexpected error:", err);
-    return { success: false, error: err };
+  } catch (error) {
+    console.error("[Email] Unexpected error:", error);
+    return { success: false, error: error };
   }
 }

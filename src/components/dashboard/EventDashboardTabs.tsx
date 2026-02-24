@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, ReactNode } from "react";
+import { useState, type ReactNode } from "react";
+
 import { cn } from "@/lib/utils";
+
 import PaymentVerificationPanel from "./PaymentVerificationPanel";
 
 interface EventDashboardTabsProps {
@@ -23,7 +25,7 @@ export default function EventDashboardTabs({
         {(["overview", "payments"] as const).map((tab) => (
           <button
             key={tab}
-            onClick={() => setActiveTab(tab)}
+            onClick={() => { setActiveTab(tab); }}
             className={cn(
               "flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors capitalize",
               activeTab === tab

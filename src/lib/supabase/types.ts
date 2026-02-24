@@ -445,17 +445,13 @@ export interface Database {
         Relationships: [];
       };
     };
-    Views: {
-      [_ in never]: never;
-    };
+    Views: Record<never, never>;
     Functions: {
       get_total_participants: {
         Args: { p_event_id: string };
         Returns: number;
       };
     };
-    Enums: {
-      [_ in never]: never;
-    };
+    Enums: Record<never, never>;
   };
 }

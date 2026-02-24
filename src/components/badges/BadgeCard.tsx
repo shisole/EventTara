@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+
 import { resolvePresetImage } from "@/lib/constants/avatars";
 import { RARITY_STYLES, CATEGORY_STYLES } from "@/lib/constants/badge-rarity";
 import { cn } from "@/lib/utils";

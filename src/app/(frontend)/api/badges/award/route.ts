@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+
 import { sendEmail } from "@/lib/email/send";
 import { badgeAwardedHtml } from "@/lib/email/templates/badge-awarded";
+import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -65,14 +66,14 @@ export async function POST(request: Request) {
                 username: u.username ?? undefined,
                 badgeId: badge_id,
               }),
-            }).catch((err) => console.error("[Email] Badge notification failed:", err));
+            }).catch((error_) => { console.error("[Email] Badge notification failed:", error_); });
           }
         }
       }
     }
-  } catch (emailErr) {
+  } catch (error_) {
     // Don't fail the badge award if email fails
-    console.error("[Email] Error preparing badge notifications:", emailErr);
+    console.error("[Email] Error preparing badge notifications:", error_);
   }
 
   return NextResponse.json({ awarded: user_ids.length });

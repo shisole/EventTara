@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+
 import { Button, Avatar } from "@/components/ui";
 import { cn } from "@/lib/utils";
 
@@ -46,7 +47,7 @@ export default function BadgeAwarder({ badgeId, participants }: BadgeAwarderProp
     const res = await fetch("/api/badges/award", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ badge_id: badgeId, user_ids: Array.from(selected) }),
+      body: JSON.stringify({ badge_id: badgeId, user_ids: [...selected] }),
     });
 
     setLoading(false);
@@ -71,7 +72,7 @@ export default function BadgeAwarder({ badgeId, participants }: BadgeAwarderProp
             key={p.userId}
             type="button"
             disabled={p.alreadyAwarded}
-            onClick={() => toggleUser(p.userId)}
+            onClick={() => { toggleUser(p.userId); }}
             className={cn(
               "w-full flex items-center justify-between p-3 rounded-xl transition-colors text-left",
               p.alreadyAwarded
@@ -106,7 +107,7 @@ export default function BadgeAwarder({ badgeId, participants }: BadgeAwarderProp
       <Button onClick={handleAward} disabled={loading || selected.size === 0} className="w-full">
         {loading
           ? "Awarding..."
-          : `Award Badge to ${selected.size} Participant${selected.size !== 1 ? "s" : ""}`}
+          : `Award Badge to ${selected.size} Participant${selected.size === 1 ? "" : "s"}`}
       </Button>
     </div>
   );

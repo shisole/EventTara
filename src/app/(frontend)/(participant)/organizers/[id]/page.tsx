@@ -1,12 +1,13 @@
-import { notFound } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
-import { Button } from "@/components/ui";
+import { notFound } from "next/navigation";
+
+import BadgeGrid from "@/components/badges/BadgeGrid";
+import EventCard from "@/components/events/EventCard";
 import OrganizerProfileHeader from "@/components/organizers/OrganizerProfileHeader";
 import OrganizerStats from "@/components/organizers/OrganizerStats";
-import EventCard from "@/components/events/EventCard";
-import BadgeGrid from "@/components/badges/BadgeGrid";
 import StarRating from "@/components/reviews/StarRating";
+import { Button } from "@/components/ui";
+import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -254,7 +255,7 @@ export default async function OrganizerProfilePage({
             <StarRating value={Math.round(avgRating)} readonly size="md" />
             <span className="font-bold text-gray-900 dark:text-white">{avgRating.toFixed(1)}</span>
             <span className="text-sm text-gray-500 dark:text-gray-400">
-              ({totalReviews} review{totalReviews !== 1 ? "s" : ""} across events)
+              ({totalReviews} review{totalReviews === 1 ? "" : "s"} across events)
             </span>
           </div>
           <div className="space-y-4">

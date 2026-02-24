@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+
 import { createClient } from "@/lib/supabase/server";
 
 export const alt = "Event on EventTara";
@@ -60,7 +61,7 @@ export default async function OGImage({ params }: { params: Promise<{ id: string
     year: "numeric",
   });
   const price =
-    Number(event.price) === 0 ? "Free" : `\u20B1${Number(event.price).toLocaleString()}`;
+    event.price === 0 ? "Free" : `\u20B1${event.price.toLocaleString()}`;
 
   return new ImageResponse(
     <div

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useState, useRef, useEffect, useCallback } from "react";
+
 import StarRating from "./StarRating";
 
 interface Review {
@@ -57,7 +58,7 @@ export default function ReviewList({
       { threshold: 0.1 },
     );
     observer.observe(el);
-    return () => observer.disconnect();
+    return () => { observer.disconnect(); };
   }, [loadMore]);
 
   if (reviews.length === 0) return null;
@@ -71,7 +72,7 @@ export default function ReviewList({
         <StarRating value={Math.round(avg)} readonly size="md" />
         <span className="font-bold text-gray-900 dark:text-white">{avg.toFixed(1)}</span>
         <span className="text-sm text-gray-500 dark:text-gray-400">
-          ({reviews.length} review{reviews.length !== 1 ? "s" : ""})
+          ({reviews.length} review{reviews.length === 1 ? "" : "s"})
         </span>
       </div>
       <div className="space-y-4">

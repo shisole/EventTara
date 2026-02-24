@@ -1,7 +1,9 @@
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
+
 import { Card, UIBadge } from "@/components/ui";
 import { cn } from "@/lib/utils";
+
 import OrganizerLink from "./OrganizerLink";
 
 type EventStatus = "upcoming" | "happening_now" | "past";

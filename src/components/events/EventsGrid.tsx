@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
+
+import { haversineDistance } from "@/lib/utils/geo";
+
 import EventCard from "./EventCard";
 import NearbySort from "./NearbySort";
-import { haversineDistance } from "@/lib/utils/geo";
 
 interface EventData {
   id: string;

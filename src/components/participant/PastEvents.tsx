@@ -1,4 +1,5 @@
 import Link from "next/link";
+
 import { Card, UIBadge } from "@/components/ui";
 
 interface PastEvent {

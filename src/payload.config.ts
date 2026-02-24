@@ -1,14 +1,16 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
 import { postgresAdapter } from "@payloadcms/db-postgres";
+import { lexicalEditor } from "@payloadcms/richtext-lexical";
+import { buildConfig } from "payload";
+import sharp from "sharp";
+
 import { Media } from "./payload/collections/media";
 import { Pages } from "./payload/collections/pages";
 import { HeroCarousel } from "./payload/globals/hero-carousel";
 import { Navigation } from "./payload/globals/navigation";
 import { SiteSettings } from "./payload/globals/site-settings";
-import { lexicalEditor } from "@payloadcms/richtext-lexical";
-import path from "path";
-import { buildConfig } from "payload";
-import { fileURLToPath } from "url";
-import sharp from "sharp";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);

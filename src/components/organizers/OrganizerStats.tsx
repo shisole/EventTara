@@ -22,7 +22,7 @@ export default function OrganizerStats({
   if (totalReviews && totalReviews > 0 && avgRating !== undefined) {
     stats.push({
       value: `${avgRating.toFixed(1)} \u2605`,
-      label: `${totalReviews} Review${totalReviews !== 1 ? "s" : ""}`,
+      label: `${totalReviews} Review${totalReviews === 1 ? "" : "s"}`,
     });
   }
 

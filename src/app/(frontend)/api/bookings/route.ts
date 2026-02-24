@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+
 import { sendEmail } from "@/lib/email/send";
 import { bookingConfirmationHtml } from "@/lib/email/templates/booking-confirmation";
+import { createClient } from "@/lib/supabase/server";
 
 interface CompanionInput {
   full_name: string;
@@ -54,7 +55,7 @@ export async function POST(request: Request) {
 
   // Validate companion names
   for (const c of companions) {
-    if (!c.full_name || !c.full_name.trim()) {
+    if (!c.full_name?.trim()) {
       return NextResponse.json({ error: "Companion names cannot be empty" }, { status: 400 });
     }
   }
@@ -102,7 +103,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Please add at least one companion" }, { status: 400 });
   }
 
-  const isFree = Number(event.price) === 0 || paymentMethod === "free";
+  const isFree = event.price === 0 || paymentMethod === "free";
   const isEwallet = paymentMethod === "gcash" || paymentMethod === "maya";
   const isCash = paymentMethod === "cash";
 
@@ -249,10 +250,10 @@ export async function POST(request: Request) {
             bookingId,
             qrCode: qrCode!,
           }),
-        }).catch((err) => console.error("[Email] Booking confirmation failed:", err));
+        }).catch((error) => { console.error("[Email] Booking confirmation failed:", error); });
       }
-    } catch (emailErr) {
-      console.error("[Email] Error preparing booking confirmation:", emailErr);
+    } catch (error) {
+      console.error("[Email] Error preparing booking confirmation:", error);
     }
   }
 

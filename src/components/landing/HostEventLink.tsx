@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+
 import { createClient } from "@/lib/supabase/client";
 
 export default function HostEventLink() {

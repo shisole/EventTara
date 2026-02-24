@@ -1,9 +1,10 @@
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import { Avatar } from "@/components/ui";
+
 import EventCard from "@/components/events/EventCard";
 import ReviewList from "@/components/reviews/ReviewList";
 import StarRating from "@/components/reviews/StarRating";
+import { Avatar } from "@/components/ui";
+import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -104,7 +105,7 @@ export default async function GuideProfilePage({ params }: { params: Promise<{ i
       type: event.type,
       date: event.date,
       location: event.location,
-      price: Number(event.price),
+      price: event.price,
       cover_image_url: event.cover_image_url,
       max_participants: event.max_participants,
       booking_count: (event.bookings as any)?.[0]?.count || 0,
@@ -151,7 +152,7 @@ export default async function GuideProfilePage({ params }: { params: Promise<{ i
                   {avgRating.toFixed(1)}
                 </span>
                 <span className="text-sm text-gray-500 dark:text-gray-400">
-                  ({reviewList.length} review{reviewList.length !== 1 ? "s" : ""})
+                  ({reviewList.length} review{reviewList.length === 1 ? "" : "s"})
                 </span>
               </div>
             )}

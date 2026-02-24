@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+
 import { Button } from "@/components/ui";
-import PaymentMethodPicker from "./PaymentMethodPicker";
-import PaymentInstructions from "./PaymentInstructions";
-import PaymentProofUpload from "./PaymentProofUpload";
+
 import BookingConfirmation from "./BookingConfirmation";
 import CompanionFields, { type Companion } from "./CompanionFields";
+import PaymentInstructions from "./PaymentInstructions";
+import PaymentMethodPicker from "./PaymentMethodPicker";
+import PaymentProofUpload from "./PaymentProofUpload";
 
 interface BookingFormProps {
   eventId: string;
@@ -113,10 +115,10 @@ export default function BookingForm({
 
       const data = await res.json();
 
-      if (!res.ok) {
-        setError(data.error);
-      } else {
+      if (res.ok) {
         setBooking({ ...data.booking, companions: data.companions });
+      } else {
+        setError(data.error);
       }
     } catch {
       setError("Something went wrong. Please try again.");
@@ -180,7 +182,7 @@ export default function BookingForm({
 
       {isEwallet && organizerPaymentInfo && (
         <PaymentInstructions
-          method={paymentMethod as "gcash" | "maya"}
+          method={paymentMethod}
           paymentInfo={organizerPaymentInfo}
           amount={totalPrice}
         />

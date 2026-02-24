@@ -101,7 +101,7 @@ export default function MapPicker({ value, onChange, center }: MapPickerProps) {
           </span>
           <button
             type="button"
-            onClick={() => onChange(null)}
+            onClick={() => { onChange(null); }}
             className="text-red-500 hover:text-red-600 transition-colors"
           >
             Remove pin

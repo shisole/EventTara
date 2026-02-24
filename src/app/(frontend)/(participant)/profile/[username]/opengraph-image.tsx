@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+
 import { createClient } from "@/lib/supabase/server";
 
 export const alt = "Adventure Profile on EventTara";

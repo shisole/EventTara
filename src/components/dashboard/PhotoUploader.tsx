@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useRef } from "react";
 import Image from "next/image";
-import { createClient } from "@/lib/supabase/client";
-import { cdnUrl } from "@/lib/storage";
+import { useState, useRef } from "react";
+
 import { Button } from "@/components/ui";
+import { cdnUrl } from "@/lib/storage";
+import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
 const MAX_SIZE_BYTES = 1 * 1024 * 1024; // 1 MB
@@ -12,8 +13,8 @@ const MAX_DIMENSION = 2000; // cap longest side at 2000px
 
 async function compressImage(file: File): Promise<File> {
   return new Promise((resolve, reject) => {
-    const img = new window.Image();
-    img.onload = () => {
+    const img = new globalThis.Image();
+    img.addEventListener('load', () => {
       let { width, height } = img;
 
       // Scale down if either dimension exceeds MAX_DIMENSION
@@ -39,7 +40,7 @@ async function compressImage(file: File): Promise<File> {
         const dataUrl = canvas.toDataURL("image/jpeg", quality);
         const base64 = dataUrl.split(",")[1];
         const bytes = Math.ceil((base64.length * 3) / 4);
-        if (bytes <= MAX_SIZE_BYTES || quality === qualities[qualities.length - 1]) {
+        if (bytes <= MAX_SIZE_BYTES || quality === qualities.at(-1)) {
           const byteString = atob(base64);
           const byteArray = new Uint8Array(byteString.length);
           for (let i = 0; i < byteString.length; i++) {
@@ -50,7 +51,7 @@ async function compressImage(file: File): Promise<File> {
           return;
         }
       }
-    };
+    });
     img.onerror = reject;
     img.src = URL.createObjectURL(file);
   });
@@ -154,7 +155,7 @@ export default function PhotoUploader({
       />
       {error && <p className="text-sm text-red-500">{error}</p>}
       {value && (
-        <Button type="button" variant="ghost" size="sm" onClick={() => onChange(null)}>
+        <Button type="button" variant="ghost" size="sm" onClick={() => { onChange(null); }}>
           Remove
         </Button>
       )}

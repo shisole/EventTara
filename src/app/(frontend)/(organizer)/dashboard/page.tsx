@@ -1,7 +1,8 @@
-import { createClient } from "@/lib/supabase/server";
-import DashboardStats from "@/components/dashboard/DashboardStats";
 import Link from "next/link";
+
+import DashboardStats from "@/components/dashboard/DashboardStats";
 import { Button } from "@/components/ui";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata = {
   title: "Dashboard — EventTara",

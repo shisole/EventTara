@@ -100,7 +100,7 @@ export const PHILIPPINE_PROVINCES: ProvinceEntry[] = [
     name: "Negros Occidental",
     region: "Region VI",
     islandGroup: "visayas",
-    lat: 10.0,
+    lat: 10,
     lng: 122.5333,
   },
   { name: "Bohol", region: "Region VII", islandGroup: "visayas", lat: 9.85, lng: 124.015 },

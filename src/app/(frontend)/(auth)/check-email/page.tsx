@@ -1,8 +1,8 @@
 "use client";
 
-import { Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
 function CheckEmailContent() {
   const searchParams = useSearchParams();

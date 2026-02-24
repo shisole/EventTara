@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui";
 import confetti from "canvas-confetti";
+import { useState, useEffect, useRef } from "react";
+
+import { Button } from "@/components/ui";
+import { createClient } from "@/lib/supabase/client";
 
 type ModalState = "email" | "verify-code" | "success";
 
@@ -22,7 +23,7 @@ export default function AuthBookingModal({
 }: AuthBookingModalProps) {
   const [state, setState] = useState<ModalState>("email");
   const [email, setEmail] = useState("");
-  const [code, setCode] = useState<string[]>(Array(CODE_LENGTH).fill(""));
+  const [code, setCode] = useState<string[]>(Array.from({length: CODE_LENGTH}).fill(""));
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
@@ -31,8 +32,8 @@ export default function AuthBookingModal({
 
   // Animate in on mount
   useEffect(() => {
-    const timer = setTimeout(() => setIsVisible(true), 10);
-    return () => clearTimeout(timer);
+    const timer = setTimeout(() => { setIsVisible(true); }, 10);
+    return () => { clearTimeout(timer); };
   }, []);
 
   // Lock body scroll while modal is open
@@ -56,10 +57,10 @@ export default function AuthBookingModal({
 
     const timer = setTimeout(() => {
       setIsVisible(false);
-      setTimeout(() => onAuthenticated(userDisplay), 200);
+      setTimeout(() => { onAuthenticated(userDisplay); }, 200);
     }, 2000);
 
-    return () => clearTimeout(timer);
+    return () => { clearTimeout(timer); };
   }, [state, userDisplay, onAuthenticated]);
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
@@ -119,12 +120,12 @@ export default function AuthBookingModal({
 
   const handleCodePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, CODE_LENGTH);
+    const pasted = e.clipboardData.getData("text").replaceAll(/\D/g, "").slice(0, CODE_LENGTH);
     if (!pasted) return;
 
     const newCode = [...code];
-    for (let i = 0; i < pasted.length; i++) {
-      newCode[i] = pasted[i];
+    for (const [i, element] of pasted.entries()) {
+      newCode[i] = element;
     }
     setCode(newCode);
     setError("");
@@ -155,7 +156,7 @@ export default function AuthBookingModal({
 
       if (verifyError) {
         setError(verifyError.message || "Invalid code. Please try again.");
-        setCode(Array(CODE_LENGTH).fill(""));
+        setCode(Array.from({length: CODE_LENGTH}).fill(""));
         inputRefs.current[0]?.focus();
         return;
       }
@@ -172,7 +173,7 @@ export default function AuthBookingModal({
           const prefix = userDisplay
             .split("@")[0]
             .toLowerCase()
-            .replace(/[^a-z0-9._-]/g, "");
+            .replaceAll(/[^a-z0-9._-]/g, "");
           let username = prefix || "user";
 
           // Check if taken, append random number if so
@@ -215,7 +216,7 @@ export default function AuthBookingModal({
           setError(otpError.message || "Something went wrong. Please try again.");
         }
       } else {
-        setCode(Array(CODE_LENGTH).fill(""));
+        setCode(Array.from({length: CODE_LENGTH}).fill(""));
         inputRefs.current[0]?.focus();
       }
     } catch {
@@ -238,7 +239,7 @@ export default function AuthBookingModal({
         className={`relative w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8 transition-all duration-200 ${
           isVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
         }`}
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e) => { e.stopPropagation(); }}
       >
         {state === "email" && (
           <form onSubmit={handleEmailSubmit} className="space-y-5">
@@ -278,7 +279,7 @@ export default function AuthBookingModal({
                 id="auth-email"
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => { setEmail(e.target.value); }}
                 placeholder="you@example.com"
                 autoFocus
                 className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-lime-500 focus:border-transparent outline-none transition-colors"
@@ -339,8 +340,8 @@ export default function AuthBookingModal({
                   inputMode="numeric"
                   maxLength={1}
                   value={digit}
-                  onChange={(e) => handleCodeChange(i, e.target.value)}
-                  onKeyDown={(e) => handleCodeKeyDown(i, e)}
+                  onChange={(e) => { handleCodeChange(i, e.target.value); }}
+                  onKeyDown={(e) => { handleCodeKeyDown(i, e); }}
                   autoFocus={i === 0}
                   className="w-12 h-14 text-center text-xl font-bold rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-lime-500 focus:border-transparent outline-none transition-colors"
                 />
@@ -376,7 +377,7 @@ export default function AuthBookingModal({
                 type="button"
                 onClick={() => {
                   setError("");
-                  setCode(Array(CODE_LENGTH).fill(""));
+                  setCode(Array.from({length: CODE_LENGTH}).fill(""));
                   setState("email");
                 }}
                 className="text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"

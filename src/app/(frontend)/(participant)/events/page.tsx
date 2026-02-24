@@ -1,7 +1,7 @@
-import { createClient } from "@/lib/supabase/server";
-import type { Database } from "@/lib/supabase/types";
 import EventFilters from "@/components/events/EventFilters";
 import EventsListClient from "@/components/events/EventsListClient";
+import { createClient } from "@/lib/supabase/server";
+import type { Database } from "@/lib/supabase/types";
 
 type EventType = Database["public"]["Tables"]["events"]["Row"]["type"];
 
@@ -41,15 +41,26 @@ export default async function EventsPage({
     .order("date", { ascending: true });
 
   // Apply filters to both
-  if (params.when === "upcoming") {
+  switch (params.when) {
+  case "upcoming": {
     countQuery = countQuery.gt("date", today);
     dataQuery = dataQuery.gt("date", today);
-  } else if (params.when === "now") {
+  
+  break;
+  }
+  case "now": {
     countQuery = countQuery.gte("date", today).lte("date", `${today}T23:59:59`);
     dataQuery = dataQuery.gte("date", today).lte("date", `${today}T23:59:59`);
-  } else if (params.when === "past") {
+  
+  break;
+  }
+  case "past": {
     countQuery = countQuery.lt("date", today);
     dataQuery = dataQuery.lt("date", today);
+  
+  break;
+  }
+  // No default
   }
 
   if (params.type) {
@@ -58,7 +69,7 @@ export default async function EventsPage({
   }
 
   if (params.search) {
-    const pattern = params.search.trim().replace(/\s+/g, "%");
+    const pattern = params.search.trim().replaceAll(/\s+/g, "%");
     const filter = `title.ilike.%${pattern}%,location.ilike.%${pattern}%`;
     countQuery = countQuery.or(filter);
     dataQuery = dataQuery.or(filter);
@@ -67,7 +78,7 @@ export default async function EventsPage({
   // For "no when filter" we need all events to sort upcoming-first, then slice
   const [{ count }, { data: allEvents }] = await Promise.all([
     countQuery,
-    !params.when ? dataQuery : dataQuery.range(0, BATCH_SIZE - 1),
+    params.when ? dataQuery.range(0, BATCH_SIZE - 1) : dataQuery,
   ]);
 
   let events = allEvents || [];

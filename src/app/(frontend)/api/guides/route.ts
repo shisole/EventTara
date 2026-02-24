@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
+
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {
@@ -24,10 +25,10 @@ export async function GET(request: NextRequest) {
   // Fetch event counts and avg ratings separately
   const guideIds = (guides || []).map((g) => g.id);
 
-  let eventCounts: Record<string, number> = {};
-  let reviewStats: Record<string, { avg: number; count: number }> = {};
+  const eventCounts: Record<string, number> = {};
+  const reviewStats: Record<string, { avg: number; count: number }> = {};
   // Maps guide_id -> conflicting event title (if busy on check_date)
-  let busyGuides: Record<string, string> = {};
+  const busyGuides: Record<string, string> = {};
 
   if (guideIds.length > 0) {
     // Get event counts via event_guides

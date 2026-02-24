@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+
 import { Button } from "@/components/ui";
 
 export default function DeleteGuideButton({ guideId }: { guideId: string }) {
@@ -10,7 +11,7 @@ export default function DeleteGuideButton({ guideId }: { guideId: string }) {
 
   const handleDelete = async () => {
     if (
-      !window.confirm("Are you sure you want to delete this guide? This action cannot be undone.")
+      !globalThis.confirm("Are you sure you want to delete this guide? This action cannot be undone.")
     ) {
       return;
     }

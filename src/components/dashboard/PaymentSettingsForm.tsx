@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { useState } from "react";
+
 import { Button, Input } from "@/components/ui";
+import { createClient } from "@/lib/supabase/client";
 
 interface PaymentSettingsFormProps {
   profileId: string;
@@ -47,14 +48,14 @@ export default function PaymentSettingsForm({ profileId, paymentInfo }: PaymentS
         id="gcash"
         label="GCash Number"
         value={gcashNumber}
-        onChange={(e) => setGcashNumber(e.target.value)}
+        onChange={(e) => { setGcashNumber(e.target.value); }}
         placeholder="09XX XXX XXXX"
       />
       <Input
         id="maya"
         label="Maya Number"
         value={mayaNumber}
-        onChange={(e) => setMayaNumber(e.target.value)}
+        onChange={(e) => { setMayaNumber(e.target.value); }}
         placeholder="09XX XXX XXXX"
       />
 

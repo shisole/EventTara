@@ -1,17 +1,17 @@
 import Image from "next/image";
 
-type Slide = {
+interface Slide {
   image: {
     url: string;
     alt: string;
     width?: number;
     height?: number;
   };
-};
+}
 
-type HeroCarouselProps = {
+interface HeroCarouselProps {
   slides: Slide[];
-};
+}
 
 export default function HeroCarousel({ slides }: HeroCarouselProps) {
   if (slides.length === 0) return null;

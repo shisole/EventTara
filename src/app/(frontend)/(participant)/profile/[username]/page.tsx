@@ -1,12 +1,13 @@
-import { notFound } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
-import { Button } from "@/components/ui";
+import { notFound } from "next/navigation";
+
+import BadgeGrid from "@/components/badges/BadgeGrid";
+import PastEvents from "@/components/participant/PastEvents";
+import UpcomingBookings from "@/components/participant/UpcomingBookings";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import ProfileStats from "@/components/profile/ProfileStats";
-import BadgeGrid from "@/components/badges/BadgeGrid";
-import UpcomingBookings from "@/components/participant/UpcomingBookings";
-import PastEvents from "@/components/participant/PastEvents";
+import { Button } from "@/components/ui";
+import { createClient } from "@/lib/supabase/server";
 
 export async function generateMetadata({ params }: { params: Promise<{ username: string }> }) {
   const { username } = await params;
@@ -28,7 +29,7 @@ export async function generateMetadata({ params }: { params: Promise<{ username:
   const title = `${user.full_name}'s Adventure Profile`;
   const description =
     badgeCount && badgeCount > 0
-      ? `${user.full_name} has earned ${badgeCount} badge${badgeCount !== 1 ? "s" : ""} on EventTara. Check out their adventure profile!`
+      ? `${user.full_name} has earned ${badgeCount} badge${badgeCount === 1 ? "" : "s"} on EventTara. Check out their adventure profile!`
       : `Check out ${user.full_name}'s adventure profile on EventTara!`;
 
   return {
@@ -68,7 +69,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
   // Fetch bookings data for own profile
   let upcoming: any[] = [];
   let past: any[] = [];
-  const isGuest = isOwnProfile ? !!user.is_guest : false;
+  const isGuest = isOwnProfile ? user.is_guest : false;
 
   if (isOwnProfile) {
     const { data: bookingData } = await supabase
@@ -86,7 +87,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
 
     // Fetch companions for upcoming bookings
     const upcomingBookingIds = upcomingBookings.map((b: any) => b.id);
-    let companionsByBooking: Record<string, any[]> = {};
+    const companionsByBooking: Record<string, any[]> = {};
     if (upcomingBookingIds.length > 0) {
       const { data: companions } = await supabase
         .from("booking_companions")
@@ -179,10 +180,10 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
 
   // Type breakdown
   const typeBreakdown: Record<string, number> = {};
-  bookings?.forEach((b: any) => {
-    const type = b.events?.type;
+  for (const b of bookings ?? []) {
+    const type = (b as any).events?.type;
     if (type) typeBreakdown[type] = (typeBreakdown[type] || 0) + 1;
-  });
+  }
 
   // Format badges for BadgeGrid
   const badges = (userBadges || []).map((ub: any) => ({

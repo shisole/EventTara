@@ -1,13 +1,15 @@
 "use client";
 
-import Link from "next/link";
+import type { User } from "@supabase/supabase-js";
 import Image from "next/image";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
-import { Button, Avatar } from "@/components/ui";
+
 import ThemeToggle from "@/components/layout/ThemeToggle";
-import type { User } from "@supabase/supabase-js";
+import { Button, Avatar } from "@/components/ui";
+import { createClient } from "@/lib/supabase/client";
+
 
 const activities = [
   { slug: "hiking", label: "Hiking", icon: "🏔️" },
@@ -54,7 +56,7 @@ export default function Navbar() {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => { subscription.unsubscribe(); };
   }, [supabase]);
 
   // Close menus on route change
@@ -77,12 +79,12 @@ export default function Navbar() {
       }
     };
     document.addEventListener("click", handleClick);
-    return () => document.removeEventListener("click", handleClick);
+    return () => { document.removeEventListener("click", handleClick); };
   }, [profileOpen, exploreOpen]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    window.location.href = "/";
+    globalThis.location.href = "/";
   };
 
   return (
@@ -107,7 +109,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-6">
             <div className="relative" data-explore-dropdown>
               <button
-                onClick={() => setExploreOpen(!exploreOpen)}
+                onClick={() => { setExploreOpen(!exploreOpen); }}
                 className="flex items-center gap-1 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium"
               >
                 Explore Events
@@ -155,7 +157,7 @@ export default function Navbar() {
                 <ThemeToggle />
                 <div className="relative" data-profile-dropdown>
                   <button
-                    onClick={() => setProfileOpen(!profileOpen)}
+                    onClick={() => { setProfileOpen(!profileOpen); }}
                     className="flex items-center gap-1 rounded-full hover:ring-2 hover:ring-lime-200 dark:hover:ring-lime-800 transition-all"
                   >
                     <Avatar
@@ -240,7 +242,7 @@ export default function Navbar() {
 
           {/* Mobile hamburger button */}
           <button
-            onClick={() => setMenuOpen(!menuOpen)}
+            onClick={() => { setMenuOpen(!menuOpen); }}
             className="md:hidden flex items-center justify-center w-11 h-11 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             aria-label={menuOpen ? "Close menu" : "Open menu"}
           >
@@ -281,7 +283,7 @@ export default function Navbar() {
           <div className="px-4 py-4 space-y-2">
             <div>
               <button
-                onClick={() => setExploreOpen(!exploreOpen)}
+                onClick={() => { setExploreOpen(!exploreOpen); }}
                 className="w-full px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium min-h-[44px] flex items-center justify-between"
               >
                 Explore Events
@@ -304,7 +306,7 @@ export default function Navbar() {
                 <div className="ml-4 space-y-1">
                   <Link
                     href="/events"
-                    onClick={() => setMenuOpen(false)}
+                    onClick={() => { setMenuOpen(false); }}
                     className="block px-4 py-2 rounded-lg text-sm font-semibold text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800 min-h-[44px] flex items-center"
                   >
                     All Events
@@ -313,7 +315,7 @@ export default function Navbar() {
                     <Link
                       key={activity.slug}
                       href={`/events?type=${activity.slug}`}
-                      onClick={() => setMenuOpen(false)}
+                      onClick={() => { setMenuOpen(false); }}
                       className="px-4 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 min-h-[44px] flex items-center gap-2"
                     >
                       <span>{activity.icon}</span>
@@ -327,14 +329,14 @@ export default function Navbar() {
               <>
                 <Link
                   href="/profile"
-                  onClick={() => setMenuOpen(false)}
+                  onClick={() => { setMenuOpen(false); }}
                   className="block px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium min-h-[44px] flex items-center"
                 >
                   Profile
                 </Link>
                 <Link
                   href="/my-events"
-                  onClick={() => setMenuOpen(false)}
+                  onClick={() => { setMenuOpen(false); }}
                   className="block px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium min-h-[44px] flex items-center"
                 >
                   My Events
@@ -342,7 +344,7 @@ export default function Navbar() {
                 {role === "organizer" && (
                   <Link
                     href="/dashboard"
-                    onClick={() => setMenuOpen(false)}
+                    onClick={() => { setMenuOpen(false); }}
                     className="block px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium min-h-[44px] flex items-center"
                   >
                     Dashboard
@@ -360,17 +362,17 @@ export default function Navbar() {
               </>
             ) : (
               <div className="flex flex-col gap-2 pt-2">
-                <Link href="/signup?role=organizer" onClick={() => setMenuOpen(false)}>
+                <Link href="/signup?role=organizer" onClick={() => { setMenuOpen(false); }}>
                   <Button variant="ghost" className="w-full min-h-[44px]">
                     Host Your Event
                   </Button>
                 </Link>
-                <Link href="/login" onClick={() => setMenuOpen(false)}>
+                <Link href="/login" onClick={() => { setMenuOpen(false); }}>
                   <Button variant="ghost" className="w-full min-h-[44px]">
                     Sign In
                   </Button>
                 </Link>
-                <Link href="/signup" onClick={() => setMenuOpen(false)}>
+                <Link href="/signup" onClick={() => { setMenuOpen(false); }}>
                   <Button className="w-full min-h-[44px]">Get Started</Button>
                 </Link>
               </div>

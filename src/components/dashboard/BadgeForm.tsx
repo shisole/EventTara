@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+
 import { Button, Input } from "@/components/ui";
-import PhotoUploader from "./PhotoUploader";
-import BadgeTemplatePicker from "./BadgeTemplatePicker";
 import { BADGE_CATEGORIES, BADGE_RARITIES } from "@/lib/constants/badge-templates";
+
+import BadgeTemplatePicker from "./BadgeTemplatePicker";
+import PhotoUploader from "./PhotoUploader";
 
 interface BadgeFormProps {
   eventId: string;
@@ -72,7 +74,7 @@ export default function BadgeForm({ eventId, existingBadge }: BadgeFormProps) {
       {showTemplatePicker && !existingBadge && (
         <BadgeTemplatePicker
           onSelect={handleTemplateSelect}
-          onSkip={() => setShowTemplatePicker(false)}
+          onSkip={() => { setShowTemplatePicker(false); }}
         />
       )}
 
@@ -81,7 +83,7 @@ export default function BadgeForm({ eventId, existingBadge }: BadgeFormProps) {
           id="badgeTitle"
           label="Badge Title"
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          onChange={(e) => { setTitle(e.target.value); }}
           placeholder="Summit Conqueror"
           required
         />
@@ -90,7 +92,7 @@ export default function BadgeForm({ eventId, existingBadge }: BadgeFormProps) {
           id="badgeDesc"
           label="Description"
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={(e) => { setDescription(e.target.value); }}
           placeholder="Awarded to those who reached the summit"
         />
 
@@ -113,7 +115,7 @@ export default function BadgeForm({ eventId, existingBadge }: BadgeFormProps) {
             <select
               id="badgeCategory"
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
+              onChange={(e) => { setCategory(e.target.value); }}
               className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors"
             >
               {BADGE_CATEGORIES.map((cat) => (
@@ -134,7 +136,7 @@ export default function BadgeForm({ eventId, existingBadge }: BadgeFormProps) {
             <select
               id="badgeRarity"
               value={rarity}
-              onChange={(e) => setRarity(e.target.value)}
+              onChange={(e) => { setRarity(e.target.value); }}
               className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors"
             >
               {BADGE_RARITIES.map((r) => (

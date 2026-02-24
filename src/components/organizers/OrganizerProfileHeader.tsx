@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Avatar, Button } from "@/components/ui";
 import { useState } from "react";
+
+import { Avatar, Button } from "@/components/ui";
 
 interface OrganizerProfileHeaderProps {
   orgName: string;
@@ -22,9 +23,9 @@ export default function OrganizerProfileHeader({
   const [copied, setCopied] = useState(false);
 
   const handleShare = () => {
-    navigator.clipboard.writeText(window.location.href);
+    navigator.clipboard.writeText(globalThis.location.href);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setTimeout(() => { setCopied(false); }, 2000);
   };
 
   const organizingSince = new Date(createdAt).toLocaleDateString("en-PH", {

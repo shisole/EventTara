@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+
 import EventForm from "@/components/dashboard/EventForm";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata = { title: "Edit Event — EventTara" };
 
@@ -38,7 +39,7 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
           location: event.location,
           coordinates: event.coordinates as { lat: number; lng: number } | null,
           max_participants: event.max_participants,
-          price: Number(event.price),
+          price: event.price,
           cover_image_url: event.cover_image_url,
           status: event.status,
           initialGuideIds,

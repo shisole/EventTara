@@ -1,11 +1,13 @@
-import { notFound } from "next/navigation";
-import type { Metadata } from "next";
-import { getPayloadClient } from "@/lib/payload/client";
 import { RichText } from "@payloadcms/richtext-lexical/react";
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 
-type Props = {
+import { getPayloadClient } from "@/lib/payload/client";
+
+
+interface Props {
   params: Promise<{ slug: string }>;
-};
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+
 import { Button } from "@/components/ui";
 
 interface QRScannerProps {
@@ -85,8 +86,8 @@ export default function QRScanner({ eventId }: QRScannerProps) {
         () => {}, // ignore errors during scanning
       );
       setScanning(true);
-    } catch (err: any) {
-      setError(err?.message || "Failed to start camera");
+    } catch (error_: any) {
+      setError(error_?.message || "Failed to start camera");
     }
   };
 

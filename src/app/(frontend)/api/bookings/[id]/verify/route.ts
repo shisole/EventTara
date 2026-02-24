@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+
 import { sendEmail } from "@/lib/email/send";
 import { bookingConfirmationHtml } from "@/lib/email/templates/booking-confirmation";
 import { paymentRejectedHtml } from "@/lib/email/templates/payment-rejected";
+import { createClient } from "@/lib/supabase/server";
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -95,7 +96,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           bookingId: booking.id,
           qrCode,
         }),
-      }).catch((err) => console.error("[Email] Confirmation failed:", err));
+      }).catch((error_) => { console.error("[Email] Confirmation failed:", error_); });
     }
 
     return NextResponse.json({ message: "Payment approved", qrCode });
@@ -126,7 +127,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           userName: (booking.users as any)?.full_name ?? "",
           eventTitle: (booking.events as any).title,
         }),
-      }).catch((err) => console.error("[Email] Rejection email failed:", err));
+      }).catch((error_) => { console.error("[Email] Rejection email failed:", error_); });
     }
 
     return NextResponse.json({ message: "Payment rejected" });

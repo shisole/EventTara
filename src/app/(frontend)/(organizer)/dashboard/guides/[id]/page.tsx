@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+
 import GuideForm from "@/components/dashboard/GuideForm";
+import { createClient } from "@/lib/supabase/server";
+
 import DeleteGuideButton from "./DeleteGuideButton";
 
 export const metadata = { title: "Edit Guide — EventTara" };

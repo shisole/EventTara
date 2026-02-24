@@ -1,7 +1,8 @@
 "use client";
 
-import { QRCodeSVG } from "qrcode.react";
 import Link from "next/link";
+import { QRCodeSVG } from "qrcode.react";
+
 import { Button } from "@/components/ui";
 
 interface CompanionConfirmation {

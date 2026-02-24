@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 import { useState, useRef } from "react";
+
 import { Card, UIBadge, Button } from "@/components/ui";
 import PaymentStatusBadge from "@/components/ui/PaymentStatusBadge";
 
@@ -49,7 +50,7 @@ function ReuploadButton({ bookingId }: { bookingId: string }) {
     });
 
     if (res.ok) {
-      window.location.reload();
+      globalThis.location.reload();
     }
     setUploading(false);
   };
@@ -146,7 +147,7 @@ export default function UpcomingBookings({ bookings }: { bookings: Booking[] }) 
             </div>
             {b.qrCode && (
               <button
-                onClick={() => setExpandedQR(expandedQR === b.id ? null : b.id)}
+                onClick={() => { setExpandedQR(expandedQR === b.id ? null : b.id); }}
                 className="text-sm text-lime-600 dark:text-lime-400 font-medium hover:text-lime-600"
               >
                 {expandedQR === b.id ? "Hide QR" : "Show QR"}

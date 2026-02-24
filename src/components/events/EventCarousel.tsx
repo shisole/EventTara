@@ -64,7 +64,7 @@ export default function EventCarousel({
         scrollByOne("right");
       }
     }, autoSlideInterval);
-    return () => clearInterval(interval);
+    return () => { clearInterval(interval); };
   }, [autoSlide, autoSlideInterval, scrollByOne]);
 
   const scroll = (direction: "left" | "right") => {
@@ -107,7 +107,7 @@ export default function EventCarousel({
       raf = requestAnimationFrame(step);
     };
     raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
+    return () => { cancelAnimationFrame(raf); };
   }, [infinite, speed]);
 
   // Mouse drag handlers for infinite carousel
@@ -199,7 +199,7 @@ export default function EventCarousel({
 
         {canScrollLeft && (
           <button
-            onClick={() => scroll("left")}
+            onClick={() => { scroll("left"); }}
             className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-10 h-10 rounded-full bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors z-10"
             aria-label="Scroll left"
           >
@@ -218,7 +218,7 @@ export default function EventCarousel({
 
         {canScrollRight && (
           <button
-            onClick={() => scroll("right")}
+            onClick={() => { scroll("right"); }}
             className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-10 h-10 rounded-full bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors z-10"
             aria-label="Scroll right"
           >

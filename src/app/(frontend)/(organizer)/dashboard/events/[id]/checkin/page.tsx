@@ -1,7 +1,8 @@
-import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
-import QRScanner from "@/components/checkin/QRScanner";
+
 import CheckinList from "@/components/checkin/CheckinList";
+import QRScanner from "@/components/checkin/QRScanner";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function CheckinPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

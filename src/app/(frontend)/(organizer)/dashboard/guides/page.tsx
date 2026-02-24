@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+
 import { Button, Avatar } from "@/components/ui";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata = { title: "My Guides — EventTara" };
 
@@ -16,13 +17,13 @@ export default async function GuidesListPage() {
     const { data: guideRows } = await supabase
       .from("guides")
       .select("*")
-      .eq("created_by", user!.id)
+      .eq("created_by", user.id)
       .order("created_at", { ascending: false });
 
     const guideIds = (guideRows || []).map((g) => g.id);
 
-    let eventCounts: Record<string, number> = {};
-    let reviewStats: Record<string, { avg: number; count: number }> = {};
+    const eventCounts: Record<string, number> = {};
+    const reviewStats: Record<string, { avg: number; count: number }> = {};
 
     if (guideIds.length > 0) {
       const { data: eventGuideRows } = await supabase

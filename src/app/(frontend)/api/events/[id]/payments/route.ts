@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -37,8 +38,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const bookingIds = allBookings.map((b) => b.id);
 
   // Fetch companion counts per booking (only non-cancelled)
-  let companionCounts: Record<string, number> = {};
-  let confirmedCompanionCounts: Record<string, number> = {};
+  const companionCounts: Record<string, number> = {};
+  const confirmedCompanionCounts: Record<string, number> = {};
   if (bookingIds.length > 0) {
     const { data: companions } = await supabase
       .from("booking_companions")
@@ -74,7 +75,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     .reduce((sum, b) => {
       const mainCount = (b as any).participant_cancelled ? 0 : 1;
       const compCount = confirmedCompanionCounts[b.id] || 0;
-      return sum + (mainCount + compCount) * Number(event.price);
+      return sum + (mainCount + compCount) * event.price;
     }, 0);
 
   return NextResponse.json({

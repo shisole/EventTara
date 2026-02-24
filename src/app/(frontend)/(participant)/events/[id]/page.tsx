@@ -1,17 +1,18 @@
-import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
-import { UIBadge } from "@/components/ui";
-import { resolvePresetImage } from "@/lib/constants/avatars";
+import { notFound } from "next/navigation";
+
+import BookingButton from "@/components/events/BookingButton";
 import EventGallery from "@/components/events/EventGallery";
 import OrganizerCard from "@/components/events/OrganizerCard";
-import BookingButton from "@/components/events/BookingButton";
+import ShareButtons from "@/components/events/ShareButtons";
+import GuideCard from "@/components/guides/GuideCard";
+import EventLocationMap from "@/components/maps/EventLocationMap";
 import ReviewForm from "@/components/reviews/ReviewForm";
 import ReviewList from "@/components/reviews/ReviewList";
-import ShareButtons from "@/components/events/ShareButtons";
-import EventLocationMap from "@/components/maps/EventLocationMap";
-import GuideCard from "@/components/guides/GuideCard";
+import { UIBadge } from "@/components/ui";
+import { resolvePresetImage } from "@/lib/constants/avatars";
+import { createClient } from "@/lib/supabase/server";
 
 const typeLabels: Record<string, string> = {
   hiking: "Hiking",
@@ -118,7 +119,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
     userBooking = existingBooking;
   }
 
-  let eventBadges = badgeData || [];
+  const eventBadges = badgeData || [];
   let earnedBadgeIds = new Set<string>();
 
   if (authUser && eventBadges.length > 0) {
@@ -290,15 +291,15 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-5 sm:p-6 space-y-4 mb-4">
             <div className="text-center">
               <span className="text-3xl font-bold text-lime-600 dark:text-lime-400">
-                {Number(event.price) === 0
+                {event.price === 0
                   ? "Free"
-                  : `\u20B1${Number(event.price).toLocaleString()}`}
+                  : `\u20B1${event.price.toLocaleString()}`}
               </span>
             </div>
 
             <div className="text-center text-sm text-gray-500 dark:text-gray-400">
               <span className="font-medium text-gray-700 dark:text-gray-300">{bookingCount}</span>{" "}
-              adventurer{bookingCount !== 1 ? "s" : ""} joined
+              adventurer{bookingCount === 1 ? "" : "s"} joined
               {" \u00B7 "}
               <span className={spotsLeft <= 5 ? "text-red-500 font-medium" : ""}>
                 {spotsLeft <= 0 ? "Fully booked" : `${spotsLeft} spots left`}
@@ -313,7 +314,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
                 </span>
                 <span className="text-gray-400 dark:text-gray-500">
                   {" "}
-                  ({eventReviews.length} review{eventReviews.length !== 1 ? "s" : ""})
+                  ({eventReviews.length} review{eventReviews.length === 1 ? "" : "s"})
                 </span>
               </div>
             )}
@@ -322,7 +323,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
               <BookingButton
                 eventId={id}
                 spotsLeft={spotsLeft}
-                price={Number(event.price)}
+                price={event.price}
                 isPast={event.status === "completed"}
                 userBooking={userBooking}
               />
@@ -360,7 +361,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
                     d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
                   />
                 </svg>
-                Guide{eventGuides.length !== 1 ? "s" : ""}
+                Guide{eventGuides.length === 1 ? "" : "s"}
               </h3>
               <div className="space-y-3">
                 {eventGuides.map((guide) => (
@@ -381,7 +382,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
           {eventBadges.length > 0 && (
             <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-5 sm:p-6">
               <h3 className="font-heading font-bold mb-3 flex items-center gap-2">
-                <span>&#127942;</span> Badge{eventBadges.length !== 1 ? "s" : ""}
+                <span>&#127942;</span> Badge{eventBadges.length === 1 ? "" : "s"}
               </h3>
               <div className="space-y-3">
                 {eventBadges.map((badge) => {

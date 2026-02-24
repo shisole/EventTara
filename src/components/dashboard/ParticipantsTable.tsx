@@ -1,7 +1,8 @@
 "use client";
 
-import { Fragment, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Fragment, useState } from "react";
+
 import { Button } from "@/components/ui";
 import PaymentStatusBadge from "@/components/ui/PaymentStatusBadge";
 
@@ -49,8 +50,8 @@ export default function ParticipantsTable({
       });
       if (!res.ok) throw new Error("Action failed");
       router.refresh();
-    } catch (err) {
-      console.error("Payment action failed:", err);
+    } catch (error) {
+      console.error("Payment action failed:", error);
     } finally {
       setActionLoading(null);
     }
@@ -66,8 +67,8 @@ export default function ParticipantsTable({
       });
       if (!res.ok) throw new Error("Action failed");
       router.refresh();
-    } catch (err) {
-      console.error("Companion action failed:", err);
+    } catch (error) {
+      console.error("Companion action failed:", error);
     } finally {
       setActionLoading(null);
     }
@@ -83,8 +84,8 @@ export default function ParticipantsTable({
       });
       if (!res.ok) throw new Error("Action failed");
       router.refresh();
-    } catch (err) {
-      console.error("Participant action failed:", err);
+    } catch (error) {
+      console.error("Participant action failed:", error);
     } finally {
       setActionLoading(null);
     }
@@ -143,7 +144,7 @@ export default function ParticipantsTable({
                     )}
                     {activeComps.length > 0 && (
                       <span className="ml-2 text-xs text-gray-400 dark:text-gray-500 font-normal">
-                        +{activeComps.length} companion{activeComps.length !== 1 ? "s" : ""}
+                        +{activeComps.length} companion{activeComps.length === 1 ? "" : "s"}
                       </span>
                     )}
                   </td>

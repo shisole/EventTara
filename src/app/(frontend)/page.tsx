@@ -1,13 +1,14 @@
-import Link from "next/link";
 import Image from "next/image";
-import { createClient } from "@/lib/supabase/server";
-import { getPayloadClient } from "@/lib/payload/client";
-import { Avatar } from "@/components/ui";
+import Link from "next/link";
+
 import EventCard from "@/components/events/EventCard";
 import EventCarousel from "@/components/events/EventCarousel";
+import BetaNoticeModal from "@/components/landing/BetaNoticeModal";
 import HeroCarousel from "@/components/landing/HeroCarousel";
 import HostEventLink from "@/components/landing/HostEventLink";
-import BetaNoticeModal from "@/components/landing/BetaNoticeModal";
+import { Avatar } from "@/components/ui";
+import { getPayloadClient } from "@/lib/payload/client";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata = {
   title: "EventTara — Outdoor Adventure Events in Panay Island",

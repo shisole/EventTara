@@ -1,11 +1,12 @@
-import { notFound } from "next/navigation";
-import Link from "next/link";
 import Image from "next/image";
-import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+
+import ReviewForm from "@/components/reviews/ReviewForm";
 import { resolvePresetImage } from "@/lib/constants/avatars";
 import { RARITY_STYLES, CATEGORY_STYLES } from "@/lib/constants/badge-rarity";
+import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
-import ReviewForm from "@/components/reviews/ReviewForm";
 
 const typeLabels: Record<string, string> = {
   hiking: "Hiking",
@@ -69,9 +70,9 @@ export default async function BadgeDetailPage({ params }: { params: Promise<{ id
 
   const event = (badge as any).events;
 
-  const rarityStyle = RARITY_STYLES[(badge.rarity as keyof typeof RARITY_STYLES) || "common"];
+  const rarityStyle = RARITY_STYLES[(badge.rarity) || "common"];
   const categoryStyle = badge.category
-    ? CATEGORY_STYLES[badge.category as keyof typeof CATEGORY_STYLES]
+    ? CATEGORY_STYLES[badge.category]
     : null;
 
   // Fetch participants who earned this badge
@@ -243,7 +244,7 @@ export default async function BadgeDetailPage({ params }: { params: Promise<{ id
       {/* Earned By */}
       <div>
         <h2 className="text-lg font-heading font-bold mb-4 text-center">
-          Earned by {participants.length} participant{participants.length !== 1 ? "s" : ""}
+          Earned by {participants.length} participant{participants.length === 1 ? "" : "s"}
         </h2>
 
         {participants.length > 0 ? (

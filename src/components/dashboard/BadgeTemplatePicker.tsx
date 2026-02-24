@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { BADGE_TEMPLATES, BADGE_CATEGORIES } from "@/lib/constants/badge-templates";
+
 import { RARITY_STYLES } from "@/lib/constants/badge-rarity";
+import { BADGE_TEMPLATES, BADGE_CATEGORIES } from "@/lib/constants/badge-templates";
 import { cn } from "@/lib/utils";
 
 interface BadgeTemplatePickerProps {
@@ -41,12 +42,12 @@ export default function BadgeTemplatePicker({ onSelect, onSkip }: BadgeTemplateP
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
-          onClick={() => setActiveCategory(null)}
+          onClick={() => { setActiveCategory(null); }}
           className={cn(
             "px-3 py-1 rounded-full text-xs font-medium transition-colors",
-            !activeCategory
-              ? "bg-teal-600 text-white"
-              : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400",
+            activeCategory
+              ? "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
+              : "bg-teal-600 text-white",
           )}
         >
           All
@@ -55,7 +56,7 @@ export default function BadgeTemplatePicker({ onSelect, onSkip }: BadgeTemplateP
           <button
             key={cat.value}
             type="button"
-            onClick={() => setActiveCategory(cat.value)}
+            onClick={() => { setActiveCategory(cat.value); }}
             className={cn(
               "px-3 py-1 rounded-full text-xs font-medium transition-colors",
               activeCategory === cat.value
@@ -76,7 +77,7 @@ export default function BadgeTemplatePicker({ onSelect, onSkip }: BadgeTemplateP
             <button
               key={t.id}
               type="button"
-              onClick={() => onSelect(t)}
+              onClick={() => { onSelect(t); }}
               className="text-left p-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-teal-400 dark:hover:border-teal-500 transition-colors"
             >
               <p className="text-sm font-medium truncate dark:text-white">{t.title}</p>

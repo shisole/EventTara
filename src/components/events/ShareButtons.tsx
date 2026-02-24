@@ -11,24 +11,24 @@ export default function ShareButtons({ title, eventId }: ShareButtonsProps) {
   const [copied, setCopied] = useState(false);
 
   const getUrl = useCallback(() => {
-    return `${window.location.origin}/events/${eventId}`;
+    return `${globalThis.location.origin}/events/${eventId}`;
   }, [eventId]);
 
   const copyLink = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(getUrl());
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setTimeout(() => { setCopied(false); }, 2000);
     } catch {
       // Fallback for older browsers
       const input = document.createElement("input");
       input.value = getUrl();
-      document.body.appendChild(input);
+      document.body.append(input);
       input.select();
       document.execCommand("copy");
-      document.body.removeChild(input);
+      input.remove();
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setTimeout(() => { setCopied(false); }, 2000);
     }
   }, [getUrl]);
 

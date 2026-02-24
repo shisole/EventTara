@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
+
 import "./globals.css";
-import ThemeProvider from "@/components/layout/ThemeProvider";
-import Footer from "@/components/layout/Footer";
-import ClientShell from "@/components/layout/ClientShell";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
+import ClientShell from "@/components/layout/ClientShell";
+import Footer from "@/components/layout/Footer";
+import ThemeProvider from "@/components/layout/ThemeProvider";
 import { getPayloadClient } from "@/lib/payload/client";
 
 const inter = Inter({

@@ -1,4 +1,5 @@
 import Link from "next/link";
+
 import { getPayloadClient } from "@/lib/payload/client";
 
 export default async function Footer() {
