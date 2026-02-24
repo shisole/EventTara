@@ -8,6 +8,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    String.raw`/((?!_next/static|_next/image|favicon.ico|admin|.*\.(?:svg|png|jpg|jpeg|gif|webp)$).*)`,
+    // eslint-disable-next-line unicorn/prefer-string-raw -- Next.js config.matcher requires plain string literals for static analysis
+    "/((?!_next/static|_next/image|favicon.ico|admin|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
