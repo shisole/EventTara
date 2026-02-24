@@ -876,8 +876,8 @@ export default function EventFilters({
       {/* Chip bar — wrap on mobile, horizontal scroll on sm+ */}
       <div
         className={cn(
-          "flex items-center gap-2 pb-1 sm:-mx-0 sm:px-0 scrollbar-hide",
-          openId ? "overflow-visible" : "flex-wrap sm:flex-nowrap sm:overflow-x-auto",
+          "flex items-center gap-2 pb-1 flex-wrap scrollbar-hide",
+          openId ? "sm:flex-nowrap sm:overflow-visible" : "sm:flex-nowrap sm:overflow-x-auto",
         )}
       >
         {/* ---- When chip ---- */}
