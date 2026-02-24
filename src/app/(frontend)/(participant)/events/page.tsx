@@ -1,7 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import EventFilters from "@/components/events/EventFilters";
-import EventsListClient from "@/components/events/EventsListClient";
+import EventsPageClient from "@/components/events/EventsPageClient";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 
@@ -164,12 +163,12 @@ export default async function EventsPage({
       const guides = await fetchGuideOptions(supabase);
       return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-heading font-bold mb-4">Explore Events</h1>
-            <EventFilters organizers={organizers} guides={guides} />
-          </div>
-
-          <EventsListClient initialEvents={[]} totalCount={0} />
+          <EventsPageClient
+            initialEvents={[]}
+            totalCount={0}
+            organizers={organizers}
+            guides={guides}
+          />
         </div>
       );
     }
@@ -246,12 +245,12 @@ export default async function EventsPage({
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-heading font-bold mb-4">Explore Events</h1>
-        <EventFilters organizers={organizers} guides={guides} />
-      </div>
-
-      <EventsListClient initialEvents={gridEvents} totalCount={totalCount} />
+      <EventsPageClient
+        initialEvents={gridEvents}
+        totalCount={totalCount}
+        organizers={organizers}
+        guides={guides}
+      />
     </div>
   );
 }
