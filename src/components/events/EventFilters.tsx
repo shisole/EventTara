@@ -76,6 +76,7 @@ interface FilterChipProps {
   isOpen: boolean;
   onToggle: (id: string) => void;
   onClear?: () => void;
+  popoverClassName?: string;
   children: ReactNode;
 }
 
@@ -87,6 +88,7 @@ function FilterChip({
   isOpen,
   onToggle,
   onClear,
+  popoverClassName,
   children,
 }: FilterChipProps) {
   const chipRef = useRef<HTMLDivElement>(null);
@@ -164,10 +166,259 @@ function FilterChip({
 
       {/* Popover */}
       {isOpen && (
-        <div className="absolute top-full left-0 mt-2 min-w-[200px] rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg z-50">
+        <div
+          className={cn(
+            "absolute top-full left-0 mt-2 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg z-50",
+            popoverClassName ?? "min-w-[200px]",
+          )}
+        >
           {children}
         </div>
       )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  CalendarPicker                                                    */
+/* ------------------------------------------------------------------ */
+
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MONTH_NAMES = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+/** Format Date to YYYY-MM-DD */
+function toDateStr(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+/** Get days to render for a month grid (including leading/trailing blanks) */
+function getMonthDays(year: number, month: number): (Date | null)[] {
+  const firstDay = new Date(year, month, 1).getDay(); // 0=Sun
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const cells: (Date | null)[] = [];
+
+  // Leading blanks
+  for (let i = 0; i < firstDay; i++) cells.push(null);
+  // Actual days
+  for (let d = 1; d <= daysInMonth; d++) cells.push(new Date(year, month, d));
+
+  return cells;
+}
+
+interface CalendarPickerProps {
+  from: string;
+  to: string;
+  onFromChange: (v: string) => void;
+  onToChange: (v: string) => void;
+  onApply: () => void;
+  onClear: () => void;
+}
+
+function CalendarPicker({
+  from,
+  to,
+  onFromChange,
+  onToChange,
+  onApply,
+  onClear,
+}: CalendarPickerProps) {
+  const today = new Date();
+  const todayStr = toDateStr(today);
+
+  // Base month for left calendar
+  const [baseYear, setBaseYear] = useState(today.getFullYear());
+  const [baseMonth, setBaseMonth] = useState(today.getMonth());
+
+  const prevMonth = () => {
+    if (baseMonth === 0) {
+      setBaseYear((y) => y - 1);
+      setBaseMonth(11);
+    } else {
+      setBaseMonth((m) => m - 1);
+    }
+  };
+
+  const nextMonth = () => {
+    if (baseMonth === 11) {
+      setBaseYear((y) => y + 1);
+      setBaseMonth(0);
+    } else {
+      setBaseMonth((m) => m + 1);
+    }
+  };
+
+  // Second month
+  const secondMonth = baseMonth === 11 ? 0 : baseMonth + 1;
+  const secondYear = baseMonth === 11 ? baseYear + 1 : baseYear;
+
+  const handleDayClick = (dateStr: string) => {
+    if (!from || (from && to)) {
+      // Start new selection
+      onFromChange(dateStr);
+      onToChange("");
+    } else {
+      // Set end date — swap if needed
+      if (dateStr < from) {
+        onToChange(from);
+        onFromChange(dateStr);
+      } else if (dateStr === from) {
+        // Clicking same day = single day range
+        onToChange(dateStr);
+      } else {
+        onToChange(dateStr);
+      }
+    }
+  };
+
+  const renderMonth = (year: number, month: number) => {
+    const days = getMonthDays(year, month);
+
+    return (
+      <div className="flex-1 min-w-0">
+        <div className="text-center text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">
+          {MONTH_NAMES[month]} {year}
+        </div>
+        <div className="grid grid-cols-7 gap-0">
+          {/* Weekday headers */}
+          {WEEKDAYS.map((d) => (
+            <div
+              key={d}
+              className="text-center text-xs font-medium text-gray-400 dark:text-gray-500 py-1"
+            >
+              {d}
+            </div>
+          ))}
+          {/* Day cells */}
+          {days.map((date, i) => {
+            if (!date) {
+              return <div key={`blank-${i}`} />;
+            }
+            const dateStr = toDateStr(date);
+            const isToday = dateStr === todayStr;
+            const isFrom = dateStr === from;
+            const isTo = dateStr === to;
+            const isEndpoint = isFrom || isTo;
+            const isInRange = from && to && dateStr > from && dateStr < to;
+
+            return (
+              <button
+                key={dateStr}
+                type="button"
+                onClick={() => handleDayClick(dateStr)}
+                className={cn(
+                  "relative h-9 text-sm transition-colors",
+                  // Range background (full cell width)
+                  isInRange && "bg-lime-100 dark:bg-lime-900/30",
+                  // From endpoint: right half has range color
+                  isFrom &&
+                    to &&
+                    "bg-gradient-to-r from-transparent to-lime-100 dark:to-lime-900/30",
+                  // To endpoint: left half has range color
+                  isTo &&
+                    from &&
+                    "bg-gradient-to-l from-transparent to-lime-100 dark:to-lime-900/30",
+                )}
+              >
+                <span
+                  className={cn(
+                    "relative z-10 flex items-center justify-center w-9 h-9 mx-auto rounded-full transition-colors",
+                    isEndpoint
+                      ? "bg-lime-500 text-white font-semibold"
+                      : isToday
+                        ? "ring-1 ring-lime-500 text-lime-600 dark:text-lime-400 font-medium"
+                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700",
+                  )}
+                >
+                  {date.getDate()}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div>
+      {/* Navigation + months */}
+      <div className="p-3 pb-2">
+        <div className="flex items-center justify-between mb-2">
+          <button
+            type="button"
+            onClick={prevMonth}
+            className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="h-4 w-4"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={nextMonth}
+            className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="h-4 w-4"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Two-month grid: stack on mobile, side-by-side on sm+ */}
+        <div className="flex flex-col sm:flex-row gap-4">
+          {renderMonth(baseYear, baseMonth)}
+          {renderMonth(secondYear, secondMonth)}
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="flex items-center justify-between border-t border-gray-200 dark:border-gray-700 px-3 py-2">
+        <button
+          type="button"
+          onClick={onClear}
+          className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+        >
+          Clear
+        </button>
+        <button
+          type="button"
+          onClick={onApply}
+          disabled={!from}
+          className="text-sm font-medium text-lime-600 dark:text-lime-400 hover:text-lime-700 dark:hover:text-lime-300 disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          Apply
+        </button>
+      </div>
     </div>
   );
 }
@@ -395,16 +646,16 @@ export default function EventFilters({
   return (
     <div className="space-y-4">
       {/* Activity type selector — centered horizontal avatar row */}
-      <div className="flex justify-center gap-3 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
+      <div className="flex justify-center gap-4 sm:gap-5 overflow-x-auto py-3 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
         {/* All Activity avatar */}
         <button
           type="button"
           onClick={selectAllTypes}
-          className="flex flex-col items-center gap-1.5 shrink-0 group"
+          className="flex flex-col items-center gap-1 sm:gap-1.5 shrink-0 group"
         >
           <div
             className={cn(
-              "relative w-16 h-16 sm:w-18 sm:h-18 rounded-full overflow-hidden border-2 transition-all flex items-center justify-center bg-gray-100 dark:bg-gray-700",
+              "relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden border-2 transition-all flex items-center justify-center bg-gray-100 dark:bg-gray-700",
               isAllSelected(currentTypes)
                 ? "border-lime-500 ring-2 ring-lime-300 dark:ring-lime-700 scale-105"
                 : "border-gray-200 dark:border-gray-600 opacity-70 group-hover:opacity-100 group-hover:border-gray-300 dark:group-hover:border-gray-500",
@@ -416,7 +667,7 @@ export default function EventFilters({
               viewBox="0 0 24 24"
               strokeWidth={1.5}
               stroke="currentColor"
-              className="h-7 w-7 text-gray-500 dark:text-gray-300"
+              className="h-6 w-6 sm:h-7 sm:w-7 text-gray-500 dark:text-gray-300"
             >
               <path
                 strokeLinecap="round"
@@ -427,7 +678,7 @@ export default function EventFilters({
           </div>
           <span
             className={cn(
-              "text-xs font-medium transition-colors",
+              "text-[10px] sm:text-xs font-medium transition-colors",
               isAllSelected(currentTypes)
                 ? "text-lime-600 dark:text-lime-400"
                 : "text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300",
@@ -444,11 +695,11 @@ export default function EventFilters({
               key={activity.slug}
               type="button"
               onClick={() => toggleType(activity.slug)}
-              className="flex flex-col items-center gap-1.5 shrink-0 group"
+              className="flex flex-col items-center gap-1 sm:gap-1.5 shrink-0 group"
             >
               <div
                 className={cn(
-                  "relative w-16 h-16 sm:w-18 sm:h-18 rounded-full overflow-hidden border-2 transition-all",
+                  "relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden border-2 transition-all",
                   isActive
                     ? "border-lime-500 ring-2 ring-lime-300 dark:ring-lime-700 scale-105"
                     : "border-gray-200 dark:border-gray-600 opacity-70 group-hover:opacity-100 group-hover:border-gray-300 dark:group-hover:border-gray-500",
@@ -458,13 +709,13 @@ export default function EventFilters({
                   src={activity.image}
                   alt={activity.label}
                   fill
-                  sizes="72px"
+                  sizes="(max-width: 640px) 56px, 64px"
                   className="object-cover"
                 />
               </div>
               <span
                 className={cn(
-                  "text-xs font-medium transition-colors",
+                  "text-[10px] sm:text-xs font-medium transition-colors",
                   isActive
                     ? "text-lime-600 dark:text-lime-400"
                     : "text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300",
@@ -594,7 +845,7 @@ export default function EventFilters({
           </div>
         </FilterChip>
 
-        {/* ---- Date chip (keeps Apply/Clear) ---- */}
+        {/* ---- Date chip (calendar picker) ---- */}
         <FilterChip
           id="date"
           label="Date"
@@ -603,47 +854,16 @@ export default function EventFilters({
           isOpen={openId === "date"}
           onToggle={handleToggle}
           onClear={() => updateParams({ from: "", to: "" })}
+          popoverClassName="w-[300px] sm:w-[580px]"
         >
-          <div className="p-3 space-y-3">
-            <div>
-              <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-                From
-              </label>
-              <input
-                type="date"
-                value={draftFrom}
-                onChange={(e) => setDraftFrom(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:border-lime-500 focus:ring-1 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-                To
-              </label>
-              <input
-                type="date"
-                value={draftTo}
-                onChange={(e) => setDraftTo(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:border-lime-500 focus:ring-1 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none"
-              />
-            </div>
-          </div>
-          <div className="flex items-center justify-between border-t border-gray-200 dark:border-gray-700 px-3 py-2">
-            <button
-              type="button"
-              onClick={clearDate}
-              className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-            >
-              Clear
-            </button>
-            <button
-              type="button"
-              onClick={applyDate}
-              className="text-sm font-medium text-lime-600 dark:text-lime-400 hover:text-lime-700 dark:hover:text-lime-300"
-            >
-              Apply
-            </button>
-          </div>
+          <CalendarPicker
+            from={draftFrom}
+            to={draftTo}
+            onFromChange={setDraftFrom}
+            onToChange={setDraftTo}
+            onApply={applyDate}
+            onClear={clearDate}
+          />
         </FilterChip>
 
         {/* ---- Organizer chip ---- */}
