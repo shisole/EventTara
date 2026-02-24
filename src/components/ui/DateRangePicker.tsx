@@ -62,6 +62,7 @@ export default function DateRangePicker({
       <div className="rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-4 space-y-4">
         <DayPicker
           mode="range"
+          numberOfMonths={2}
           selected={
             startDate && endDate
               ? { from: startDate, to: endDate }
@@ -73,9 +74,9 @@ export default function DateRangePicker({
           disabled={{ before: new Date() }}
           classNames={{
             root: "text-gray-900 dark:text-gray-100",
-            months: "flex flex-col space-y-4",
+            months: "relative flex gap-6",
             month_caption: "flex justify-center items-center h-10 text-sm font-semibold",
-            nav: "flex items-center justify-between absolute w-full px-2",
+            nav: "absolute top-0 left-0 right-0 flex items-center justify-between z-10",
             button_previous: cn(
               "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 inline-flex items-center justify-center rounded-md text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
             ),
