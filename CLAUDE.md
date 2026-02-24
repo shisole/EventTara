@@ -15,13 +15,12 @@ Use these prefixes: `feat/`, `fix/`, `refactor/`, `chore/`, `docs/`. Keep the de
 ## Commands
 
 ```bash
-npm run dev          # Start dev server (Next.js)
+npm run dev          # Start dev server (Next.js, port 3001)
 npm run build        # Production build
 npm run lint         # ESLint via next lint
-npm run seed         # Seed DB with test accounts and events (requires SUPABASE_SERVICE_ROLE_KEY)
+npm run seed         # Seed DB with test accounts, events, guides (requires SUPABASE_SERVICE_ROLE_KEY)
 npm run unseed       # Remove seeded data
 npm run seed:cms     # Seed Payload CMS with sample pages
-npm run docs:sync    # Sync docs to Confluence (requires Confluence env vars)
 npm run test:e2e     # Run Playwright E2E tests
 ```
 
@@ -43,8 +42,8 @@ Copy `.env.local.example` to `.env.local` and fill in:
 The app uses Next.js route groups with a nested structure:
 - `(frontend)` — parent route group containing all user-facing pages:
   - `(auth)` — `/login`, `/signup`, `/guest-setup` with a shared centered layout
-  - `(participant)` — `/events`, `/events/[id]`, `/events/[id]/book`, `/my-events`, `/profile/[username]`
-  - `(organizer)` — `/dashboard` and nested pages (`/events`, `/events/new`, `/events/[id]`, `/events/[id]/edit`, `/events/[id]/checkin`, `/settings`)
+  - `(participant)` — `/events`, `/events/[id]`, `/events/[id]/book`, `/my-events`, `/profile/[username]`, `/guides/[id]`
+  - `(organizer)` — `/dashboard` and nested pages (`/events`, `/events/new`, `/events/[id]`, `/events/[id]/edit`, `/events/[id]/checkin`, `/guides`, `/guides/new`, `/guides/[id]`, `/settings`)
 - `(payload)` — Payload CMS admin interface (accessed at `/admin`)
 
 SEO files (`robots.ts`, `sitemap.ts`, `opengraph-image.tsx`) remain at the `src/app/` root level.
@@ -59,7 +58,7 @@ All database access goes through Supabase. Two clients exist:
 
 The `src/middleware.ts` runs `updateSession` on every request (excluding static assets and `/admin` for Payload CMS) to keep the Supabase session cookie refreshed.
 
-Database types are hand-maintained in `src/lib/supabase/types.ts`. Key tables: `users`, `organizer_profiles`, `events`, `event_photos`, `bookings`, `badges`, `user_badges`, `event_checkins`.
+Database types are hand-maintained in `src/lib/supabase/types.ts`. Key tables: `users`, `organizer_profiles`, `events`, `event_photos`, `bookings`, `badges`, `user_badges`, `event_checkins`, `event_reviews`, `guides`, `event_guides`, `guide_reviews`.
 
 ### User Roles
 
@@ -68,8 +67,12 @@ Three roles: `organizer`, `participant`, `guest` (anonymous via Supabase `signIn
 ### API Routes
 
 Thin wrappers in `src/app/api/` that authenticate via `createClient()` server-side, then call Supabase directly:
-- `POST /api/events` — create event, auto-creating organizer profile if needed
-- `GET/PATCH/DELETE /api/events/[id]`
+- `GET/POST /api/events` — list/create events (GET supports pagination, filters)
+- `GET/PATCH/DELETE /api/events/[id]` — manage single event
+- `GET/POST/DELETE /api/events/[id]/guides` — event-guide linking (hiking events)
+- `GET/POST /api/guides` — list/create guides (GET supports `created_by` filter)
+- `GET/PATCH/DELETE /api/guides/[id]` — manage single guide
+- `GET/POST /api/guides/[id]/reviews` — guide reviews (POST validates booking + completed event)
 - `POST /api/bookings` — book an event
 - `POST /api/checkins` — record a check-in (QR or manual)
 - `GET/POST /api/badges` — badge management
