@@ -11,6 +11,7 @@ import ReviewForm from "@/components/reviews/ReviewForm";
 import ReviewList from "@/components/reviews/ReviewList";
 import ShareButtons from "@/components/events/ShareButtons";
 import EventLocationMap from "@/components/maps/EventLocationMap";
+import GuideCard from "@/components/guides/GuideCard";
 
 const typeLabels: Record<string, string> = {
   hiking: "Hiking",
@@ -141,6 +142,59 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
     ? eventReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / eventReviews.length
     : 0;
 
+  // Fetch guides for hiking events
+  let eventGuides: {
+    id: string;
+    full_name: string;
+    avatar_url: string | null;
+    bio: string | null;
+    avg_rating: number | null;
+    review_count: number;
+  }[] = [];
+
+  if (event.type === "hiking") {
+    const { data: eventGuideRows } = await supabase
+      .from("event_guides")
+      .select("guide_id")
+      .eq("event_id", id);
+
+    if (eventGuideRows && eventGuideRows.length > 0) {
+      const guideIds = eventGuideRows.map((eg) => eg.guide_id);
+
+      const [{ data: guides }, { data: reviewAggs }] = await Promise.all([
+        supabase
+          .from("guides")
+          .select("id, full_name, avatar_url, bio")
+          .in("id", guideIds),
+        supabase
+          .from("guide_reviews")
+          .select("guide_id, rating")
+          .in("guide_id", guideIds),
+      ]);
+
+      // Aggregate reviews per guide
+      const reviewMap = new Map<string, { sum: number; count: number }>();
+      for (const r of reviewAggs || []) {
+        const entry = reviewMap.get(r.guide_id) || { sum: 0, count: 0 };
+        entry.sum += r.rating;
+        entry.count += 1;
+        reviewMap.set(r.guide_id, entry);
+      }
+
+      eventGuides = (guides || []).map((g) => {
+        const agg = reviewMap.get(g.id);
+        return {
+          id: g.id,
+          full_name: g.full_name,
+          avatar_url: g.avatar_url,
+          bio: g.bio,
+          avg_rating: agg ? agg.sum / agg.count : null,
+          review_count: agg ? agg.count : 0,
+        };
+      });
+    }
+  }
+
   // Check if current user can review (checked in + hasn't reviewed)
   let canReview = false;
   if (authUser && event.status === "completed") {
@@ -259,6 +313,27 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
               logoUrl={organizer.logo_url}
               eventCount={orgEventCount || 0}
             />
+          )}
+
+          {eventGuides.length > 0 && (
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-5 sm:p-6">
+              <h3 className="font-heading font-bold mb-3 flex items-center gap-2">
+                <span>&#129406;</span> Guide{eventGuides.length !== 1 ? "s" : ""}
+              </h3>
+              <div className="space-y-3">
+                {eventGuides.map((guide) => (
+                  <GuideCard
+                    key={guide.id}
+                    id={guide.id}
+                    full_name={guide.full_name}
+                    avatar_url={guide.avatar_url}
+                    bio={guide.bio}
+                    avg_rating={guide.avg_rating}
+                    review_count={guide.review_count}
+                  />
+                ))}
+              </div>
+            </div>
           )}
 
           {eventBadges.length > 0 && (
