@@ -120,6 +120,90 @@ export interface Database {
         }
         Relationships: []
       }
+      guides: {
+        Row: {
+          id: string
+          full_name: string
+          bio: string | null
+          avatar_url: string | null
+          contact_number: string | null
+          user_id: string | null
+          created_by: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          full_name: string
+          bio?: string | null
+          avatar_url?: string | null
+          contact_number?: string | null
+          user_id?: string | null
+          created_by: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          full_name?: string
+          bio?: string | null
+          avatar_url?: string | null
+          contact_number?: string | null
+          user_id?: string | null
+          created_by?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      event_guides: {
+        Row: {
+          id: string
+          event_id: string
+          guide_id: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          event_id: string
+          guide_id: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          event_id?: string
+          guide_id?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      guide_reviews: {
+        Row: {
+          id: string
+          guide_id: string
+          user_id: string
+          event_id: string
+          rating: number
+          text: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          guide_id: string
+          user_id: string
+          event_id: string
+          rating: number
+          text?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          guide_id?: string
+          user_id?: string
+          event_id?: string
+          rating?: number
+          text?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
       event_photos: {
         Row: {
           id: string
