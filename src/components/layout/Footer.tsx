@@ -31,6 +31,7 @@ export default async function Footer() {
       links: [
         { label: "Host Your Event", url: "/signup?role=organizer" },
         { label: "Organizer Dashboard", url: "/dashboard" },
+        { label: "Contact Us", url: "/contact" },
       ],
     },
   ];
