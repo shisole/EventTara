@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 
-import { Button, Input } from "@/components/ui";
+import { Button, Input, DateRangePicker } from "@/components/ui";
 import { findProvinceFromLocation } from "@/lib/constants/philippine-provinces";
 
 import PhotoUploader from "./PhotoUploader";
@@ -20,6 +20,7 @@ interface EventFormProps {
     description: string;
     type: string;
     date: string;
+    end_date?: string | null;
     location: string;
     coordinates?: { lat: number; lng: number } | null;
     max_participants: number;
@@ -215,9 +216,18 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
   const [title, setTitle] = useState(initialData?.title || "");
   const [description, setDescription] = useState(initialData?.description || "");
   const [type, setType] = useState(initialData?.type || "hiking");
-  const [date, setDate] = useState(
-    initialData?.date ? new Date(initialData.date).toISOString().slice(0, 16) : "",
+
+  // Date range state
+  const [startDate, setStartDate] = useState<Date | undefined>(
+    initialData?.date ? new Date(initialData.date) : undefined,
   );
+  const [endDate, setEndDate] = useState<Date | undefined>(
+    initialData?.end_date ? new Date(initialData.end_date) : undefined,
+  );
+  const [startTime, setStartTime] = useState(
+    initialData?.date ? new Date(initialData.date).toTimeString().slice(0, 5) : "",
+  );
+
   const [location, setLocation] = useState(initialData?.location || "");
   const [maxParticipants, setMaxParticipants] = useState(initialData?.max_participants || 50);
   const [price, setPrice] = useState(initialData?.price || 0);
@@ -246,13 +256,13 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
   const [loadingGuides, setLoadingGuides] = useState(false);
 
   useEffect(() => {
-    if (type !== "hiking" || !date) {
+    if (type !== "hiking" || !startDate) {
       setAvailableGuides([]);
       return;
     }
     const fetchGuides = async () => {
       setLoadingGuides(true);
-      const params = new URLSearchParams({ check_date: new Date(date).toISOString() });
+      const params = new URLSearchParams({ check_date: startDate.toISOString() });
       if (mode === "edit" && initialData?.id) {
         params.set("exclude_event_id", initialData.id);
       }
@@ -266,18 +276,38 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
       setLoadingGuides(false);
     };
     void fetchGuides();
-  }, [type, date, mode, initialData?.id]);
+  }, [type, startDate, mode, initialData?.id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
+    // Combine startDate + startTime into ISO string
+    if (!startDate || !startTime) {
+      setError("Please select a date and time");
+      setLoading(false);
+      return;
+    }
+
+    const [hours, minutes] = startTime.split(":").map(Number);
+    const dateTimeStart = new Date(startDate);
+    dateTimeStart.setHours(hours, minutes, 0, 0);
+
+    // Calculate end_date if endDate differs from startDate
+    let endDateTime: string | null = null;
+    if (endDate && endDate.getTime() !== startDate.getTime()) {
+      const dateTimeEnd = new Date(endDate);
+      dateTimeEnd.setHours(23, 59, 59, 999); // End of day
+      endDateTime = dateTimeEnd.toISOString();
+    }
+
     const body = {
       title,
       description,
       type,
-      date: new Date(date).toISOString(),
+      date: dateTimeStart.toISOString(),
+      end_date: endDateTime,
       location,
       coordinates,
       max_participants: maxParticipants,
@@ -389,15 +419,13 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
         </select>
       </div>
 
-      <Input
-        id="date"
-        label="Date & Time"
-        type="datetime-local"
-        value={date}
-        onChange={(e) => {
-          setDate(e.target.value);
-        }}
-        required
+      <DateRangePicker
+        startDate={startDate}
+        endDate={endDate}
+        startTime={startTime}
+        onStartDateChange={setStartDate}
+        onEndDateChange={setEndDate}
+        onStartTimeChange={setStartTime}
       />
 
       <Input
@@ -494,7 +522,7 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
         label="Cover Image"
       />
 
-      {type === "hiking" && date && (
+      {type === "hiking" && startDate && (
         <GuideCombobox
           guides={availableGuides}
           selectedIds={selectedGuideIds}
