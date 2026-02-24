@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useState, useEffect, useRef, useTransition, type ReactNode } from "react";
 
@@ -9,12 +10,37 @@ import { cn } from "@/lib/utils";
 /*  Constants                                                         */
 /* ------------------------------------------------------------------ */
 
-const EVENT_TYPES = [
-  { value: "hiking", label: "Hiking" },
-  { value: "mtb", label: "Mountain Biking" },
-  { value: "road_bike", label: "Road Biking" },
-  { value: "running", label: "Running" },
-  { value: "trail_run", label: "Trail Running" },
+const ACTIVITIES = [
+  {
+    slug: "hiking",
+    label: "Hiking",
+    icon: "🏔️",
+    image: "https://images.unsplash.com/photo-1551632811-561732d1e306?w=600&h=400&fit=crop",
+  },
+  {
+    slug: "mtb",
+    label: "MTB",
+    icon: "🚵",
+    image: "https://images.unsplash.com/photo-1544191696-102dbdaeeaa0?w=600&h=400&fit=crop",
+  },
+  {
+    slug: "road_bike",
+    label: "Road Bike",
+    icon: "🚴",
+    image: "https://images.unsplash.com/photo-1517649763962-0c623066013b?w=600&h=400&fit=crop",
+  },
+  {
+    slug: "running",
+    label: "Running",
+    icon: "🏃",
+    image: "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=600&h=400&fit=crop",
+  },
+  {
+    slug: "trail_run",
+    label: "Trail Run",
+    icon: "🥾",
+    image: "https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=600&h=400&fit=crop",
+  },
 ];
 
 const TIME_FILTERS = [
@@ -114,6 +140,21 @@ function FilterChip({
 }
 
 /* ------------------------------------------------------------------ */
+/*  Helpers                                                           */
+/* ------------------------------------------------------------------ */
+
+/** Parse comma-separated type param into a Set */
+function parseTypes(param: string): Set<string> {
+  if (!param) return new Set();
+  return new Set(param.split(",").filter(Boolean));
+}
+
+/** Serialize a Set of types into a comma-separated string */
+function serializeTypes(types: Set<string>): string {
+  return [...types].join(",");
+}
+
+/* ------------------------------------------------------------------ */
 /*  Main Component                                                    */
 /* ------------------------------------------------------------------ */
 
@@ -127,13 +168,14 @@ export default function EventFilters({
   const [isPending, startTransition] = useTransition();
 
   /* Current URL param values */
-  const currentType = searchParams.get("type") || "";
-  const currentWhen = searchParams.get("when") || "";
-  const currentSearch = searchParams.get("search") || "";
-  const currentOrg = searchParams.get("org") || "";
-  const currentGuide = searchParams.get("guide") || "";
-  const currentFrom = searchParams.get("from") || "";
-  const currentTo = searchParams.get("to") || "";
+  const currentTypeParam = searchParams.get("type") ?? "";
+  const currentTypes = parseTypes(currentTypeParam);
+  const currentWhen = searchParams.get("when") ?? "";
+  const currentSearch = searchParams.get("search") ?? "";
+  const currentOrg = searchParams.get("org") ?? "";
+  const currentGuide = searchParams.get("guide") ?? "";
+  const currentFrom = searchParams.get("from") ?? "";
+  const currentTo = searchParams.get("to") ?? "";
 
   /* Local state */
   const [searchValue, setSearchValue] = useState(currentSearch);
@@ -141,47 +183,34 @@ export default function EventFilters({
   const [openId, setOpenId] = useState("");
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
-  /* Draft state for popovers (applied on "Apply" click) */
-  const [draftType, setDraftType] = useState(currentType);
-  const [draftWhen, setDraftWhen] = useState(currentWhen);
+  /* Draft state — only needed for Date (two fields) */
   const [draftFrom, setDraftFrom] = useState(currentFrom);
   const [draftTo, setDraftTo] = useState(currentTo);
-  const [draftOrg, setDraftOrg] = useState(currentOrg);
-  const [draftGuide, setDraftGuide] = useState(currentGuide);
 
   /* Sync search value with URL */
   useEffect(() => {
     setSearchValue(currentSearch);
   }, [currentSearch]);
 
-  /* Sync drafts when URL changes (e.g. browser back) */
-  useEffect(() => setDraftType(currentType), [currentType]);
-  useEffect(() => setDraftWhen(currentWhen), [currentWhen]);
+  /* Sync date drafts when URL changes (e.g. browser back) */
   useEffect(() => setDraftFrom(currentFrom), [currentFrom]);
   useEffect(() => setDraftTo(currentTo), [currentTo]);
-  useEffect(() => setDraftOrg(currentOrg), [currentOrg]);
-  useEffect(() => setDraftGuide(currentGuide), [currentGuide]);
 
   /* Notify parent of pending state */
   useEffect(() => {
     onPendingChange?.(isPending);
   }, [isPending, onPendingChange]);
 
-  /* Reset drafts when popover opens */
+  /* Reset date drafts when date popover opens */
   const handleToggle = useCallback(
     (id: string) => {
-      if (id) {
-        // Opening a popover — reset draft to current URL values
-        setDraftType(currentType);
-        setDraftWhen(currentWhen);
+      if (id === "date") {
         setDraftFrom(currentFrom);
         setDraftTo(currentTo);
-        setDraftOrg(currentOrg);
-        setDraftGuide(currentGuide);
       }
       setOpenId(id);
     },
-    [currentType, currentWhen, currentFrom, currentTo, currentOrg, currentGuide],
+    [currentFrom, currentTo],
   );
 
   /* ---- URL update helper ---- */
@@ -224,33 +253,54 @@ export default function EventFilters({
     };
   }, []);
 
-  /* ---- Apply helpers for each chip ---- */
-  const applyType = useCallback(() => {
-    const updates: Record<string, string> = { type: draftType };
-    // If changing away from hiking, clear guide
-    if (draftType !== "hiking") {
-      updates.guide = "";
-    }
-    updateParams(updates);
-    setOpenId("");
-  }, [draftType, updateParams]);
+  /* ---- Activity type toggle (multi-select) ---- */
+  const toggleType = useCallback(
+    (slug: string) => {
+      const next = new Set(currentTypes);
+      if (next.has(slug)) {
+        next.delete(slug);
+      } else {
+        next.add(slug);
+      }
+      const updates: Record<string, string> = { type: serializeTypes(next) };
+      // If hiking is no longer selected, clear guide filter
+      if (!next.has("hiking")) updates.guide = "";
+      updateParams(updates);
+    },
+    [currentTypes, updateParams],
+  );
 
-  const clearType = useCallback(() => {
-    setDraftType("");
-  }, []);
+  /* ---- Instant-apply helpers (toggle: click again to deselect) ---- */
+  const selectWhen = useCallback(
+    (value: string) => {
+      const next = value === currentWhen ? "" : value;
+      // Mutual exclusion: selecting When clears from/to
+      updateParams({ when: next, from: "", to: "" });
+      setOpenId("");
+    },
+    [currentWhen, updateParams],
+  );
 
-  const applyWhen = useCallback(() => {
-    // Mutual exclusion: selecting When clears from/to
-    updateParams({ when: draftWhen, from: "", to: "" });
-    setOpenId("");
-  }, [draftWhen, updateParams]);
+  const selectOrg = useCallback(
+    (value: string) => {
+      const next = value === currentOrg ? "" : value;
+      updateParams({ org: next });
+      setOpenId("");
+    },
+    [currentOrg, updateParams],
+  );
 
-  const clearWhen = useCallback(() => {
-    setDraftWhen("");
-  }, []);
+  const selectGuide = useCallback(
+    (value: string) => {
+      const next = value === currentGuide ? "" : value;
+      updateParams({ guide: next });
+      setOpenId("");
+    },
+    [currentGuide, updateParams],
+  );
 
+  /* ---- Date chip still uses Apply/Clear ---- */
   const applyDate = useCallback(() => {
-    // Mutual exclusion: selecting date clears when
     updateParams({ from: draftFrom, to: draftTo, when: "" });
     setOpenId("");
   }, [draftFrom, draftTo, updateParams]);
@@ -260,28 +310,7 @@ export default function EventFilters({
     setDraftTo("");
   }, []);
 
-  const applyOrg = useCallback(() => {
-    updateParams({ org: draftOrg });
-    setOpenId("");
-  }, [draftOrg, updateParams]);
-
-  const clearOrg = useCallback(() => {
-    setDraftOrg("");
-  }, []);
-
-  const applyGuide = useCallback(() => {
-    updateParams({ guide: draftGuide });
-    setOpenId("");
-  }, [draftGuide, updateParams]);
-
-  const clearGuide = useCallback(() => {
-    setDraftGuide("");
-  }, []);
-
   /* ---- Derive active labels ---- */
-  const typeLabelMap: Record<string, string> = {};
-  for (const t of EVENT_TYPES) typeLabelMap[t.value] = t.label;
-
   const whenLabelMap: Record<string, string> = {};
   for (const t of TIME_FILTERS) whenLabelMap[t.value] = t.label;
 
@@ -297,11 +326,53 @@ export default function EventFilters({
           ? `To ${currentTo}`
           : undefined;
 
-  /* Only show Guide chip when current type is hiking */
-  const showGuideChip = currentType === "hiking" || draftType === "hiking";
+  /* Only show Guide chip when hiking is among selected types */
+  const showGuideChip = currentTypes.has("hiking");
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
+      {/* Activity type selector — horizontal avatar row */}
+      <div className="flex gap-3 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
+        {ACTIVITIES.map((activity) => {
+          const isActive = currentTypes.has(activity.slug);
+          return (
+            <button
+              key={activity.slug}
+              type="button"
+              onClick={() => toggleType(activity.slug)}
+              className="flex flex-col items-center gap-1.5 shrink-0 group"
+            >
+              <div
+                className={cn(
+                  "relative w-16 h-16 sm:w-18 sm:h-18 rounded-full overflow-hidden border-2 transition-all",
+                  isActive
+                    ? "border-lime-500 ring-2 ring-lime-300 dark:ring-lime-700 scale-105"
+                    : "border-gray-200 dark:border-gray-600 opacity-70 group-hover:opacity-100 group-hover:border-gray-300 dark:group-hover:border-gray-500",
+                )}
+              >
+                <Image
+                  src={activity.image}
+                  alt={activity.label}
+                  fill
+                  sizes="72px"
+                  className="object-cover"
+                />
+              </div>
+              <span
+                className={cn(
+                  "text-xs font-medium transition-colors",
+                  isActive
+                    ? "text-lime-600 dark:text-lime-400"
+                    : "text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300",
+                )}
+              >
+                {activity.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
       {/* Search bar */}
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
@@ -377,57 +448,13 @@ export default function EventFilters({
         </button>
       </div>
 
-      {/* Chip bar */}
+      {/* Chip bar — remaining filters (no Type chip) */}
       <div
         className={cn(
           "flex gap-2 pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide",
           openId ? "overflow-visible" : "overflow-x-auto",
         )}
       >
-        {/* ---- Type chip ---- */}
-        <FilterChip
-          id="type"
-          label="Type"
-          activeLabel={typeLabelMap[currentType]}
-          isActive={!!currentType}
-          isOpen={openId === "type"}
-          onToggle={handleToggle}
-        >
-          <div className="p-3 space-y-1">
-            {EVENT_TYPES.map((t) => (
-              <button
-                key={t.value}
-                type="button"
-                onClick={() => setDraftType(t.value)}
-                className={cn(
-                  "w-full text-left px-3 py-2 rounded-lg text-sm transition-colors",
-                  draftType === t.value
-                    ? "bg-gray-100 dark:bg-gray-700 font-medium text-gray-900 dark:text-gray-100"
-                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-750",
-                )}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-          <div className="flex items-center justify-between border-t border-gray-200 dark:border-gray-700 px-3 py-2">
-            <button
-              type="button"
-              onClick={clearType}
-              className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-            >
-              Clear
-            </button>
-            <button
-              type="button"
-              onClick={applyType}
-              className="text-sm font-medium text-lime-600 dark:text-lime-400 hover:text-lime-700 dark:hover:text-lime-300"
-            >
-              Apply
-            </button>
-          </div>
-        </FilterChip>
-
         {/* ---- When chip ---- */}
         <FilterChip
           id="when"
@@ -442,10 +469,10 @@ export default function EventFilters({
               <button
                 key={f.value}
                 type="button"
-                onClick={() => setDraftWhen(f.value)}
+                onClick={() => selectWhen(f.value)}
                 className={cn(
                   "w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center",
-                  draftWhen === f.value
+                  currentWhen === f.value
                     ? "bg-gray-100 dark:bg-gray-700 font-medium text-gray-900 dark:text-gray-100"
                     : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-750",
                 )}
@@ -460,25 +487,9 @@ export default function EventFilters({
               </button>
             ))}
           </div>
-          <div className="flex items-center justify-between border-t border-gray-200 dark:border-gray-700 px-3 py-2">
-            <button
-              type="button"
-              onClick={clearWhen}
-              className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-            >
-              Clear
-            </button>
-            <button
-              type="button"
-              onClick={applyWhen}
-              className="text-sm font-medium text-lime-600 dark:text-lime-400 hover:text-lime-700 dark:hover:text-lime-300"
-            >
-              Apply
-            </button>
-          </div>
         </FilterChip>
 
-        {/* ---- Date chip ---- */}
+        {/* ---- Date chip (keeps Apply/Clear) ---- */}
         <FilterChip
           id="date"
           label="Date"
@@ -544,10 +555,10 @@ export default function EventFilters({
                 <button
                   key={o.id}
                   type="button"
-                  onClick={() => setDraftOrg(o.id)}
+                  onClick={() => selectOrg(o.id)}
                   className={cn(
                     "w-full text-left px-3 py-2 rounded-lg text-sm transition-colors",
-                    draftOrg === o.id
+                    currentOrg === o.id
                       ? "bg-gray-100 dark:bg-gray-700 font-medium text-gray-900 dark:text-gray-100"
                       : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-750",
                   )}
@@ -556,26 +567,10 @@ export default function EventFilters({
                 </button>
               ))}
             </div>
-            <div className="flex items-center justify-between border-t border-gray-200 dark:border-gray-700 px-3 py-2">
-              <button
-                type="button"
-                onClick={clearOrg}
-                className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-              >
-                Clear
-              </button>
-              <button
-                type="button"
-                onClick={applyOrg}
-                className="text-sm font-medium text-lime-600 dark:text-lime-400 hover:text-lime-700 dark:hover:text-lime-300"
-              >
-                Apply
-              </button>
-            </div>
           </FilterChip>
         )}
 
-        {/* ---- Guide chip (only when type is hiking) ---- */}
+        {/* ---- Guide chip (only when hiking is selected) ---- */}
         {showGuideChip && guides.length > 0 && (
           <FilterChip
             id="guide"
@@ -590,10 +585,10 @@ export default function EventFilters({
                 <button
                   key={g.id}
                   type="button"
-                  onClick={() => setDraftGuide(g.id)}
+                  onClick={() => selectGuide(g.id)}
                   className={cn(
                     "w-full text-left px-3 py-2 rounded-lg text-sm transition-colors",
-                    draftGuide === g.id
+                    currentGuide === g.id
                       ? "bg-gray-100 dark:bg-gray-700 font-medium text-gray-900 dark:text-gray-100"
                       : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-750",
                   )}
@@ -601,22 +596,6 @@ export default function EventFilters({
                   {g.name}
                 </button>
               ))}
-            </div>
-            <div className="flex items-center justify-between border-t border-gray-200 dark:border-gray-700 px-3 py-2">
-              <button
-                type="button"
-                onClick={clearGuide}
-                className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-              >
-                Clear
-              </button>
-              <button
-                type="button"
-                onClick={applyGuide}
-                className="text-sm font-medium text-lime-600 dark:text-lime-400 hover:text-lime-700 dark:hover:text-lime-300"
-              >
-                Apply
-              </button>
             </div>
           </FilterChip>
         )}

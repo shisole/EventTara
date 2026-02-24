@@ -123,8 +123,14 @@ export default async function EventsPage({
   }
 
   if (params.type) {
-    countQuery = countQuery.eq("type", params.type as EventType);
-    dataQuery = dataQuery.eq("type", params.type as EventType);
+    const types = params.type.split(",").filter(Boolean) as EventType[];
+    if (types.length === 1) {
+      countQuery = countQuery.eq("type", types[0]);
+      dataQuery = dataQuery.eq("type", types[0]);
+    } else if (types.length > 1) {
+      countQuery = countQuery.in("type", types);
+      dataQuery = dataQuery.in("type", types);
+    }
   }
 
   if (params.search) {
