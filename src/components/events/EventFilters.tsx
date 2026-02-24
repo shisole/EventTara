@@ -171,7 +171,7 @@ function FilterChip({
       {isOpen && (
         <div
           className={cn(
-            "fixed inset-0 z-50 flex flex-col sm:hidden",
+            "fixed inset-0 z-[60] flex flex-col sm:hidden",
             mobileFullscreen ? "" : "justify-end",
           )}
         >
