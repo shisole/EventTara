@@ -28,14 +28,13 @@ export default function EventsPageClient({
   return (
     <>
       <div className="mb-8">
-        <div className="flex items-baseline gap-3 mb-4">
-          <h1 className="text-3xl font-heading font-bold">Explore Events</h1>
-          <span className="text-sm text-gray-500 dark:text-gray-400">
-            {totalCount} {totalCount === 1 ? "result" : "results"}
-          </span>
-        </div>
+        <h1 className="text-3xl font-heading font-bold mb-4">Explore Events</h1>
         <EventFilters organizers={organizers} guides={guides} onPendingChange={setIsFiltering} />
       </div>
+
+      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+        {totalCount} {totalCount === 1 ? "result" : "results"} found
+      </p>
 
       <EventsListClient
         initialEvents={initialEvents}
