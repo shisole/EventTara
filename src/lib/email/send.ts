@@ -16,9 +16,10 @@ interface SendEmailOptions {
   to: string | string[];
   subject: string;
   html: string;
+  replyTo?: string;
 }
 
-export async function sendEmail({ to, subject, html }: SendEmailOptions) {
+export async function sendEmail({ to, subject, html, replyTo }: SendEmailOptions) {
   const resend = getResend();
 
   // Skip sending if no API key is configured
@@ -36,6 +37,7 @@ export async function sendEmail({ to, subject, html }: SendEmailOptions) {
       to: Array.isArray(to) ? to : [to],
       subject,
       html,
+      ...(replyTo && { replyTo }),
     });
 
     if (error) {
