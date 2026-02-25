@@ -155,8 +155,14 @@ export async function GET(request: NextRequest) {
     const min = Number.parseInt(minStr, 10);
     const max = Number.parseInt(maxStr, 10);
     if (!Number.isNaN(min) && !Number.isNaN(max)) {
-      countQuery = countQuery.gte("difficulty_level", min).lte("difficulty_level", max);
-      dataQuery = dataQuery.gte("difficulty_level", min).lte("difficulty_level", max);
+      countQuery = countQuery
+        .not("difficulty_level", "is", null)
+        .gte("difficulty_level", min)
+        .lte("difficulty_level", max);
+      dataQuery = dataQuery
+        .not("difficulty_level", "is", null)
+        .gte("difficulty_level", min)
+        .lte("difficulty_level", max);
     }
   }
 
