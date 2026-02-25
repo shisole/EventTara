@@ -66,5 +66,11 @@
       }
     }
   ],
-  "ignorePatterns": ["node_modules", ".next", "out", "scripts"]
+  "ignorePatterns": [
+    "node_modules",
+    ".next",
+    "out",
+    "scripts",
+    "src/app/(payload)/admin/importMap.js"
+  ]
 }
