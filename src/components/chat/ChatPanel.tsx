@@ -33,9 +33,10 @@ function incrementUsed(): void {
 interface ChatPanelProps {
   open: boolean;
   onClose: () => void;
+  keyboardHeight?: number;
 }
 
-export default function ChatPanel({ open, onClose }: ChatPanelProps) {
+export default function ChatPanel({ open, onClose, keyboardHeight = 0 }: ChatPanelProps) {
   const searchParams = useSearchParams();
   const unlimitedChat = useMemo(() => searchParams.get("chat_debug") === "1", [searchParams]);
   const [messages, setMessages] = useState<ChatMessageType[]>([
@@ -149,13 +150,25 @@ export default function ChatPanel({ open, onClose }: ChatPanelProps) {
 
   const limitDots = Array.from({ length: DAILY_LIMIT }, (_, i) => i < remaining);
 
+  const keyboardOpen = keyboardHeight > 0;
+
+  // On mobile when keyboard is open, position the panel just above the keyboard
+  // with a small padding (8px). On desktop or when keyboard is closed, use default CSS positioning.
+  const mobileKeyboardStyle: React.CSSProperties = keyboardOpen
+    ? {
+        bottom: `${keyboardHeight + 8}px`,
+        height: `calc(100vh - ${keyboardHeight + 16}px)`,
+      }
+    : {};
+
   return (
     <div
       className={`fixed z-40 transition-all duration-300 ease-out ${
         open
           ? "opacity-100 translate-y-0 pointer-events-auto"
           : "opacity-0 translate-y-8 pointer-events-none"
-      } bottom-[9.5rem] right-4 w-[calc(100vw-2rem)] max-w-[400px] h-[min(460px,calc(100vh-12rem))] md:bottom-6 md:right-[5.25rem] md:w-[400px] md:h-[min(500px,calc(100vh-6rem))]`}
+      } ${keyboardOpen ? "right-4 w-[calc(100vw-2rem)] max-w-[400px]" : "bottom-[9.5rem] right-4 w-[calc(100vw-2rem)] max-w-[400px] h-[min(460px,calc(100vh-12rem))]"} md:bottom-6 md:right-[5.25rem] md:w-[400px] md:h-[min(500px,calc(100vh-6rem))]`}
+      style={mobileKeyboardStyle}
     >
       <div
         className={`flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-900 ${open ? "animate-chat-panel-up" : ""}`}
