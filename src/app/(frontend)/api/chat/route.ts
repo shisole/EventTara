@@ -166,6 +166,42 @@ export async function POST(request: Request) {
     dataQ = dataQ.not("end_date", "is", null);
   }
 
+  // Distance filter: query event_distances table for matching distance
+  if (parsed.distance) {
+    const { data: distanceRows } = await supabase
+      .from("event_distances")
+      .select("event_id")
+      .eq("distance_km", parsed.distance);
+    const distanceEventIds = distanceRows?.map((d) => d.event_id) ?? [];
+    if (distanceEventIds.length === 0) {
+      // No events match this distance — return empty results early
+      const emptyFilterParts: string[] = [];
+      if (parsed.search) emptyFilterParts.push(`search=${encodeURIComponent(parsed.search)}`);
+      if (parsed.type) emptyFilterParts.push(`type=${parsed.type}`);
+      if (parsed.distance) emptyFilterParts.push(`distance=${parsed.distance}`);
+      const emptyFilterUrl = `/events${emptyFilterParts.length > 0 ? `?${emptyFilterParts.join("&")}` : ""}`;
+
+      // Log query even for empty distance results
+      await supabase.from("chat_queries").insert({
+        user_id: user?.id ?? null,
+        ip_address: user ? null : ip,
+        query: message.trim(),
+        parsed_params: parsed as unknown as Json,
+        result_count: 0,
+      });
+
+      const searchTerm = parsed.search ?? message.trim();
+      return NextResponse.json({
+        reply: `Sorry, but there are no results for "${searchTerm}". Try a different search or browse all events!`,
+        events: [],
+        totalCount: 0,
+        filterUrl: emptyFilterUrl,
+      });
+    }
+    countQ = countQ.in("id", distanceEventIds);
+    dataQ = dataQ.in("id", distanceEventIds);
+  }
+
   if (parsed.dateFrom) {
     countQ = countQ.gte("date", parsed.dateFrom);
     dataQ = dataQ.gte("date", parsed.dateFrom);
@@ -219,6 +255,7 @@ export async function POST(request: Request) {
   if (parsed.dateFrom) filterParts.push(`from=${parsed.dateFrom}`);
   if (parsed.dateTo) filterParts.push(`to=${parsed.dateTo}`);
   if (parsed.when) filterParts.push(`when=${parsed.when}`);
+  if (parsed.distance) filterParts.push(`distance=${parsed.distance}`);
   const filterUrl = `/events${filterParts.length > 0 ? `?${filterParts.join("&")}` : ""}`;
 
   // Log query for rate limiting + analytics
