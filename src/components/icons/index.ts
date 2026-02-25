@@ -6,6 +6,7 @@ export { default as ChevronLeftIcon } from "./ChevronLeftIcon";
 export { default as ChevronRightIcon } from "./ChevronRightIcon";
 export { default as CloseFilledIcon } from "./CloseFilledIcon";
 export { default as CloseIcon } from "./CloseIcon";
+export { default as CogIcon } from "./CogIcon";
 export { default as DashboardIcon } from "./DashboardIcon";
 export { default as EnvelopeIcon } from "./EnvelopeIcon";
 export { default as ExploreIcon } from "./ExploreIcon";

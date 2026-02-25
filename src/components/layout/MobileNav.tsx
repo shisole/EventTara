@@ -6,9 +6,11 @@ import { usePathname } from "next/navigation";
 
 import {
   CalendarIcon,
+  CogIcon,
   DashboardIcon,
   ExploreIcon,
   HomeIcon,
+  LocationPinIcon,
   LoginIcon,
   ProfileIcon,
 } from "@/components/icons";
@@ -26,7 +28,37 @@ interface NavItem {
   isActive: (pathname: string) => boolean;
 }
 
-function getNavItems(user: User | null, role: string | null): NavItem[] {
+function getNavItems(user: User | null, role: string | null, pathname: string): NavItem[] {
+  // Dashboard-specific nav items when on /dashboard
+  if (user && role === "organizer" && pathname.startsWith("/dashboard")) {
+    return [
+      {
+        href: "/dashboard",
+        label: "Overview",
+        icon: DashboardIcon,
+        isActive: (p) => p === "/dashboard",
+      },
+      {
+        href: "/dashboard/events",
+        label: "Events",
+        icon: CalendarIcon,
+        isActive: (p) => p.startsWith("/dashboard/events"),
+      },
+      {
+        href: "/dashboard/guides",
+        label: "Guides",
+        icon: LocationPinIcon,
+        isActive: (p) => p.startsWith("/dashboard/guides"),
+      },
+      {
+        href: "/dashboard/settings",
+        label: "Settings",
+        icon: CogIcon,
+        isActive: (p) => p.startsWith("/dashboard/settings"),
+      },
+    ];
+  }
+
   const items: NavItem[] = [
     {
       href: "/",
@@ -63,7 +95,8 @@ function getNavItems(user: User | null, role: string | null): NavItem[] {
       href: "/profile",
       label: "Profile",
       icon: ProfileIcon,
-      isActive: (p) => p === "/profile" || p.startsWith("/profile/"),
+      isActive: (p) =>
+        p === "/profile" || p.startsWith("/profile/") || p.startsWith("/organizers/"),
     });
   } else {
     items.push({
@@ -80,16 +113,13 @@ function getNavItems(user: User | null, role: string | null): NavItem[] {
 export default function MobileNav({ user, role }: MobileNavProps) {
   const pathname = usePathname();
 
-  // Hide on dashboard pages (organizer has its own sidebar)
-  if (pathname.startsWith("/dashboard")) return null;
-
   // Hide on auth pages
   if (
     ["/login", "/signup", "/guest-setup", "/forgot-password", "/reset-password"].includes(pathname)
   )
     return null;
 
-  const navItems = getNavItems(user, role);
+  const navItems = getNavItems(user, role, pathname);
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 safe-area-bottom">
