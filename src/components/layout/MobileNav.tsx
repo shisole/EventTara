@@ -14,6 +14,7 @@ import {
   LoginIcon,
   ProfileIcon,
 } from "@/components/icons";
+import { useKeyboardHeight } from "@/lib/hooks/useKeyboardHeight";
 import { cn } from "@/lib/utils";
 
 interface MobileNavProps {
@@ -112,6 +113,8 @@ function getNavItems(user: User | null, role: string | null, pathname: string): 
 
 export default function MobileNav({ user, role }: MobileNavProps) {
   const pathname = usePathname();
+  const { keyboardHeight } = useKeyboardHeight();
+  const keyboardOpen = keyboardHeight > 0;
 
   // Hide on auth pages
   if (
@@ -122,7 +125,12 @@ export default function MobileNav({ user, role }: MobileNavProps) {
   const navItems = getNavItems(user, role, pathname);
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 safe-area-bottom">
+    <nav
+      className={cn(
+        "md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 safe-area-bottom transition-all duration-200",
+        keyboardOpen && "translate-y-full opacity-0 pointer-events-none",
+      )}
+    >
       <div className="flex items-center justify-around h-16 px-1">
         {navItems.map((item) => {
           const active = item.isActive(pathname);

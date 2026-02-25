@@ -30,12 +30,20 @@ function incrementUsed(): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify({ date: today, count: current + 1 }));
 }
 
+interface KeyboardState {
+  keyboardHeight: number;
+  viewportOffset: number;
+}
+
 interface ChatPanelProps {
   open: boolean;
   onClose: () => void;
+  keyboard?: KeyboardState;
 }
 
-export default function ChatPanel({ open, onClose }: ChatPanelProps) {
+const PANEL_MAX_HEIGHT = 460;
+
+export default function ChatPanel({ open, onClose, keyboard }: ChatPanelProps) {
   const searchParams = useSearchParams();
   const unlimitedChat = useMemo(() => searchParams.get("chat_debug") === "1", [searchParams]);
   const [messages, setMessages] = useState<ChatMessageType[]>([
@@ -149,13 +157,31 @@ export default function ChatPanel({ open, onClose }: ChatPanelProps) {
 
   const limitDots = Array.from({ length: DAILY_LIMIT }, (_, i) => i < remaining);
 
+  const kbHeight = keyboard?.keyboardHeight ?? 0;
+  const viewportOffset = keyboard?.viewportOffset ?? 0;
+  const keyboardOpen = kbHeight > 0;
+
+  // On iOS, when the keyboard opens the browser scrolls the page up.
+  // Fixed elements stay relative to the layout viewport, so bottom-based
+  // positioning breaks. Instead, use top-based positioning calculated from
+  // the visual viewport: place the panel so its bottom edge sits at the
+  // top of the keyboard (bottom of the visible area).
+  const keyboardStyle: React.CSSProperties | undefined = keyboardOpen
+    ? {
+        // Bottom of visible area = viewportOffset + visualViewport.height
+        // = viewportOffset + (window.innerHeight - kbHeight)
+        top: `${viewportOffset + (window.innerHeight - kbHeight) - PANEL_MAX_HEIGHT}px`,
+        bottom: "auto",
+        height: `${PANEL_MAX_HEIGHT}px`,
+      }
+    : undefined;
+
   return (
     <div
-      className={`fixed z-40 transition-all duration-300 ease-out ${
-        open
-          ? "opacity-100 translate-y-0 pointer-events-auto"
-          : "opacity-0 translate-y-8 pointer-events-none"
-      } bottom-[9.5rem] right-4 w-[calc(100vw-2rem)] max-w-[400px] h-[min(460px,calc(100vh-12rem))] md:bottom-6 md:right-[5.25rem] md:w-[400px] md:h-[min(500px,calc(100vh-6rem))]`}
+      className={`fixed z-40 transition-[opacity] duration-200 ease-out ${
+        open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+      } right-4 w-[calc(100vw-2rem)] max-w-[400px] ${keyboardOpen ? "" : "bottom-[9.5rem] h-[min(460px,calc(100vh-12rem))]"} md:bottom-6 md:right-[5.25rem] md:w-[400px] md:h-[min(500px,calc(100vh-6rem))]`}
+      style={keyboardStyle}
     >
       <div
         className={`flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-900 ${open ? "animate-chat-panel-up" : ""}`}
@@ -233,7 +259,7 @@ export default function ChatPanel({ open, onClose }: ChatPanelProps) {
               placeholder={remaining > 0 ? "Where's your next adventure?" : "Daily limit reached"}
               maxLength={500}
               disabled={loading || remaining === 0}
-              className="flex-1 rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:border-lime-400 focus:bg-white focus:shadow-sm disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500 dark:focus:border-lime-500 dark:focus:bg-gray-750"
+              className="flex-1 rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-base text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:border-lime-400 focus:bg-white focus:shadow-sm disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500 dark:focus:border-lime-500 dark:focus:bg-gray-750"
             />
             <button
               onClick={() => void handleSend()}
