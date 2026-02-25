@@ -275,6 +275,7 @@ export async function POST(request: Request) {
       max_participants: body.max_participants,
       price: body.price,
       cover_image_url: body.cover_image_url,
+      difficulty_level: body.difficulty_level ?? null,
       status: "draft",
     })
     .select()

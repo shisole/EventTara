@@ -51,6 +51,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       max_participants: body.max_participants,
       price: body.price,
       cover_image_url: body.cover_image_url,
+      ...(body.difficulty_level !== undefined && { difficulty_level: body.difficulty_level }),
       ...(body.status && { status: body.status }),
     })
     .eq("id", id)
