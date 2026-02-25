@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef } from "react";
 
+import { LocationPinIcon, SpinnerIcon } from "@/components/icons";
 import { Button } from "@/components/ui";
 
 interface NearbyState {
@@ -77,49 +78,12 @@ export default function NearbySort({ onLocationChange, active }: NearbySortProps
       >
         {loading ? (
           <>
-            <svg
-              className="h-4 w-4 animate-spin mr-1.5"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="3"
-              />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M12 2a10 10 0 0 1 10 10h-3a7 7 0 0 0-7-7V2z"
-              />
-            </svg>
+            <SpinnerIcon className="h-4 w-4 animate-spin mr-1.5" />
             Locating...
           </>
         ) : (
           <>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="w-4 h-4 mr-1"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
-              />
-            </svg>
+            <LocationPinIcon className="w-4 h-4 mr-1" />
             Near me
           </>
         )}

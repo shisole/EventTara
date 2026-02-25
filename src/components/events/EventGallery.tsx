@@ -3,6 +3,8 @@
 import Image from "next/image";
 import { useState, useRef } from "react";
 
+import { ChevronLeftIcon, ChevronRightIcon, CloseIcon } from "@/components/icons";
+
 interface Photo {
   id: string;
   image_url: string;
@@ -74,20 +76,7 @@ export default function EventGallery({ photos }: { photos: Photo[] }) {
               className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-10 w-11 h-11 flex items-center justify-center bg-white/20 hover:bg-white/40 rounded-full text-white transition-colors"
               aria-label="Previous photo"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-                stroke="currentColor"
-                className="w-6 h-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M15.75 19.5L8.25 12l7.5-7.5"
-                />
-              </svg>
+              <ChevronLeftIcon className="w-6 h-6" />
             </button>
           )}
 
@@ -101,16 +90,7 @@ export default function EventGallery({ photos }: { photos: Photo[] }) {
               className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-10 w-11 h-11 flex items-center justify-center bg-white/20 hover:bg-white/40 rounded-full text-white transition-colors"
               aria-label="Next photo"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-                stroke="currentColor"
-                className="w-6 h-6"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-              </svg>
+              <ChevronRightIcon className="w-6 h-6" />
             </button>
           )}
 
@@ -122,16 +102,7 @@ export default function EventGallery({ photos }: { photos: Photo[] }) {
             className="absolute top-4 right-4 z-10 w-11 h-11 flex items-center justify-center bg-white/20 hover:bg-white/40 rounded-full text-white transition-colors"
             aria-label="Close"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              className="w-6 h-6"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <CloseIcon className="w-6 h-6" />
           </button>
 
           <div

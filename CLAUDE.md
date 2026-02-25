@@ -97,6 +97,10 @@ Payload CMS v3 is integrated for headless content management:
 - Content types: pages, posts, media, etc.
 - GraphQL and REST APIs auto-generated at `/api/graphql` and `/api/*`
 
+### Icons
+
+All SVG icons live in `src/components/icons/` with a barrel export from `index.ts`. Never inline SVGs — import from this folder. Create new icon components when needed. Navigation icons (Home, Explore, Calendar, Dashboard, Profile, Login) support `variant?: "outline" | "filled"`.
+
 ### Styling
 
 Tailwind CSS with a custom theme (`tailwind.config.ts`):
