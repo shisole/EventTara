@@ -233,7 +233,7 @@ export default function ChatPanel({ open, onClose }: ChatPanelProps) {
               placeholder={remaining > 0 ? "Where's your next adventure?" : "Daily limit reached"}
               maxLength={500}
               disabled={loading || remaining === 0}
-              className="flex-1 rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:border-lime-400 focus:bg-white focus:shadow-sm disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500 dark:focus:border-lime-500 dark:focus:bg-gray-750"
+              className="flex-1 rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-base text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:border-lime-400 focus:bg-white focus:shadow-sm disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500 dark:focus:border-lime-500 dark:focus:bg-gray-750"
             />
             <button
               onClick={() => void handleSend()}
