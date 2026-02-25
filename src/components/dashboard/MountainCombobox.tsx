@@ -43,7 +43,11 @@ export default function MountainCombobox({
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
+      if (
+        wrapperRef.current &&
+        e.target instanceof Node &&
+        !wrapperRef.current.contains(e.target)
+      ) {
         setOpen(false);
       }
     }
