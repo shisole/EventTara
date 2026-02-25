@@ -5,8 +5,9 @@ import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import MobileDrawer from "@/components/layout/MobileDrawer";
 import { createClient } from "@/lib/supabase/client";
+
+const MobileDrawer = dynamic(() => import("@/components/layout/MobileDrawer"));
 
 const Navbar = dynamic(() => import("@/components/layout/Navbar"), {
   loading: () => (
@@ -58,14 +59,19 @@ const activities = [
   },
 ];
 
-export default function ClientShell({ children }: { children: React.ReactNode }) {
+interface ClientShellProps {
+  children: React.ReactNode;
+  initialNavLayout?: string;
+}
+
+export default function ClientShell({ children, initialNavLayout = "strip" }: ClientShellProps) {
   const pathname = usePathname();
   const supabase = createClient();
   const [user, setUser] = useState<User | null>(null);
   const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [navLayout, setNavLayout] = useState<string>("strip");
+  const [navLayout] = useState<string>(initialNavLayout);
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
 
@@ -109,22 +115,6 @@ export default function ClientShell({ children }: { children: React.ReactNode })
       subscription.unsubscribe();
     };
   }, [supabase, fetchRole]);
-
-  // Fetch nav layout from Payload site-settings
-  useEffect(() => {
-    const fetchNavLayout = async () => {
-      try {
-        const res = await fetch("/api/globals/site-settings");
-        if (res.ok) {
-          const data: { navLayout?: string } = await res.json();
-          if (data.navLayout) setNavLayout(data.navLayout);
-        }
-      } catch {
-        // Payload unavailable — keep default "strip"
-      }
-    };
-    void fetchNavLayout();
-  }, []);
 
   // Edge swipe detection (right 20px edge, swipe left to open)
   useEffect(() => {

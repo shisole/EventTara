@@ -78,17 +78,26 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const settings = await getCachedSiteSettings();
+  const navLayout = (settings?.navLayout as string) || "strip";
+
   return (
     <html
       lang="en"
       className={`${inter.variable} ${plusJakarta.variable}`}
       suppressHydrationWarning
     >
+      <head>
+        {process.env.NEXT_PUBLIC_SUPABASE_URL && (
+          <link rel="preconnect" href={process.env.NEXT_PUBLIC_SUPABASE_URL} />
+        )}
+        <link rel="preconnect" href="https://images.unsplash.com" />
+      </head>
       <GoogleAnalytics />
       <body className="font-sans min-h-screen flex flex-col">
         <ThemeProvider>
-          <ClientShell>{children}</ClientShell>
+          <ClientShell initialNavLayout={navLayout}>{children}</ClientShell>
           <Footer />
         </ThemeProvider>
       </body>
