@@ -6,9 +6,8 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 
 import { Button, Input } from "@/components/ui";
-import { findProvinceFromLocation } from "@/lib/constants/philippine-provinces";
-
 import DifficultyBadge from "@/components/events/DifficultyBadge";
+import { findProvinceFromLocation } from "@/lib/constants/philippine-provinces";
 
 import MountainCombobox, { type SelectedMountain } from "./MountainCombobox";
 import PhotoUploader from "./PhotoUploader";
@@ -387,7 +386,7 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
       }
       setLoadingMountains(false);
     };
-    fetchMountains();
+    void fetchMountains();
   }, [type]);
 
   useEffect(() => {
