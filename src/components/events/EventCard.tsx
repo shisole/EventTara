@@ -5,6 +5,7 @@ import { Card, UIBadge } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { formatEventDate } from "@/lib/utils/format-date";
 
+import DifficultyBadge from "./DifficultyBadge";
 import OrganizerLink from "./OrganizerLink";
 
 type EventStatus = "upcoming" | "happening_now" | "past";
@@ -26,6 +27,7 @@ interface EventCardProps {
   distance?: number;
   avg_rating?: number;
   review_count?: number;
+  difficulty_level?: number | null;
 }
 
 const typeLabels: Record<string, string> = {
@@ -53,6 +55,7 @@ export default function EventCard({
   distance,
   avg_rating,
   review_count,
+  difficulty_level,
 }: EventCardProps) {
   const spotsLeft = max_participants - booking_count;
   const formattedDate = formatEventDate(date, endDate, { short: true });
@@ -95,7 +98,12 @@ export default function EventCard({
           )}
         </div>
         <div className="p-4 space-y-2">
-          <UIBadge variant={type}>{typeLabels[type] || type}</UIBadge>
+          <div className="flex items-center gap-2">
+            <UIBadge variant={type}>{typeLabels[type] || type}</UIBadge>
+            {difficulty_level != null && (
+              <DifficultyBadge level={difficulty_level} />
+            )}
+          </div>
           <h3 className="font-heading font-bold text-lg line-clamp-1">{title}</h3>
           {organizer_name && organizer_id ? (
             <OrganizerLink organizerId={organizer_id} name={organizer_name} />

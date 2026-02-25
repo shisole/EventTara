@@ -28,6 +28,7 @@ export interface EventData {
   coordinates?: { lat: number; lng: number } | null;
   avg_rating?: number;
   review_count?: number;
+  difficulty_level?: number | null;
 }
 
 export interface UserResult {

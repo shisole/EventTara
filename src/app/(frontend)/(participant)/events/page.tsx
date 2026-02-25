@@ -258,6 +258,7 @@ export default async function EventsPage({
       coordinates: event.coordinates as { lat: number; lng: number } | null,
       avg_rating: stats?.avg,
       review_count: stats?.count,
+      difficulty_level: event.difficulty_level,
     };
   });
 
