@@ -2,14 +2,16 @@
 
 import confetti from "canvas-confetti";
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
-import { Button } from "@/components/ui";
+import { Button, OtpCodeInput } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
+import { generateUsername } from "@/lib/utils/generate-username";
 
 type ModalState = "email" | "verify-code" | "success";
 
 const CODE_LENGTH = 6;
+const emptyCode = () => Array.from<string>({ length: CODE_LENGTH }).fill("");
 
 interface AuthBookingModalProps {
   eventName: string;
@@ -25,12 +27,11 @@ export default function AuthBookingModal({
   const router = useRouter();
   const [state, setState] = useState<ModalState>("email");
   const [email, setEmail] = useState("");
-  const [code, setCode] = useState<string[]>(Array.from<string>({ length: CODE_LENGTH }).fill(""));
+  const [code, setCode] = useState<string[]>(emptyCode());
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [userDisplay, setUserDisplay] = useState("");
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   // Animate in on mount
   useEffect(() => {
@@ -108,45 +109,6 @@ export default function AuthBookingModal({
     }
   };
 
-  const handleCodeChange = (index: number, value: string) => {
-    if (!/^\d*$/.test(value)) return;
-
-    const newCode = [...code];
-    newCode[index] = value.slice(-1);
-    setCode(newCode);
-    setError("");
-
-    // Auto-advance to next input
-    if (value && index < CODE_LENGTH - 1) {
-      inputRefs.current[index + 1]?.focus();
-    }
-  };
-
-  const handleCodeKeyDown = (index: number, e: React.KeyboardEvent) => {
-    if (e.key === "Backspace" && !code[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
-  };
-
-  const handleCodePaste = (e: React.ClipboardEvent) => {
-    e.preventDefault();
-    const pasted = e.clipboardData.getData("text").replaceAll(/\D/g, "").slice(0, CODE_LENGTH);
-    if (!pasted) return;
-
-    const newCode = [...code];
-    let idx = 0;
-    for (const char of pasted) {
-      newCode[idx] = char;
-      idx++;
-    }
-    setCode(newCode);
-    setError("");
-
-    // Focus the next empty input or the last one
-    const nextEmpty = newCode.findIndex((c) => !c);
-    inputRefs.current[nextEmpty === -1 ? CODE_LENGTH - 1 : nextEmpty]?.focus();
-  };
-
   const handleVerifyCode = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -168,39 +130,12 @@ export default function AuthBookingModal({
 
       if (verifyError) {
         setError(verifyError.message || "Invalid code. Please try again.");
-        setCode(Array.from<string>({ length: CODE_LENGTH }).fill(""));
-        inputRefs.current[0]?.focus();
+        setCode(emptyCode());
         return;
       }
 
-      // Auto-generate username from email prefix if user doesn't have one
       if (data.user) {
-        const { data: existingUser } = await supabase
-          .from("users")
-          .select("username")
-          .eq("id", data.user.id)
-          .single();
-
-        if (existingUser && !existingUser.username) {
-          const prefix = userDisplay
-            .split("@")[0]
-            .toLowerCase()
-            .replaceAll(/[^a-z0-9._-]/g, "");
-          let username = prefix || "user";
-
-          // Check if taken, append random number if so
-          const { data: taken } = await supabase
-            .from("users")
-            .select("id")
-            .eq("username", username)
-            .single();
-
-          if (taken) {
-            username = `${username}${Math.floor(Math.random() * 9000) + 1000}`;
-          }
-
-          await supabase.from("users").update({ username }).eq("id", data.user.id);
-        }
+        await generateUsername(supabase, data.user.id, userDisplay);
       }
 
       const displayName = data.user?.user_metadata?.full_name || data.user?.email || userDisplay;
@@ -228,8 +163,7 @@ export default function AuthBookingModal({
           setError(otpError.message || "Something went wrong. Please try again.");
         }
       } else {
-        setCode(Array.from<string>({ length: CODE_LENGTH }).fill(""));
-        inputRefs.current[0]?.focus();
+        setCode(emptyCode());
       }
     } catch {
       setError("Something went wrong. Please try again.");
@@ -338,93 +272,23 @@ export default function AuthBookingModal({
         )}
 
         {state === "verify-code" && (
-          <form onSubmit={handleVerifyCode} className="space-y-5">
-            <div className="text-center">
-              <div className="w-14 h-14 bg-teal-100 dark:bg-teal-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg
-                  className="w-7 h-7 text-teal-600 dark:text-teal-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
-                  />
-                </svg>
-              </div>
-              <h2 className="text-xl font-heading font-bold text-gray-900 dark:text-white">
-                Enter your code
-              </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                We sent a 6-digit code to{" "}
-                <span className="font-medium text-gray-900 dark:text-white">{userDisplay}</span>
-              </p>
-            </div>
-
-            <div className="flex justify-center gap-2" onPaste={handleCodePaste}>
-              {code.map((digit, i) => (
-                <input
-                  key={i}
-                  ref={(el) => {
-                    inputRefs.current[i] = el;
-                  }}
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={1}
-                  value={digit}
-                  onChange={(e) => {
-                    handleCodeChange(i, e.target.value);
-                  }}
-                  onKeyDown={(e) => {
-                    handleCodeKeyDown(i, e);
-                  }}
-                  autoFocus={i === 0}
-                  className="w-12 h-14 text-center text-xl font-bold rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-lime-500 focus:border-transparent outline-none transition-colors"
-                />
-              ))}
-            </div>
-
-            {error && (
-              <p className="text-sm text-red-500 text-center" role="alert">
-                {error}
-              </p>
-            )}
-
-            <Button
-              type="submit"
-              className="w-full"
-              size="lg"
-              disabled={loading || code.join("").length !== CODE_LENGTH}
-            >
-              {loading ? "Verifying..." : "Verify"}
-            </Button>
-
-            <div className="text-center">
-              <button
-                type="button"
-                onClick={handleResend}
-                disabled={loading}
-                className="text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 disabled:opacity-50"
-              >
-                Didn&apos;t get it? Resend code
-              </button>
-              <span className="mx-2 text-gray-300 dark:text-gray-600">|</span>
-              <button
-                type="button"
-                onClick={() => {
-                  setError("");
-                  setCode(Array.from<string>({ length: CODE_LENGTH }).fill(""));
-                  setState("email");
-                }}
-                className="text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
-              >
-                Change email
-              </button>
-            </div>
-          </form>
+          <OtpCodeInput
+            email={userDisplay}
+            code={code}
+            onCodeChange={(newCode) => {
+              setCode(newCode);
+              setError("");
+            }}
+            onSubmit={handleVerifyCode}
+            onResend={handleResend}
+            onChangeEmail={() => {
+              setError("");
+              setCode(emptyCode());
+              setState("email");
+            }}
+            loading={loading}
+            error={error}
+          />
         )}
 
         {state === "success" && (

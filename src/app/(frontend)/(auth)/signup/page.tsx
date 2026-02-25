@@ -2,21 +2,34 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useState, useEffect } from "react";
+import { Suspense, useState, useEffect, useRef } from "react";
 
-import { Button, Input } from "@/components/ui";
+import { Button, Input, OtpCodeInput } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import { generateUsername } from "@/lib/utils/generate-username";
+
+const CODE_LENGTH = 6;
+const emptyCode = () => Array.from<string>({ length: CODE_LENGTH }).fill("");
+
+type SignupState = "details" | "verify-code" | "success";
+type AuthMethod = "password" | "otp";
 
 function SignupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
+
+  const [state, setState] = useState<SignupState>("details");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [authMethod, setAuthMethod] = useState<AuthMethod>("password");
+
+  // Password fields
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const isOrganizerEntry = searchParams.get("role") === "organizer";
 
@@ -30,41 +43,205 @@ function SignupForm() {
   const [isOrganizer, setIsOrganizer] = useState(isOrganizerEntry);
   const [orgName, setOrgName] = useState("");
 
+  // OTP code state
+  const [code, setCode] = useState<string[]>(emptyCode());
+
+  // Store metadata to apply after verification
+  const metadataRef = useRef<Record<string, string>>({});
+
+  const buildMetadata = () => {
+    const metadata: Record<string, string> = { full_name: fullName.trim() };
+    if (isOrganizer) {
+      metadata.role = "organizer";
+      metadata.org_name = orgName.trim();
+    }
+    return metadata;
+  };
+
+  const handlePostSignup = async (userId: string) => {
+    const metadata = buildMetadata();
+
+    if (metadata.full_name) {
+      await supabase.from("users").update({ full_name: metadata.full_name }).eq("id", userId);
+    }
+
+    await generateUsername(supabase, userId, email);
+
+    if (metadata.role === "organizer" && metadata.org_name) {
+      await supabase.from("users").update({ role: "organizer" }).eq("id", userId);
+
+      const { data: existingProfile } = await supabase
+        .from("organizer_profiles")
+        .select("id")
+        .eq("user_id", userId)
+        .single();
+
+      if (!existingProfile) {
+        await supabase
+          .from("organizer_profiles")
+          .insert({ user_id: userId, org_name: metadata.org_name });
+      }
+    }
+  };
+
+  const validateForm = () => {
+    if (isOrganizer && !orgName.trim()) {
+      setError("Organization name is required.");
+      return false;
+    }
+
+    const trimmed = email.trim();
+    if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setError("Please enter a valid email address.");
+      return false;
+    }
+
+    if (authMethod === "password") {
+      if (password.length < 6) {
+        setError("Password must be at least 6 characters.");
+        return false;
+      }
+      if (password !== confirmPassword) {
+        setError("Passwords do not match.");
+        return false;
+      }
+    }
+
+    return true;
+  };
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
-    const metadata: Record<string, string> = { full_name: fullName };
-
-    if (isOrganizer) {
-      if (!orgName.trim()) {
-        setError("Organization name is required.");
-        setLoading(false);
-        return;
-      }
-      metadata.role = "organizer";
-      metadata.org_name = orgName.trim();
+    if (!validateForm()) {
+      setLoading(false);
+      return;
     }
 
-    const { data, error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: metadata,
-        emailRedirectTo: `${globalThis.location.origin}/auth/callback`,
-      },
-    });
+    const metadata = buildMetadata();
+    metadataRef.current = metadata;
 
-    if (signUpError) {
-      setError(signUpError.message);
+    try {
+      if (authMethod === "password") {
+        const { data, error: signupError } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+          options: { data: metadata },
+        });
+
+        if (signupError) {
+          if (signupError.message?.includes("already registered")) {
+            setError("This email is already registered. Try signing in instead.");
+          } else {
+            setError(signupError.message || "Something went wrong. Please try again.");
+          }
+          return;
+        }
+
+        if (data.user) {
+          await handlePostSignup(data.user.id);
+        }
+
+        setState("success");
+        setTimeout(() => {
+          router.push(isOrganizer ? "/dashboard" : "/events");
+          router.refresh();
+        }, 2000);
+      } else {
+        // OTP flow
+        const { error: otpError } = await supabase.auth.signInWithOtp({
+          email: email.trim(),
+          options: { data: metadata },
+        });
+
+        if (otpError) {
+          if (otpError.message?.includes("rate")) {
+            setError("Too many attempts. Try again in a few minutes.");
+          } else {
+            setError(otpError.message || "Something went wrong. Please try again.");
+          }
+          return;
+        }
+
+        setState("verify-code");
+      }
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
       setLoading(false);
-    } else if (data.user && data.user.identities?.length === 0) {
-      setError("This email is already registered.");
+    }
+  };
+
+  const handleVerifyCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    const token = code.join("");
+    if (token.length !== CODE_LENGTH) {
+      setError("Please enter the full 6-digit code.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data, error: verifyError } = await supabase.auth.verifyOtp({
+        email: email.trim(),
+        token,
+        type: "email",
+      });
+
+      if (verifyError) {
+        setError(verifyError.message || "Invalid code. Please try again.");
+        setCode(emptyCode());
+        return;
+      }
+
+      if (data.user) {
+        await handlePostSignup(data.user.id);
+      }
+
+      setState("success");
+
+      setTimeout(() => {
+        if (isOrganizer) {
+          router.push("/dashboard");
+        } else {
+          router.push("/events");
+        }
+        router.refresh();
+      }, 2000);
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
       setLoading(false);
-    } else {
-      router.push(`/check-email?email=${encodeURIComponent(email)}`);
-      router.refresh();
+    }
+  };
+
+  const handleResend = async () => {
+    setError("");
+    setLoading(true);
+    try {
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        email: email.trim(),
+        options: {
+          data: metadataRef.current,
+        },
+      });
+      if (otpError) {
+        if (otpError.message?.includes("rate")) {
+          setError("Too many attempts. Try again in a few minutes.");
+        } else {
+          setError(otpError.message || "Something went wrong. Please try again.");
+        }
+      } else {
+        setCode(emptyCode());
+      }
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -77,6 +254,62 @@ function SignupForm() {
     });
     if (error) setError(error.message);
   };
+
+  if (state === "verify-code") {
+    return (
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md p-8 space-y-6">
+        <OtpCodeInput
+          email={email}
+          code={code}
+          onCodeChange={(newCode) => {
+            setCode(newCode);
+            setError("");
+          }}
+          onSubmit={handleVerifyCode}
+          onResend={handleResend}
+          onChangeEmail={() => {
+            setError("");
+            setCode(emptyCode());
+            setState("details");
+          }}
+          loading={loading}
+          error={error}
+        />
+      </div>
+    );
+  }
+
+  if (state === "success") {
+    return (
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md p-8 space-y-6">
+        <div className="text-center space-y-3">
+          <div className="w-14 h-14 bg-lime-100 dark:bg-lime-900/30 rounded-full flex items-center justify-center mx-auto">
+            <svg
+              className="w-7 h-7 text-lime-600 dark:text-lime-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </div>
+          <h2 className="text-xl font-heading font-bold text-gray-900 dark:text-white">
+            You&apos;re all set!
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Welcome,{" "}
+            <span className="font-medium text-gray-900 dark:text-white">{fullName || email}</span>!
+            Redirecting...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md p-8 space-y-6">
@@ -130,18 +363,56 @@ function SignupForm() {
           placeholder="you@example.com"
           required
         />
-        <Input
-          id="password"
-          label="Password"
-          type="password"
-          value={password}
-          onChange={(e) => {
-            setPassword(e.target.value);
-          }}
-          placeholder="At least 6 characters"
-          minLength={6}
-          required
-        />
+
+        {/* Password fields (shown when password method is selected) */}
+        <div
+          className={cn(
+            "grid transition-all duration-300 ease-in-out",
+            authMethod === "password" ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+          )}
+        >
+          <div className="overflow-hidden">
+            <div className="space-y-4">
+              <Input
+                id="password"
+                label="Password"
+                type="password"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                }}
+                placeholder="At least 6 characters"
+                required={authMethod === "password"}
+                minLength={6}
+              />
+              <Input
+                id="confirmPassword"
+                label="Confirm Password"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                }}
+                placeholder="Re-enter your password"
+                required={authMethod === "password"}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Auth method toggle */}
+        <div className="text-center">
+          <button
+            type="button"
+            onClick={() => {
+              setAuthMethod(authMethod === "password" ? "otp" : "password");
+              setError("");
+            }}
+            className="text-sm text-lime-600 dark:text-lime-400 hover:text-lime-700 dark:hover:text-lime-300 font-medium"
+          >
+            {authMethod === "password" ? "Use code instead" : "Use password instead"}
+          </button>
+        </div>
 
         {/* Organizer toggle */}
         <label className="flex items-center gap-3 cursor-pointer select-none py-1">
@@ -198,11 +469,19 @@ function SignupForm() {
         {error && <p className="text-sm text-red-500">{error}</p>}
         <Button type="submit" className="w-full" size="lg" disabled={loading}>
           {loading
-            ? "Creating account..."
+            ? authMethod === "password"
+              ? "Creating account..."
+              : "Sending code..."
             : isOrganizer
               ? "Create Organizer Account"
               : "Create Account"}
         </Button>
+
+        {authMethod === "otp" && (
+          <p className="text-xs text-center text-gray-400 dark:text-gray-500">
+            We&apos;ll send a 6-digit code to your email to verify your account.
+          </p>
+        )}
       </form>
 
       <p className="text-center text-sm text-gray-500 dark:text-gray-400">
