@@ -192,15 +192,20 @@ function SignupForm() {
           return;
         }
 
-        if (data.user) {
-          await handlePostSignup(data.user.id);
+        if (data.session) {
+          // Email confirmation not required — session is active immediately
+          if (data.user) {
+            await handlePostSignup(data.user.id);
+          }
+          setState("success");
+          setTimeout(() => {
+            router.push(isOrganizer ? "/dashboard" : "/events");
+            router.refresh();
+          }, 2000);
+        } else {
+          // Email confirmation required — show OTP verification screen
+          setState("verify-code");
         }
-
-        setState("success");
-        setTimeout(() => {
-          router.push(isOrganizer ? "/dashboard" : "/events");
-          router.refresh();
-        }, 2000);
       } else {
         // OTP flow
         const { error: otpError } = await supabase.auth.signInWithOtp({
@@ -241,7 +246,7 @@ function SignupForm() {
       const { data, error: verifyError } = await supabase.auth.verifyOtp({
         email: email.trim(),
         token,
-        type: "email",
+        type: authMethod === "password" ? "signup" : "email",
       });
 
       if (verifyError) {
@@ -275,20 +280,36 @@ function SignupForm() {
     setError("");
     setLoading(true);
     try {
-      const { error: otpError } = await supabase.auth.signInWithOtp({
-        email: email.trim(),
-        options: {
-          data: metadataRef.current,
-        },
-      });
-      if (otpError) {
-        if (otpError.message?.includes("rate")) {
-          setError("Too many attempts. Try again in a few minutes.");
+      if (authMethod === "password") {
+        const { error: resendError } = await supabase.auth.resend({
+          type: "signup",
+          email: email.trim(),
+        });
+        if (resendError) {
+          if (resendError.message?.includes("rate")) {
+            setError("Too many attempts. Try again in a few minutes.");
+          } else {
+            setError(resendError.message || "Something went wrong. Please try again.");
+          }
         } else {
-          setError(otpError.message || "Something went wrong. Please try again.");
+          setCode(emptyCode());
         }
       } else {
-        setCode(emptyCode());
+        const { error: otpError } = await supabase.auth.signInWithOtp({
+          email: email.trim(),
+          options: {
+            data: metadataRef.current,
+          },
+        });
+        if (otpError) {
+          if (otpError.message?.includes("rate")) {
+            setError("Too many attempts. Try again in a few minutes.");
+          } else {
+            setError(otpError.message || "Something went wrong. Please try again.");
+          }
+        } else {
+          setCode(emptyCode());
+        }
       }
     } catch {
       setError("Something went wrong. Please try again.");
