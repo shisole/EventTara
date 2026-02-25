@@ -10,6 +10,7 @@ import Navbar from "@/components/layout/Navbar";
 import { createClient } from "@/lib/supabase/client";
 
 const MobileDrawer = dynamic(() => import("@/components/layout/MobileDrawer"));
+const ChatBubble = dynamic(() => import("@/components/chat/ChatBubble"), { ssr: false });
 
 const activities = [
   {
@@ -177,6 +178,8 @@ export default function ClientShell({ children, initialNavLayout = "strip" }: Cl
         role={role}
         onLogout={() => void handleLogout()}
       />
+
+      <ChatBubble />
     </>
   );
 }

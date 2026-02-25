@@ -92,6 +92,76 @@
   animation: fullscreenSlideUp 0.2s ease-out;
 }
 
+/* Chat bubble & panel animations */
+@keyframes chatBubbleIn {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes chatPanelUp {
+  from {
+    transform: translateY(1rem) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes chatMessageIn {
+  from {
+    transform: translateY(0.5rem);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes chatBubbleWiggle {
+  0%,
+  92% {
+    transform: rotate(0deg) scale(1);
+  }
+  94% {
+    transform: rotate(-8deg) scale(1.1);
+  }
+  96% {
+    transform: rotate(8deg) scale(1.1);
+  }
+  98% {
+    transform: rotate(-4deg) scale(1.05);
+  }
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+.animate-chat-bubble-in {
+  animation:
+    chatBubbleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+    chatBubbleWiggle 8s ease-in-out 3s infinite;
+}
+
+.animate-chat-panel-up {
+  animation: chatPanelUp 0.25s ease-out forwards;
+}
+
+.animate-chat-message-in {
+  animation: chatMessageIn 0.3s ease-out forwards;
+}
+
 /* Hero carousel crossfade animation */
 @keyframes heroFade {
   0%,

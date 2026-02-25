@@ -1,4 +1,5 @@
 export { default as CalendarIcon } from "./CalendarIcon";
+export { default as ChatIcon } from "./ChatIcon";
 export { default as CheckCircleIcon } from "./CheckCircleIcon";
 export { default as CheckIcon } from "./CheckIcon";
 export { default as ChevronDownIcon } from "./ChevronDownIcon";
@@ -19,6 +20,7 @@ export { default as LoginIcon } from "./LoginIcon";
 export { default as MenuIcon } from "./MenuIcon";
 export { default as MoonIcon } from "./MoonIcon";
 export { default as ProfileIcon } from "./ProfileIcon";
+export { default as SendIcon } from "./SendIcon";
 export { default as ShareIcon } from "./ShareIcon";
 export { default as SpinnerIcon } from "./SpinnerIcon";
 export { default as StarIcon } from "./StarIcon";
