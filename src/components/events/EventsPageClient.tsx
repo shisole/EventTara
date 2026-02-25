@@ -3,7 +3,10 @@
 import { useState } from "react";
 
 import EventFilters from "@/components/events/EventFilters";
-import EventsListClient, { type EventData } from "@/components/events/EventsListClient";
+import EventsListClient, {
+  type EventData,
+  type UserResult,
+} from "@/components/events/EventsListClient";
 
 interface FilterOption {
   id: string;
@@ -15,6 +18,7 @@ interface EventsPageClientProps {
   totalCount: number;
   organizers: FilterOption[];
   guides: FilterOption[];
+  initialUsers?: UserResult[];
 }
 
 export default function EventsPageClient({
@@ -22,6 +26,7 @@ export default function EventsPageClient({
   totalCount,
   organizers,
   guides,
+  initialUsers = [],
 }: EventsPageClientProps) {
   const [isFiltering, setIsFiltering] = useState(false);
 
@@ -40,6 +45,7 @@ export default function EventsPageClient({
         initialEvents={initialEvents}
         totalCount={totalCount}
         isFiltering={isFiltering}
+        initialUsers={initialUsers}
       />
     </>
   );

@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState, useEffect, useRef, useCallback } from "react";
 
@@ -28,20 +30,36 @@ export interface EventData {
   review_count?: number;
 }
 
+export interface UserResult {
+  id: string;
+  username: string;
+  full_name: string;
+  avatar_url: string | null;
+}
+
+interface EventsApiResponse {
+  events: EventData[];
+  totalCount: number;
+  users?: UserResult[];
+}
+
 interface EventsListClientProps {
   initialEvents: EventData[];
   totalCount: number;
   isFiltering?: boolean;
+  initialUsers?: UserResult[];
 }
 
 export default function EventsListClient({
   initialEvents,
   totalCount,
   isFiltering,
+  initialUsers = [],
 }: EventsListClientProps) {
   const searchParams = useSearchParams();
   const [currentPage, setCurrentPage] = useState(1);
   const [events, setEvents] = useState<EventData[]>(initialEvents);
+  const [users, setUsers] = useState<UserResult[]>(initialUsers);
   const [loadedCount, setLoadedCount] = useState(initialEvents.length);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -55,9 +73,10 @@ export default function EventsListClient({
   useEffect(() => {
     setCurrentPage(1);
     setEvents(initialEvents);
+    setUsers(initialUsers);
     setLoadedCount(initialEvents.length);
     setHasMore(initialEvents.length < Math.min(totalCount, MAX_INFINITE));
-  }, [initialEvents, totalCount]);
+  }, [initialEvents, initialUsers, totalCount]);
 
   const buildApiUrl = useCallback(
     (offset: number) => {
@@ -97,8 +116,8 @@ export default function EventsListClient({
     setIsLoadingMore(true);
     try {
       const res = await fetch(buildApiUrl(nextOffset));
-      const data = await res.json();
-      const newEvents = data.events as EventData[];
+      const data: EventsApiResponse = await res.json();
+      const newEvents = data.events;
 
       setEvents((prev) => [...prev, ...newEvents]);
       setLoadedCount((prev) => prev + newEvents.length);
@@ -143,10 +162,11 @@ export default function EventsListClient({
     const offset = (page - 1) * MAX_INFINITE;
     try {
       const res = await fetch(buildApiUrl(offset));
-      const data = await res.json();
-      const newEvents = data.events as EventData[];
+      const data: EventsApiResponse = await res.json();
+      const newEvents = data.events;
 
       setEvents(newEvents);
+      setUsers(data.users ?? []);
       setLoadedCount(newEvents.length);
 
       const maxForPage = Math.min(totalCount - offset, MAX_INFINITE);
@@ -185,6 +205,43 @@ export default function EventsListClient({
 
   return (
     <div>
+      {users.length > 0 && (
+        <div className="mb-6">
+          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">People</h3>
+          <div className="flex gap-3 overflow-x-auto pb-2">
+            {users.map((user) => (
+              <Link
+                key={user.id}
+                href={`/profile/${user.username}`}
+                className="flex items-center gap-3 px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl hover:border-lime-400 dark:hover:border-lime-600 transition-colors min-w-[200px] shrink-0"
+              >
+                {user.avatar_url ? (
+                  <Image
+                    src={user.avatar_url}
+                    alt={user.full_name}
+                    width={36}
+                    height={36}
+                    className="rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-9 h-9 rounded-full bg-lime-100 dark:bg-lime-900/30 flex items-center justify-center text-sm font-bold text-lime-700 dark:text-lime-400">
+                    {user.full_name.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                    {user.full_name}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                    @{user.username}
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
       <EventsGrid events={events} />
 
       {/* Infinite scroll sentinel */}

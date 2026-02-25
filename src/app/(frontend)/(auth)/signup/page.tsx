@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useState, useEffect, useRef } from "react";
+import { Suspense, useState, useEffect, useRef, useCallback } from "react";
 
 import { CheckCircleIcon } from "@/components/icons";
 import { Button, Input, OtpCodeInput } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { generateUsername } from "@/lib/utils/generate-username";
+
+const USERNAME_REGEX = /^[a-z0-9._-]{3,30}$/;
 
 const CODE_LENGTH = 6;
 const emptyCode = () => Array.from<string>({ length: CODE_LENGTH }).fill("");
@@ -28,6 +30,13 @@ function SignupForm() {
   const [loading, setLoading] = useState(false);
   const [authMethod, setAuthMethod] = useState<AuthMethod>("password");
 
+  // Username field
+  const [username, setUsername] = useState("");
+  const [usernameStatus, setUsernameStatus] = useState<
+    "idle" | "checking" | "available" | "taken" | "invalid"
+  >("idle");
+  const usernameTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // Password fields
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -39,6 +48,33 @@ function SignupForm() {
       if (user && !user.is_anonymous) router.replace("/");
     });
   }, [supabase, router]);
+
+  const checkUsername = useCallback((value: string) => {
+    if (usernameTimerRef.current) clearTimeout(usernameTimerRef.current);
+
+    const normalized = value.toLowerCase().trim();
+    if (!normalized) {
+      setUsernameStatus("idle");
+      return;
+    }
+    if (!USERNAME_REGEX.test(normalized)) {
+      setUsernameStatus("invalid");
+      return;
+    }
+
+    setUsernameStatus("checking");
+    usernameTimerRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `/api/users/check-username?username=${encodeURIComponent(normalized)}`,
+        );
+        const data: { available: boolean } = await res.json();
+        setUsernameStatus(data.available ? "available" : "taken");
+      } catch {
+        setUsernameStatus("idle");
+      }
+    }, 400);
+  }, []);
 
   // Organizer fields
   const [isOrganizer, setIsOrganizer] = useState(isOrganizerEntry);
@@ -66,7 +102,10 @@ function SignupForm() {
       await supabase.from("users").update({ full_name: metadata.full_name }).eq("id", userId);
     }
 
-    await generateUsername(supabase, userId, email);
+    const trimmedUsername = username.toLowerCase().trim();
+    await (trimmedUsername && USERNAME_REGEX.test(trimmedUsername)
+      ? supabase.from("users").update({ username: trimmedUsername }).eq("id", userId)
+      : generateUsername(supabase, userId, email));
 
     if (metadata.role === "organizer" && metadata.org_name) {
       await supabase.from("users").update({ role: "organizer" }).eq("id", userId);
@@ -86,6 +125,18 @@ function SignupForm() {
   };
 
   const validateForm = () => {
+    const trimmedUsername = username.toLowerCase().trim();
+    if (trimmedUsername && !USERNAME_REGEX.test(trimmedUsername)) {
+      setError(
+        "Username must be 3-30 characters: lowercase letters, numbers, dots, underscores, or hyphens.",
+      );
+      return false;
+    }
+    if (trimmedUsername && usernameStatus === "taken") {
+      setError("That username is already taken.");
+      return false;
+    }
+
     if (isOrganizer && !orgName.trim()) {
       setError("Organization name is required.");
       return false;
@@ -341,6 +392,93 @@ function SignupForm() {
           placeholder="Juan Dela Cruz"
           required
         />
+        <div className="space-y-1">
+          <label
+            htmlFor="username"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
+            Username
+          </label>
+          <div className="relative">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm select-none pointer-events-none">
+              @
+            </span>
+            <input
+              id="username"
+              type="text"
+              value={username}
+              onChange={(e) => {
+                const val = e.target.value.toLowerCase().replaceAll(/[^a-z0-9._-]/g, "");
+                setUsername(val);
+                checkUsername(val);
+              }}
+              placeholder="your.username"
+              maxLength={30}
+              className={cn(
+                "w-full pl-8 pr-10 py-3 rounded-xl border bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 outline-none transition-colors",
+                usernameStatus === "available"
+                  ? "border-green-500 focus:border-green-500 focus:ring-2 focus:ring-green-200 dark:focus:ring-green-800"
+                  : usernameStatus === "taken" || usernameStatus === "invalid"
+                    ? "border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-800"
+                    : "border-gray-300 dark:border-gray-600 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800",
+              )}
+            />
+            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+              {usernameStatus === "checking" && (
+                <svg className="h-4 w-4 animate-spin text-gray-400" viewBox="0 0 24 24" fill="none">
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M12 2a10 10 0 0 1 10 10h-3a7 7 0 0 0-7-7V2z"
+                  />
+                </svg>
+              )}
+              {usernameStatus === "available" && (
+                <svg className="h-4 w-4 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                  <path
+                    fillRule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              )}
+              {usernameStatus === "taken" && (
+                <svg className="h-4 w-4 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                  <path
+                    fillRule="evenodd"
+                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              )}
+            </div>
+          </div>
+          {usernameStatus === "taken" && (
+            <p className="text-xs text-red-500">This username is already taken</p>
+          )}
+          {usernameStatus === "invalid" && username.length > 0 && (
+            <p className="text-xs text-red-500">
+              3-30 characters: letters, numbers, dots, underscores, hyphens
+            </p>
+          )}
+          {usernameStatus === "available" && (
+            <p className="text-xs text-green-600 dark:text-green-400">Username available!</p>
+          )}
+          {usernameStatus === "idle" && username.length === 0 && (
+            <p className="text-xs text-gray-400 dark:text-gray-500">
+              Optional — one will be generated if left blank
+            </p>
+          )}
+        </div>
+
         <Input
           id="email"
           label="Email"

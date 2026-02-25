@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Code Rules
+
+- **No `as` type assertions.** Use explicit type annotations (e.g., `const data: MyType = ...`) instead of `as` casts. This applies to all new and modified code.
+
 ## Branch Workflow
 
 Before making any code changes, check the current branch. If on `main`, create a new descriptive branch based on the task:
