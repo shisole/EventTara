@@ -232,6 +232,36 @@ const COVER_IMAGES = {
   running_alt: "https://images.unsplash.com/photo-1513593771513-7b58b6c4af38?w=1200&h=630&fit=crop",
 };
 
+// ---------------------------------------------------------------------------
+// Mountains Data
+// ---------------------------------------------------------------------------
+
+const PANAY_MOUNTAINS = [
+  { name: "Mt. Madja-as", province: "Antique", difficulty_level: 8, elevation_masl: 2117 },
+  { name: "Mt. Nangtud", province: "Capiz", difficulty_level: 8, elevation_masl: 2074 },
+  { name: "Mt. Baloy", province: "Antique", difficulty_level: 9, elevation_masl: 1958 },
+  { name: "Mt. Balabag", province: "Antique", difficulty_level: 6, elevation_masl: 1713 },
+  { name: "Mt. Agbalanti", province: "Antique", difficulty_level: 6, elevation_masl: 1579 },
+  { name: "Mt. Inaman", province: "Iloilo", difficulty_level: 5, elevation_masl: 1396 },
+  { name: "Mt. Igdalig", province: "Iloilo", difficulty_level: 5, elevation_masl: 1377 },
+  { name: "Mt. Napulak", province: "Iloilo", difficulty_level: 4, elevation_masl: 1239 },
+];
+
+/** Map of hiking event title -> mountain names to link */
+const HIKING_EVENT_MOUNTAINS: Record<string, string[]> = {
+  "Mt. Madja-as Summit Trek": ["Mt. Madja-as"],
+  "Igbaras Mountain Day Hike": ["Mt. Napulak", "Mt. Igdalig"],
+  "Mt. Napulak Sunrise Hike": ["Mt. Napulak"],
+  "Mt. Baloy Ridge Traverse": ["Mt. Baloy"],
+  "Igbaras-Tubungan Traverse": ["Mt. Napulak", "Mt. Inaman"],
+  "Baloy Falls Adventure Hike": ["Mt. Baloy"],
+  "Lambunao Waterfall Trek": ["Mt. Inaman", "Mt. Igdalig"],
+  "Janiuay Highlands Day Hike": ["Mt. Inaman"],
+  "Nadsadan Falls Day Hike": ["Mt. Napulak"],
+  "Hamtic River Gorge Trek": ["Mt. Balabag", "Mt. Agbalanti"],
+  "Sibalom Natural Park Wander": ["Mt. Agbalanti"],
+};
+
 interface TestEvent {
   orgProfileName: string;
   title: string;
@@ -1399,6 +1429,13 @@ async function cleanExistingTestData() {
   // events, badges etc. that are linked through organizer_profiles.
   // Because events FK to organizer_profiles (which FK to public.users),
   // deleting public.users cascades everything.
+
+  // Clean event_mountains (before events, due to FK)
+  await supabase.from("event_mountains").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+
+  // Clean mountains
+  await supabase.from("mountains").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+
   // Clean app testimonials (not tied to user cascade)
   await supabase
     .from("app_testimonials")
@@ -2588,6 +2625,92 @@ async function seedGuideReviews(
   }
 }
 
+/** Seed mountains. Returns map of mountain name -> mountain object (id, name, difficulty_level). */
+async function seedMountains(): Promise<
+  Map<string, { id: string; name: string; difficulty_level: number }>
+> {
+  log("⛰️", "Seeding mountains...");
+
+  const mountainMap = new Map<string, { id: string; name: string; difficulty_level: number }>();
+
+  for (const mountain of PANAY_MOUNTAINS) {
+    const { data, error } = await supabase
+      .from("mountains")
+      .upsert(mountain, { onConflict: "name" })
+      .select("id, name, difficulty_level")
+      .single();
+
+    if (error) {
+      console.warn(`  Warning seeding mountain ${mountain.name}:`, error.message);
+    } else {
+      mountainMap.set(data.name, data);
+      log(
+        "  ✅",
+        `${mountain.name} (${mountain.elevation_masl}m, difficulty ${mountain.difficulty_level})`,
+      );
+    }
+  }
+
+  return mountainMap;
+}
+
+/** Link hiking events to mountains and set difficulty_level on events. */
+async function linkEventMountains(
+  eventMap: Map<string, string>,
+  mountainMap: Map<string, { id: string; name: string; difficulty_level: number }>,
+): Promise<void> {
+  log("🔗", "Linking hiking events to mountains...");
+
+  for (const [eventTitle, mountainNames] of Object.entries(HIKING_EVENT_MOUNTAINS)) {
+    const eventId = eventMap.get(eventTitle);
+    if (!eventId) {
+      console.error(`  Event not found: ${eventTitle}`);
+      continue;
+    }
+
+    let maxDifficulty = 0;
+
+    for (let i = 0; i < mountainNames.length; i++) {
+      const mountainName = mountainNames[i];
+      const mountain = mountainMap.get(mountainName);
+      if (!mountain) {
+        console.error(`  Mountain not found: ${mountainName}`);
+        continue;
+      }
+
+      const { error } = await supabase.from("event_mountains").insert({
+        event_id: eventId,
+        mountain_id: mountain.id,
+        sort_order: i,
+      });
+
+      if (error) {
+        console.error(`  Failed to link "${mountainName}" to "${eventTitle}": ${error.message}`);
+      } else {
+        log("  ✅", `${mountainName} -> ${eventTitle}`);
+      }
+
+      if (mountain.difficulty_level > maxDifficulty) {
+        maxDifficulty = mountain.difficulty_level;
+      }
+    }
+
+    // Set the event's difficulty_level to the max difficulty of linked mountains
+    if (maxDifficulty > 0) {
+      const { error: updateError } = await supabase
+        .from("events")
+        .update({ difficulty_level: maxDifficulty })
+        .eq("id", eventId);
+
+      if (updateError) {
+        console.error(`  Failed to set difficulty on "${eventTitle}": ${updateError.message}`);
+      } else {
+        log("  📊", `${eventTitle} difficulty set to ${maxDifficulty}`);
+      }
+    }
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
@@ -2624,6 +2747,14 @@ async function main() {
 
     // Step 4c: Link guides to events
     await linkEventGuides(guideMap, eventMap);
+    console.log();
+
+    // Step 4d: Seed mountains
+    const mountainMap = await seedMountains();
+    console.log();
+
+    // Step 4e: Link hiking events to mountains
+    await linkEventMountains(eventMap, mountainMap);
     console.log();
 
     // Step 5: Create bookings

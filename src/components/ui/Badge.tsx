@@ -14,6 +14,9 @@ const variantStyles: Record<string, string> = {
   running: "bg-golden-100 text-golden-700 dark:bg-golden-900/50 dark:text-golden-300",
   trail_run: "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300",
   beta: "bg-lime-500 text-gray-900",
+  difficulty_easy: "bg-forest-100 text-forest-700 dark:bg-forest-900/50 dark:text-forest-300",
+  difficulty_moderate: "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300",
+  difficulty_hard: "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300",
 };
 
 const UIBadge = forwardRef<HTMLSpanElement, BadgeProps>(

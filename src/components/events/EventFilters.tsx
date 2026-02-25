@@ -49,6 +49,12 @@ const TIME_FILTERS = [
   { value: "past", label: "Past" },
 ];
 
+const DIFFICULTY_OPTIONS = [
+  { value: "1-4", label: "Easy (1-4)", variant: "difficulty_easy" as const },
+  { value: "5-7", label: "Moderate (5-7)", variant: "difficulty_moderate" as const },
+  { value: "8-9", label: "Hard (8-9)", variant: "difficulty_hard" as const },
+];
+
 const DISTANCE_TYPES = new Set(["running", "trail_run", "road_bike"]);
 
 const DISTANCE_OPTIONS = [
@@ -538,6 +544,7 @@ export default function EventFilters({
   const currentFrom = searchParams.get("from") ?? "";
   const currentTo = searchParams.get("to") ?? "";
   const currentDistance = searchParams.get("distance") ?? "";
+  const currentDifficulty = searchParams.get("difficulty") ?? "";
 
   /* Local state */
   const [searchValue, setSearchValue] = useState(currentSearch);
@@ -625,8 +632,11 @@ export default function EventFilters({
         next.add(slug);
       }
       const updates: Record<string, string> = { type: serializeTypes(next) };
-      // If hiking is no longer selected, clear guide filter
-      if (!next.has("hiking")) updates.guide = "";
+      // If hiking is no longer selected, clear guide and difficulty filters
+      if (!next.has("hiking")) {
+        updates.guide = "";
+        updates.difficulty = "";
+      }
       // If no distance-supporting types selected, clear distance filter
       if (![...next].some((t) => DISTANCE_TYPES.has(t))) updates.distance = "";
       updateParams(updates);
@@ -636,7 +646,7 @@ export default function EventFilters({
 
   /* Select all activities (clears type param = show everything) */
   const selectAllTypes = useCallback(() => {
-    updateParams({ type: "", guide: "", distance: "" });
+    updateParams({ type: "", guide: "", distance: "", difficulty: "" });
   }, [updateParams]);
 
   /* Clear all filters at once */
@@ -649,6 +659,7 @@ export default function EventFilters({
       org: "",
       guide: "",
       distance: "",
+      difficulty: "",
       search: "",
     });
     setSearchValue("");
@@ -661,6 +672,7 @@ export default function EventFilters({
     currentOrgParam !== "" ||
     currentGuideParam !== "" ||
     currentDistance !== "" ||
+    currentDifficulty !== "" ||
     currentFrom !== "" ||
     currentTo !== "" ||
     currentSearch !== "";
@@ -731,6 +743,19 @@ export default function EventFilters({
         ? `${currentGuides.size} guides`
         : undefined;
 
+  const selectDifficulty = useCallback(
+    (value: string) => {
+      const next = value === currentDifficulty ? "" : value;
+      updateParams({ difficulty: next });
+      setOpenId("");
+    },
+    [currentDifficulty, updateParams],
+  );
+
+  const difficultyLabel = currentDifficulty
+    ? (DIFFICULTY_OPTIONS.find((d) => d.value === currentDifficulty)?.label ?? currentDifficulty)
+    : undefined;
+
   const selectDistance = useCallback(
     (value: string) => {
       const next = value === currentDistance ? "" : value;
@@ -753,8 +778,9 @@ export default function EventFilters({
           ? `To ${currentTo}`
           : undefined;
 
-  /* Only show Guide chip when hiking is among selected types */
+  /* Only show Guide / Difficulty chips when hiking is among selected types */
   const showGuideChip = isAllSelected(currentTypes) || currentTypes.has("hiking");
+  const showDifficultyChip = currentTypes.has("hiking");
 
   /* Only show Distance chip when a distance-supporting type is selected */
   const showDistanceChip =
@@ -1090,6 +1116,45 @@ export default function EventFilters({
                     )}
                   </span>
                   {g.name}
+                </button>
+              ))}
+            </div>
+          </FilterChip>
+        )}
+
+        {/* ---- Difficulty chip (only when hiking is selected) ---- */}
+        {showDifficultyChip && (
+          <FilterChip
+            id="difficulty"
+            label="Difficulty"
+            activeLabel={difficultyLabel}
+            isActive={!!currentDifficulty}
+            isOpen={openId === "difficulty"}
+            onToggle={handleToggle}
+            onClear={() => updateParams({ difficulty: "" })}
+          >
+            <div className="p-3 space-y-1">
+              {DIFFICULTY_OPTIONS.map((d) => (
+                <button
+                  key={d.value}
+                  type="button"
+                  onClick={() => selectDifficulty(d.value)}
+                  className={cn(
+                    "w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2",
+                    currentDifficulty === d.value
+                      ? "bg-gray-100 dark:bg-gray-700 font-medium text-gray-900 dark:text-gray-100"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-750",
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "inline-block w-2.5 h-2.5 rounded-full",
+                      d.variant === "difficulty_easy" && "bg-forest-500",
+                      d.variant === "difficulty_moderate" && "bg-amber-500",
+                      d.variant === "difficulty_hard" && "bg-red-500",
+                    )}
+                  />
+                  {d.label}
                 </button>
               ))}
             </div>

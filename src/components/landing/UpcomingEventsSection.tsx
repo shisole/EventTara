@@ -60,6 +60,7 @@ export default async function UpcomingEventsSection() {
                 booking_count={event.bookings?.[0]?.count || 0}
                 organizer_name={event.organizer_profiles?.org_name}
                 organizer_id={event.organizer_id}
+                difficulty_level={event.difficulty_level}
                 status="upcoming"
               />
             </div>

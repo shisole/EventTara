@@ -81,6 +81,7 @@ export interface Database {
           price: number;
           status: "draft" | "published" | "completed" | "cancelled";
           cover_image_url: string | null;
+          difficulty_level: number | null;
           created_at: string;
         };
         Insert: {
@@ -97,6 +98,7 @@ export interface Database {
           price?: number;
           status?: "draft" | "published" | "completed" | "cancelled";
           cover_image_url?: string | null;
+          difficulty_level?: number | null;
           created_at?: string;
         };
         Update: {
@@ -113,6 +115,64 @@ export interface Database {
           price?: number;
           status?: "draft" | "published" | "completed" | "cancelled";
           cover_image_url?: string | null;
+          difficulty_level?: number | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      mountains: {
+        Row: {
+          id: string;
+          name: string;
+          province: string;
+          difficulty_level: number;
+          elevation_masl: number | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          province: string;
+          difficulty_level: number;
+          elevation_masl?: number | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          province?: string;
+          difficulty_level?: number;
+          elevation_masl?: number | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      event_mountains: {
+        Row: {
+          id: string;
+          event_id: string;
+          mountain_id: string;
+          route_name: string | null;
+          difficulty_override: number | null;
+          sort_order: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          event_id: string;
+          mountain_id: string;
+          route_name?: string | null;
+          difficulty_override?: number | null;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          event_id?: string;
+          mountain_id?: string;
+          route_name?: string | null;
+          difficulty_override?: number | null;
+          sort_order?: number;
           created_at?: string;
         };
         Relationships: [];

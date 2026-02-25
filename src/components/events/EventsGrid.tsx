@@ -23,6 +23,7 @@ interface EventData {
   coordinates?: { lat: number; lng: number } | null;
   avg_rating?: number;
   review_count?: number;
+  difficulty_level?: number | null;
 }
 
 interface EventsGridProps {
@@ -99,6 +100,7 @@ export default function EventsGrid({ events }: EventsGridProps) {
               distance={event.distance}
               avg_rating={event.avg_rating}
               review_count={event.review_count}
+              difficulty_level={event.difficulty_level}
             />
           </div>
         ))}

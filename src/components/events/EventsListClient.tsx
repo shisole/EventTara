@@ -28,6 +28,7 @@ export interface EventData {
   coordinates?: { lat: number; lng: number } | null;
   avg_rating?: number;
   review_count?: number;
+  difficulty_level?: number | null;
 }
 
 export interface UserResult {
@@ -90,6 +91,8 @@ export default function EventsListClient({
       const guide = searchParams.get("guide");
       const from = searchParams.get("from");
       const to = searchParams.get("to");
+      const distance = searchParams.get("distance");
+      const difficulty = searchParams.get("difficulty");
       if (type) params.set("type", type);
       if (when) params.set("when", when);
       if (search) params.set("search", search);
@@ -97,6 +100,8 @@ export default function EventsListClient({
       if (guide) params.set("guide", guide);
       if (from) params.set("from", from);
       if (to) params.set("to", to);
+      if (distance) params.set("distance", distance);
+      if (difficulty) params.set("difficulty", difficulty);
       return `/api/events?${params.toString()}`;
     },
     [searchParams],

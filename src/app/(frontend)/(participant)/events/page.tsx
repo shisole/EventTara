@@ -81,6 +81,7 @@ export default async function EventsPage({
     from?: string;
     to?: string;
     distance?: string;
+    difficulty?: string;
   }>;
 }) {
   const params = await searchParams;
@@ -231,6 +232,23 @@ export default async function EventsPage({
     dataQuery = dataQuery.in("id", distEventIds);
   }
 
+  // Difficulty filter: range-based (e.g. "1-4", "5-7", "8-9")
+  if (params.difficulty) {
+    const [minStr, maxStr] = params.difficulty.split("-");
+    const min = Number.parseInt(minStr, 10);
+    const max = Number.parseInt(maxStr, 10);
+    if (!Number.isNaN(min) && !Number.isNaN(max)) {
+      countQuery = countQuery
+        .not("difficulty_level", "is", null)
+        .gte("difficulty_level", min)
+        .lte("difficulty_level", max);
+      dataQuery = dataQuery
+        .not("difficulty_level", "is", null)
+        .gte("difficulty_level", min)
+        .lte("difficulty_level", max);
+    }
+  }
+
   // For "no when filter" we need all events to sort upcoming-first, then slice
   const [{ count }, { data: allEvents }] = await Promise.all([
     countQuery,
@@ -287,6 +305,7 @@ export default async function EventsPage({
       coordinates: event.coordinates as { lat: number; lng: number } | null,
       avg_rating: stats?.avg,
       review_count: stats?.count,
+      difficulty_level: event.difficulty_level,
     };
   });
 
