@@ -33,9 +33,10 @@ function incrementUsed(): void {
 interface ChatPanelProps {
   open: boolean;
   onClose: () => void;
+  keyboardHeight?: number;
 }
 
-export default function ChatPanel({ open, onClose }: ChatPanelProps) {
+export default function ChatPanel({ open, onClose, keyboardHeight = 0 }: ChatPanelProps) {
   const searchParams = useSearchParams();
   const unlimitedChat = useMemo(() => searchParams.get("chat_debug") === "1", [searchParams]);
   const [messages, setMessages] = useState<ChatMessageType[]>([
@@ -149,16 +150,33 @@ export default function ChatPanel({ open, onClose }: ChatPanelProps) {
 
   const limitDots = Array.from({ length: DAILY_LIMIT }, (_, i) => i < remaining);
 
+  const keyboardOpen = keyboardHeight > 0;
+
+  // When keyboard is open on mobile, go fullscreen above the keyboard
+  const keyboardStyle: React.CSSProperties | undefined = keyboardOpen
+    ? {
+        top: 0,
+        bottom: "auto",
+        height: `${window.innerHeight - keyboardHeight}px`,
+        right: 0,
+        left: 0,
+        width: "100%",
+        maxWidth: "100%",
+        borderRadius: 0,
+      }
+    : undefined;
+
   return (
     <div
-      className={`fixed z-40 transition-all duration-300 ease-out ${
+      className={`fixed z-40 transition-all duration-200 ease-out ${
         open
           ? "opacity-100 translate-y-0 pointer-events-auto"
           : "opacity-0 translate-y-8 pointer-events-none"
-      } bottom-[9.5rem] right-4 w-[calc(100vw-2rem)] max-w-[400px] h-[min(460px,calc(100vh-12rem))] md:bottom-6 md:right-[5.25rem] md:w-[400px] md:h-[min(500px,calc(100vh-6rem))]`}
+      } ${keyboardOpen ? "" : "bottom-[9.5rem] right-4 w-[calc(100vw-2rem)] max-w-[400px] h-[min(460px,calc(100vh-12rem))]"} md:bottom-6 md:right-[5.25rem] md:w-[400px] md:h-[min(500px,calc(100vh-6rem))]`}
+      style={keyboardStyle}
     >
       <div
-        className={`flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-900 ${open ? "animate-chat-panel-up" : ""}`}
+        className={`flex h-full flex-col overflow-hidden border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-900 ${keyboardOpen ? "" : "rounded-2xl"} ${open && !keyboardOpen ? "animate-chat-panel-up" : ""}`}
       >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-200 bg-gradient-to-r from-lime-50 to-teal-50 px-4 py-3 dark:border-gray-700 dark:from-gray-800 dark:to-gray-800">
