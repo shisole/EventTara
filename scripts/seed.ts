@@ -274,6 +274,7 @@ interface TestEvent {
   price: number;
   status: "draft" | "published" | "completed" | "cancelled";
   cover_image_url: string;
+  distances?: { distance_km: number; label?: string; price: number; max_participants: number }[];
 }
 
 const TEST_EVENTS: TestEvent[] = [
@@ -305,6 +306,10 @@ const TEST_EVENTS: TestEvent[] = [
     price: 600,
     status: "published",
     cover_image_url: COVER_IMAGES.trail_run,
+    distances: [
+      { distance_km: 10, price: 500, max_participants: 25 },
+      { distance_km: 15, price: 600, max_participants: 15 },
+    ],
   },
   {
     orgProfileName: "Panay Trail Collective",
@@ -348,6 +353,10 @@ const TEST_EVENTS: TestEvent[] = [
     price: 800,
     status: "published",
     cover_image_url: COVER_IMAGES.road_bike,
+    distances: [
+      { distance_km: 50, price: 600, max_participants: 20 },
+      { distance_km: 120, price: 800, max_participants: 15 },
+    ],
   },
   {
     orgProfileName: "Iloilo Pedal Club",
@@ -376,6 +385,11 @@ const TEST_EVENTS: TestEvent[] = [
     price: 400,
     status: "published",
     cover_image_url: COVER_IMAGES.running,
+    distances: [
+      { distance_km: 3, price: 200, max_participants: 50 },
+      { distance_km: 5, price: 300, max_participants: 40 },
+      { distance_km: 10, price: 400, max_participants: 60 },
+    ],
   },
   {
     orgProfileName: "Iloilo Pedal Club",
@@ -420,6 +434,10 @@ const TEST_EVENTS: TestEvent[] = [
     price: 650,
     status: "completed",
     cover_image_url: COVER_IMAGES.trail_run_alt,
+    distances: [
+      { distance_km: 10, price: 500, max_participants: 30 },
+      { distance_km: 21, label: "Half Marathon", price: 650, max_participants: 20 },
+    ],
   },
   {
     orgProfileName: "Panay Trail Collective",
@@ -449,6 +467,10 @@ const TEST_EVENTS: TestEvent[] = [
     price: 2500,
     status: "completed",
     cover_image_url: COVER_IMAGES.road_bike_alt,
+    distances: [
+      { distance_km: 100, price: 1500, max_participants: 15 },
+      { distance_km: 300, label: "Full Circumferential", price: 2500, max_participants: 15 },
+    ],
   },
   {
     orgProfileName: "Iloilo Pedal Club",
@@ -477,6 +499,10 @@ const TEST_EVENTS: TestEvent[] = [
     price: 250,
     status: "completed",
     cover_image_url: COVER_IMAGES.running_alt,
+    distances: [
+      { distance_km: 3, price: 200, max_participants: 100 },
+      { distance_km: 5, price: 250, max_participants: 100 },
+    ],
   },
   // ---- Organizer 3: JTT (Journey Through Trails) ----
   {
@@ -564,6 +590,10 @@ const TEST_EVENTS: TestEvent[] = [
     price: 500,
     status: "completed",
     cover_image_url: COVER_IMAGES.trail_run,
+    distances: [
+      { distance_km: 5, price: 350, max_participants: 15 },
+      { distance_km: 15, price: 500, max_participants: 25 },
+    ],
   },
   // ---- Organizer 6: Rubo-rubo Lang ----
   {
@@ -625,6 +655,10 @@ const TEST_EVENTS: TestEvent[] = [
     price: 350,
     status: "published",
     cover_image_url: COVER_IMAGES.trail_run,
+    distances: [
+      { distance_km: 5, price: 250, max_participants: 25 },
+      { distance_km: 10, price: 350, max_participants: 25 },
+    ],
   },
   {
     orgProfileName: "Panay Trail Collective",
@@ -682,6 +716,10 @@ const TEST_EVENTS: TestEvent[] = [
     price: 300,
     status: "published",
     cover_image_url: COVER_IMAGES.road_bike,
+    distances: [
+      { distance_km: 20, price: 200, max_participants: 20 },
+      { distance_km: 40, price: 300, max_participants: 20 },
+    ],
   },
   {
     orgProfileName: "Iloilo Pedal Club",
@@ -781,6 +819,10 @@ const TEST_EVENTS: TestEvent[] = [
     price: 700,
     status: "published",
     cover_image_url: COVER_IMAGES.trail_run_alt,
+    distances: [
+      { distance_km: 10, price: 500, max_participants: 15 },
+      { distance_km: 25, price: 700, max_participants: 15 },
+    ],
   },
   {
     orgProfileName: "JTT (Journey Through Trails)",
@@ -824,6 +866,10 @@ const TEST_EVENTS: TestEvent[] = [
     price: 800,
     status: "published",
     cover_image_url: COVER_IMAGES.running,
+    distances: [
+      { distance_km: 5, price: 600, max_participants: 15 },
+      { distance_km: 10, price: 800, max_participants: 15 },
+    ],
   },
   {
     orgProfileName: "Five Tersty Trekkers",
@@ -867,6 +913,10 @@ const TEST_EVENTS: TestEvent[] = [
     price: 400,
     status: "published",
     cover_image_url: COVER_IMAGES.trail_run,
+    distances: [
+      { distance_km: 5, price: 300, max_participants: 15 },
+      { distance_km: 10, price: 400, max_participants: 20 },
+    ],
   },
   {
     orgProfileName: "Yenergy Outdoors",
@@ -881,6 +931,10 @@ const TEST_EVENTS: TestEvent[] = [
     price: 250,
     status: "published",
     cover_image_url: COVER_IMAGES.running,
+    distances: [
+      { distance_km: 3, price: 200, max_participants: 80 },
+      { distance_km: 5, price: 250, max_participants: 70 },
+    ],
   },
   {
     orgProfileName: "Yenergy Outdoors",
@@ -1023,6 +1077,10 @@ const TEST_EVENTS: TestEvent[] = [
     price: 500,
     status: "published",
     cover_image_url: COVER_IMAGES.road_bike_alt,
+    distances: [
+      { distance_km: 30, price: 350, max_participants: 20 },
+      { distance_km: 60, price: 500, max_participants: 15 },
+    ],
   },
   {
     orgProfileName: "JTT (Journey Through Trails)",
@@ -1065,6 +1123,11 @@ const TEST_EVENTS: TestEvent[] = [
     price: 600,
     status: "published",
     cover_image_url: COVER_IMAGES.running,
+    distances: [
+      { distance_km: 10, price: 400, max_participants: 60 },
+      { distance_km: 21, label: "Half Marathon", price: 600, max_participants: 40 },
+      { distance_km: 42, label: "Marathon", price: 1000, max_participants: 20 },
+    ],
   },
   {
     orgProfileName: "Rubo-rubo Lang",
@@ -1521,6 +1584,23 @@ async function createEvents(orgMap: Map<string, string>): Promise<Map<string, st
     } else {
       eventMap.set(event.title, data.id);
       log("  ✅", `${event.title} [${event.status}]`);
+
+      // Insert distance categories if defined
+      if (event.distances && event.distances.length > 0) {
+        const distanceRows = event.distances.map((d) => ({
+          event_id: data.id,
+          distance_km: d.distance_km,
+          label: d.label || null,
+          price: d.price,
+          max_participants: d.max_participants,
+        }));
+        const { error: distError } = await supabase.from("event_distances").insert(distanceRows);
+        if (distError) {
+          console.error(`  Failed to add distances for "${event.title}": ${distError.message}`);
+        } else {
+          log("  📏", `Added ${distanceRows.length} distance categories`);
+        }
+      }
     }
   }
 

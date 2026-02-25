@@ -177,6 +177,36 @@ export interface Database {
         };
         Relationships: [];
       };
+      event_distances: {
+        Row: {
+          id: string;
+          event_id: string;
+          distance_km: number;
+          label: string | null;
+          price: number;
+          max_participants: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          event_id: string;
+          distance_km: number;
+          label?: string | null;
+          price: number;
+          max_participants: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          event_id?: string;
+          distance_km?: number;
+          label?: string | null;
+          price?: number;
+          max_participants?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       guides: {
         Row: {
           id: string;
@@ -301,6 +331,7 @@ export interface Database {
           payment_verified_by: string | null;
           participant_cancelled: boolean;
           qr_code: string | null;
+          event_distance_id: string | null;
           booked_at: string;
         };
         Insert: {
@@ -315,6 +346,7 @@ export interface Database {
           payment_verified_by?: string | null;
           participant_cancelled?: boolean;
           qr_code?: string | null;
+          event_distance_id?: string | null;
           booked_at?: string;
         };
         Update: {
@@ -329,6 +361,7 @@ export interface Database {
           payment_verified_by?: string | null;
           participant_cancelled?: boolean;
           qr_code?: string | null;
+          event_distance_id?: string | null;
           booked_at?: string;
         };
         Relationships: [];
@@ -343,6 +376,7 @@ export interface Database {
           checked_in: boolean;
           checked_in_at: string | null;
           status: "pending" | "confirmed" | "cancelled";
+          event_distance_id: string | null;
           created_at: string;
         };
         Insert: {
@@ -354,6 +388,7 @@ export interface Database {
           checked_in?: boolean;
           checked_in_at?: string | null;
           status?: "pending" | "confirmed" | "cancelled";
+          event_distance_id?: string | null;
           created_at?: string;
         };
         Update: {
@@ -365,6 +400,7 @@ export interface Database {
           checked_in?: boolean;
           checked_in_at?: string | null;
           status?: "pending" | "confirmed" | "cancelled";
+          event_distance_id?: string | null;
           created_at?: string;
         };
         Relationships: [];

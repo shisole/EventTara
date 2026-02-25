@@ -6,19 +6,32 @@ import { Button } from "@/components/ui";
 export interface Companion {
   full_name: string;
   phone: string;
+  event_distance_id?: string;
+}
+
+interface DistanceOption {
+  id: string;
+  distance_km: number;
+  label: string | null;
+  price: number;
+  spots_left: number;
 }
 
 interface CompanionFieldsProps {
   companions: Companion[];
   onChange: (companions: Companion[]) => void;
   maxCompanions: number;
+  distances?: DistanceOption[];
 }
 
 export default function CompanionFields({
   companions,
   onChange,
   maxCompanions,
+  distances,
 }: CompanionFieldsProps) {
+  const hasDistances = distances && distances.length > 0;
+
   const addCompanion = () => {
     if (companions.length < maxCompanions) {
       onChange([...companions, { full_name: "", phone: "" }]);
@@ -29,7 +42,7 @@ export default function CompanionFields({
     onChange(companions.filter((_, i) => i !== index));
   };
 
-  const updateCompanion = (index: number, field: keyof Companion, value: string) => {
+  const updateCompanion = (index: number, field: string, value: string) => {
     const updated = companions.map((c, i) => (i === index ? { ...c, [field]: value } : c));
     onChange(updated);
   };
@@ -66,6 +79,28 @@ export default function CompanionFields({
               }}
               className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-lime-500"
             />
+            {hasDistances && (
+              <select
+                value={companion.event_distance_id || ""}
+                onChange={(e) => {
+                  updateCompanion(index, "event_distance_id", e.target.value);
+                }}
+                required
+                className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-lime-500"
+              >
+                <option value="">Select distance *</option>
+                {distances.map((d) => {
+                  const displayLabel = d.label || `${d.distance_km} km`;
+                  const isSoldOut = d.spots_left <= 0;
+                  return (
+                    <option key={d.id} value={d.id} disabled={isSoldOut}>
+                      {displayLabel} — ₱{d.price.toLocaleString()}
+                      {isSoldOut ? " (Sold out)" : ` (${d.spots_left} left)`}
+                    </option>
+                  );
+                })}
+              </select>
+            )}
           </div>
           <button
             type="button"

@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
   const search = searchParams.get("search") || "";
   const org = searchParams.get("org") || "";
   const guide = searchParams.get("guide") || "";
+  const distance = searchParams.get("distance") || "";
   const from = searchParams.get("from") || "";
   const to = searchParams.get("to") || "";
 
@@ -130,6 +131,23 @@ export async function GET(request: NextRequest) {
     dataQuery = dataQuery.in("id", eventIds);
   }
 
+  // Distance filter: fetch linked event IDs first, then constrain both queries
+  if (distance) {
+    const distanceKm = Number.parseFloat(distance);
+    const { data: distLinks } = await supabase
+      .from("event_distances")
+      .select("event_id")
+      .eq("distance_km", distanceKm);
+
+    const distEventIds = distLinks?.map((d) => d.event_id) ?? [];
+    if (distEventIds.length === 0) {
+      return NextResponse.json({ events: [], totalCount: 0 });
+    }
+
+    countQuery = countQuery.in("id", distEventIds);
+    dataQuery = dataQuery.in("id", distEventIds);
+  }
+
   // For "no when filter", we need custom sorting: upcoming first, then past reversed
   // We'll fetch with a basic order and sort in-memory for this case
   dataQuery = when
@@ -174,6 +192,40 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  // Fetch distances for all returned events in a single query
+  const eventIds = events.map((e) => e.id);
+  const distancesByEvent: Record<
+    string,
+    {
+      id: string;
+      distance_km: number;
+      label: string | null;
+      price: number;
+      max_participants: number;
+    }[]
+  > = {};
+
+  if (eventIds.length > 0) {
+    const { data: allDistances } = await supabase
+      .from("event_distances")
+      .select("id, event_id, distance_km, label, price, max_participants")
+      .in("event_id", eventIds)
+      .order("distance_km", { ascending: true });
+
+    if (allDistances) {
+      for (const d of allDistances) {
+        if (!distancesByEvent[d.event_id]) distancesByEvent[d.event_id] = [];
+        distancesByEvent[d.event_id].push({
+          id: d.id,
+          distance_km: d.distance_km,
+          label: d.label,
+          price: d.price,
+          max_participants: d.max_participants,
+        });
+      }
+    }
+  }
+
   const gridEvents = events.map((event: any) => {
     const stats = reviewStats[event.id];
     return {
@@ -192,6 +244,7 @@ export async function GET(request: NextRequest) {
       coordinates: event.coordinates as { lat: number; lng: number } | null,
       avg_rating: stats?.avg,
       review_count: stats?.count,
+      distances: distancesByEvent[event.id] ?? [],
     };
   });
 
@@ -285,5 +338,34 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ event });
+  // Bulk insert distances if provided
+  let distances: Database["public"]["Tables"]["event_distances"]["Row"][] = [];
+  if (Array.isArray(body.distances) && body.distances.length > 0) {
+    const distanceRows = body.distances.map(
+      (d: {
+        distance_km: number;
+        label?: string | null;
+        price: number;
+        max_participants: number;
+      }) => ({
+        event_id: event.id,
+        distance_km: d.distance_km,
+        label: d.label ?? null,
+        price: d.price,
+        max_participants: d.max_participants,
+      }),
+    );
+
+    const { data: insertedDistances, error: distError } = await supabase
+      .from("event_distances")
+      .insert(distanceRows)
+      .select();
+
+    if (distError) {
+      return NextResponse.json({ error: distError.message }, { status: 500 });
+    }
+    distances = insertedDistances ?? [];
+  }
+
+  return NextResponse.json({ event, distances });
 }

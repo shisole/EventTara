@@ -79,6 +79,13 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
     notFound();
   }
 
+  // Fetch distance categories
+  const { data: distances } = await supabase
+    .from("event_distances")
+    .select("id, distance_km, label, price, max_participants")
+    .eq("event_id", id)
+    .order("distance_km", { ascending: true });
+
   // Fetch photos
   const { data: photos } = await supabase
     .from("event_photos")
@@ -333,11 +340,40 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
         {/* Sidebar */}
         <div className="lg:sticky lg:top-24 space-y-8">
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-5 sm:p-6 space-y-4 mb-4">
-            <div className="text-center">
-              <span className="text-3xl font-bold text-lime-600 dark:text-lime-400">
-                {event.price === 0 ? "Free" : `\u20B1${event.price.toLocaleString()}`}
-              </span>
-            </div>
+            {distances && distances.length > 0 ? (
+              <>
+                <div className="text-center">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">Starting at</span>
+                  <br />
+                  <span className="text-3xl font-bold text-lime-600 dark:text-lime-400">
+                    {`\u20B1${Math.min(...distances.map((d) => d.price)).toLocaleString()}`}
+                  </span>
+                </div>
+
+                <div className="border-t border-gray-200 dark:border-gray-700" />
+
+                <div className="space-y-2">
+                  {distances.map((d) => (
+                    <div key={d.id} className="flex items-center justify-between text-sm">
+                      <span className="text-gray-700 dark:text-gray-300">
+                        {d.label || `${d.distance_km}K`}
+                      </span>
+                      <span className="font-medium text-gray-900 dark:text-gray-100">
+                        {`\u20B1${d.price.toLocaleString()}`}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="border-t border-gray-200 dark:border-gray-700" />
+              </>
+            ) : (
+              <div className="text-center">
+                <span className="text-3xl font-bold text-lime-600 dark:text-lime-400">
+                  {event.price === 0 ? "Free" : `\u20B1${event.price.toLocaleString()}`}
+                </span>
+              </div>
+            )}
 
             <div className="text-center text-sm text-gray-500 dark:text-gray-400">
               <span className="font-medium text-gray-700 dark:text-gray-300">{bookingCount}</span>{" "}

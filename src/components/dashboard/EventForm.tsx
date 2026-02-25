@@ -16,6 +16,13 @@ import PhotoUploader from "./PhotoUploader";
 const MapPicker = dynamic(() => import("@/components/maps/MapPicker"), { ssr: false });
 const DateRangePicker = dynamic(() => import("@/components/ui/DateRangePicker"));
 
+interface DistanceCategory {
+  distance_km: number;
+  label: string;
+  price: number;
+  max_participants: number;
+}
+
 interface EventFormProps {
   mode: "create" | "edit";
   initialData?: {
@@ -34,6 +41,7 @@ interface EventFormProps {
     initialGuideIds?: string[];
     initialMountains?: SelectedMountain[];
     difficulty_level?: number | null;
+    initialDistances?: DistanceCategory[];
   };
 }
 
@@ -44,6 +52,23 @@ const EVENT_TYPES = [
   { value: "running", label: "Running" },
   { value: "trail_run", label: "Trail Running" },
 ];
+
+const DISTANCE_TYPES = new Set(["running", "trail_run", "road_bike"]);
+const PRESET_DISTANCES = [3, 5, 10, 21, 42, 50, 100];
+
+const DISTANCE_LABEL_MAP: Record<number, string> = {
+  3: "3K",
+  5: "5K",
+  10: "10K",
+  21: "Half Marathon",
+  42: "Marathon",
+  50: "50K Ultra",
+  100: "100K Ultra",
+};
+
+function getDistanceLabel(km: number): string {
+  return DISTANCE_LABEL_MAP[km] ?? `${String(km)}K`;
+}
 
 interface GuideOption {
   id: string;
@@ -250,6 +275,48 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
     initialData?.coordinates || undefined,
   );
 
+  // Distance categories state (running/trail_run/road_bike events)
+  const [distances, setDistances] = useState<DistanceCategory[]>(
+    initialData?.initialDistances || [],
+  );
+  const [customDistanceInput, setCustomDistanceInput] = useState("");
+
+  const supportsDistances = DISTANCE_TYPES.has(type);
+
+  // Clear distances when switching to a non-distance event type
+  useEffect(() => {
+    if (!supportsDistances) {
+      setDistances([]);
+    }
+  }, [supportsDistances]);
+
+  const addDistance = (km: number) => {
+    // Don't add duplicate distances
+    if (distances.some((d) => d.distance_km === km)) return;
+    const newCategory: DistanceCategory = {
+      distance_km: km,
+      label: getDistanceLabel(km),
+      price: 0,
+      max_participants: 50,
+    };
+    setDistances((prev) => [...prev, newCategory].sort((a, b) => a.distance_km - b.distance_km));
+  };
+
+  const removeDistance = (km: number) => {
+    setDistances((prev) => prev.filter((d) => d.distance_km !== km));
+  };
+
+  const updateDistance = (km: number, field: keyof DistanceCategory, value: string | number) => {
+    setDistances((prev) => prev.map((d) => (d.distance_km === km ? { ...d, [field]: value } : d)));
+  };
+
+  const handleAddCustomDistance = () => {
+    const km = Number.parseFloat(customDistanceInput);
+    if (Number.isNaN(km) || km <= 0) return;
+    addDistance(km);
+    setCustomDistanceInput("");
+  };
+
   // Guide selection state (hiking events only)
   const [selectedGuideIds, setSelectedGuideIds] = useState<string[]>(
     initialData?.initialGuideIds || [],
@@ -352,7 +419,7 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
       endDateTime = dateTimeEnd.toISOString();
     }
 
-    const body = {
+    const body: Record<string, unknown> = {
       title,
       description,
       type,
@@ -365,6 +432,11 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
       cover_image_url: coverImage,
       difficulty_level: difficultyLevel,
     };
+
+    // Include distance categories when applicable
+    if (supportsDistances && distances.length > 0) {
+      body.distances = distances;
+    }
 
     const url = mode === "create" ? "/api/events" : `/api/events/${initialData?.id}`;
     const method = mode === "create" ? "POST" : "PUT";
@@ -577,31 +649,198 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
         {showMap && <MapPicker value={coordinates} onChange={setCoordinates} center={mapCenter} />}
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <Input
-          id="maxParticipants"
-          label="Max Participants"
-          type="number"
-          value={String(maxParticipants)}
-          onChange={(e) => {
-            setMaxParticipants(Number(e.target.value));
-          }}
-          min="1"
-          required
-        />
-        <Input
-          id="price"
-          label="Price (PHP)"
-          type="number"
-          value={String(price)}
-          onChange={(e) => {
-            setPrice(Number(e.target.value));
-          }}
-          min="0"
-          step="0.01"
-          required
-        />
-      </div>
+      {/* Distance Categories (running, trail_run, road_bike only) */}
+      {supportsDistances && (
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Distance Categories{" "}
+              <span className="text-gray-400 dark:text-gray-500 font-normal">(optional)</span>
+            </label>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+              Add distance categories to offer multiple race distances. Each category can have its
+              own price and participant limit.
+            </p>
+
+            {/* Preset quick-pick chips */}
+            <div className="flex flex-wrap gap-2 mb-3">
+              {PRESET_DISTANCES.map((km) => {
+                const alreadyAdded = distances.some((d) => d.distance_km === km);
+                return (
+                  <button
+                    key={km}
+                    type="button"
+                    disabled={alreadyAdded}
+                    onClick={() => {
+                      addDistance(km);
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                      alreadyAdded
+                        ? "bg-lime-100 dark:bg-lime-900 text-lime-700 dark:text-lime-300 cursor-default"
+                        : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-lime-100 dark:hover:bg-lime-900 hover:text-lime-700 dark:hover:text-lime-300 cursor-pointer"
+                    }`}
+                  >
+                    {km} km
+                    {alreadyAdded && (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        className="w-3.5 h-3.5 inline ml-1"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Custom distance input */}
+            <div className="flex items-end gap-2">
+              <div className="flex-1 max-w-[160px]">
+                <Input
+                  id="customDistance"
+                  label="Custom (km)"
+                  type="number"
+                  value={customDistanceInput}
+                  onChange={(e) => {
+                    setCustomDistanceInput(e.target.value);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleAddCustomDistance();
+                    }
+                  }}
+                  min="0.1"
+                  step="0.1"
+                  placeholder="e.g. 15"
+                />
+              </div>
+              <Button type="button" variant="outline" size="sm" onClick={handleAddCustomDistance}>
+                Add
+              </Button>
+            </div>
+          </div>
+
+          {/* Distance rows */}
+          {distances.length > 0 && (
+            <div className="space-y-3">
+              <div className="hidden sm:grid sm:grid-cols-[80px_1fr_1fr_1fr_40px] gap-2 text-xs font-medium text-gray-500 dark:text-gray-400 px-1">
+                <span>Distance</span>
+                <span>Label</span>
+                <span>Price (PHP)</span>
+                <span>Max Participants</span>
+                <span />
+              </div>
+              {distances.map((d) => (
+                <div
+                  key={d.distance_km}
+                  className="flex flex-col sm:grid sm:grid-cols-[80px_1fr_1fr_1fr_40px] gap-2 items-start sm:items-center p-3 sm:p-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50"
+                >
+                  {/* Distance (read-only) */}
+                  <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                    {d.distance_km} km
+                  </span>
+
+                  {/* Label (editable) */}
+                  <input
+                    type="text"
+                    value={d.label}
+                    onChange={(e) => {
+                      updateDistance(d.distance_km, "label", e.target.value);
+                    }}
+                    className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:border-lime-500 focus:ring-1 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors"
+                    placeholder="Label"
+                  />
+
+                  {/* Price */}
+                  <input
+                    type="number"
+                    value={d.price}
+                    onChange={(e) => {
+                      updateDistance(d.distance_km, "price", Number(e.target.value));
+                    }}
+                    min="0"
+                    step="0.01"
+                    className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:border-lime-500 focus:ring-1 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors"
+                    placeholder="Price"
+                  />
+
+                  {/* Max participants */}
+                  <input
+                    type="number"
+                    value={d.max_participants}
+                    onChange={(e) => {
+                      updateDistance(d.distance_km, "max_participants", Number(e.target.value));
+                    }}
+                    min="1"
+                    className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:border-lime-500 focus:ring-1 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors"
+                    placeholder="Max"
+                  />
+
+                  {/* Remove button */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      removeDistance(d.distance_km);
+                    }}
+                    className="self-center text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                    aria-label={`Remove ${d.label}`}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      className="w-5 h-5"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.519.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Event-level price & max participants (hidden when distance categories are set) */}
+      {!(supportsDistances && distances.length > 0) && (
+        <div className="grid grid-cols-2 gap-4">
+          <Input
+            id="maxParticipants"
+            label="Max Participants"
+            type="number"
+            value={String(maxParticipants)}
+            onChange={(e) => {
+              setMaxParticipants(Number(e.target.value));
+            }}
+            min="1"
+            required
+          />
+          <Input
+            id="price"
+            label="Price (PHP)"
+            type="number"
+            value={String(price)}
+            onChange={(e) => {
+              setPrice(Number(e.target.value));
+            }}
+            min="0"
+            step="0.01"
+            required
+          />
+        </div>
+      )}
 
       <PhotoUploader
         bucket="events"

@@ -80,6 +80,7 @@ export default async function EventsPage({
     guide?: string;
     from?: string;
     to?: string;
+    distance?: string;
   }>;
 }) {
   const params = await searchParams;
@@ -200,6 +201,34 @@ export default async function EventsPage({
 
     countQuery = countQuery.in("id", eventIds);
     dataQuery = dataQuery.in("id", eventIds);
+  }
+
+  // Distance filter: fetch event IDs from event_distances, then constrain both queries
+  if (params.distance) {
+    const distanceKm = Number(params.distance);
+    const { data: distLinks } = await supabase
+      .from("event_distances")
+      .select("event_id")
+      .eq("distance_km", distanceKm);
+
+    const distEventIds = distLinks?.map((l) => l.event_id) ?? [];
+    if (distEventIds.length === 0) {
+      const organizers = await fetchOrganizerOptions(supabase);
+      const guides = await fetchGuideOptions(supabase);
+      return (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <EventsPageClient
+            initialEvents={[]}
+            totalCount={0}
+            organizers={organizers}
+            guides={guides}
+          />
+        </div>
+      );
+    }
+
+    countQuery = countQuery.in("id", distEventIds);
+    dataQuery = dataQuery.in("id", distEventIds);
   }
 
   // For "no when filter" we need all events to sort upcoming-first, then slice

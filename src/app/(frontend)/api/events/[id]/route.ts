@@ -13,7 +13,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: "Event not found" }, { status: 404 });
   }
 
-  return NextResponse.json({ event });
+  // Fetch distances for this event
+  const { data: distances } = await supabase
+    .from("event_distances")
+    .select("id, event_id, distance_km, label, price, max_participants")
+    .eq("event_id", id)
+    .order("distance_km", { ascending: true });
+
+  return NextResponse.json({ event, distances: distances ?? [] });
 }
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -62,7 +69,57 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ event });
+  // Replace distances if provided (delete all then re-insert)
+  let distances: {
+    id: string;
+    event_id: string;
+    distance_km: number;
+    label: string | null;
+    price: number;
+    max_participants: number;
+  }[] = [];
+  if (Array.isArray(body.distances)) {
+    // Delete existing distances for this event
+    await supabase.from("event_distances").delete().eq("event_id", id);
+
+    // Re-insert if non-empty
+    if (body.distances.length > 0) {
+      const distanceRows = body.distances.map(
+        (d: {
+          distance_km: number;
+          label?: string | null;
+          price: number;
+          max_participants: number;
+        }) => ({
+          event_id: id,
+          distance_km: d.distance_km,
+          label: d.label ?? null,
+          price: d.price,
+          max_participants: d.max_participants,
+        }),
+      );
+
+      const { data: insertedDistances, error: distError } = await supabase
+        .from("event_distances")
+        .insert(distanceRows)
+        .select();
+
+      if (distError) {
+        return NextResponse.json({ error: distError.message }, { status: 500 });
+      }
+      distances = insertedDistances ?? [];
+    }
+  } else {
+    // If distances not provided in body, return current distances
+    const { data: currentDistances } = await supabase
+      .from("event_distances")
+      .select("id, event_id, distance_km, label, price, max_participants")
+      .eq("event_id", id)
+      .order("distance_km", { ascending: true });
+    distances = currentDistances ?? [];
+  }
+
+  return NextResponse.json({ event, distances });
 }
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
