@@ -11,15 +11,18 @@ import { generateUsername } from "@/lib/utils/generate-username";
 const CODE_LENGTH = 6;
 const emptyCode = () => Array.from<string>({ length: CODE_LENGTH }).fill("");
 
-type LoginState = "email" | "verify-code" | "success";
+type LoginState = "form" | "verify-code" | "success";
+type AuthMethod = "password" | "otp";
 
 export default function LoginPage() {
   const router = useRouter();
   const supabase = createClient();
-  const [state, setState] = useState<LoginState>("email");
+  const [state, setState] = useState<LoginState>("form");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [authMethod, setAuthMethod] = useState<AuthMethod>("password");
 
   // OTP code state
   const [code, setCode] = useState<string[]>(emptyCode());
@@ -30,7 +33,56 @@ export default function LoginPage() {
     });
   }, [supabase, router]);
 
-  const handleEmailSubmit = async (e: React.FormEvent) => {
+  const redirectByRole = async (userId: string) => {
+    const { data: profile } = await supabase.from("users").select("role").eq("id", userId).single();
+    if (profile?.role === "organizer") {
+      router.push("/dashboard");
+    } else {
+      router.push("/events");
+    }
+    router.refresh();
+  };
+
+  const handlePasswordLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    const trimmed = email.trim();
+    if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setError("Please enter a valid email address.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email: trimmed,
+        password,
+      });
+
+      if (signInError) {
+        setError("Invalid email or password.");
+        return;
+      }
+
+      setState("success");
+      setTimeout(() => {
+        if (data.user) {
+          void redirectByRole(data.user.id);
+        } else {
+          router.push("/events");
+          router.refresh();
+        }
+      }, 2000);
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOtpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
@@ -94,23 +146,13 @@ export default function LoginPage() {
 
       setState("success");
 
-      // Role-based redirect
-      setTimeout(async () => {
+      setTimeout(() => {
         if (data.user) {
-          const { data: profile } = await supabase
-            .from("users")
-            .select("role")
-            .eq("id", data.user.id)
-            .single();
-          if (profile?.role === "organizer") {
-            router.push("/dashboard");
-          } else {
-            router.push("/events");
-          }
+          void redirectByRole(data.user.id);
         } else {
           router.push("/events");
+          router.refresh();
         }
-        router.refresh();
       }, 2000);
     } catch {
       setError("Something went wrong. Please try again.");
@@ -177,7 +219,7 @@ export default function LoginPage() {
           onChangeEmail={() => {
             setError("");
             setCode(emptyCode());
-            setState("email");
+            setState("form");
           }}
           loading={loading}
           error={error}
@@ -237,7 +279,10 @@ export default function LoginPage() {
         </div>
       </div>
 
-      <form onSubmit={handleEmailSubmit} className="space-y-4">
+      <form
+        onSubmit={authMethod === "password" ? handlePasswordLogin : handleOtpSubmit}
+        className="space-y-4"
+      >
         <Input
           id="email"
           label="Email"
@@ -249,14 +294,62 @@ export default function LoginPage() {
           placeholder="you@example.com"
           required
         />
+
+        {authMethod === "password" && (
+          <>
+            <Input
+              id="password"
+              label="Password"
+              type="password"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+              }}
+              placeholder="Enter your password"
+              required
+            />
+            <div className="flex justify-end -mt-2">
+              <Link
+                href="/forgot-password"
+                className="text-sm text-lime-600 dark:text-lime-400 hover:text-lime-700 dark:hover:text-lime-300 font-medium"
+              >
+                Forgot password?
+              </Link>
+            </div>
+          </>
+        )}
+
         {error && <p className="text-sm text-red-500">{error}</p>}
         <Button type="submit" className="w-full" size="lg" disabled={loading}>
-          {loading ? "Sending code..." : "Continue"}
+          {loading
+            ? authMethod === "password"
+              ? "Signing in..."
+              : "Sending code..."
+            : authMethod === "password"
+              ? "Sign In"
+              : "Send Code"}
         </Button>
 
-        <p className="text-xs text-center text-gray-400 dark:text-gray-500">
-          We&apos;ll send a 6-digit code to your email.
-        </p>
+        <div className="text-center">
+          <button
+            type="button"
+            onClick={() => {
+              setAuthMethod(authMethod === "password" ? "otp" : "password");
+              setError("");
+            }}
+            className="text-sm text-lime-600 dark:text-lime-400 hover:text-lime-700 dark:hover:text-lime-300 font-medium"
+          >
+            {authMethod === "password"
+              ? "Sign in with code instead"
+              : "Sign in with password instead"}
+          </button>
+        </div>
+
+        {authMethod === "otp" && (
+          <p className="text-xs text-center text-gray-400 dark:text-gray-500">
+            We&apos;ll send a 6-digit code to your email.
+          </p>
+        )}
       </form>
 
       <div className="text-center space-y-3">

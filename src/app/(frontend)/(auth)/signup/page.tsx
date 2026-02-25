@@ -13,6 +13,7 @@ const CODE_LENGTH = 6;
 const emptyCode = () => Array.from<string>({ length: CODE_LENGTH }).fill("");
 
 type SignupState = "details" | "verify-code" | "success";
+type AuthMethod = "password" | "otp";
 
 function SignupForm() {
   const router = useRouter();
@@ -24,6 +25,11 @@ function SignupForm() {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [authMethod, setAuthMethod] = useState<AuthMethod>("password");
+
+  // Password fields
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const isOrganizerEntry = searchParams.get("role") === "organizer";
 
@@ -43,50 +49,124 @@ function SignupForm() {
   // Store metadata to apply after verification
   const metadataRef = useRef<Record<string, string>>({});
 
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-
-    if (isOrganizer && !orgName.trim()) {
-      setError("Organization name is required.");
-      setLoading(false);
-      return;
-    }
-
-    const trimmed = email.trim();
-    if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
-      setError("Please enter a valid email address.");
-      setLoading(false);
-      return;
-    }
-
-    // Store metadata for after verification
+  const buildMetadata = () => {
     const metadata: Record<string, string> = { full_name: fullName.trim() };
     if (isOrganizer) {
       metadata.role = "organizer";
       metadata.org_name = orgName.trim();
     }
+    return metadata;
+  };
+
+  const handlePostSignup = async (userId: string) => {
+    const metadata = buildMetadata();
+
+    if (metadata.full_name) {
+      await supabase.from("users").update({ full_name: metadata.full_name }).eq("id", userId);
+    }
+
+    await generateUsername(supabase, userId, email);
+
+    if (metadata.role === "organizer" && metadata.org_name) {
+      await supabase.from("users").update({ role: "organizer" }).eq("id", userId);
+
+      const { data: existingProfile } = await supabase
+        .from("organizer_profiles")
+        .select("id")
+        .eq("user_id", userId)
+        .single();
+
+      if (!existingProfile) {
+        await supabase
+          .from("organizer_profiles")
+          .insert({ user_id: userId, org_name: metadata.org_name });
+      }
+    }
+  };
+
+  const validateForm = () => {
+    if (isOrganizer && !orgName.trim()) {
+      setError("Organization name is required.");
+      return false;
+    }
+
+    const trimmed = email.trim();
+    if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setError("Please enter a valid email address.");
+      return false;
+    }
+
+    if (authMethod === "password") {
+      if (password.length < 6) {
+        setError("Password must be at least 6 characters.");
+        return false;
+      }
+      if (password !== confirmPassword) {
+        setError("Passwords do not match.");
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    if (!validateForm()) {
+      setLoading(false);
+      return;
+    }
+
+    const metadata = buildMetadata();
     metadataRef.current = metadata;
 
     try {
-      const { error: otpError } = await supabase.auth.signInWithOtp({
-        email: trimmed,
-        options: {
-          data: metadata,
-        },
-      });
+      if (authMethod === "password") {
+        const { data, error: signupError } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+          options: { data: metadata },
+        });
 
-      if (otpError) {
-        if (otpError.message?.includes("rate")) {
-          setError("Too many attempts. Try again in a few minutes.");
-        } else {
-          setError(otpError.message || "Something went wrong. Please try again.");
+        if (signupError) {
+          if (signupError.message?.includes("already registered")) {
+            setError("This email is already registered. Try signing in instead.");
+          } else {
+            setError(signupError.message || "Something went wrong. Please try again.");
+          }
+          return;
         }
-        return;
-      }
 
-      setState("verify-code");
+        if (data.user) {
+          await handlePostSignup(data.user.id);
+        }
+
+        setState("success");
+        setTimeout(() => {
+          router.push(isOrganizer ? "/dashboard" : "/events");
+          router.refresh();
+        }, 2000);
+      } else {
+        // OTP flow
+        const { error: otpError } = await supabase.auth.signInWithOtp({
+          email: email.trim(),
+          options: { data: metadata },
+        });
+
+        if (otpError) {
+          if (otpError.message?.includes("rate")) {
+            setError("Too many attempts. Try again in a few minutes.");
+          } else {
+            setError(otpError.message || "Something went wrong. Please try again.");
+          }
+          return;
+        }
+
+        setState("verify-code");
+      }
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -118,40 +198,12 @@ function SignupForm() {
         return;
       }
 
-      // Update user profile with full name and username
       if (data.user) {
-        const metadata = metadataRef.current;
-
-        if (metadata.full_name) {
-          await supabase
-            .from("users")
-            .update({ full_name: metadata.full_name })
-            .eq("id", data.user.id);
-        }
-
-        await generateUsername(supabase, data.user.id, email);
-
-        // Handle organizer profile creation
-        if (metadata.role === "organizer" && metadata.org_name) {
-          await supabase.from("users").update({ role: "organizer" }).eq("id", data.user.id);
-
-          const { data: existingProfile } = await supabase
-            .from("organizer_profiles")
-            .select("id")
-            .eq("user_id", data.user.id)
-            .single();
-
-          if (!existingProfile) {
-            await supabase
-              .from("organizer_profiles")
-              .insert({ user_id: data.user.id, org_name: metadata.org_name });
-          }
-        }
+        await handlePostSignup(data.user.id);
       }
 
       setState("success");
 
-      // Redirect after brief delay
       setTimeout(() => {
         if (isOrganizer) {
           router.push("/dashboard");
@@ -312,6 +364,56 @@ function SignupForm() {
           required
         />
 
+        {/* Password fields (shown when password method is selected) */}
+        <div
+          className={cn(
+            "grid transition-all duration-300 ease-in-out",
+            authMethod === "password" ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+          )}
+        >
+          <div className="overflow-hidden">
+            <div className="space-y-4">
+              <Input
+                id="password"
+                label="Password"
+                type="password"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                }}
+                placeholder="At least 6 characters"
+                required={authMethod === "password"}
+                minLength={6}
+              />
+              <Input
+                id="confirmPassword"
+                label="Confirm Password"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                }}
+                placeholder="Re-enter your password"
+                required={authMethod === "password"}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Auth method toggle */}
+        <div className="text-center">
+          <button
+            type="button"
+            onClick={() => {
+              setAuthMethod(authMethod === "password" ? "otp" : "password");
+              setError("");
+            }}
+            className="text-sm text-lime-600 dark:text-lime-400 hover:text-lime-700 dark:hover:text-lime-300 font-medium"
+          >
+            {authMethod === "password" ? "Use code instead" : "Use password instead"}
+          </button>
+        </div>
+
         {/* Organizer toggle */}
         <label className="flex items-center gap-3 cursor-pointer select-none py-1">
           <div className="relative">
@@ -367,15 +469,19 @@ function SignupForm() {
         {error && <p className="text-sm text-red-500">{error}</p>}
         <Button type="submit" className="w-full" size="lg" disabled={loading}>
           {loading
-            ? "Sending code..."
+            ? authMethod === "password"
+              ? "Creating account..."
+              : "Sending code..."
             : isOrganizer
               ? "Create Organizer Account"
               : "Create Account"}
         </Button>
 
-        <p className="text-xs text-center text-gray-400 dark:text-gray-500">
-          We&apos;ll send a 6-digit code to your email to verify your account.
-        </p>
+        {authMethod === "otp" && (
+          <p className="text-xs text-center text-gray-400 dark:text-gray-500">
+            We&apos;ll send a 6-digit code to your email to verify your account.
+          </p>
+        )}
       </form>
 
       <p className="text-center text-sm text-gray-500 dark:text-gray-400">
