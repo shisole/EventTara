@@ -72,8 +72,20 @@ export default function BookingForm({
   // In self mode: 1 spot for user + companions. In friend mode: only companions.
   const selfSlots = mode === "self" ? 1 : 0;
   const totalPeople = selfSlots + companions.length;
-  const maxCompanions = Math.max(0, effectiveSpotsLeft - selfSlots);
-  const totalPrice = effectivePrice * totalPeople;
+
+  // When distances exist, max companions is the total remaining spots across all distances
+  const maxCompanions = hasDistances
+    ? Math.max(0, distances.reduce((sum, d) => sum + Math.max(0, d.spots_left), 0) - selfSlots)
+    : Math.max(0, effectiveSpotsLeft - selfSlots);
+
+  // Calculate total price: booker's distance price + each companion's distance price
+  const companionPriceTotal = hasDistances
+    ? companions.reduce((sum, c) => {
+        const d = distances.find((dist) => dist.id === c.event_distance_id);
+        return sum + (d ? d.price : 0);
+      }, 0)
+    : effectivePrice * companions.length;
+  const totalPrice = effectivePrice * selfSlots + companionPriceTotal;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,6 +107,12 @@ export default function BookingForm({
       return;
     }
 
+    // Validate companion distances when event has distances
+    if (hasDistances && companions.some((c) => !c.event_distance_id)) {
+      setError("Please select a distance for each companion");
+      return;
+    }
+
     if (!isFree && !paymentMethod) {
       setError("Please select a payment method");
       return;
@@ -113,6 +131,7 @@ export default function BookingForm({
       const companionData = companions.map((c) => ({
         full_name: c.full_name.trim(),
         phone: c.phone.trim() || null,
+        event_distance_id: c.event_distance_id || null,
       }));
 
       if (isEwallet && proofFile) {
@@ -277,8 +296,8 @@ export default function BookingForm({
               <p className="text-lg font-bold text-lime-600 dark:text-lime-400">
                 {isFree
                   ? "Free"
-                  : totalPeople > 1
-                    ? `₱${effectivePrice.toLocaleString()} × ${totalPeople} = ₱${totalPrice.toLocaleString()}`
+                  : totalPrice > 0
+                    ? `₱${totalPrice.toLocaleString()}`
                     : `₱${effectivePrice.toLocaleString()}`}
               </p>
             </div>
@@ -291,6 +310,7 @@ export default function BookingForm({
           companions={companions}
           onChange={setCompanions}
           maxCompanions={maxCompanions}
+          distances={hasDistances ? distances : undefined}
         />
       )}
 
@@ -299,6 +319,7 @@ export default function BookingForm({
           companions={companions}
           onChange={setCompanions}
           maxCompanions={maxCompanions}
+          distances={hasDistances ? distances : undefined}
         />
       )}
 

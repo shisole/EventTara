@@ -316,6 +316,7 @@ export interface Database {
           checked_in: boolean;
           checked_in_at: string | null;
           status: "pending" | "confirmed" | "cancelled";
+          event_distance_id: string | null;
           created_at: string;
         };
         Insert: {
@@ -327,6 +328,7 @@ export interface Database {
           checked_in?: boolean;
           checked_in_at?: string | null;
           status?: "pending" | "confirmed" | "cancelled";
+          event_distance_id?: string | null;
           created_at?: string;
         };
         Update: {
@@ -338,6 +340,7 @@ export interface Database {
           checked_in?: boolean;
           checked_in_at?: string | null;
           status?: "pending" | "confirmed" | "cancelled";
+          event_distance_id?: string | null;
           created_at?: string;
         };
         Relationships: [];

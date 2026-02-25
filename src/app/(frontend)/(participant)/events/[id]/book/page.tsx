@@ -66,39 +66,36 @@ export default async function BookEventPage({
   let distancesWithSpots: DistanceWithSpots[] | undefined;
 
   if (distances && distances.length > 0) {
-    // Get all active bookings for this event that have an event_distance_id
+    const distanceIds = distances.map((d) => d.id);
+
+    // Count bookings per distance
     const { data: distanceBookings } = await supabase
       .from("bookings")
-      .select("event_distance_id, id")
+      .select("event_distance_id")
       .eq("event_id", id)
       .in("status", ["pending", "confirmed"])
-      .not("event_distance_id", "is", null);
+      .in("event_distance_id", distanceIds);
 
-    // Get companion counts for each booking
-    const bookingIds = (distanceBookings ?? []).map((b) => b.id);
-    const companionCounts: Record<string, number> = {};
-
-    if (bookingIds.length > 0) {
-      const { data: companions } = await supabase
-        .from("booking_companions")
-        .select("booking_id")
-        .in("booking_id", bookingIds)
-        .in("status", ["pending", "confirmed"]);
-
-      if (companions) {
-        for (const c of companions) {
-          companionCounts[c.booking_id] = (companionCounts[c.booking_id] || 0) + 1;
-        }
+    const bookingsByDistance: Record<string, number> = {};
+    for (const b of distanceBookings ?? []) {
+      if (b.event_distance_id) {
+        bookingsByDistance[b.event_distance_id] =
+          (bookingsByDistance[b.event_distance_id] || 0) + 1;
       }
     }
 
-    // Count total participants per distance (1 per booking + companions)
-    const participantsByDistance: Record<string, number> = {};
-    for (const booking of distanceBookings ?? []) {
-      if (booking.event_distance_id) {
-        const companionCount = companionCounts[booking.id] || 0;
-        participantsByDistance[booking.event_distance_id] =
-          (participantsByDistance[booking.event_distance_id] || 0) + 1 + companionCount;
+    // Count companions per distance (by their own event_distance_id)
+    const { data: distanceCompanions } = await supabase
+      .from("booking_companions")
+      .select("event_distance_id")
+      .in("event_distance_id", distanceIds)
+      .in("status", ["pending", "confirmed"]);
+
+    const companionsByDistance: Record<string, number> = {};
+    for (const c of distanceCompanions ?? []) {
+      if (c.event_distance_id) {
+        companionsByDistance[c.event_distance_id] =
+          (companionsByDistance[c.event_distance_id] || 0) + 1;
       }
     }
 
@@ -108,7 +105,8 @@ export default async function BookEventPage({
       label: d.label,
       price: d.price,
       max_participants: d.max_participants,
-      spots_left: d.max_participants - (participantsByDistance[d.id] || 0),
+      spots_left:
+        d.max_participants - (bookingsByDistance[d.id] || 0) - (companionsByDistance[d.id] || 0),
     }));
   }
 
