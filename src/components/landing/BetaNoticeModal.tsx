@@ -44,7 +44,7 @@ export default function BetaNoticeModal() {
     if (!isVisible) return;
     const timer = setTimeout(() => {
       setReady(true);
-    }, 3000);
+    }, 1500);
     return () => {
       clearTimeout(timer);
     };
