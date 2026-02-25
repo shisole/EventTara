@@ -49,6 +49,18 @@ const TIME_FILTERS = [
   { value: "past", label: "Past" },
 ];
 
+const DISTANCE_TYPES = new Set(["running", "trail_run", "road_bike"]);
+
+const DISTANCE_OPTIONS = [
+  { value: "3", label: "3 km" },
+  { value: "5", label: "5 km" },
+  { value: "10", label: "10 km" },
+  { value: "21", label: "21 km (Half Marathon)" },
+  { value: "42", label: "42 km (Marathon)" },
+  { value: "50", label: "50 km (Ultra)" },
+  { value: "100", label: "100 km (Ultra)" },
+];
+
 /* ------------------------------------------------------------------ */
 /*  Types                                                             */
 /* ------------------------------------------------------------------ */
@@ -525,6 +537,7 @@ export default function EventFilters({
   const currentGuides = parseTypes(currentGuideParam);
   const currentFrom = searchParams.get("from") ?? "";
   const currentTo = searchParams.get("to") ?? "";
+  const currentDistance = searchParams.get("distance") ?? "";
 
   /* Local state */
   const [searchValue, setSearchValue] = useState(currentSearch);
@@ -614,6 +627,8 @@ export default function EventFilters({
       const updates: Record<string, string> = { type: serializeTypes(next) };
       // If hiking is no longer selected, clear guide filter
       if (!next.has("hiking")) updates.guide = "";
+      // If no distance-supporting types selected, clear distance filter
+      if (![...next].some((t) => DISTANCE_TYPES.has(t))) updates.distance = "";
       updateParams(updates);
     },
     [currentTypes, updateParams],
@@ -621,12 +636,21 @@ export default function EventFilters({
 
   /* Select all activities (clears type param = show everything) */
   const selectAllTypes = useCallback(() => {
-    updateParams({ type: "", guide: "" });
+    updateParams({ type: "", guide: "", distance: "" });
   }, [updateParams]);
 
   /* Clear all filters at once */
   const clearAllFilters = useCallback(() => {
-    updateParams({ type: "", when: "", from: "", to: "", org: "", guide: "", search: "" });
+    updateParams({
+      type: "",
+      when: "",
+      from: "",
+      to: "",
+      org: "",
+      guide: "",
+      distance: "",
+      search: "",
+    });
     setSearchValue("");
   }, [updateParams]);
 
@@ -636,6 +660,7 @@ export default function EventFilters({
     currentWhen !== "" ||
     currentOrgParam !== "" ||
     currentGuideParam !== "" ||
+    currentDistance !== "" ||
     currentFrom !== "" ||
     currentTo !== "" ||
     currentSearch !== "";
@@ -706,6 +731,19 @@ export default function EventFilters({
         ? `${currentGuides.size} guides`
         : undefined;
 
+  const selectDistance = useCallback(
+    (value: string) => {
+      const next = value === currentDistance ? "" : value;
+      updateParams({ distance: next });
+      setOpenId("");
+    },
+    [currentDistance, updateParams],
+  );
+
+  const distanceLabel = currentDistance
+    ? (DISTANCE_OPTIONS.find((d) => d.value === currentDistance)?.label ?? `${currentDistance} km`)
+    : undefined;
+
   const dateLabel =
     currentFrom && currentTo
       ? `${currentFrom} - ${currentTo}`
@@ -717,6 +755,10 @@ export default function EventFilters({
 
   /* Only show Guide chip when hiking is among selected types */
   const showGuideChip = isAllSelected(currentTypes) || currentTypes.has("hiking");
+
+  /* Only show Distance chip when a distance-supporting type is selected */
+  const showDistanceChip =
+    isAllSelected(currentTypes) || [...currentTypes].some((t) => DISTANCE_TYPES.has(t));
 
   return (
     <div className="space-y-4">
@@ -1048,6 +1090,37 @@ export default function EventFilters({
                     )}
                   </span>
                   {g.name}
+                </button>
+              ))}
+            </div>
+          </FilterChip>
+        )}
+
+        {/* ---- Distance chip (only when running/trail_run/road_bike is selected) ---- */}
+        {showDistanceChip && (
+          <FilterChip
+            id="distance"
+            label="Distance"
+            activeLabel={distanceLabel}
+            isActive={!!currentDistance}
+            isOpen={openId === "distance"}
+            onToggle={handleToggle}
+            onClear={() => updateParams({ distance: "" })}
+          >
+            <div className="p-3 space-y-1">
+              {DISTANCE_OPTIONS.map((d) => (
+                <button
+                  key={d.value}
+                  type="button"
+                  onClick={() => selectDistance(d.value)}
+                  className={cn(
+                    "w-full text-left px-3 py-2 rounded-lg text-sm transition-colors",
+                    currentDistance === d.value
+                      ? "bg-gray-100 dark:bg-gray-700 font-medium text-gray-900 dark:text-gray-100"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-750",
+                  )}
+                >
+                  {d.label}
                 </button>
               ))}
             </div>

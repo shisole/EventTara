@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 interface CompanionInput {
   full_name: string;
   phone: string | null;
+  event_distance_id?: string | null;
 }
 
 export async function POST(request: Request) {
@@ -26,6 +27,7 @@ export async function POST(request: Request) {
   let proofFile: File | null = null;
   let mode: "self" | "friend" = "self";
   let companions: CompanionInput[] = [];
+  let eventDistanceId: string | null = null;
 
   if (contentType.includes("multipart/form-data")) {
     const formData = await request.formData();
@@ -33,6 +35,7 @@ export async function POST(request: Request) {
     paymentMethod = formData.get("payment_method") as string;
     proofFile = formData.get("payment_proof") as File | null;
     mode = (formData.get("mode") as string) === "friend" ? "friend" : "self";
+    eventDistanceId = (formData.get("event_distance_id") as string) || null;
     const companionsStr = formData.get("companions") as string | null;
     if (companionsStr) {
       try {
@@ -47,6 +50,7 @@ export async function POST(request: Request) {
     paymentMethod = body.payment_method;
     mode = body.mode === "friend" ? "friend" : "self";
     companions = body.companions || [];
+    eventDistanceId = body.event_distance_id || null;
   }
 
   if (!eventId || !paymentMethod) {
@@ -72,14 +76,86 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Event not found" }, { status: 404 });
   }
 
-  // Check capacity using RPC (accounts for companions)
-  const { data: totalParticipants } = await supabase.rpc("get_total_participants", {
-    p_event_id: eventId,
-  });
-
+  // Check capacity — per-distance if distances are involved, otherwise event-level
   const requestedSlots = mode === "self" ? 1 + companions.length : companions.length;
-  if ((totalParticipants || 0) + requestedSlots > event.max_participants) {
-    return NextResponse.json({ error: "Not enough spots available" }, { status: 400 });
+
+  // Collect all distance IDs involved in this booking (booker's + companions')
+  const allDistanceIds = new Set<string>();
+  if (eventDistanceId) allDistanceIds.add(eventDistanceId);
+  for (const c of companions) {
+    if (c.event_distance_id) allDistanceIds.add(c.event_distance_id);
+  }
+
+  if (allDistanceIds.size > 0) {
+    // Fetch all involved distances in one query
+    const { data: distanceRows } = await supabase
+      .from("event_distances")
+      .select("id, max_participants")
+      .eq("event_id", eventId)
+      .in("id", [...allDistanceIds]);
+
+    const distanceMap = new Map((distanceRows || []).map((d) => [d.id, d.max_participants]));
+
+    // Validate all distance IDs belong to this event
+    for (const dId of allDistanceIds) {
+      if (!distanceMap.has(dId)) {
+        return NextResponse.json({ error: "Invalid distance selection" }, { status: 400 });
+      }
+    }
+
+    // Count how many slots this request needs per distance
+    const requestedPerDistance = new Map<string, number>();
+    if (eventDistanceId && mode === "self") {
+      requestedPerDistance.set(
+        eventDistanceId,
+        (requestedPerDistance.get(eventDistanceId) || 0) + 1,
+      );
+    }
+    for (const c of companions) {
+      if (c.event_distance_id) {
+        requestedPerDistance.set(
+          c.event_distance_id,
+          (requestedPerDistance.get(c.event_distance_id) || 0) + 1,
+        );
+      }
+    }
+
+    // Check capacity per distance
+    for (const [distId, requested] of requestedPerDistance) {
+      const maxP = distanceMap.get(distId) || 0;
+
+      // Count bookings with this distance
+      const { count: bookingCount } = await supabase
+        .from("bookings")
+        .select("id", { count: "exact", head: true })
+        .eq("event_id", eventId)
+        .eq("event_distance_id", distId)
+        .in("status", ["pending", "confirmed"]);
+
+      // Count companions with this distance
+      const { count: companionCount } = await supabase
+        .from("booking_companions")
+        .select("id", { count: "exact", head: true })
+        .eq("event_distance_id", distId)
+        .in("status", ["pending", "confirmed"]);
+
+      const current = (bookingCount || 0) + (companionCount || 0);
+      if (current + requested > maxP) {
+        return NextResponse.json(
+          { error: "Not enough spots available for this distance" },
+          { status: 400 },
+        );
+      }
+    }
+  } else {
+    // Event-level capacity check using RPC (accounts for companions)
+    const { data: totalParticipants } = await supabase.rpc("get_total_participants", {
+      p_event_id: eventId,
+    });
+
+    if ((totalParticipants || 0) + requestedSlots > event.max_participants) {
+      return NextResponse.json({ error: "Not enough spots available" }, { status: 400 });
+    }
   }
 
   // Check for existing booking
@@ -140,6 +216,7 @@ export async function POST(request: Request) {
         qr_code: qrCode,
         status: bookingStatus,
         payment_status: paymentStatus,
+        event_distance_id: eventDistanceId,
       })
       .select()
       .single();
@@ -198,6 +275,7 @@ export async function POST(request: Request) {
         phone: c.phone || null,
         status: companionStatus,
         qr_code: generateQr ? `eventtara:checkin:${eventId}:companion:${id}` : null,
+        event_distance_id: c.event_distance_id || null,
       };
     });
 
