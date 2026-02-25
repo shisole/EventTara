@@ -2,6 +2,7 @@
 
 import type { User } from "@supabase/supabase-js";
 import dynamic from "next/dynamic";
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import MobileDrawer from "@/components/layout/MobileDrawer";
@@ -60,6 +61,7 @@ const activities = [
 ];
 
 export default function ClientShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const supabase = createClient();
   const [user, setUser] = useState<User | null>(null);
   const [role, setRole] = useState<string | null>(null);
@@ -76,6 +78,11 @@ export default function ClientShell({ children }: { children: React.ReactNode })
     },
     [supabase],
   );
+
+  // Scroll to top on route change
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
 
   // Auth state
   useEffect(() => {
