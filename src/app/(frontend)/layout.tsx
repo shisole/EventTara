@@ -6,26 +6,22 @@ import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import ClientShell from "@/components/layout/ClientShell";
 import Footer from "@/components/layout/Footer";
 import ThemeProvider from "@/components/layout/ThemeProvider";
-import { getPayloadClient } from "@/lib/payload/client";
+import { getCachedSiteSettings } from "@/lib/payload/cached";
 
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
+  display: "swap",
 });
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
   variable: "--font-plus-jakarta",
+  display: "swap",
 });
 
 export async function generateMetadata(): Promise<Metadata> {
-  let settings;
-  try {
-    const payload = await getPayloadClient();
-    settings = await payload.findGlobal({ slug: "site-settings" });
-  } catch {
-    settings = null;
-  }
+  const settings = await getCachedSiteSettings();
 
   const siteName = settings?.siteName || "EventTara";
   const tagline = settings?.tagline || "Tara na! Book Your Next Adventure";
