@@ -13,7 +13,7 @@ interface MapDisplayProps {
 export default function MapDisplay({ lat, lng, label }: MapDisplayProps) {
   return (
     <div
-      className="rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700"
+      className="relative z-0 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700"
       style={{ height: 250 }}
     >
       <MapContainer
