@@ -2,19 +2,26 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useState, useEffect } from "react";
+import { Suspense, useState, useEffect, useRef } from "react";
 
-import { Button, Input } from "@/components/ui";
+import { Button, Input, OtpCodeInput } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import { generateUsername } from "@/lib/utils/generate-username";
+
+const CODE_LENGTH = 6;
+const emptyCode = () => Array.from<string>({ length: CODE_LENGTH }).fill("");
+
+type SignupState = "details" | "verify-code" | "success";
 
 function SignupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
+
+  const [state, setState] = useState<SignupState>("details");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -30,41 +37,159 @@ function SignupForm() {
   const [isOrganizer, setIsOrganizer] = useState(isOrganizerEntry);
   const [orgName, setOrgName] = useState("");
 
+  // OTP code state
+  const [code, setCode] = useState<string[]>(emptyCode());
+
+  // Store metadata to apply after verification
+  const metadataRef = useRef<Record<string, string>>({});
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
-    const metadata: Record<string, string> = { full_name: fullName };
+    if (isOrganizer && !orgName.trim()) {
+      setError("Organization name is required.");
+      setLoading(false);
+      return;
+    }
 
+    const trimmed = email.trim();
+    if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setError("Please enter a valid email address.");
+      setLoading(false);
+      return;
+    }
+
+    // Store metadata for after verification
+    const metadata: Record<string, string> = { full_name: fullName.trim() };
     if (isOrganizer) {
-      if (!orgName.trim()) {
-        setError("Organization name is required.");
-        setLoading(false);
-        return;
-      }
       metadata.role = "organizer";
       metadata.org_name = orgName.trim();
     }
+    metadataRef.current = metadata;
 
-    const { data, error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: metadata,
-        emailRedirectTo: `${globalThis.location.origin}/auth/callback`,
-      },
-    });
+    try {
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        email: trimmed,
+        options: {
+          data: metadata,
+        },
+      });
 
-    if (signUpError) {
-      setError(signUpError.message);
+      if (otpError) {
+        if (otpError.message?.includes("rate")) {
+          setError("Too many attempts. Try again in a few minutes.");
+        } else {
+          setError(otpError.message || "Something went wrong. Please try again.");
+        }
+        return;
+      }
+
+      setState("verify-code");
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
       setLoading(false);
-    } else if (data.user && data.user.identities?.length === 0) {
-      setError("This email is already registered.");
+    }
+  };
+
+  const handleVerifyCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    const token = code.join("");
+    if (token.length !== CODE_LENGTH) {
+      setError("Please enter the full 6-digit code.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data, error: verifyError } = await supabase.auth.verifyOtp({
+        email: email.trim(),
+        token,
+        type: "email",
+      });
+
+      if (verifyError) {
+        setError(verifyError.message || "Invalid code. Please try again.");
+        setCode(emptyCode());
+        return;
+      }
+
+      // Update user profile with full name and username
+      if (data.user) {
+        const metadata = metadataRef.current;
+
+        if (metadata.full_name) {
+          await supabase
+            .from("users")
+            .update({ full_name: metadata.full_name })
+            .eq("id", data.user.id);
+        }
+
+        await generateUsername(supabase, data.user.id, email);
+
+        // Handle organizer profile creation
+        if (metadata.role === "organizer" && metadata.org_name) {
+          await supabase.from("users").update({ role: "organizer" }).eq("id", data.user.id);
+
+          const { data: existingProfile } = await supabase
+            .from("organizer_profiles")
+            .select("id")
+            .eq("user_id", data.user.id)
+            .single();
+
+          if (!existingProfile) {
+            await supabase
+              .from("organizer_profiles")
+              .insert({ user_id: data.user.id, org_name: metadata.org_name });
+          }
+        }
+      }
+
+      setState("success");
+
+      // Redirect after brief delay
+      setTimeout(() => {
+        if (isOrganizer) {
+          router.push("/dashboard");
+        } else {
+          router.push("/events");
+        }
+        router.refresh();
+      }, 2000);
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
       setLoading(false);
-    } else {
-      router.push(`/check-email?email=${encodeURIComponent(email)}`);
-      router.refresh();
+    }
+  };
+
+  const handleResend = async () => {
+    setError("");
+    setLoading(true);
+    try {
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        email: email.trim(),
+        options: {
+          data: metadataRef.current,
+        },
+      });
+      if (otpError) {
+        if (otpError.message?.includes("rate")) {
+          setError("Too many attempts. Try again in a few minutes.");
+        } else {
+          setError(otpError.message || "Something went wrong. Please try again.");
+        }
+      } else {
+        setCode(emptyCode());
+      }
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -77,6 +202,62 @@ function SignupForm() {
     });
     if (error) setError(error.message);
   };
+
+  if (state === "verify-code") {
+    return (
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md p-8 space-y-6">
+        <OtpCodeInput
+          email={email}
+          code={code}
+          onCodeChange={(newCode) => {
+            setCode(newCode);
+            setError("");
+          }}
+          onSubmit={handleVerifyCode}
+          onResend={handleResend}
+          onChangeEmail={() => {
+            setError("");
+            setCode(emptyCode());
+            setState("details");
+          }}
+          loading={loading}
+          error={error}
+        />
+      </div>
+    );
+  }
+
+  if (state === "success") {
+    return (
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md p-8 space-y-6">
+        <div className="text-center space-y-3">
+          <div className="w-14 h-14 bg-lime-100 dark:bg-lime-900/30 rounded-full flex items-center justify-center mx-auto">
+            <svg
+              className="w-7 h-7 text-lime-600 dark:text-lime-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </div>
+          <h2 className="text-xl font-heading font-bold text-gray-900 dark:text-white">
+            You&apos;re all set!
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Welcome,{" "}
+            <span className="font-medium text-gray-900 dark:text-white">{fullName || email}</span>!
+            Redirecting...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md p-8 space-y-6">
@@ -128,18 +309,6 @@ function SignupForm() {
             setEmail(e.target.value);
           }}
           placeholder="you@example.com"
-          required
-        />
-        <Input
-          id="password"
-          label="Password"
-          type="password"
-          value={password}
-          onChange={(e) => {
-            setPassword(e.target.value);
-          }}
-          placeholder="At least 6 characters"
-          minLength={6}
           required
         />
 
@@ -198,11 +367,15 @@ function SignupForm() {
         {error && <p className="text-sm text-red-500">{error}</p>}
         <Button type="submit" className="w-full" size="lg" disabled={loading}>
           {loading
-            ? "Creating account..."
+            ? "Sending code..."
             : isOrganizer
               ? "Create Organizer Account"
               : "Create Account"}
         </Button>
+
+        <p className="text-xs text-center text-gray-400 dark:text-gray-500">
+          We&apos;ll send a 6-digit code to your email to verify your account.
+        </p>
       </form>
 
       <p className="text-center text-sm text-gray-500 dark:text-gray-400">
