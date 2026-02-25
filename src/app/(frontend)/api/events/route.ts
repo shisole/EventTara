@@ -22,6 +22,7 @@ export async function GET(request: NextRequest) {
   const org = searchParams.get("org") || "";
   const guide = searchParams.get("guide") || "";
   const distance = searchParams.get("distance") || "";
+  const difficulty = searchParams.get("difficulty") || "";
   const from = searchParams.get("from") || "";
   const to = searchParams.get("to") || "";
 
@@ -148,6 +149,17 @@ export async function GET(request: NextRequest) {
     dataQuery = dataQuery.in("id", distEventIds);
   }
 
+  // Difficulty filter: range-based (e.g. "1-4", "5-7", "8-9")
+  if (difficulty) {
+    const [minStr, maxStr] = difficulty.split("-");
+    const min = Number.parseInt(minStr, 10);
+    const max = Number.parseInt(maxStr, 10);
+    if (!Number.isNaN(min) && !Number.isNaN(max)) {
+      countQuery = countQuery.gte("difficulty_level", min).lte("difficulty_level", max);
+      dataQuery = dataQuery.gte("difficulty_level", min).lte("difficulty_level", max);
+    }
+  }
+
   // For "no when filter", we need custom sorting: upcoming first, then past reversed
   // We'll fetch with a basic order and sort in-memory for this case
   dataQuery = when
@@ -241,6 +253,7 @@ export async function GET(request: NextRequest) {
       status: getEventStatus(event.date, today),
       organizer_name: event.organizer_profiles?.org_name,
       organizer_id: event.organizer_id,
+      difficulty_level: event.difficulty_level,
       coordinates: event.coordinates as { lat: number; lng: number } | null,
       avg_rating: stats?.avg,
       review_count: stats?.count,
