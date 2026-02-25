@@ -96,50 +96,82 @@ export default function EventsTable({ events }: EventsTableProps) {
   );
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 overflow-hidden">
-      <table className="w-full">
-        <thead className="bg-gray-50 dark:bg-gray-800">
-          <tr>
-            <SortHeader label="Event" field="title" />
-            <SortHeader label="Date" field="date" />
-            <SortHeader label="Status" field="status" />
-            <SortHeader label="Bookings" field="bookings" />
-            <th className="text-right px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
-              Actions
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-          {sorted.map((event: any) => (
-            <tr key={event.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
-              <td className="px-6 py-4">
-                <Link
-                  href={`/dashboard/events/${event.id}`}
-                  className="font-medium dark:text-white hover:text-lime-600 dark:hover:text-lime-400"
-                >
-                  {event.title}
-                </Link>
-              </td>
-              <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                {formatEventDate(event.date, event.end_date, { includeYear: true })}
-              </td>
-              <td className="px-6 py-4">
-                <UIBadge variant={statusStyles[event.status] as any}>{event.status}</UIBadge>
-              </td>
-              <td className="px-6 py-4 text-sm dark:text-gray-300">
-                {event.bookings?.[0]?.count || 0}
-              </td>
-              <td className="px-6 py-4 text-right">
-                <Link href={`/dashboard/events/${event.id}/edit`}>
-                  <Button variant="ghost" size="sm">
-                    Edit
-                  </Button>
-                </Link>
-              </td>
+    <>
+      {/* Mobile: card layout */}
+      <div className="md:hidden space-y-3">
+        {sorted.map((event: any) => (
+          <div
+            key={event.id}
+            className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-4 space-y-3"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <Link
+                href={`/dashboard/events/${event.id}`}
+                className="font-heading font-bold dark:text-white hover:text-lime-600 dark:hover:text-lime-400 line-clamp-2"
+              >
+                {event.title}
+              </Link>
+              <UIBadge variant={statusStyles[event.status] as any}>{event.status}</UIBadge>
+            </div>
+            <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+              <span>{formatEventDate(event.date, event.end_date, { short: true })}</span>
+              <span>{event.bookings?.[0]?.count || 0} bookings</span>
+            </div>
+            <Link href={`/dashboard/events/${event.id}/edit`} className="block">
+              <Button variant="outline" size="sm" className="w-full">
+                Edit
+              </Button>
+            </Link>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop: table layout */}
+      <div className="hidden md:block bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 overflow-hidden">
+        <table className="w-full">
+          <thead className="bg-gray-50 dark:bg-gray-800">
+            <tr>
+              <SortHeader label="Event" field="title" />
+              <SortHeader label="Date" field="date" />
+              <SortHeader label="Status" field="status" />
+              <SortHeader label="Bookings" field="bookings" />
+              <th className="text-right px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
+                Actions
+              </th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+            {sorted.map((event: any) => (
+              <tr key={event.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                <td className="px-6 py-4">
+                  <Link
+                    href={`/dashboard/events/${event.id}`}
+                    className="font-medium dark:text-white hover:text-lime-600 dark:hover:text-lime-400"
+                  >
+                    {event.title}
+                  </Link>
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                  {formatEventDate(event.date, event.end_date, { includeYear: true })}
+                </td>
+                <td className="px-6 py-4">
+                  <UIBadge variant={statusStyles[event.status] as any}>{event.status}</UIBadge>
+                </td>
+                <td className="px-6 py-4 text-sm dark:text-gray-300">
+                  {event.bookings?.[0]?.count || 0}
+                </td>
+                <td className="px-6 py-4 text-right">
+                  <Link href={`/dashboard/events/${event.id}/edit`}>
+                    <Button variant="ghost" size="sm">
+                      Edit
+                    </Button>
+                  </Link>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }
