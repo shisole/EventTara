@@ -1,9 +1,11 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useState } from "react";
 
-import AuthBookingModal from "./AuthBookingModal";
 import BookingForm from "./BookingForm";
+
+const AuthBookingModal = dynamic(() => import("./AuthBookingModal"), { ssr: false });
 
 interface BookingPageClientProps {
   isAuthenticated: boolean;

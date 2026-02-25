@@ -5,12 +5,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 
-import { Button, Input, DateRangePicker } from "@/components/ui";
+import { Button, Input } from "@/components/ui";
 import { findProvinceFromLocation } from "@/lib/constants/philippine-provinces";
 
 import PhotoUploader from "./PhotoUploader";
 
 const MapPicker = dynamic(() => import("@/components/maps/MapPicker"), { ssr: false });
+const DateRangePicker = dynamic(() => import("@/components/ui/DateRangePicker"));
 
 interface EventFormProps {
   mode: "create" | "edit";
