@@ -195,7 +195,25 @@ export async function GET(request: NextRequest) {
     };
   });
 
-  return NextResponse.json({ events: gridEvents, totalCount: count ?? 0 });
+  // Search for matching users when search param is provided
+  let matchingUsers: {
+    id: string;
+    username: string | null;
+    full_name: string;
+    avatar_url: string | null;
+  }[] = [];
+  if (search) {
+    const pattern = search.trim().replaceAll(/\s+/g, "%");
+    const { data: users } = await supabase
+      .from("users")
+      .select("id, username, full_name, avatar_url")
+      .eq("is_guest", false)
+      .or(`username.ilike.%${pattern}%,full_name.ilike.%${pattern}%`)
+      .limit(5);
+    matchingUsers = (users ?? []).filter((u) => u.username);
+  }
+
+  return NextResponse.json({ events: gridEvents, totalCount: count ?? 0, users: matchingUsers });
 }
 
 export async function POST(request: Request) {

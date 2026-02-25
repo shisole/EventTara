@@ -263,6 +263,24 @@ export default async function EventsPage({
 
   const totalCount = count ?? 0;
 
+  // Fetch matching users when searching
+  let matchingUsers: {
+    id: string;
+    username: string;
+    full_name: string;
+    avatar_url: string | null;
+  }[] = [];
+  if (params.search) {
+    const userPattern = params.search.trim().replaceAll(/\s+/g, "%");
+    const { data: users } = await supabase
+      .from("users")
+      .select("id, username, full_name, avatar_url")
+      .eq("is_guest", false)
+      .or(`username.ilike.%${userPattern}%,full_name.ilike.%${userPattern}%`)
+      .limit(5);
+    matchingUsers = (users ?? []).filter((u): u is typeof u & { username: string } => !!u.username);
+  }
+
   // Fetch filter dropdown options in parallel
   const [organizers, guides] = await Promise.all([
     fetchOrganizerOptions(supabase),
@@ -276,6 +294,7 @@ export default async function EventsPage({
         totalCount={totalCount}
         organizers={organizers}
         guides={guides}
+        initialUsers={matchingUsers}
       />
     </div>
   );
