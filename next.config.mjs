@@ -5,6 +5,10 @@ const supabaseHostname = supabaseUrl ? new URL(supabaseUrl).hostname : "**.supab
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  eslint: {
+    // CI runs lint separately; skip during build to avoid Payload-generated file errors
+    ignoreDuringBuilds: true,
+  },
   experimental: {
     optimizeCss: true,
   },

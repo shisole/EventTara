@@ -447,6 +447,36 @@ export interface Database {
         };
         Relationships: [];
       };
+      chat_queries: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          ip_address: string | null;
+          query: string;
+          parsed_params: Json;
+          result_count: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          ip_address?: string | null;
+          query: string;
+          parsed_params?: Json;
+          result_count?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string | null;
+          ip_address?: string | null;
+          query?: string;
+          parsed_params?: Json;
+          result_count?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<never, never>;
     Functions: {
