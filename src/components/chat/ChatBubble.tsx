@@ -9,8 +9,8 @@ import ChatPanel from "./ChatPanel";
 
 export default function ChatBubble() {
   const [open, setOpen] = useState(false);
-  const keyboardHeight = useKeyboardHeight();
-  const keyboardOpen = keyboardHeight > 0;
+  const keyboard = useKeyboardHeight();
+  const keyboardOpen = keyboard.keyboardHeight > 0;
 
   const handleClose = useCallback(() => setOpen(false), []);
   const handleToggle = useCallback(() => setOpen((prev) => !prev), []);
@@ -26,7 +26,7 @@ export default function ChatBubble() {
         onClick={handleClose}
       />
 
-      <ChatPanel open={open} onClose={handleClose} keyboardHeight={keyboardHeight} />
+      <ChatPanel open={open} onClose={handleClose} keyboard={keyboard} />
 
       <button
         onClick={handleToggle}

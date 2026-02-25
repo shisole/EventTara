@@ -113,7 +113,7 @@ function getNavItems(user: User | null, role: string | null, pathname: string): 
 
 export default function MobileNav({ user, role }: MobileNavProps) {
   const pathname = usePathname();
-  const keyboardHeight = useKeyboardHeight();
+  const { keyboardHeight } = useKeyboardHeight();
   const keyboardOpen = keyboardHeight > 0;
 
   // Hide on auth pages

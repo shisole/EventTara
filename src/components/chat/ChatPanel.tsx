@@ -30,13 +30,20 @@ function incrementUsed(): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify({ date: today, count: current + 1 }));
 }
 
+interface KeyboardState {
+  keyboardHeight: number;
+  viewportOffset: number;
+}
+
 interface ChatPanelProps {
   open: boolean;
   onClose: () => void;
-  keyboardHeight?: number;
+  keyboard?: KeyboardState;
 }
 
-export default function ChatPanel({ open, onClose, keyboardHeight = 0 }: ChatPanelProps) {
+const PANEL_MAX_HEIGHT = 460;
+
+export default function ChatPanel({ open, onClose, keyboard }: ChatPanelProps) {
   const searchParams = useSearchParams();
   const unlimitedChat = useMemo(() => searchParams.get("chat_debug") === "1", [searchParams]);
   const [messages, setMessages] = useState<ChatMessageType[]>([
@@ -150,20 +157,30 @@ export default function ChatPanel({ open, onClose, keyboardHeight = 0 }: ChatPan
 
   const limitDots = Array.from({ length: DAILY_LIMIT }, (_, i) => i < remaining);
 
-  const keyboardOpen = keyboardHeight > 0;
+  const kbHeight = keyboard?.keyboardHeight ?? 0;
+  const viewportOffset = keyboard?.viewportOffset ?? 0;
+  const keyboardOpen = kbHeight > 0;
 
-  // When keyboard is open on mobile, anchor bottom edge just above the keyboard
+  // On iOS, when the keyboard opens the browser scrolls the page up.
+  // Fixed elements stay relative to the layout viewport, so bottom-based
+  // positioning breaks. Instead, use top-based positioning calculated from
+  // the visual viewport: place the panel so its bottom edge sits at the
+  // top of the keyboard (bottom of the visible area).
   const keyboardStyle: React.CSSProperties | undefined = keyboardOpen
-    ? { bottom: `${keyboardHeight}px` }
+    ? {
+        // Bottom of visible area = viewportOffset + visualViewport.height
+        // = viewportOffset + (window.innerHeight - kbHeight)
+        top: `${viewportOffset + (window.innerHeight - kbHeight) - PANEL_MAX_HEIGHT}px`,
+        bottom: "auto",
+        height: `${PANEL_MAX_HEIGHT}px`,
+      }
     : undefined;
 
   return (
     <div
-      className={`fixed z-40 transition-all duration-200 ease-out ${
-        open
-          ? "opacity-100 translate-y-0 pointer-events-auto"
-          : "opacity-0 translate-y-8 pointer-events-none"
-      } right-4 w-[calc(100vw-2rem)] max-w-[400px] h-[min(460px,calc(100vh-12rem))] ${keyboardOpen ? "" : "bottom-[9.5rem]"} md:bottom-6 md:right-[5.25rem] md:w-[400px] md:h-[min(500px,calc(100vh-6rem))]`}
+      className={`fixed z-40 transition-[opacity] duration-200 ease-out ${
+        open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+      } right-4 w-[calc(100vw-2rem)] max-w-[400px] ${keyboardOpen ? "" : "bottom-[9.5rem] h-[min(460px,calc(100vh-12rem))]"} md:bottom-6 md:right-[5.25rem] md:w-[400px] md:h-[min(500px,calc(100vh-6rem))]`}
       style={keyboardStyle}
     >
       <div
