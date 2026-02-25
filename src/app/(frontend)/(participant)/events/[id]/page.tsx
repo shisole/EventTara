@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import BookingButton from "@/components/events/BookingButton";
+import DifficultyBadge from "@/components/events/DifficultyBadge";
 import EventGallery from "@/components/events/EventGallery";
 import OrganizerCard from "@/components/events/OrganizerCard";
 import ShareButtons from "@/components/events/ShareButtons";
@@ -197,6 +198,50 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
     }
   }
 
+  // Fetch mountains for hiking events
+  let eventMountains: {
+    mountain_id: string;
+    name: string;
+    province: string;
+    difficulty_level: number;
+    elevation_masl: number | null;
+    route_name: string | null;
+    difficulty_override: number | null;
+    sort_order: number;
+  }[] = [];
+
+  if (event.type === "hiking") {
+    const { data: emRows } = await supabase
+      .from("event_mountains")
+      .select("mountain_id, route_name, difficulty_override, sort_order")
+      .eq("event_id", id)
+      .order("sort_order");
+
+    if (emRows && emRows.length > 0) {
+      const mountainIds = emRows.map((em) => em.mountain_id);
+      const { data: mountains } = await supabase
+        .from("mountains")
+        .select("id, name, province, difficulty_level, elevation_masl")
+        .in("id", mountainIds);
+
+      const mountainMap = new Map((mountains || []).map((m) => [m.id, m]));
+
+      eventMountains = emRows.map((em) => {
+        const mountain = mountainMap.get(em.mountain_id);
+        return {
+          mountain_id: em.mountain_id,
+          name: mountain?.name ?? "",
+          province: mountain?.province ?? "",
+          difficulty_level: mountain?.difficulty_level ?? 0,
+          elevation_masl: mountain?.elevation_masl ?? null,
+          route_name: em.route_name,
+          difficulty_override: em.difficulty_override,
+          sort_order: em.sort_order,
+        };
+      });
+    }
+  }
+
   // Check if current user can review (checked in + hasn't reviewed)
   let canReview = false;
   if (authUser && event.status === "completed") {
@@ -234,9 +279,14 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-8">
           <div>
-            <UIBadge variant={event.type as any} className="mb-3">
-              {typeLabels[event.type] || event.type}
-            </UIBadge>
+            <div className="flex items-center gap-2 mb-3">
+              <UIBadge variant={event.type as any}>
+                {typeLabels[event.type] || event.type}
+              </UIBadge>
+              {event.difficulty_level && (
+                <DifficultyBadge level={event.difficulty_level} />
+              )}
+            </div>
             <h1 className="text-3xl md:text-4xl font-heading font-bold mb-4">{event.title}</h1>
             <div className="flex flex-wrap items-center gap-4 text-gray-600 dark:text-gray-400">
               <span>{formattedDate}</span>
@@ -329,6 +379,49 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
               logoUrl={organizer.logo_url}
               eventCount={orgEventCount || 0}
             />
+          )}
+
+          {eventMountains.length > 0 && (
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md p-5 sm:p-6">
+              <h3 className="font-heading font-bold mb-3 flex items-center gap-2">
+                <span className="text-lg">⛰️</span>
+                {eventMountains.length === 1 ? "Mountain" : `Mountains (${eventMountains.length} peaks)`}
+              </h3>
+              {event.difficulty_level && (
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-sm text-gray-500">Overall Difficulty:</span>
+                  <DifficultyBadge level={event.difficulty_level} />
+                </div>
+              )}
+              <div className="space-y-3">
+                {eventMountains.map((m, i) => (
+                  <div key={m.mountain_id} className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
+                    <span className="text-sm font-bold text-gray-400 mt-0.5">{i + 1}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-medium text-sm">{m.name}</span>
+                        <DifficultyBadge level={m.difficulty_override ?? m.difficulty_level} />
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                        <span>{m.province}</span>
+                        {m.elevation_masl && (
+                          <>
+                            <span>·</span>
+                            <span>{m.elevation_masl.toLocaleString()} MASL</span>
+                          </>
+                        )}
+                        {m.route_name && (
+                          <>
+                            <span>·</span>
+                            <span>{m.route_name}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
 
           {eventGuides.length > 0 && (
