@@ -46,15 +46,83 @@ export default async function BookEventPage({
     redirect("/my-events");
   }
 
-  // Get spots left via RPC
+  // Fetch event distances (if any)
+  const { data: distances } = await supabase
+    .from("event_distances")
+    .select("id, distance_km, label, price, max_participants")
+    .eq("event_id", id)
+    .order("distance_km", { ascending: true });
+
+  // Compute per-distance spots remaining
+  interface DistanceWithSpots {
+    id: string;
+    distance_km: number;
+    label: string | null;
+    price: number;
+    max_participants: number;
+    spots_left: number;
+  }
+
+  let distancesWithSpots: DistanceWithSpots[] | undefined;
+
+  if (distances && distances.length > 0) {
+    // Get all active bookings for this event that have an event_distance_id
+    const { data: distanceBookings } = await supabase
+      .from("bookings")
+      .select("event_distance_id, id")
+      .eq("event_id", id)
+      .in("status", ["pending", "confirmed"])
+      .not("event_distance_id", "is", null);
+
+    // Get companion counts for each booking
+    const bookingIds = (distanceBookings ?? []).map((b) => b.id);
+    const companionCounts: Record<string, number> = {};
+
+    if (bookingIds.length > 0) {
+      const { data: companions } = await supabase
+        .from("booking_companions")
+        .select("booking_id")
+        .in("booking_id", bookingIds)
+        .in("status", ["pending", "confirmed"]);
+
+      if (companions) {
+        for (const c of companions) {
+          companionCounts[c.booking_id] = (companionCounts[c.booking_id] || 0) + 1;
+        }
+      }
+    }
+
+    // Count total participants per distance (1 per booking + companions)
+    const participantsByDistance: Record<string, number> = {};
+    for (const booking of distanceBookings ?? []) {
+      if (booking.event_distance_id) {
+        const companionCount = companionCounts[booking.id] || 0;
+        participantsByDistance[booking.event_distance_id] =
+          (participantsByDistance[booking.event_distance_id] || 0) + 1 + companionCount;
+      }
+    }
+
+    distancesWithSpots = distances.map((d) => ({
+      id: d.id,
+      distance_km: d.distance_km,
+      label: d.label,
+      price: d.price,
+      max_participants: d.max_participants,
+      spots_left: d.max_participants - (participantsByDistance[d.id] || 0),
+    }));
+  }
+
+  // Get spots left via RPC (used when no distances)
   const { data: totalParticipants } = await supabase.rpc("get_total_participants", {
     p_event_id: id,
   });
   const spotsLeft = event.max_participants - (totalParticipants || 0);
 
-  // Fetch organizer payment info
+  // Fetch organizer payment info — check if any distance has a non-zero price too
+  const hasNonZeroPrice = event.price > 0 || (distancesWithSpots ?? []).some((d) => d.price > 0);
+
   let organizerPaymentInfo = null;
-  if (event.price > 0) {
+  if (hasNonZeroPrice) {
     const { data: organizer } = await supabase
       .from("organizer_profiles")
       .select("payment_info")
@@ -84,6 +152,7 @@ export default async function BookEventPage({
           price={event.price}
           organizerPaymentInfo={organizerPaymentInfo}
           spotsLeft={spotsLeft}
+          distances={distancesWithSpots}
           mode={mode}
         />
       </div>

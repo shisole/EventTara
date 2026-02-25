@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useState } from "react";
 
 import BookingForm from "./BookingForm";
+import type { EventDistance } from "./BookingForm";
 
 const AuthBookingModal = dynamic(() => import("./AuthBookingModal"), { ssr: false });
 
@@ -19,6 +20,7 @@ interface BookingPageClientProps {
     maya_number?: string;
   } | null;
   spotsLeft: number;
+  distances?: EventDistance[];
   mode: "self" | "friend";
 }
 
@@ -31,6 +33,7 @@ export default function BookingPageClient({
   price,
   organizerPaymentInfo,
   spotsLeft,
+  distances,
   mode,
 }: BookingPageClientProps) {
   const [authenticated, setAuthenticated] = useState(initialAuth);
@@ -58,6 +61,7 @@ export default function BookingPageClient({
           price={price}
           organizerPaymentInfo={organizerPaymentInfo}
           spotsLeft={spotsLeft}
+          distances={distances}
           mode={mode}
         />
       </div>
