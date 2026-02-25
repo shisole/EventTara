@@ -287,12 +287,8 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
         <div className="lg:col-span-2 space-y-8">
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <UIBadge variant={event.type as any}>
-                {typeLabels[event.type] || event.type}
-              </UIBadge>
-              {event.difficulty_level && (
-                <DifficultyBadge level={event.difficulty_level} />
-              )}
+              <UIBadge variant={event.type as any}>{typeLabels[event.type] || event.type}</UIBadge>
+              {event.difficulty_level && <DifficultyBadge level={event.difficulty_level} />}
             </div>
             <h1 className="text-3xl md:text-4xl font-heading font-bold mb-4">{event.title}</h1>
             <div className="flex flex-wrap items-center gap-4 text-gray-600 dark:text-gray-400">
@@ -421,7 +417,9 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
             <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md p-5 sm:p-6">
               <h3 className="font-heading font-bold mb-3 flex items-center gap-2">
                 <span className="text-lg">⛰️</span>
-                {eventMountains.length === 1 ? "Mountain" : `Mountains (${eventMountains.length} peaks)`}
+                {eventMountains.length === 1
+                  ? "Mountain"
+                  : `Mountains (${eventMountains.length} peaks)`}
               </h3>
               {event.difficulty_level && (
                 <div className="flex items-center gap-2 mb-3">
@@ -431,7 +429,10 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
               )}
               <div className="space-y-3">
                 {eventMountains.map((m, i) => (
-                  <div key={m.mountain_id} className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
+                  <div
+                    key={m.mountain_id}
+                    className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800"
+                  >
                     <span className="text-sm font-bold text-gray-400 mt-0.5">{i + 1}</span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">

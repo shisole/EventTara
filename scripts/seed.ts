@@ -1431,16 +1431,10 @@ async function cleanExistingTestData() {
   // deleting public.users cascades everything.
 
   // Clean event_mountains (before events, due to FK)
-  await supabase
-    .from("event_mountains")
-    .delete()
-    .neq("id", "00000000-0000-0000-0000-000000000000");
+  await supabase.from("event_mountains").delete().neq("id", "00000000-0000-0000-0000-000000000000");
 
   // Clean mountains
-  await supabase
-    .from("mountains")
-    .delete()
-    .neq("id", "00000000-0000-0000-0000-000000000000");
+  await supabase.from("mountains").delete().neq("id", "00000000-0000-0000-0000-000000000000");
 
   // Clean app testimonials (not tied to user cascade)
   await supabase
@@ -2650,7 +2644,10 @@ async function seedMountains(): Promise<
       console.warn(`  Warning seeding mountain ${mountain.name}:`, error.message);
     } else {
       mountainMap.set(data.name, data);
-      log("  ✅", `${mountain.name} (${mountain.elevation_masl}m, difficulty ${mountain.difficulty_level})`);
+      log(
+        "  ✅",
+        `${mountain.name} (${mountain.elevation_masl}m, difficulty ${mountain.difficulty_level})`,
+      );
     }
   }
 
@@ -2688,9 +2685,7 @@ async function linkEventMountains(
       });
 
       if (error) {
-        console.error(
-          `  Failed to link "${mountainName}" to "${eventTitle}": ${error.message}`,
-        );
+        console.error(`  Failed to link "${mountainName}" to "${eventTitle}": ${error.message}`);
       } else {
         log("  ✅", `${mountainName} -> ${eventTitle}`);
       }
@@ -2708,9 +2703,7 @@ async function linkEventMountains(
         .eq("id", eventId);
 
       if (updateError) {
-        console.error(
-          `  Failed to set difficulty on "${eventTitle}": ${updateError.message}`,
-        );
+        console.error(`  Failed to set difficulty on "${eventTitle}": ${updateError.message}`);
       } else {
         log("  📊", `${eventTitle} difficulty set to ${maxDifficulty}`);
       }

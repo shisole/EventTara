@@ -100,9 +100,7 @@ export default function EventCard({
         <div className="p-4 space-y-2">
           <div className="flex items-center gap-2">
             <UIBadge variant={type}>{typeLabels[type] || type}</UIBadge>
-            {difficulty_level != null && (
-              <DifficultyBadge level={difficulty_level} />
-            )}
+            {difficulty_level != null && <DifficultyBadge level={difficulty_level} />}
           </div>
           <h3 className="font-heading font-bold text-lg line-clamp-1">{title}</h3>
           {organizer_name && organizer_id ? (

@@ -88,9 +88,7 @@ export default function MountainCombobox({
     value: string | number | null,
   ) {
     onChange(
-      selectedMountains.map((m) =>
-        m.mountain_id === mountainId ? { ...m, [field]: value } : m,
-      ),
+      selectedMountains.map((m) => (m.mountain_id === mountainId ? { ...m, [field]: value } : m)),
     );
   }
 
@@ -110,14 +108,10 @@ export default function MountainCombobox({
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-gray-400">
-                    {index + 1}.
-                  </span>
+                  <span className="text-xs font-medium text-gray-400">{index + 1}.</span>
                   <span className="font-medium text-sm">{m.name}</span>
                   <span className="text-xs text-gray-500">{m.province}</span>
-                  <DifficultyBadge
-                    level={m.difficulty_override ?? m.difficulty_level}
-                  />
+                  <DifficultyBadge level={m.difficulty_override ?? m.difficulty_level} />
                   {m.elevation_masl && (
                     <span className="text-xs text-gray-400">
                       {m.elevation_masl.toLocaleString()} MASL
@@ -137,9 +131,7 @@ export default function MountainCombobox({
                   type="text"
                   placeholder="Route name (optional)"
                   value={m.route_name}
-                  onChange={(e) =>
-                    updateMountain(m.mountain_id, "route_name", e.target.value)
-                  }
+                  onChange={(e) => updateMountain(m.mountain_id, "route_name", e.target.value)}
                   className="flex-1 text-sm px-2 py-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
                 />
                 <select

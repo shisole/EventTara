@@ -337,7 +337,13 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
     initialData?.initialMountains || [],
   );
   const [availableMountains, setAvailableMountains] = useState<
-    { id: string; name: string; province: string; difficulty_level: number; elevation_masl: number | null }[]
+    {
+      id: string;
+      name: string;
+      province: string;
+      difficulty_level: number;
+      elevation_masl: number | null;
+    }[]
   >([]);
   const [loadingMountains, setLoadingMountains] = useState(false);
   const [difficultyLevel, setDifficultyLevel] = useState<number | null>(

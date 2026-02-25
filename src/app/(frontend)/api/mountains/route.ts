@@ -8,10 +8,7 @@ export async function GET(request: Request) {
   const province = searchParams.get("province");
   const search = searchParams.get("search");
 
-  let query = supabase
-    .from("mountains")
-    .select("*")
-    .order("name");
+  let query = supabase.from("mountains").select("*").order("name");
 
   if (province) {
     query = query.eq("province", province);
