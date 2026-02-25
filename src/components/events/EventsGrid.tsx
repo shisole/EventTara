@@ -43,8 +43,10 @@ export default function EventsGrid({ events }: EventsGridProps) {
   }, []);
 
   const eventsWithDistance = useMemo(() => {
-    if (!nearbyState)
-      return events.map((e) => ({ ...e, distance: undefined as number | undefined }));
+    if (!nearbyState) {
+      const distance: number | undefined = undefined;
+      return events.map((e) => ({ ...e, distance }));
+    }
 
     return events
       .map((e) => {

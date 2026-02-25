@@ -95,7 +95,7 @@ export default function EventCard({
           )}
         </div>
         <div className="p-4 space-y-2">
-          <UIBadge variant={type as any}>{typeLabels[type] || type}</UIBadge>
+          <UIBadge variant={type}>{typeLabels[type] || type}</UIBadge>
           <h3 className="font-heading font-bold text-lg line-clamp-1">{title}</h3>
           {organizer_name && organizer_id ? (
             <OrganizerLink organizerId={organizer_id} name={organizer_name} />

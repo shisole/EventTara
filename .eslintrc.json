@@ -39,6 +39,7 @@
     "@typescript-eslint/no-non-null-assertion": "warn",
     "@typescript-eslint/no-deprecated": "warn",
     "@typescript-eslint/use-unknown-in-catch-callback-variable": "off",
+    "@typescript-eslint/consistent-type-assertions": "off",
     "@typescript-eslint/no-confusing-void-expression": "off",
     "@typescript-eslint/restrict-plus-operands": "warn",
     "import/order": [
@@ -57,5 +58,13 @@
       "typescript": true
     }
   },
+  "overrides": [
+    {
+      "files": ["src/components/**/*.ts", "src/components/**/*.tsx"],
+      "rules": {
+        "@typescript-eslint/consistent-type-assertions": ["error", { "assertionStyle": "never" }]
+      }
+    }
+  ],
   "ignorePatterns": ["node_modules", ".next", "out", "scripts"]
 }

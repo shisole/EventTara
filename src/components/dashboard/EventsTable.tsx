@@ -111,7 +111,7 @@ export default function EventsTable({ events }: EventsTableProps) {
               >
                 {event.title}
               </Link>
-              <UIBadge variant={statusStyles[event.status] as any}>{event.status}</UIBadge>
+              <UIBadge variant={statusStyles[event.status]}>{event.status}</UIBadge>
             </div>
             <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
               <span>{formatEventDate(event.date, event.end_date, { short: true })}</span>
@@ -155,7 +155,7 @@ export default function EventsTable({ events }: EventsTableProps) {
                   {formatEventDate(event.date, event.end_date, { includeYear: true })}
                 </td>
                 <td className="px-6 py-4">
-                  <UIBadge variant={statusStyles[event.status] as any}>{event.status}</UIBadge>
+                  <UIBadge variant={statusStyles[event.status]}>{event.status}</UIBadge>
                 </td>
                 <td className="px-6 py-4 text-sm dark:text-gray-300">
                   {event.bookings?.[0]?.count || 0}

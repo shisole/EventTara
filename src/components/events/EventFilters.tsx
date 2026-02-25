@@ -101,7 +101,7 @@ function FilterChip({
     if (!isOpen) return;
 
     function handleMouseDown(e: MouseEvent) {
-      if (chipRef.current && !chipRef.current.contains(e.target as Node)) {
+      if (chipRef.current && e.target instanceof Node && !chipRef.current.contains(e.target)) {
         onToggle("");
       }
     }

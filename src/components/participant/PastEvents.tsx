@@ -41,9 +41,7 @@ export default function PastEvents({ events }: { events: PastEvent[] }) {
         <Card key={e.eventId} className="p-5">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <UIBadge variant={e.eventType as any}>
-                {typeLabels[e.eventType] || e.eventType}
-              </UIBadge>
+              <UIBadge variant={e.eventType}>{typeLabels[e.eventType] || e.eventType}</UIBadge>
               <Link href={`/events/${e.eventId}`}>
                 <h3 className="font-heading font-bold hover:text-lime-600 dark:hover:text-lime-400">
                   {e.eventTitle}

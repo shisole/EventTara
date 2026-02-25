@@ -57,7 +57,7 @@ export default function MapPicker({ value, onChange, center }: MapPickerProps) {
   );
 
   const markerPosition = useMemo(
-    () => (value ? ([value.lat, value.lng] as [number, number]) : null),
+    (): [number, number] | null => (value ? [value.lat, value.lng] : null),
     [value],
   );
 

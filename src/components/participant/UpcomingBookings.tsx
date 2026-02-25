@@ -103,11 +103,9 @@ export default function UpcomingBookings({ bookings }: { bookings: Booking[] }) 
           <div className="flex items-start justify-between">
             <div className="space-y-1">
               <div className="flex gap-2 items-center">
-                <UIBadge variant={b.eventType as any}>
-                  {typeLabels[b.eventType] || b.eventType}
-                </UIBadge>
+                <UIBadge variant={b.eventType}>{typeLabels[b.eventType] || b.eventType}</UIBadge>
                 {b.paymentStatus && b.paymentMethod && (
-                  <PaymentStatusBadge status={b.paymentStatus as any} />
+                  <PaymentStatusBadge status={b.paymentStatus} />
                 )}
               </div>
               <Link href={`/events/${b.eventId}`}>

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Code Rules
 
-- **No `as` type assertions.** Use explicit type annotations (e.g., `const data: MyType = ...`) instead of `as` casts. This applies to all new and modified code.
+- **No `as` type assertions in components.** Use explicit type annotations (e.g., `const data: MyType = ...`) instead of `as` casts. Enforced by ESLint in `src/components/`. Page/API files may still use `as` for Supabase joined-query types until the type system is improved.
 
 ## Branch Workflow
 
