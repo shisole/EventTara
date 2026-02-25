@@ -7,6 +7,7 @@ const STORAGE_KEY = "beta-notice-dismissed";
 export default function BetaNoticeModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     try {
@@ -38,10 +39,21 @@ export default function BetaNoticeModal() {
     }, 200);
   };
 
+  // Delay before enabling the button
+  useEffect(() => {
+    if (!isVisible) return;
+    const timer = setTimeout(() => {
+      setReady(true);
+    }, 3000);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [isVisible]);
+
   // Escape key support
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isOpen) {
+      if (e.key === "Escape" && isOpen && ready) {
         handleDismiss();
       }
     };
@@ -50,7 +62,7 @@ export default function BetaNoticeModal() {
     return () => {
       document.removeEventListener("keydown", handleEscape);
     };
-  }, [isOpen]);
+  }, [isOpen, ready]);
 
   if (!isOpen) return null;
 
@@ -62,7 +74,7 @@ export default function BetaNoticeModal() {
       role="dialog"
       aria-modal="true"
       aria-labelledby="beta-notice-title"
-      onClick={handleDismiss}
+      onClick={ready ? handleDismiss : undefined}
     >
       <div
         className={`relative w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8 transition-all duration-200 ${
@@ -97,8 +109,30 @@ export default function BetaNoticeModal() {
         {/* Button */}
         <button
           onClick={handleDismiss}
-          className="w-full py-3 px-6 bg-lime-500 hover:bg-lime-400 text-slate-900 font-semibold rounded-xl transition-colors"
+          disabled={!ready}
+          className={`w-full py-3 px-6 font-semibold rounded-xl transition-colors flex items-center justify-center gap-2 ${
+            ready
+              ? "bg-lime-500 hover:bg-lime-400 text-slate-900"
+              : "bg-gray-300 dark:bg-slate-600 text-gray-500 dark:text-slate-400 cursor-not-allowed"
+          }`}
         >
+          {!ready && (
+            <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="3"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M12 2a10 10 0 0 1 10 10h-3a7 7 0 0 0-7-7V2z"
+              />
+            </svg>
+          )}
           Got it
         </button>
       </div>
