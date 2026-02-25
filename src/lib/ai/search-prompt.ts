@@ -6,6 +6,7 @@ export interface ParsedSearchParams {
   when?: "upcoming" | "now" | "past";
   duration?: "single" | "multi";
   distance?: number;
+  difficulty?: "1-4" | "5-7" | "8-9";
   reply: string;
 }
 
@@ -26,6 +27,7 @@ Return ONLY valid JSON with these fields (all optional except reply):
   "when": "upcoming" | "now" | "past",
   "duration": "single" | "multi",
   "distance": number (km),
+  "difficulty": "1-4" | "5-7" | "8-9",
   "reply": "friendly 1-2 sentence response describing what you're searching for"
 }
 
@@ -42,6 +44,7 @@ Rules:
 - "dayhike", "day hike", "day trip", "single day" → duration: "single" (events with no end_date, single-day only)
 - "overnight", "2 days", "multi-day", "traverse", "camping" → duration: "multi" (events with an end_date, multi-day)
 - Distance queries: "marathon" or "full marathon" or "42k" → distance: 42. "half marathon" or "21k" → distance: 21. "10k" or "10km" → distance: 10. "5k" or "5km" → distance: 5. "3k" or "3km" → distance: 3. "ultra" or "ultra marathon" or "50k" → distance: 50. "100k" → distance: 100. Any "{N}k" or "{N}km" pattern → distance: N
+- Difficulty applies to hiking events only (1-9 scale). "easy hike", "beginner hike", "easy trail" → difficulty: "1-4". "moderate hike", "intermediate" → difficulty: "5-7". "hard hike", "difficult", "challenging", "advanced", "major climb" → difficulty: "8-9". When difficulty is set, also set type to "hiking" if not already set
 - When distance is set and no type is explicitly specified, default type to "running"
 - "marathon" queries should also set type to "running" if not already set
 - If the query is a greeting or not event-related, set reply to a friendly redirect about searching for events and omit other fields

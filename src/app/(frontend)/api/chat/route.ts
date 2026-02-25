@@ -179,6 +179,7 @@ export async function POST(request: Request) {
       if (parsed.search) emptyFilterParts.push(`search=${encodeURIComponent(parsed.search)}`);
       if (parsed.type) emptyFilterParts.push(`type=${parsed.type}`);
       if (parsed.distance) emptyFilterParts.push(`distance=${parsed.distance}`);
+      if (parsed.difficulty) emptyFilterParts.push(`difficulty=${parsed.difficulty}`);
       const emptyFilterUrl = `/events${emptyFilterParts.length > 0 ? `?${emptyFilterParts.join("&")}` : ""}`;
 
       // Log query even for empty distance results
@@ -200,6 +201,23 @@ export async function POST(request: Request) {
     }
     countQ = countQ.in("id", distanceEventIds);
     dataQ = dataQ.in("id", distanceEventIds);
+  }
+
+  // Difficulty filter: range-based (e.g. "1-4", "5-7", "8-9")
+  if (parsed.difficulty) {
+    const [minStr, maxStr] = parsed.difficulty.split("-");
+    const min = Number.parseInt(minStr, 10);
+    const max = Number.parseInt(maxStr, 10);
+    if (!Number.isNaN(min) && !Number.isNaN(max)) {
+      countQ = countQ
+        .not("difficulty_level", "is", null)
+        .gte("difficulty_level", min)
+        .lte("difficulty_level", max);
+      dataQ = dataQ
+        .not("difficulty_level", "is", null)
+        .gte("difficulty_level", min)
+        .lte("difficulty_level", max);
+    }
   }
 
   if (parsed.dateFrom) {
@@ -256,6 +274,7 @@ export async function POST(request: Request) {
   if (parsed.dateTo) filterParts.push(`to=${parsed.dateTo}`);
   if (parsed.when) filterParts.push(`when=${parsed.when}`);
   if (parsed.distance) filterParts.push(`distance=${parsed.distance}`);
+  if (parsed.difficulty) filterParts.push(`difficulty=${parsed.difficulty}`);
   const filterUrl = `/events${filterParts.length > 0 ? `?${filterParts.join("&")}` : ""}`;
 
   // Log query for rate limiting + analytics
