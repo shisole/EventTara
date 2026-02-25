@@ -23,7 +23,8 @@ export default function DateRangePicker({
   onEndDateChange,
   onStartTimeChange,
 }: DateRangePickerProps) {
-  const resetEndDate = () => onEndDateChange(undefined as Date | undefined);
+  const noDate: Date | undefined = undefined;
+  const resetEndDate = () => onEndDateChange(noDate);
 
   const handleDayClick = (date: Date | undefined) => {
     if (!date) return;

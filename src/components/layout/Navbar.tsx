@@ -51,11 +51,11 @@ export default function Navbar({
   useEffect(() => {
     if (!profileOpen && !exploreOpen) return;
     const handleClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (profileOpen && !target.closest("[data-profile-dropdown]")) {
+      if (!(e.target instanceof HTMLElement)) return;
+      if (profileOpen && !e.target.closest("[data-profile-dropdown]")) {
         setProfileOpen(false);
       }
-      if (exploreOpen && !target.closest("[data-explore-dropdown]")) {
+      if (exploreOpen && !e.target.closest("[data-explore-dropdown]")) {
         setExploreOpen(false);
       }
     };

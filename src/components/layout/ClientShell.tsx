@@ -118,7 +118,7 @@ export default function ClientShell({ children }: { children: React.ReactNode })
       try {
         const res = await fetch("/api/globals/site-settings");
         if (res.ok) {
-          const data = (await res.json()) as { navLayout?: string };
+          const data: { navLayout?: string } = await res.json();
           if (data.navLayout) setNavLayout(data.navLayout);
         }
       } catch {

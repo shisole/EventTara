@@ -66,7 +66,11 @@ function GuideCombobox({
   // Close dropdown on outside click
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+      if (
+        wrapperRef.current &&
+        e.target instanceof Node &&
+        !wrapperRef.current.contains(e.target)
+      ) {
         setOpen(false);
       }
     };

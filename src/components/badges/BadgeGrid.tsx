@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 
-import { CATEGORY_STYLES } from "@/lib/constants/badge-rarity";
+import {
+  type BadgeCategory,
+  type BadgeRarity,
+  CATEGORY_STYLES,
+} from "@/lib/constants/badge-rarity";
 import { cn } from "@/lib/utils";
 
 import BadgeCard from "./BadgeCard";
@@ -13,18 +17,18 @@ interface Badge {
   eventName: string;
   imageUrl: string | null;
   awardedAt: string;
-  category?: string;
-  rarity?: string;
+  category?: BadgeCategory;
+  rarity?: BadgeRarity;
 }
 
 export default function BadgeGrid({ badges }: { badges: Badge[] }) {
   const categories = badges.reduce((acc, b) => {
     if (b.category) acc.add(b.category);
     return acc;
-  }, new Set<string>());
+  }, new Set<BadgeCategory>());
 
   const showTabs = categories.size >= 2;
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<BadgeCategory | null>(null);
 
   const filteredBadges = activeCategory
     ? badges.filter((b) => b.category === activeCategory)
@@ -59,7 +63,7 @@ export default function BadgeGrid({ badges }: { badges: Badge[] }) {
             All
           </button>
           {[...categories].map((cat) => {
-            const style = CATEGORY_STYLES[cat as keyof typeof CATEGORY_STYLES];
+            const style = CATEGORY_STYLES[cat];
             return (
               <button
                 key={cat}
@@ -81,12 +85,7 @@ export default function BadgeGrid({ badges }: { badges: Badge[] }) {
       )}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
         {filteredBadges.map((badge) => (
-          <BadgeCard
-            key={badge.id}
-            {...badge}
-            category={badge.category as any}
-            rarity={badge.rarity as any}
-          />
+          <BadgeCard key={badge.id} {...badge} category={badge.category} rarity={badge.rarity} />
         ))}
       </div>
     </div>

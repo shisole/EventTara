@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 
 interface PaymentStatusBadgeProps {
-  status: "pending" | "paid" | "rejected" | "refunded";
+  status: string;
   className?: string;
 }
 

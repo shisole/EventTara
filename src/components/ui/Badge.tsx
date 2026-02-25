@@ -3,7 +3,7 @@ import { type HTMLAttributes, forwardRef } from "react";
 import { cn } from "@/lib/utils";
 
 interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
-  variant?: "default" | "hiking" | "mtb" | "road_bike" | "running" | "trail_run" | "beta";
+  variant?: string;
 }
 
 const variantStyles: Record<string, string> = {
