@@ -3,14 +3,11 @@
 import { useCallback, useState } from "react";
 
 import { ChatIcon, CloseIcon } from "@/components/icons";
-import { useKeyboardHeight } from "@/lib/hooks/useKeyboardHeight";
 
 import ChatPanel from "./ChatPanel";
 
 export default function ChatBubble() {
   const [open, setOpen] = useState(false);
-  const keyboardHeight = useKeyboardHeight();
-  const keyboardOpen = keyboardHeight > 0;
 
   const handleClose = useCallback(() => setOpen(false), []);
   const handleToggle = useCallback(() => setOpen((prev) => !prev), []);
@@ -26,13 +23,11 @@ export default function ChatBubble() {
         onClick={handleClose}
       />
 
-      <ChatPanel open={open} onClose={handleClose} keyboardHeight={keyboardHeight} />
+      <ChatPanel open={open} onClose={handleClose} />
 
       <button
         onClick={handleToggle}
         className={`fixed z-40 bottom-[5.5rem] right-4 md:bottom-6 md:right-6 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-300 active:scale-95 ${
-          keyboardOpen && !open ? "translate-y-full opacity-0 pointer-events-none" : ""
-        } ${
           open
             ? "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
             : "animate-chat-bubble-in bg-lime-500 text-gray-900 hover:bg-lime-400 hover:shadow-xl hover:scale-105 dark:bg-lime-500 dark:text-gray-900 dark:hover:bg-lime-400"
