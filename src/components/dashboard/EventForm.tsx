@@ -8,6 +8,9 @@ import { useState, useEffect, useRef } from "react";
 import { Button, Input } from "@/components/ui";
 import { findProvinceFromLocation } from "@/lib/constants/philippine-provinces";
 
+import DifficultyBadge from "@/components/events/DifficultyBadge";
+
+import MountainCombobox, { type SelectedMountain } from "./MountainCombobox";
 import PhotoUploader from "./PhotoUploader";
 
 const MapPicker = dynamic(() => import("@/components/maps/MapPicker"), { ssr: false });
@@ -29,6 +32,8 @@ interface EventFormProps {
     cover_image_url: string | null;
     status?: string;
     initialGuideIds?: string[];
+    initialMountains?: SelectedMountain[];
+    difficulty_level?: number | null;
   };
 }
 
@@ -260,6 +265,18 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
   >([]);
   const [loadingGuides, setLoadingGuides] = useState(false);
 
+  // Mountain selection state (hiking events only)
+  const [selectedMountains, setSelectedMountains] = useState<SelectedMountain[]>(
+    initialData?.initialMountains || [],
+  );
+  const [availableMountains, setAvailableMountains] = useState<
+    { id: string; name: string; province: string; difficulty_level: number; elevation_masl: number | null }[]
+  >([]);
+  const [loadingMountains, setLoadingMountains] = useState(false);
+  const [difficultyLevel, setDifficultyLevel] = useState<number | null>(
+    initialData?.difficulty_level ?? null,
+  );
+
   useEffect(() => {
     if (type !== "hiking" || !startDate) {
       setAvailableGuides([]);
@@ -282,6 +299,34 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
     };
     void fetchGuides();
   }, [type, startDate, mode, initialData?.id]);
+
+  useEffect(() => {
+    if (type !== "hiking") {
+      setAvailableMountains([]);
+      return;
+    }
+    const fetchMountains = async () => {
+      setLoadingMountains(true);
+      const res = await fetch("/api/mountains");
+      if (res.ok) {
+        const data = await res.json();
+        setAvailableMountains(data.mountains);
+      }
+      setLoadingMountains(false);
+    };
+    fetchMountains();
+  }, [type]);
+
+  useEffect(() => {
+    if (selectedMountains.length === 0) {
+      setDifficultyLevel(null);
+      return;
+    }
+    const maxDifficulty = Math.max(
+      ...selectedMountains.map((m) => m.difficulty_override ?? m.difficulty_level),
+    );
+    setDifficultyLevel(maxDifficulty);
+  }, [selectedMountains]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -318,6 +363,7 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
       max_participants: maxParticipants,
       price,
       cover_image_url: coverImage,
+      difficulty_level: difficultyLevel,
     };
 
     const url = mode === "create" ? "/api/events" : `/api/events/${initialData?.id}`;
@@ -364,6 +410,44 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
               method: "DELETE",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ guide_id: guideId }),
+            });
+          }
+        }
+      }
+
+      // Sync mountains for hiking events
+      if (type === "hiking" && data.event.id) {
+        const mountainEventId = data.event.id;
+        const currentMtnRes = await fetch(`/api/events/${mountainEventId}/mountains`);
+        const currentMtnData = await currentMtnRes.json();
+        const currentMountainIds = new Set(
+          (currentMtnData.mountains || []).map((m: { mountain_id: string }) => m.mountain_id),
+        );
+        const newMountainIds = new Set(selectedMountains.map((m) => m.mountain_id));
+
+        // Delete removed mountains
+        for (const current of currentMtnData.mountains || []) {
+          if (!newMountainIds.has(current.mountain_id)) {
+            await fetch(`/api/events/${mountainEventId}/mountains`, {
+              method: "DELETE",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ mountain_id: current.mountain_id }),
+            });
+          }
+        }
+
+        // Add new mountains
+        for (const selected of selectedMountains) {
+          if (!currentMountainIds.has(selected.mountain_id)) {
+            await fetch(`/api/events/${mountainEventId}/mountains`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                mountain_id: selected.mountain_id,
+                route_name: selected.route_name || null,
+                difficulty_override: selected.difficulty_override,
+                sort_order: selected.sort_order,
+              }),
             });
           }
         }
@@ -526,6 +610,43 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
         onChange={setCoverImage}
         label="Cover Image"
       />
+
+      {type === "hiking" && (
+        <>
+          <MountainCombobox
+            mountains={availableMountains}
+            selectedMountains={selectedMountains}
+            onChange={setSelectedMountains}
+            loading={loadingMountains}
+          />
+          {selectedMountains.length > 0 && (
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Overall Event Difficulty
+              </label>
+              <div className="flex items-center gap-3">
+                <select
+                  value={difficultyLevel ?? ""}
+                  onChange={(e) =>
+                    setDifficultyLevel(e.target.value ? Number(e.target.value) : null)
+                  }
+                  className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"
+                >
+                  {Array.from({ length: 9 }, (_, i) => i + 1).map((n) => (
+                    <option key={n} value={n}>
+                      {n}/9
+                    </option>
+                  ))}
+                </select>
+                {difficultyLevel && <DifficultyBadge level={difficultyLevel} />}
+              </div>
+              <p className="text-xs text-gray-500">
+                Auto-set to highest peak difficulty. Override if the traverse is harder.
+              </p>
+            </div>
+          )}
+        </>
+      )}
 
       {type === "hiking" && startDate && (
         <GuideCombobox
