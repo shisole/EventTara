@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 
+import { ChevronDownIcon, MenuIcon } from "@/components/icons";
 import ExploreDropdown from "@/components/layout/ExploreDropdown";
 import ThemeToggle from "@/components/layout/ThemeToggle";
 import { Avatar, Button } from "@/components/ui";
@@ -92,20 +93,9 @@ export default function Navbar({
                 className="flex items-center gap-1 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium"
               >
                 Explore Events
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2}
-                  stroke="currentColor"
+                <ChevronDownIcon
                   className={`w-4 h-4 transition-transform ${exploreOpen ? "rotate-180" : ""}`}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M19.5 8.25l-7.5 7.5-7.5-7.5"
-                  />
-                </svg>
+                />
               </button>
               {exploreOpen && (
                 <Suspense fallback={null}>
@@ -130,20 +120,9 @@ export default function Navbar({
                       alt={user.user_metadata?.full_name || "User"}
                       size="sm"
                     />
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={2}
-                      stroke="currentColor"
+                    <ChevronDownIcon
                       className={`w-4 h-4 text-gray-400 transition-transform ${profileOpen ? "rotate-180" : ""}`}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M19.5 8.25l-7.5 7.5-7.5-7.5"
-                      />
-                    </svg>
+                    />
                   </button>
                   {profileOpen && (
                     <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-lg dark:shadow-gray-950/30 border border-gray-100 dark:border-gray-700 py-2 z-50">
@@ -211,20 +190,7 @@ export default function Navbar({
             className="md:hidden flex items-center justify-center w-11 h-11 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             aria-label="Open menu"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="w-6 h-6"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
-              />
-            </svg>
+            <MenuIcon className="w-6 h-6" />
           </button>
         </div>
       </div>

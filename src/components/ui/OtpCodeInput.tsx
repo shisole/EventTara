@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 
+import { LockIcon } from "@/components/icons";
 import { Button } from "@/components/ui";
 
 const CODE_LENGTH = 6;
@@ -68,19 +69,7 @@ export default function OtpCodeInput({
     <form onSubmit={onSubmit} className="space-y-5">
       <div className="text-center">
         <div className="w-14 h-14 bg-teal-100 dark:bg-teal-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-          <svg
-            className="w-7 h-7 text-teal-600 dark:text-teal-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
-            />
-          </svg>
+          <LockIcon className="w-7 h-7 text-teal-600 dark:text-teal-400" />
         </div>
         <h2 className="text-xl font-heading font-bold text-gray-900 dark:text-white">
           Enter your code

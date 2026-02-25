@@ -7,6 +7,7 @@ import EventGallery from "@/components/events/EventGallery";
 import OrganizerCard from "@/components/events/OrganizerCard";
 import ShareButtons from "@/components/events/ShareButtons";
 import GuideCard from "@/components/guides/GuideCard";
+import { LocationPinIcon } from "@/components/icons";
 import EventLocationMap from "@/components/maps/EventLocationMap";
 import ReviewForm from "@/components/reviews/ReviewForm";
 import ReviewList from "@/components/reviews/ReviewList";
@@ -333,25 +334,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
           {eventGuides.length > 0 && (
             <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-5 sm:p-6">
               <h3 className="font-heading font-bold mb-3 flex items-center gap-2">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-5 h-5 text-teal-600 dark:text-teal-400"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
-                  />
-                </svg>
+                <LocationPinIcon className="w-5 h-5 text-teal-600 dark:text-teal-400" />
                 Guide{eventGuides.length === 1 ? "" : "s"}
               </h3>
               <div className="space-y-3">

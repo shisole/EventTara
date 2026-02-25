@@ -1,128 +1,145 @@
 "use client";
 
+import type { User } from "@supabase/supabase-js";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
 
-import { createClient } from "@/lib/supabase/client";
+import {
+  CalendarIcon,
+  CogIcon,
+  DashboardIcon,
+  ExploreIcon,
+  HomeIcon,
+  LocationPinIcon,
+  LoginIcon,
+  ProfileIcon,
+} from "@/components/icons";
 import { cn } from "@/lib/utils";
 
-const ExploreIcon = (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={1.5}
-    stroke="currentColor"
-    className="w-6 h-6"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
-    />
-  </svg>
-);
+interface MobileNavProps {
+  user: User | null;
+  role: string | null;
+}
 
-const CalendarIcon = (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={1.5}
-    stroke="currentColor"
-    className="w-6 h-6"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
-    />
-  </svg>
-);
+interface NavItem {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string; variant?: "outline" | "filled" }>;
+  isActive: (pathname: string) => boolean;
+}
 
-const ProfileIcon = (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={1.5}
-    stroke="currentColor"
-    className="w-6 h-6"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
-    />
-  </svg>
-);
+function getNavItems(user: User | null, role: string | null, pathname: string): NavItem[] {
+  // Dashboard-specific nav items when on /dashboard
+  if (user && role === "organizer" && pathname.startsWith("/dashboard")) {
+    return [
+      {
+        href: "/dashboard",
+        label: "Overview",
+        icon: DashboardIcon,
+        isActive: (p) => p === "/dashboard",
+      },
+      {
+        href: "/dashboard/events",
+        label: "Events",
+        icon: CalendarIcon,
+        isActive: (p) => p.startsWith("/dashboard/events"),
+      },
+      {
+        href: "/dashboard/guides",
+        label: "Guides",
+        icon: LocationPinIcon,
+        isActive: (p) => p.startsWith("/dashboard/guides"),
+      },
+      {
+        href: "/dashboard/settings",
+        label: "Settings",
+        icon: CogIcon,
+        isActive: (p) => p.startsWith("/dashboard/settings"),
+      },
+    ];
+  }
 
-export default function MobileNav() {
-  const pathname = usePathname();
-  const [profileHref, setProfileHref] = useState("/login");
-
-  useEffect(() => {
-    const supabase = createClient();
-    const fetchProfile = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        setProfileHref("/login");
-        return;
-      }
-      const { data: profile } = await supabase
-        .from("users")
-        .select("username")
-        .eq("id", user.id)
-        .single();
-      if (profile?.username) {
-        setProfileHref(`/profile/${profile.username}`);
-      } else {
-        setProfileHref("/my-events");
-      }
-    };
-    void fetchProfile();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(() => {
-      void fetchProfile();
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  // Hide on dashboard/organizer pages
-  if (pathname.startsWith("/dashboard")) return null;
-
-  const navItems = [
-    { href: "/events", label: "Explore", icon: ExploreIcon },
-    { href: "/my-events", label: "My Events", icon: CalendarIcon },
-    { href: profileHref, label: "Profile", icon: ProfileIcon },
+  const items: NavItem[] = [
+    {
+      href: "/",
+      label: "Home",
+      icon: HomeIcon,
+      isActive: (p) => p === "/",
+    },
+    {
+      href: "/events",
+      label: "Explore",
+      icon: ExploreIcon,
+      isActive: (p) => p === "/events" || (p.startsWith("/events/") && !p.includes("/book")),
+    },
   ];
 
+  if (user) {
+    if (role === "organizer") {
+      items.push({
+        href: "/dashboard",
+        label: "Dashboard",
+        icon: DashboardIcon,
+        isActive: (p) => p.startsWith("/dashboard"),
+      });
+    } else {
+      items.push({
+        href: "/my-events",
+        label: "My Events",
+        icon: CalendarIcon,
+        isActive: (p) => p === "/my-events",
+      });
+    }
+
+    items.push({
+      href: "/profile",
+      label: "Profile",
+      icon: ProfileIcon,
+      isActive: (p) =>
+        p === "/profile" || p.startsWith("/profile/") || p.startsWith("/organizers/"),
+    });
+  } else {
+    items.push({
+      href: "/login",
+      label: "Sign In",
+      icon: LoginIcon,
+      isActive: (p) => p === "/login" || p === "/signup",
+    });
+  }
+
+  return items;
+}
+
+export default function MobileNav({ user, role }: MobileNavProps) {
+  const pathname = usePathname();
+
+  // Hide on auth pages
+  if (
+    ["/login", "/signup", "/guest-setup", "/forgot-password", "/reset-password"].includes(pathname)
+  )
+    return null;
+
+  const navItems = getNavItems(user, role, pathname);
+
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 safe-area-bottom">
-      <div className="flex items-center justify-around h-16 px-2">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 safe-area-bottom">
+      <div className="flex items-center justify-around h-16 px-1">
         {navItems.map((item) => {
-          const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+          const active = item.isActive(pathname);
+          const Icon = item.icon;
           return (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                "flex flex-col items-center justify-center gap-0.5 min-w-[64px] min-h-[44px] rounded-lg px-3 py-1 transition-colors",
-                isActive
-                  ? "text-lime-500"
-                  : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300",
+                "flex flex-col items-center justify-center gap-0.5 flex-1 min-h-[48px] rounded-xl transition-colors active:scale-95 active:bg-gray-100 dark:active:bg-gray-800",
+                active ? "text-lime-600 dark:text-lime-400" : "text-gray-400 dark:text-gray-500",
               )}
             >
-              {item.icon}
-              <span className="text-[10px] font-medium">{item.label}</span>
+              <Icon className="w-6 h-6" variant={active ? "filled" : "outline"} />
+              <span className={cn("text-[11px]", active ? "font-semibold" : "font-medium")}>
+                {item.label}
+              </span>
             </Link>
           );
         })}

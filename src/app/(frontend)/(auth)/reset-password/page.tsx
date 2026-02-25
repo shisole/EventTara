@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { CheckCircleIcon } from "@/components/icons";
 import { Button, Input } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
 
@@ -57,19 +58,7 @@ export default function ResetPasswordPage() {
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md p-8 space-y-6">
         <div className="text-center space-y-3">
           <div className="w-14 h-14 bg-lime-100 dark:bg-lime-900/30 rounded-full flex items-center justify-center mx-auto">
-            <svg
-              className="w-7 h-7 text-lime-600 dark:text-lime-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
+            <CheckCircleIcon className="w-7 h-7 text-lime-600 dark:text-lime-400" />
           </div>
           <h2 className="text-xl font-heading font-bold text-gray-900 dark:text-white">
             Password Updated!

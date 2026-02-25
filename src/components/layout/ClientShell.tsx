@@ -19,7 +19,12 @@ const Navbar = dynamic(() => import("@/components/layout/Navbar"), {
     </nav>
   ),
 });
-const MobileNav = dynamic(() => import("@/components/layout/MobileNav"), { ssr: false });
+const MobileNav = dynamic(() => import("@/components/layout/MobileNav"), {
+  ssr: false,
+  loading: () => (
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 h-16 safe-area-bottom" />
+  ),
+});
 
 const activities = [
   {
@@ -181,7 +186,7 @@ export default function ClientShell({ children }: { children: React.ReactNode })
           onMenuOpen={handleMenuOpen}
         />
         <div className="flex-1 pb-16 md:pb-0">{children}</div>
-        <MobileNav />
+        <MobileNav user={user} role={role} />
       </div>
 
       <MobileDrawer
