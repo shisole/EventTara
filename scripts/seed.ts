@@ -2712,6 +2712,98 @@ async function linkEventMountains(
 }
 
 // ---------------------------------------------------------------------------
+// Award Organizer Borders
+// ---------------------------------------------------------------------------
+
+const TIER_RANK: Record<string, number> = {
+  common: 1,
+  rare: 2,
+  epic: 3,
+  legendary: 4,
+};
+
+async function awardOrganizerBorders(userMap: Map<string, string>, orgMap: Map<string, string>) {
+  log("🖼️", "Awarding organizer borders...");
+
+  // 1. Fetch all borders relevant to organizers
+  const { data: borders, error: bordersError } = await supabase
+    .from("avatar_borders")
+    .select("*")
+    .in("criteria_type", ["organizer_event_count", "signup_date"]);
+
+  if (bordersError || !borders || borders.length === 0) {
+    console.error("  Failed to fetch avatar borders:", bordersError?.message ?? "none found");
+    return;
+  }
+
+  // 2. Build email -> org_profile_id mapping from ORGANIZER_PROFILES
+  const emailToOrg = new Map<string, string>();
+  for (const profile of ORGANIZER_PROFILES) {
+    const orgId = orgMap.get(profile.org_name);
+    if (orgId) emailToOrg.set(profile.ownerEmail, orgId);
+  }
+
+  // 3. For each organizer user, count events and award borders
+  const organizerEmails = TEST_USERS.filter((u) => u.role === "organizer").map((u) => u.email);
+
+  for (const email of organizerEmails) {
+    const userId = userMap.get(email);
+    const orgProfileId = emailToOrg.get(email);
+    if (!userId || !orgProfileId) continue;
+
+    // Count published/completed events for this organizer
+    const { count } = await supabase
+      .from("events")
+      .select("id", { count: "exact", head: true })
+      .eq("organizer_id", orgProfileId)
+      .in("status", ["published", "completed"]);
+
+    const eventCount = count ?? 0;
+
+    const awarded: { border_id: string; tier: string; name: string }[] = [];
+
+    for (const border of borders) {
+      const criteria = border.criteria_value as Record<string, unknown>;
+
+      if (border.criteria_type === "organizer_event_count") {
+        const minEvents = criteria.min_events as number;
+        if (eventCount >= minEvents) {
+          awarded.push({ border_id: border.id, tier: border.tier, name: border.name });
+        }
+      } else if (border.criteria_type === "signup_date") {
+        // All seeded users are created today, before the Pioneer cutoff
+        const before = criteria.before as string;
+        if (new Date() < new Date(before)) {
+          awarded.push({ border_id: border.id, tier: border.tier, name: border.name });
+        }
+      }
+    }
+
+    if (awarded.length === 0) continue;
+
+    // Insert user_avatar_borders
+    const { error: insertError } = await supabase
+      .from("user_avatar_borders")
+      .insert(awarded.map((a) => ({ user_id: userId, border_id: a.border_id })));
+
+    if (insertError) {
+      console.error(`  Failed to award borders for ${email}: ${insertError.message}`);
+      continue;
+    }
+
+    // Set active_border_id to the highest-tier border
+    const best = awarded.reduce((a, b) =>
+      (TIER_RANK[b.tier] ?? 0) > (TIER_RANK[a.tier] ?? 0) ? b : a,
+    );
+
+    await supabase.from("users").update({ active_border_id: best.border_id }).eq("id", userId);
+
+    const borderNames = awarded.map((a) => a.name).join(", ");
+    log("  ✅", `${email} (${eventCount} events) → ${borderNames} [active: ${best.name}]`);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
 
@@ -2787,6 +2879,10 @@ async function main() {
 
     // Step 11: Create guide reviews
     await seedGuideReviews(guideMap, userMap, eventMap);
+    console.log();
+
+    // Step 12: Award organizer borders
+    await awardOrganizerBorders(userMap, orgMap);
     console.log();
 
     // Summary
