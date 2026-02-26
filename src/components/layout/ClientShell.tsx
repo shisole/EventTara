@@ -105,6 +105,19 @@ export default function ClientShell({ children, initialNavLayout = "strip" }: Cl
     window.scrollTo(0, 0);
   }, [pathname]);
 
+  // Listen for border changes from other components (e.g. ProfileHeader)
+  useEffect(() => {
+    const handleBorderChange = (e: Event) => {
+      const detail: { borderId: string | null; tier: BorderTier | null; color: string | null } =
+        (e instanceof CustomEvent && e.detail) || { borderId: null, tier: null, color: null };
+      setActiveBorder(
+        detail.borderId ? { id: detail.borderId, tier: detail.tier, color: detail.color } : null,
+      );
+    };
+    globalThis.addEventListener("border-change", handleBorderChange);
+    return () => globalThis.removeEventListener("border-change", handleBorderChange);
+  }, []);
+
   // Auth state
   useEffect(() => {
     const getUser = async () => {

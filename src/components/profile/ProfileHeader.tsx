@@ -56,6 +56,11 @@ export default function ProfileHeader({
     setCurrentBorderId(borderId);
     setCurrentTier(tier);
     setCurrentColor(color);
+
+    // Notify other components (e.g. Navbar via ClientShell)
+    globalThis.dispatchEvent(
+      new CustomEvent("border-change", { detail: { borderId, tier, color } }),
+    );
   };
 
   return (
