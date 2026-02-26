@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 
+import { checkAndAwardSystemBadges } from "@/lib/badges/check-system-badges";
 import { checkAndAwardBorders } from "@/lib/borders/check-borders";
+import { sendEmail } from "@/lib/email/send";
+import { badgesEarnedHtml } from "@/lib/email/templates/badges-earned";
 import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
@@ -101,9 +104,37 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // Trigger border check in background (non-blocking)
+  // Trigger border and badge checks in background (non-blocking)
   checkAndAwardBorders(user_id, supabase).catch(() => null);
 
   const userName = (booking.users as any)?.full_name || "Participant";
+
+  // Check and award system badges, then send batched email if any earned
+  checkAndAwardSystemBadges(user_id, supabase)
+    .then(async (awardedBadges) => {
+      if (awardedBadges.length === 0) return;
+
+      // Fetch user email for notification
+      const { data: participant } = await supabase
+        .from("users")
+        .select("email")
+        .eq("id", user_id)
+        .single();
+
+      if (participant?.email) {
+        const subject =
+          awardedBadges.length === 1
+            ? `You earned a new badge: ${awardedBadges[0].title}!`
+            : `You earned ${awardedBadges.length} new badges!`;
+
+        await sendEmail({
+          to: participant.email,
+          subject,
+          html: badgesEarnedHtml({ userName, badges: awardedBadges }),
+        });
+      }
+    })
+    .catch(() => null);
+
   return NextResponse.json({ message: `${userName} checked in!`, userName });
 }
