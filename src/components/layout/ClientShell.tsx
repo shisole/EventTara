@@ -10,6 +10,7 @@ import Navbar from "@/components/layout/Navbar";
 import type { BorderTier } from "@/lib/constants/avatar-borders";
 import { createClient } from "@/lib/supabase/client";
 
+const DemoBanner = dynamic(() => import("@/components/layout/DemoBanner"));
 const MobileDrawer = dynamic(() => import("@/components/layout/MobileDrawer"));
 const ChatBubble = dynamic(() => import("@/components/chat/ChatBubble"), { ssr: false });
 
@@ -201,6 +202,7 @@ export default function ClientShell({ children, initialNavLayout = "strip" }: Cl
           drawerOpen ? "scale-[0.95] opacity-50 rounded-xl overflow-hidden pointer-events-none" : ""
         }`}
       >
+        {!loading && <DemoBanner isLoggedIn={!!user && !user.is_anonymous} />}
         <Navbar
           user={user}
           role={role}
