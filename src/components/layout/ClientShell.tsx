@@ -57,6 +57,7 @@ export default function ClientShell({ children, initialNavLayout = "strip" }: Cl
   const isLighthouse = useMemo(
     () =>
       typeof globalThis !== "undefined" &&
+      globalThis.location !== undefined &&
       new URLSearchParams(globalThis.location.search).has("lighthouse"),
     [],
   );
