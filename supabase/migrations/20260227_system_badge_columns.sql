@@ -27,3 +27,9 @@ ALTER TABLE badges
     (type = 'event' AND event_id IS NOT NULL)
     OR (type = 'system' AND criteria_key IS NOT NULL)
   );
+
+-- RLS: allow system badge awards (existing policy only permits organizer event badges)
+CREATE POLICY "System badges can be awarded to any user" ON public.user_badges
+  FOR INSERT WITH CHECK (
+    badge_id IN (SELECT id FROM public.badges WHERE type = 'system')
+  );

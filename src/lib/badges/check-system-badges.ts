@@ -58,11 +58,12 @@ export async function checkAndAwardSystemBadges(
         .select("event_id, events:event_id(type)")
         .eq("user_id", userId),
 
-      // User's existing system badges (via join to badges table)
+      // User's existing system badges only (via inner join to badges table)
       supabase
         .from("user_badges")
-        .select("badge_id, badges:badge_id(criteria_key)")
-        .eq("user_id", userId),
+        .select("badge_id, badges:badge_id!inner(criteria_key)")
+        .eq("user_id", userId)
+        .eq("badges.type" as any, "system"),
 
       // All system badge rows from DB (need their IDs for insert)
       supabase
