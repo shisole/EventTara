@@ -2,14 +2,23 @@ import Link from "next/link";
 
 import HeroCarousel from "@/components/landing/HeroCarousel";
 import HostEventLink from "@/components/landing/HostEventLink";
-import { getCachedHeroCarousel } from "@/lib/payload/cached";
 
-export default async function HeroSection() {
-  const heroData = await getCachedHeroCarousel();
-  const heroSlides: { image: { url: string; alt: string } }[] = heroData?.slides
+interface HeroSlide {
+  image: { url: string; alt: string };
+}
+
+interface HeroSectionProps {
+  heroData: { slides?: { image?: { url?: string; alt?: string } }[] } | null;
+}
+
+export default function HeroSection({ heroData }: HeroSectionProps) {
+  const heroSlides: HeroSlide[] = heroData?.slides
     ? heroData.slides
-        .filter((slide: any) => slide.image && typeof slide.image === "object")
-        .map((slide: any) => ({
+        .filter(
+          (slide): slide is { image: { url: string; alt: string } } =>
+            !!slide.image && typeof slide.image === "object" && !!slide.image.url,
+        )
+        .map((slide) => ({
           image: {
             url: slide.image.url,
             alt: slide.image.alt || "Adventure",
