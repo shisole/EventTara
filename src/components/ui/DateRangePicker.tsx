@@ -1,6 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
+import { useState, useEffect } from "react";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/style.css";
 
@@ -23,6 +24,16 @@ export default function DateRangePicker({
   onEndDateChange,
   onStartTimeChange,
 }: DateRangePickerProps) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mql = globalThis.matchMedia("(max-width: 640px)");
+    setIsMobile(mql.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mql.addEventListener("change", handler);
+    return () => mql.removeEventListener("change", handler);
+  }, []);
+
   const noDate: Date | undefined = undefined;
   const resetEndDate = () => onEndDateChange(noDate);
 
@@ -63,7 +74,7 @@ export default function DateRangePicker({
       <div className="rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-4 space-y-4">
         <DayPicker
           mode="range"
-          numberOfMonths={2}
+          numberOfMonths={isMobile ? 1 : 2}
           selected={
             startDate && endDate
               ? { from: startDate, to: endDate }
@@ -75,7 +86,7 @@ export default function DateRangePicker({
           disabled={{ before: new Date() }}
           classNames={{
             root: "text-gray-900 dark:text-gray-100",
-            months: "relative flex gap-6",
+            months: "relative flex justify-center gap-6",
             month_caption: "flex justify-center items-center h-10 text-sm font-semibold",
             nav: "absolute top-0 left-0 right-0 flex items-center justify-between z-10",
             button_previous: cn(
