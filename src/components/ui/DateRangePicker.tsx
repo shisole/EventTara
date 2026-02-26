@@ -86,7 +86,7 @@ export default function DateRangePicker({
           disabled={{ before: new Date() }}
           classNames={{
             root: "text-gray-900 dark:text-gray-100",
-            months: "relative flex gap-6",
+            months: "relative flex justify-center gap-6",
             month_caption: "flex justify-center items-center h-10 text-sm font-semibold",
             nav: "absolute top-0 left-0 right-0 flex items-center justify-between z-10",
             button_previous: cn(
