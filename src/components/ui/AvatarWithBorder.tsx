@@ -2,6 +2,7 @@
 
 import { getBorderCSS, getGlowShadow } from "@/lib/borders/border-styles";
 import type { BorderSize, BorderTier } from "@/lib/constants/avatar-borders";
+import { GAP_THICKNESS } from "@/lib/constants/avatar-borders";
 import { cn } from "@/lib/utils";
 
 import Avatar from "./Avatar";
@@ -75,7 +76,10 @@ export default function AvatarWithBorder({
           : undefined
       }
     >
-      <div className="rounded-full ring-2 ring-white dark:ring-gray-900">
+      <div
+        className="rounded-full bg-white dark:bg-gray-900"
+        style={{ padding: GAP_THICKNESS[size] }}
+      >
         <Avatar src={src} alt={alt} size={size} />
       </div>
     </div>

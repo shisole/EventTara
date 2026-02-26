@@ -49,9 +49,17 @@ export const TIER_GRADIENTS: Record<BorderTier, string> = {
 /** Ring thickness in pixels per avatar size */
 export const RING_THICKNESS: Record<BorderSize, number> = {
   sm: 2,
-  md: 3,
+  md: 2,
   lg: 3,
-  xl: 4,
+  xl: 3,
+};
+
+/** Inner gap (white ring) in pixels per avatar size */
+export const GAP_THICKNESS: Record<BorderSize, number> = {
+  sm: 1,
+  md: 2,
+  lg: 2,
+  xl: 2,
 };
 
 /** Animation class per tier */
