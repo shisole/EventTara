@@ -556,7 +556,8 @@ export default function EventFilters({
   const guideDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const distanceDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
-  /* Draft state — for instant visual feedback on multi-select filters */
+  /* Draft state — for instant visual feedback on filters */
+  const [draftType, setDraftType] = useState(currentTypeParam);
   const [draftFrom, setDraftFrom] = useState(currentFrom);
   const [draftTo, setDraftTo] = useState(currentTo);
   const [draftOrgs, setDraftOrgs] = useState(currentOrgs);
@@ -569,6 +570,7 @@ export default function EventFilters({
   }, [currentSearch]);
 
   /* Sync drafts when URL changes (e.g. browser back) */
+  useEffect(() => setDraftType(currentTypeParam), [currentTypeParam]);
   useEffect(() => setDraftFrom(currentFrom), [currentFrom]);
   useEffect(() => setDraftTo(currentTo), [currentTo]);
   useEffect(() => setDraftOrgs(parseTypes(currentOrgParam)), [currentOrgParam]);
@@ -640,6 +642,7 @@ export default function EventFilters({
     (slug: string) => {
       // If already selected, deselect (back to "All")
       const next = currentTypes.has(slug) ? "" : slug;
+      setDraftType(next);
       const updates: Record<string, string> = { type: next };
       // If hiking is no longer selected, clear guide and difficulty filters
       if (next !== "hiking") {
@@ -655,6 +658,7 @@ export default function EventFilters({
 
   /* Select all activities (clears type param = show everything) */
   const selectAllTypes = useCallback(() => {
+    setDraftType("");
     updateParams({ type: "", guide: "", distance: "", difficulty: "" });
   }, [updateParams]);
 
@@ -810,13 +814,16 @@ export default function EventFilters({
           ? `To ${currentTo}`
           : undefined;
 
+  /* Use draft type for instant visual feedback on activity circles */
+  const activeTypes = parseTypes(draftType);
+
   /* Only show Guide / Difficulty chips when hiking is among selected types */
-  const showGuideChip = isAllSelected(currentTypes) || currentTypes.has("hiking");
-  const showDifficultyChip = currentTypes.has("hiking");
+  const showGuideChip = isAllSelected(activeTypes) || activeTypes.has("hiking");
+  const showDifficultyChip = activeTypes.has("hiking");
 
   /* Only show Distance chip when a distance-supporting type is selected */
   const showDistanceChip =
-    isAllSelected(currentTypes) || [...currentTypes].some((t) => DISTANCE_TYPES.has(t));
+    isAllSelected(activeTypes) || [...activeTypes].some((t) => DISTANCE_TYPES.has(t));
 
   return (
     <div className="space-y-4">
@@ -831,7 +838,7 @@ export default function EventFilters({
           <div
             className={cn(
               "relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden border-2 transition-all flex items-center justify-center bg-gray-100 dark:bg-gray-700",
-              isAllSelected(currentTypes)
+              isAllSelected(activeTypes)
                 ? "border-lime-500 ring-2 ring-lime-300 dark:ring-lime-700 scale-105"
                 : "border-gray-200 dark:border-gray-600 opacity-70 group-hover:opacity-100 group-hover:border-gray-300 dark:group-hover:border-gray-500",
             )}
@@ -854,7 +861,7 @@ export default function EventFilters({
           <span
             className={cn(
               "text-[10px] sm:text-xs font-medium transition-colors",
-              isAllSelected(currentTypes)
+              isAllSelected(activeTypes)
                 ? "text-lime-600 dark:text-lime-400"
                 : "text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300",
             )}
@@ -864,7 +871,7 @@ export default function EventFilters({
         </button>
 
         {ACTIVITIES.map((activity) => {
-          const isActive = !isAllSelected(currentTypes) && currentTypes.has(activity.slug);
+          const isActive = !isAllSelected(activeTypes) && activeTypes.has(activity.slug);
           return (
             <button
               key={activity.slug}
