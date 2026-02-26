@@ -552,18 +552,22 @@ export default function EventFilters({
   const [openId, setOpenId] = useState("");
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
-  /* Draft state — only needed for Date (two fields) */
+  /* Draft state — for instant visual feedback on multi-select filters */
   const [draftFrom, setDraftFrom] = useState(currentFrom);
   const [draftTo, setDraftTo] = useState(currentTo);
+  const [draftOrgs, setDraftOrgs] = useState(currentOrgs);
+  const [draftGuides, setDraftGuides] = useState(currentGuides);
 
   /* Sync search value with URL */
   useEffect(() => {
     setSearchValue(currentSearch);
   }, [currentSearch]);
 
-  /* Sync date drafts when URL changes (e.g. browser back) */
+  /* Sync drafts when URL changes (e.g. browser back) */
   useEffect(() => setDraftFrom(currentFrom), [currentFrom]);
   useEffect(() => setDraftTo(currentTo), [currentTo]);
+  useEffect(() => setDraftOrgs(parseTypes(currentOrgParam)), [currentOrgParam]);
+  useEffect(() => setDraftGuides(parseTypes(currentGuideParam)), [currentGuideParam]);
 
   /* Notify parent of pending state */
   useEffect(() => {
@@ -690,28 +694,28 @@ export default function EventFilters({
 
   const toggleOrg = useCallback(
     (value: string) => {
-      const next = new Set(currentOrgs);
-      if (next.has(value)) {
-        next.delete(value);
-      } else {
-        next.add(value);
-      }
-      updateParams({ org: serializeTypes(next) });
+      setDraftOrgs((prev) => {
+        const next = new Set(prev);
+        if (next.has(value)) next.delete(value);
+        else next.add(value);
+        updateParams({ org: serializeTypes(next) });
+        return next;
+      });
     },
-    [currentOrgs, updateParams],
+    [updateParams],
   );
 
   const toggleGuide = useCallback(
     (value: string) => {
-      const next = new Set(currentGuides);
-      if (next.has(value)) {
-        next.delete(value);
-      } else {
-        next.add(value);
-      }
-      updateParams({ guide: serializeTypes(next) });
+      setDraftGuides((prev) => {
+        const next = new Set(prev);
+        if (next.has(value)) next.delete(value);
+        else next.add(value);
+        updateParams({ guide: serializeTypes(next) });
+        return next;
+      });
     },
-    [currentGuides, updateParams],
+    [updateParams],
   );
 
   /* ---- Date chip still uses Apply/Clear ---- */
@@ -730,17 +734,17 @@ export default function EventFilters({
   for (const t of TIME_FILTERS) whenLabelMap[t.value] = t.label;
 
   const orgLabel =
-    currentOrgs.size === 1
-      ? organizers.find((o) => currentOrgs.has(o.id))?.name
-      : currentOrgs.size > 1
-        ? `${currentOrgs.size} organizers`
+    draftOrgs.size === 1
+      ? organizers.find((o) => draftOrgs.has(o.id))?.name
+      : draftOrgs.size > 1
+        ? `${draftOrgs.size} organizers`
         : undefined;
 
   const guideLabel =
-    currentGuides.size === 1
-      ? guides.find((g) => currentGuides.has(g.id))?.name
-      : currentGuides.size > 1
-        ? `${currentGuides.size} guides`
+    draftGuides.size === 1
+      ? guides.find((g) => draftGuides.has(g.id))?.name
+      : draftGuides.size > 1
+        ? `${draftGuides.size} guides`
         : undefined;
 
   const selectDifficulty = useCallback(
@@ -1016,10 +1020,13 @@ export default function EventFilters({
             id="org"
             label="Organizer"
             activeLabel={orgLabel}
-            isActive={currentOrgs.size > 0}
+            isActive={draftOrgs.size > 0}
             isOpen={openId === "org"}
             onToggle={handleToggle}
-            onClear={() => updateParams({ org: "" })}
+            onClear={() => {
+              setDraftOrgs(new Set());
+              updateParams({ org: "" });
+            }}
           >
             <div className="p-3 space-y-1 max-h-[200px] overflow-y-auto">
               {organizers.map((o) => (
@@ -1029,7 +1036,7 @@ export default function EventFilters({
                   onClick={() => toggleOrg(o.id)}
                   className={cn(
                     "w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2",
-                    currentOrgs.has(o.id)
+                    draftOrgs.has(o.id)
                       ? "bg-gray-100 dark:bg-gray-700 font-medium text-gray-900 dark:text-gray-100"
                       : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-750",
                   )}
@@ -1037,12 +1044,12 @@ export default function EventFilters({
                   <span
                     className={cn(
                       "flex items-center justify-center w-4 h-4 rounded border transition-colors shrink-0",
-                      currentOrgs.has(o.id)
+                      draftOrgs.has(o.id)
                         ? "bg-lime-500 border-lime-500 text-white"
                         : "border-gray-300 dark:border-gray-600",
                     )}
                   >
-                    {currentOrgs.has(o.id) && (
+                    {draftOrgs.has(o.id) && (
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -1072,10 +1079,13 @@ export default function EventFilters({
             id="guide"
             label="Guide"
             activeLabel={guideLabel}
-            isActive={currentGuides.size > 0}
+            isActive={draftGuides.size > 0}
             isOpen={openId === "guide"}
             onToggle={handleToggle}
-            onClear={() => updateParams({ guide: "" })}
+            onClear={() => {
+              setDraftGuides(new Set());
+              updateParams({ guide: "" });
+            }}
           >
             <div className="p-3 space-y-1 max-h-[200px] overflow-y-auto">
               {guides.map((g) => (
@@ -1085,7 +1095,7 @@ export default function EventFilters({
                   onClick={() => toggleGuide(g.id)}
                   className={cn(
                     "w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2",
-                    currentGuides.has(g.id)
+                    draftGuides.has(g.id)
                       ? "bg-gray-100 dark:bg-gray-700 font-medium text-gray-900 dark:text-gray-100"
                       : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-750",
                   )}
@@ -1093,12 +1103,12 @@ export default function EventFilters({
                   <span
                     className={cn(
                       "flex items-center justify-center w-4 h-4 rounded border transition-colors shrink-0",
-                      currentGuides.has(g.id)
+                      draftGuides.has(g.id)
                         ? "bg-lime-500 border-lime-500 text-white"
                         : "border-gray-300 dark:border-gray-600",
                     )}
                   >
-                    {currentGuides.has(g.id) && (
+                    {draftGuides.has(g.id) && (
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
