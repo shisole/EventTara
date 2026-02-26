@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { AvatarWithBorder } from "@/components/ui";
+import { AvatarWithBorder, Button } from "@/components/ui";
 import type { BorderTier } from "@/lib/constants/avatar-borders";
 import { TIER_LABELS, TIER_LABEL_COLORS } from "@/lib/constants/avatar-borders";
 import { createClient } from "@/lib/supabase/client";
@@ -48,9 +48,19 @@ export default function BorderPickerModal({
   const supabase = createClient();
 
   const fetchBorders = useCallback(async () => {
+    const {
+      data: { user: authUser },
+    } = await supabase.auth.getUser();
+
+    if (!authUser) {
+      setLoaded(true);
+      return;
+    }
+
     const { data: awards } = await supabase
       .from("user_avatar_borders")
       .select("id, border_id, awarded_at")
+      .eq("user_id", authUser.id)
       .order("awarded_at", { ascending: true });
 
     if (!awards || awards.length === 0) {
@@ -98,26 +108,32 @@ export default function BorderPickerModal({
     return () => document.removeEventListener("keydown", handleKey);
   }, [open, onClose]);
 
-  const handleSelect = async (borderId: string | null) => {
-    setSelectedId(borderId);
+  const hasChanges = selectedId !== activeBorderId;
+
+  const handleSave = async () => {
     setSaving(true);
 
     const res = await fetch("/api/users/active-border", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ border_id: borderId }),
+      body: JSON.stringify({ border_id: selectedId }),
     });
 
     setSaving(false);
     if (res.ok) {
-      if (borderId === null) {
+      if (selectedId === null) {
         onBorderChange(null, null, null);
       } else {
-        const border = borders.find((b) => b.border_id === borderId);
+        const border = borders.find((b) => b.border_id === selectedId);
         if (border) {
-          onBorderChange(borderId, border.avatar_borders.tier, border.avatar_borders.border_color);
+          onBorderChange(
+            selectedId,
+            border.avatar_borders.tier,
+            border.avatar_borders.border_color,
+          );
         }
       }
+      onClose();
     }
   };
 
@@ -131,6 +147,8 @@ export default function BorderPickerModal({
       borders: borders.filter((b) => b.avatar_borders.tier === tier),
     }))
     .filter((g) => g.borders.length > 0);
+
+  const previewBorder = borders.find((b) => b.border_id === selectedId);
 
   return (
     <div
@@ -153,32 +171,26 @@ export default function BorderPickerModal({
 
         {/* Preview */}
         <div className="px-6 py-4 flex justify-center border-b border-gray-100 dark:border-gray-800">
-          {(() => {
-            const activeBorder = borders.find((b) => b.border_id === selectedId);
-            return (
-              <div className="text-center space-y-2">
-                <AvatarWithBorder
-                  src={avatarUrl}
-                  alt={fullName}
-                  size="xl"
-                  borderTier={activeBorder?.avatar_borders.tier ?? null}
-                  borderColor={activeBorder?.avatar_borders.border_color}
-                  className="mx-auto"
-                />
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {activeBorder?.avatar_borders.name ?? "No border"}
-                </p>
-              </div>
-            );
-          })()}
+          <div className="text-center space-y-2">
+            <AvatarWithBorder
+              src={avatarUrl}
+              alt={fullName}
+              size="xl"
+              borderTier={previewBorder?.avatar_borders.tier ?? null}
+              borderColor={previewBorder?.avatar_borders.border_color}
+              className="mx-auto"
+            />
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {previewBorder?.avatar_borders.name ?? "No border"}
+            </p>
+          </div>
         </div>
 
         {/* Border grid */}
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
           {/* No border option */}
           <button
-            onClick={() => void handleSelect(null)}
-            disabled={saving}
+            onClick={() => setSelectedId(null)}
             className={cn(
               "w-full flex items-center gap-3 p-3 rounded-xl border transition-colors",
               selectedId === null
@@ -215,8 +227,7 @@ export default function BorderPickerModal({
                 {tierBorders.map((border) => (
                   <button
                     key={border.border_id}
-                    onClick={() => void handleSelect(border.border_id)}
-                    disabled={saving}
+                    onClick={() => setSelectedId(border.border_id)}
                     className={cn(
                       "flex items-center gap-3 p-3 rounded-xl border transition-colors text-left",
                       selectedId === border.border_id
@@ -250,6 +261,16 @@ export default function BorderPickerModal({
               No borders earned yet. Keep adventuring to unlock borders!
             </p>
           )}
+        </div>
+
+        {/* Footer with Save button */}
+        <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-800 flex justify-end gap-3">
+          <Button variant="outline" size="sm" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button size="sm" onClick={() => void handleSave()} disabled={!hasChanges || saving}>
+            {saving ? "Saving..." : "Save"}
+          </Button>
         </div>
       </div>
     </div>
