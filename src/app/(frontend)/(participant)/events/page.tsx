@@ -206,11 +206,11 @@ export default async function EventsPage({
 
   // Distance filter: fetch event IDs from event_distances, then constrain both queries
   if (params.distance) {
-    const distanceKm = Number(params.distance);
+    const distanceKms = params.distance.split(",").map(Number).filter(Boolean);
     const { data: distLinks } = await supabase
       .from("event_distances")
       .select("event_id")
-      .eq("distance_km", distanceKm);
+      .in("distance_km", distanceKms);
 
     const distEventIds = distLinks?.map((l) => l.event_id) ?? [];
     if (distEventIds.length === 0) {

@@ -543,7 +543,8 @@ export default function EventFilters({
   const currentGuides = parseTypes(currentGuideParam);
   const currentFrom = searchParams.get("from") ?? "";
   const currentTo = searchParams.get("to") ?? "";
-  const currentDistance = searchParams.get("distance") ?? "";
+  const currentDistanceParam = searchParams.get("distance") ?? "";
+  const currentDistances = parseTypes(currentDistanceParam);
   const currentDifficulty = searchParams.get("difficulty") ?? "";
 
   /* Local state */
@@ -553,12 +554,14 @@ export default function EventFilters({
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const orgDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const guideDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  const distanceDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
   /* Draft state — for instant visual feedback on multi-select filters */
   const [draftFrom, setDraftFrom] = useState(currentFrom);
   const [draftTo, setDraftTo] = useState(currentTo);
   const [draftOrgs, setDraftOrgs] = useState(currentOrgs);
   const [draftGuides, setDraftGuides] = useState(currentGuides);
+  const [draftDistances, setDraftDistances] = useState(currentDistances);
 
   /* Sync search value with URL */
   useEffect(() => {
@@ -570,6 +573,7 @@ export default function EventFilters({
   useEffect(() => setDraftTo(currentTo), [currentTo]);
   useEffect(() => setDraftOrgs(parseTypes(currentOrgParam)), [currentOrgParam]);
   useEffect(() => setDraftGuides(parseTypes(currentGuideParam)), [currentGuideParam]);
+  useEffect(() => setDraftDistances(parseTypes(currentDistanceParam)), [currentDistanceParam]);
 
   /* Notify parent of pending state */
   useEffect(() => {
@@ -627,6 +631,7 @@ export default function EventFilters({
       if (debounceRef.current) clearTimeout(debounceRef.current);
       if (orgDebounceRef.current) clearTimeout(orgDebounceRef.current);
       if (guideDebounceRef.current) clearTimeout(guideDebounceRef.current);
+      if (distanceDebounceRef.current) clearTimeout(distanceDebounceRef.current);
     };
   }, []);
 
@@ -661,6 +666,7 @@ export default function EventFilters({
   const clearAllFilters = useCallback(() => {
     if (orgDebounceRef.current) clearTimeout(orgDebounceRef.current);
     if (guideDebounceRef.current) clearTimeout(guideDebounceRef.current);
+    if (distanceDebounceRef.current) clearTimeout(distanceDebounceRef.current);
     updateParams({
       type: "",
       when: "",
@@ -675,6 +681,7 @@ export default function EventFilters({
     setSearchValue("");
     setDraftOrgs(new Set());
     setDraftGuides(new Set());
+    setDraftDistances(new Set());
   }, [updateParams]);
 
   /* Whether any filter is active */
@@ -683,7 +690,7 @@ export default function EventFilters({
     currentWhen !== "" ||
     currentOrgParam !== "" ||
     currentGuideParam !== "" ||
-    currentDistance !== "" ||
+    currentDistanceParam !== "" ||
     currentDifficulty !== "" ||
     currentFrom !== "" ||
     currentTo !== "" ||
@@ -774,18 +781,29 @@ export default function EventFilters({
     ? (DIFFICULTY_OPTIONS.find((d) => d.value === currentDifficulty)?.label ?? currentDifficulty)
     : undefined;
 
-  const selectDistance = useCallback(
+  const toggleDistance = useCallback(
     (value: string) => {
-      const next = value === currentDistance ? "" : value;
-      updateParams({ distance: next });
-      setOpenId("");
+      setDraftDistances((prev) => {
+        const next = new Set(prev);
+        if (next.has(value)) next.delete(value);
+        else next.add(value);
+        if (distanceDebounceRef.current) clearTimeout(distanceDebounceRef.current);
+        distanceDebounceRef.current = setTimeout(() => {
+          updateParams({ distance: serializeTypes(next) });
+        }, 500);
+        return next;
+      });
     },
-    [currentDistance, updateParams],
+    [updateParams],
   );
 
-  const distanceLabel = currentDistance
-    ? (DISTANCE_OPTIONS.find((d) => d.value === currentDistance)?.label ?? `${currentDistance} km`)
-    : undefined;
+  const distanceLabel =
+    draftDistances.size === 1
+      ? (DISTANCE_OPTIONS.find((d) => draftDistances.has(d.value))?.label ??
+        `${[...draftDistances][0]} km`)
+      : draftDistances.size > 1
+        ? `${draftDistances.size} distances`
+        : undefined;
 
   const dateLabel =
     currentFrom && currentTo
@@ -991,7 +1009,7 @@ export default function EventFilters({
                   "w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center",
                   currentWhen === f.value
                     ? "bg-gray-100 dark:bg-gray-700 font-medium text-gray-900 dark:text-gray-100"
-                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-750",
+                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-gray-100",
                 )}
               >
                 {f.value === "now" && (
@@ -1053,7 +1071,7 @@ export default function EventFilters({
                     "w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2",
                     draftOrgs.has(o.id)
                       ? "bg-gray-100 dark:bg-gray-700 font-medium text-gray-900 dark:text-gray-100"
-                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-750",
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-gray-100",
                   )}
                 >
                   <span
@@ -1113,7 +1131,7 @@ export default function EventFilters({
                     "w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2",
                     draftGuides.has(g.id)
                       ? "bg-gray-100 dark:bg-gray-700 font-medium text-gray-900 dark:text-gray-100"
-                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-750",
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-gray-100",
                   )}
                 >
                   <span
@@ -1169,7 +1187,7 @@ export default function EventFilters({
                     "w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2",
                     currentDifficulty === d.value
                       ? "bg-gray-100 dark:bg-gray-700 font-medium text-gray-900 dark:text-gray-100"
-                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-750",
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-gray-100",
                   )}
                 >
                   <span
@@ -1187,30 +1205,59 @@ export default function EventFilters({
           </FilterChip>
         )}
 
-        {/* ---- Distance chip (only when running/trail_run/road_bike is selected) ---- */}
+        {/* ---- Distance chip (only when running/trail_run/road_bike is selected, multi-select) ---- */}
         {showDistanceChip && (
           <FilterChip
             id="distance"
             label="Distance"
             activeLabel={distanceLabel}
-            isActive={!!currentDistance}
+            isActive={draftDistances.size > 0}
             isOpen={openId === "distance"}
             onToggle={handleToggle}
-            onClear={() => updateParams({ distance: "" })}
+            onClear={() => {
+              if (distanceDebounceRef.current) clearTimeout(distanceDebounceRef.current);
+              setDraftDistances(new Set());
+              updateParams({ distance: "" });
+            }}
           >
-            <div className="p-3 space-y-1">
+            <div className="p-3 space-y-1 max-h-[200px] overflow-y-auto">
               {DISTANCE_OPTIONS.map((d) => (
                 <button
                   key={d.value}
                   type="button"
-                  onClick={() => selectDistance(d.value)}
+                  onClick={() => toggleDistance(d.value)}
                   className={cn(
-                    "w-full text-left px-3 py-2 rounded-lg text-sm transition-colors",
-                    currentDistance === d.value
+                    "w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2",
+                    draftDistances.has(d.value)
                       ? "bg-gray-100 dark:bg-gray-700 font-medium text-gray-900 dark:text-gray-100"
-                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-750",
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-gray-100",
                   )}
                 >
+                  <span
+                    className={cn(
+                      "flex items-center justify-center w-4 h-4 rounded border transition-colors shrink-0",
+                      draftDistances.has(d.value)
+                        ? "bg-lime-500 border-lime-500 text-white"
+                        : "border-gray-300 dark:border-gray-600",
+                    )}
+                  >
+                    {draftDistances.has(d.value) && (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={3}
+                        stroke="currentColor"
+                        className="h-3 w-3"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="m4.5 12.75 6 6 9-13.5"
+                        />
+                      </svg>
+                    )}
+                  </span>
                   {d.label}
                 </button>
               ))}
