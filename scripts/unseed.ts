@@ -109,6 +109,19 @@ async function main() {
       }
     }
 
+    // 4. Clean up system badges (not tied to any user/event, so they survive cascade)
+    console.log("Cleaning system badges...");
+    const { error: sysBadgeError, count: sysBadgeCount } = await supabase
+      .from("badges")
+      .delete({ count: "exact" })
+      .eq("type", "system");
+
+    if (sysBadgeError) {
+      console.error(`  Failed to delete system badges: ${sysBadgeError.message}`);
+    } else {
+      console.log(`  Deleted ${sysBadgeCount ?? 0} system badge(s).`);
+    }
+
     // Summary
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
     console.log();

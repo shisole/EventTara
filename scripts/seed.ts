@@ -2252,6 +2252,256 @@ async function createCheckins(userMap: Map<string, string>, eventMap: Map<string
   }
 }
 
+// ---------------------------------------------------------------------------
+// System Badges
+// ---------------------------------------------------------------------------
+
+interface SystemBadgeDef {
+  criteriaKey: string;
+  title: string;
+  description: string;
+  category: "distance" | "adventure" | "location" | "special";
+  rarity: "common" | "rare" | "epic" | "legendary";
+  imageUrl: string;
+}
+
+const SYSTEM_BADGE_DEFS: SystemBadgeDef[] = [
+  // First activity per type
+  {
+    criteriaKey: "first_hike",
+    title: "First Hike",
+    description: "Checked in to your first hiking event",
+    category: "adventure",
+    rarity: "common",
+    imageUrl: "\u{1F97E}",
+  },
+  {
+    criteriaKey: "first_run",
+    title: "First Run",
+    description: "Checked in to your first running event",
+    category: "distance",
+    rarity: "common",
+    imageUrl: "\u{1F3C3}",
+  },
+  {
+    criteriaKey: "first_road_ride",
+    title: "First Road Ride",
+    description: "Checked in to your first road biking event",
+    category: "distance",
+    rarity: "common",
+    imageUrl: "\u{1F6B4}",
+  },
+  {
+    criteriaKey: "first_mtb",
+    title: "First MTB Ride",
+    description: "Checked in to your first mountain biking event",
+    category: "distance",
+    rarity: "common",
+    imageUrl: "\u{1F6B5}",
+  },
+  {
+    criteriaKey: "first_trail_run",
+    title: "First Trail Run",
+    description: "Checked in to your first trail running event",
+    category: "adventure",
+    rarity: "common",
+    imageUrl: "\u{1F332}",
+  },
+  // All-rounder
+  {
+    criteriaKey: "all_rounder",
+    title: "All-Rounder",
+    description: "Checked in to at least one event of every activity type",
+    category: "special",
+    rarity: "epic",
+    imageUrl: "\u{1F31F}",
+  },
+  // Volume milestones
+  {
+    criteriaKey: "events_5",
+    title: "5 Events",
+    description: "Checked in to 5 events",
+    category: "special",
+    rarity: "common",
+    imageUrl: "\u{1F3C5}",
+  },
+  {
+    criteriaKey: "events_10",
+    title: "10 Events",
+    description: "Checked in to 10 events",
+    category: "special",
+    rarity: "rare",
+    imageUrl: "\u{1F396}\uFE0F",
+  },
+  {
+    criteriaKey: "events_25",
+    title: "25 Events",
+    description: "Checked in to 25 events",
+    category: "special",
+    rarity: "epic",
+    imageUrl: "\u{1F3C6}",
+  },
+  {
+    criteriaKey: "events_50",
+    title: "50 Events",
+    description: "Checked in to 50 events",
+    category: "special",
+    rarity: "legendary",
+    imageUrl: "\u{1F451}",
+  },
+  // Pioneer
+  {
+    criteriaKey: "pioneer",
+    title: "EventTara Pioneer",
+    description: "Among the first 100 users to check in on EventTara",
+    category: "special",
+    rarity: "legendary",
+    imageUrl: "\u{1F680}",
+  },
+];
+
+const ALL_EVENT_TYPES = ["hiking", "running", "road_bike", "mtb", "trail_run"];
+
+/** Seed system badge rows into the badges table. */
+async function createSystemBadges(): Promise<Map<string, string>> {
+  log("\u{1F396}\uFE0F", "Creating system badges...");
+
+  // Delete existing system badges first (cascades to user_badges) for idempotency
+  await supabase.from("badges").delete().eq("type", "system");
+
+  const criteriaKeyToId = new Map<string, string>();
+
+  for (const badge of SYSTEM_BADGE_DEFS) {
+    const { data, error } = await supabase
+      .from("badges")
+      .insert({
+        title: badge.title,
+        description: badge.description,
+        image_url: badge.imageUrl,
+        category: badge.category,
+        rarity: badge.rarity,
+        type: "system",
+        criteria_key: badge.criteriaKey,
+      })
+      .select("id")
+      .single();
+
+    if (error) {
+      console.error(`  Failed to create system badge "${badge.title}": ${error.message}`);
+    } else {
+      criteriaKeyToId.set(badge.criteriaKey, data.id);
+      log("  \u2705", `${badge.title} (${badge.criteriaKey})`);
+    }
+  }
+
+  return criteriaKeyToId;
+}
+
+/** Retroactively award system badges based on seeded check-in data. */
+async function awardSystemBadges(
+  userMap: Map<string, string>,
+  systemBadgeMap: Map<string, string>,
+) {
+  log("\u{1F31F}", "Awarding system badges retroactively...");
+
+  // Get all unique user IDs from userMap
+  const userIds = Array.from(new Set(Array.from(userMap.values())));
+
+  for (const userId of userIds) {
+    // Fetch this user's check-ins with event types
+    const { data: checkins } = await supabase
+      .from("event_checkins")
+      .select("event_id, events:event_id(type)")
+      .eq("user_id", userId);
+
+    if (!checkins || checkins.length === 0) continue;
+
+    // Build stats
+    const eventCountByType: Record<string, number> = {};
+    let totalCheckins = 0;
+    for (const checkin of checkins) {
+      totalCheckins++;
+      const event = checkin.events as unknown as { type: string } | null;
+      const eventType = event?.type;
+      if (eventType) {
+        eventCountByType[eventType] = (eventCountByType[eventType] ?? 0) + 1;
+      }
+    }
+
+    // Pioneer rank: count distinct users whose first check-in is before this user's
+    const { data: firstCheckin } = await supabase
+      .from("event_checkins")
+      .select("checked_in_at")
+      .eq("user_id", userId)
+      .order("checked_in_at", { ascending: true })
+      .limit(1)
+      .single();
+
+    let pioneerRank: number | null = null;
+    if (firstCheckin) {
+      const { data: earlierUsers } = await supabase
+        .from("event_checkins")
+        .select("user_id")
+        .lt("checked_in_at", firstCheckin.checked_in_at);
+
+      const distinctEarlierUsers = new Set((earlierUsers ?? []).map((r) => r.user_id));
+      pioneerRank = distinctEarlierUsers.size + 1;
+    }
+
+    // Evaluate criteria
+    const typeCount = (t: string) => eventCountByType[t] ?? 0;
+    const criteria: Record<string, boolean> = {
+      first_hike: typeCount("hiking") >= 1,
+      first_run: typeCount("running") >= 1,
+      first_road_ride: typeCount("road_bike") >= 1,
+      first_mtb: typeCount("mtb") >= 1,
+      first_trail_run: typeCount("trail_run") >= 1,
+      all_rounder: ALL_EVENT_TYPES.every((type) => typeCount(type) >= 1),
+      events_5: totalCheckins >= 5,
+      events_10: totalCheckins >= 10,
+      events_25: totalCheckins >= 25,
+      events_50: totalCheckins >= 50,
+      pioneer: pioneerRank !== null && pioneerRank <= 100,
+    };
+
+    // Find the user's name for logging
+    let userName = "Unknown";
+    for (const [email, id] of Array.from(userMap.entries())) {
+      if (id === userId) {
+        userName = TEST_USERS.find((u) => u.email === email)?.full_name ?? email;
+        break;
+      }
+    }
+
+    // Award matching badges
+    const earned: string[] = [];
+    for (const [criteriaKey, passes] of Object.entries(criteria)) {
+      if (!passes) continue;
+
+      const badgeId = systemBadgeMap.get(criteriaKey);
+      if (!badgeId) continue;
+
+      const { error } = await supabase.from("user_badges").insert({
+        user_id: userId,
+        badge_id: badgeId,
+      });
+
+      if (error) {
+        // Ignore duplicate errors (user already has this badge)
+        if (!error.message.includes("duplicate")) {
+          console.error(`  Failed to award "${criteriaKey}" to ${userName}: ${error.message}`);
+        }
+      } else {
+        earned.push(criteriaKey);
+      }
+    }
+
+    if (earned.length > 0) {
+      log("  \u2705", `${userName}: ${earned.join(", ")}`);
+    }
+  }
+}
+
 interface CompanionDef {
   userEmail: string;
   eventTitle: string;
@@ -2867,6 +3117,14 @@ async function main() {
 
     // Step 8: Create check-ins
     await createCheckins(userMap, eventMap);
+    console.log();
+
+    // Step 8b: Create system badges
+    const systemBadgeMap = await createSystemBadges();
+    console.log();
+
+    // Step 8c: Award system badges retroactively
+    await awardSystemBadges(userMap, systemBadgeMap);
     console.log();
 
     // Step 9: Create app testimonials
