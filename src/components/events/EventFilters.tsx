@@ -551,6 +551,8 @@ export default function EventFilters({
   const [isSearching, setIsSearching] = useState(false);
   const [openId, setOpenId] = useState("");
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const orgDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  const guideDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
   /* Draft state — for instant visual feedback on multi-select filters */
   const [draftFrom, setDraftFrom] = useState(currentFrom);
@@ -623,6 +625,8 @@ export default function EventFilters({
   useEffect(() => {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
+      if (orgDebounceRef.current) clearTimeout(orgDebounceRef.current);
+      if (guideDebounceRef.current) clearTimeout(guideDebounceRef.current);
     };
   }, []);
 
@@ -655,6 +659,8 @@ export default function EventFilters({
 
   /* Clear all filters at once */
   const clearAllFilters = useCallback(() => {
+    if (orgDebounceRef.current) clearTimeout(orgDebounceRef.current);
+    if (guideDebounceRef.current) clearTimeout(guideDebounceRef.current);
     updateParams({
       type: "",
       when: "",
@@ -667,6 +673,8 @@ export default function EventFilters({
       search: "",
     });
     setSearchValue("");
+    setDraftOrgs(new Set());
+    setDraftGuides(new Set());
   }, [updateParams]);
 
   /* Whether any filter is active */
@@ -698,7 +706,10 @@ export default function EventFilters({
         const next = new Set(prev);
         if (next.has(value)) next.delete(value);
         else next.add(value);
-        updateParams({ org: serializeTypes(next) });
+        if (orgDebounceRef.current) clearTimeout(orgDebounceRef.current);
+        orgDebounceRef.current = setTimeout(() => {
+          updateParams({ org: serializeTypes(next) });
+        }, 500);
         return next;
       });
     },
@@ -711,7 +722,10 @@ export default function EventFilters({
         const next = new Set(prev);
         if (next.has(value)) next.delete(value);
         else next.add(value);
-        updateParams({ guide: serializeTypes(next) });
+        if (guideDebounceRef.current) clearTimeout(guideDebounceRef.current);
+        guideDebounceRef.current = setTimeout(() => {
+          updateParams({ guide: serializeTypes(next) });
+        }, 500);
         return next;
       });
     },
@@ -1024,6 +1038,7 @@ export default function EventFilters({
             isOpen={openId === "org"}
             onToggle={handleToggle}
             onClear={() => {
+              if (orgDebounceRef.current) clearTimeout(orgDebounceRef.current);
               setDraftOrgs(new Set());
               updateParams({ org: "" });
             }}
@@ -1083,6 +1098,7 @@ export default function EventFilters({
             isOpen={openId === "guide"}
             onToggle={handleToggle}
             onClear={() => {
+              if (guideDebounceRef.current) clearTimeout(guideDebounceRef.current);
               setDraftGuides(new Set());
               updateParams({ guide: "" });
             }}
