@@ -10,6 +10,7 @@ export default function BetaNoticeModal() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    if (new URLSearchParams(globalThis.location.search).has("lighthouse")) return;
     try {
       const dismissed = sessionStorage.getItem(STORAGE_KEY);
       if (!dismissed) {

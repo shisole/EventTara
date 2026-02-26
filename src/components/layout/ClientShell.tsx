@@ -3,7 +3,7 @@
 import type { User } from "@supabase/supabase-js";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import MobileNav from "@/components/layout/MobileNav";
 import Navbar from "@/components/layout/Navbar";
@@ -54,6 +54,12 @@ interface ClientShellProps {
 
 export default function ClientShell({ children, initialNavLayout = "strip" }: ClientShellProps) {
   const pathname = usePathname();
+  const isLighthouse = useMemo(
+    () =>
+      typeof globalThis !== "undefined" &&
+      new URLSearchParams(globalThis.location.search).has("lighthouse"),
+    [],
+  );
   const supabase = createClient();
   const [user, setUser] = useState<User | null>(null);
   const [role, setRole] = useState<string | null>(null);
@@ -202,7 +208,7 @@ export default function ClientShell({ children, initialNavLayout = "strip" }: Cl
           drawerOpen ? "scale-[0.95] opacity-50 rounded-xl overflow-hidden pointer-events-none" : ""
         }`}
       >
-        {!loading && <DemoBanner isLoggedIn={!!user && !user.is_anonymous} />}
+        {!isLighthouse && <DemoBanner isLoggedIn={!loading && !!user && !user.is_anonymous} />}
         <Navbar
           user={user}
           role={role}
