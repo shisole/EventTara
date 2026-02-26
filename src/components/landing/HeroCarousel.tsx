@@ -42,8 +42,10 @@ export default function HeroCarousel({ slides }: HeroCarouselProps) {
               alt={slide.image.alt || "Adventure"}
               fill
               className="object-cover"
-              sizes="100vw"
+              sizes="(max-width: 640px) 640px, (max-width: 1200px) 1200px, 1920px"
+              quality={50}
               priority={i === 0}
+              loading={i === 0 ? "eager" : "lazy"}
             />
           </div>
         );
