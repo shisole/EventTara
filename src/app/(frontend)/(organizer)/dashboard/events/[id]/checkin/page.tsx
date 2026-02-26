@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 
 import CheckinList from "@/components/checkin/CheckinList";
 import QRScanner from "@/components/checkin/QRScanner";
+import type { BorderTier } from "@/lib/constants/avatar-borders";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function CheckinPage({ params }: { params: Promise<{ id: string }> }) {
@@ -15,7 +16,9 @@ export default async function CheckinPage({ params }: { params: Promise<{ id: st
   // Get all bookings with check-in status
   const { data: bookings } = await supabase
     .from("bookings")
-    .select("id, user_id, participant_cancelled, users:user_id(full_name, avatar_url)")
+    .select(
+      "id, user_id, participant_cancelled, users:user_id(full_name, avatar_url, active_border_id)",
+    )
     .eq("event_id", id)
     .in("status", ["confirmed", "pending"])
     .eq("participant_cancelled", false);
@@ -27,6 +30,20 @@ export default async function CheckinPage({ params }: { params: Promise<{ id: st
 
   const checkinMap = new Map((checkins || []).map((c) => [c.user_id, c.checked_in_at]));
 
+  // Fetch border data for participants with active borders
+  const borderIds = (bookings || [])
+    .map((b: any) => b.users?.active_border_id)
+    .filter(Boolean) as string[];
+
+  let borderLookup = new Map<string, { tier: string; border_color: string | null }>();
+  if (borderIds.length > 0) {
+    const { data: borderDefs } = await supabase
+      .from("avatar_borders")
+      .select("id, tier, border_color")
+      .in("id", borderIds);
+    borderLookup = new Map((borderDefs || []).map((b) => [b.id, b]));
+  }
+
   const participants: {
     id: string;
     type: "user" | "companion";
@@ -34,14 +51,22 @@ export default async function CheckinPage({ params }: { params: Promise<{ id: st
     avatarUrl: string | null;
     checkedIn: boolean;
     checkedInAt: string | null;
-  }[] = (bookings || []).map((b: any) => ({
-    id: b.user_id,
-    type: "user" as const,
-    fullName: b.users?.full_name || "Guest",
-    avatarUrl: b.users?.avatar_url || null,
-    checkedIn: checkinMap.has(b.user_id),
-    checkedInAt: checkinMap.get(b.user_id) || null,
-  }));
+    borderTier?: BorderTier | null;
+    borderColor?: string | null;
+  }[] = (bookings || []).map((b: any) => {
+    const borderId = b.users?.active_border_id;
+    const border = borderId ? borderLookup.get(borderId) : null;
+    return {
+      id: b.user_id,
+      type: "user" as const,
+      fullName: b.users?.full_name || "Guest",
+      avatarUrl: b.users?.avatar_url || null,
+      checkedIn: checkinMap.has(b.user_id),
+      checkedInAt: checkinMap.get(b.user_id) || null,
+      borderTier: (border?.tier as BorderTier) ?? null,
+      borderColor: border?.border_color ?? null,
+    };
+  });
 
   // Fetch companions for all active bookings
   const bookingIds = (bookings || []).map((b: any) => b.id);

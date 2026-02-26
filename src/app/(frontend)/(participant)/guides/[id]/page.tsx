@@ -122,11 +122,37 @@ export default async function GuideProfilePage({ params }: { params: Promise<{ i
   // Fetch reviews with user info
   const { data: reviews } = await supabase
     .from("guide_reviews")
-    .select("*, users(full_name, avatar_url, username)")
+    .select("*, users(full_name, avatar_url, username, active_border_id)")
     .eq("guide_id", id)
     .order("created_at", { ascending: false });
 
-  const reviewList = (reviews || []) as unknown as GuideReview[];
+  // Enrich reviews with border data
+  const rawGuideReviews = (reviews || []) as any[];
+  const guideReviewBorderIds = rawGuideReviews
+    .map((r: any) => r.users?.active_border_id)
+    .filter(Boolean) as string[];
+
+  let guideBorderLookup = new Map<string, { tier: string; border_color: string | null }>();
+  if (guideReviewBorderIds.length > 0) {
+    const { data: borderDefs } = await supabase
+      .from("avatar_borders")
+      .select("id, tier, border_color")
+      .in("id", guideReviewBorderIds);
+    guideBorderLookup = new Map((borderDefs || []).map((b) => [b.id, b]));
+  }
+
+  const reviewList = rawGuideReviews.map((r: any) => {
+    const borderId = r.users?.active_border_id;
+    const border = borderId ? guideBorderLookup.get(borderId) : null;
+    return {
+      ...r,
+      users: {
+        ...r.users,
+        active_border_tier: border?.tier ?? null,
+        active_border_color: border?.border_color ?? null,
+      },
+    };
+  }) as unknown as GuideReview[];
 
   // Calculate aggregate stats
   let avgRating = 0;

@@ -1,8 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useState, useRef, useEffect, useCallback } from "react";
+
+import { AvatarWithBorder } from "@/components/ui";
+import type { BorderTier } from "@/lib/constants/avatar-borders";
 
 import StarRating from "./StarRating";
 
@@ -15,6 +17,9 @@ interface Review {
     full_name: string;
     avatar_url: string | null;
     username: string | null;
+    active_border_id?: string | null;
+    active_border_tier?: BorderTier | null;
+    active_border_color?: string | null;
   };
 }
 
@@ -86,21 +91,13 @@ export default function ReviewList({
               className="border-b border-gray-100 dark:border-gray-800 pb-4 last:border-0"
             >
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden flex-shrink-0 flex items-center justify-center">
-                  {user.avatar_url ? (
-                    <Image
-                      src={user.avatar_url}
-                      alt={user.full_name}
-                      width={32}
-                      height={32}
-                      className="object-cover w-full h-full"
-                    />
-                  ) : (
-                    <span className="text-xs text-gray-400 font-bold">
-                      {user.full_name.charAt(0).toUpperCase()}
-                    </span>
-                  )}
-                </div>
+                <AvatarWithBorder
+                  src={user.avatar_url}
+                  alt={user.full_name}
+                  size="sm"
+                  borderTier={user.active_border_tier ?? null}
+                  borderColor={user.active_border_color ?? null}
+                />
                 <div className="flex-1 min-w-0">
                   {user.username ? (
                     <Link

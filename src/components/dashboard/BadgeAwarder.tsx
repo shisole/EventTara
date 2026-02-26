@@ -3,7 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { Button, Avatar } from "@/components/ui";
+import { Button, AvatarWithBorder } from "@/components/ui";
+import type { BorderTier } from "@/lib/constants/avatar-borders";
 import { cn } from "@/lib/utils";
 
 interface Participant {
@@ -12,6 +13,8 @@ interface Participant {
   avatarUrl: string | null;
   checkedIn: boolean;
   alreadyAwarded: boolean;
+  borderTier?: BorderTier | null;
+  borderColor?: string | null;
 }
 
 interface BadgeAwarderProps {
@@ -85,7 +88,13 @@ export default function BadgeAwarder({ badgeId, participants }: BadgeAwarderProp
             )}
           >
             <div className="flex items-center gap-3">
-              <Avatar src={p.avatarUrl} alt={p.fullName} size="sm" />
+              <AvatarWithBorder
+                src={p.avatarUrl}
+                alt={p.fullName}
+                size="sm"
+                borderTier={p.borderTier ?? null}
+                borderColor={p.borderColor ?? null}
+              />
               <div>
                 <span className="font-medium dark:text-white">{p.fullName}</span>
                 <span className="text-xs text-gray-400 dark:text-gray-500 ml-2">
