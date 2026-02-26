@@ -28,6 +28,7 @@ interface EventCardProps {
   avg_rating?: number;
   review_count?: number;
   difficulty_level?: number | null;
+  race_distances?: number[];
 }
 
 const typeLabels: Record<string, string> = {
@@ -56,6 +57,7 @@ export default function EventCard({
   avg_rating,
   review_count,
   difficulty_level,
+  race_distances,
 }: EventCardProps) {
   const spotsLeft = max_participants - booking_count;
   const formattedDate = formatEventDate(date, endDate, { short: true });
@@ -98,9 +100,19 @@ export default function EventCard({
           )}
         </div>
         <div className="p-4 space-y-2">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <UIBadge variant={type}>{typeLabels[type] || type}</UIBadge>
             {difficulty_level != null && <DifficultyBadge level={difficulty_level} />}
+            {race_distances &&
+              race_distances.length > 0 &&
+              race_distances.map((km) => (
+                <span
+                  key={km}
+                  className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300"
+                >
+                  {km} km
+                </span>
+              ))}
           </div>
           <h3 className="font-heading font-bold text-lg line-clamp-1">{title}</h3>
           {organizer_name && organizer_id ? (

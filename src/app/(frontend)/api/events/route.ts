@@ -134,11 +134,11 @@ export async function GET(request: NextRequest) {
 
   // Distance filter: fetch linked event IDs first, then constrain both queries
   if (distance) {
-    const distanceKm = Number.parseFloat(distance);
+    const distanceKms = distance.split(",").map(Number).filter(Boolean);
     const { data: distLinks } = await supabase
       .from("event_distances")
       .select("event_id")
-      .eq("distance_km", distanceKm);
+      .in("distance_km", distanceKms);
 
     const distEventIds = distLinks?.map((d) => d.event_id) ?? [];
     if (distEventIds.length === 0) {
@@ -264,6 +264,7 @@ export async function GET(request: NextRequest) {
       avg_rating: stats?.avg,
       review_count: stats?.count,
       distances: distancesByEvent[event.id] ?? [],
+      race_distances: (distancesByEvent[event.id] ?? []).map((d) => d.distance_km),
     };
   });
 

@@ -24,6 +24,7 @@ interface EventData {
   avg_rating?: number;
   review_count?: number;
   difficulty_level?: number | null;
+  race_distances?: number[];
 }
 
 interface EventsGridProps {
@@ -101,6 +102,7 @@ export default function EventsGrid({ events }: EventsGridProps) {
               avg_rating={event.avg_rating}
               review_count={event.review_count}
               difficulty_level={event.difficulty_level}
+              race_distances={event.race_distances}
             />
           </div>
         ))}

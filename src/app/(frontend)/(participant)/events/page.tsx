@@ -286,6 +286,23 @@ export default async function EventsPage({
     }
   }
 
+  // Fetch race distances for all events
+  const allEventIds = events.map((e) => e.id);
+  const raceDistanceMap: Record<string, number[]> = {};
+  if (allEventIds.length > 0) {
+    const { data: distRows } = await supabase
+      .from("event_distances")
+      .select("event_id, distance_km")
+      .in("event_id", allEventIds)
+      .order("distance_km", { ascending: true });
+    if (distRows) {
+      for (const d of distRows) {
+        if (!raceDistanceMap[d.event_id]) raceDistanceMap[d.event_id] = [];
+        raceDistanceMap[d.event_id].push(d.distance_km);
+      }
+    }
+  }
+
   const gridEvents = events.map((event: any) => {
     const stats = reviewStats[event.id];
     return {
@@ -306,6 +323,7 @@ export default async function EventsPage({
       avg_rating: stats?.avg,
       review_count: stats?.count,
       difficulty_level: event.difficulty_level,
+      race_distances: raceDistanceMap[event.id] ?? [],
     };
   });
 

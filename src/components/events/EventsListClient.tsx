@@ -29,6 +29,7 @@ export interface EventData {
   avg_rating?: number;
   review_count?: number;
   difficulty_level?: number | null;
+  race_distances?: number[];
 }
 
 export interface UserResult {
