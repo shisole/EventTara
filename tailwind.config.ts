@@ -64,10 +64,15 @@ const config: Config = {
           "0%": { backgroundPosition: "-200% 0" },
           "100%": { backgroundPosition: "200% 0" },
         },
+        borderPulse: {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.7" },
+        },
       },
       animation: {
         "fade-up": "fadeUp 0.4s ease-out forwards",
         shimmer: "shimmer 3s linear infinite",
+        "border-pulse": "borderPulse 2s ease-in-out infinite",
       },
     },
   },

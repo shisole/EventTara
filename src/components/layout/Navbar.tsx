@@ -1,6 +1,7 @@
 "use client";
 
 import type { User } from "@supabase/supabase-js";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -9,7 +10,10 @@ import { Suspense, useEffect, useState } from "react";
 import { ChevronDownIcon, MenuIcon } from "@/components/icons";
 import ExploreDropdown from "@/components/layout/ExploreDropdown";
 import ThemeToggle from "@/components/layout/ThemeToggle";
-import { Avatar, Button } from "@/components/ui";
+import { AvatarWithBorder, Button } from "@/components/ui";
+import type { BorderTier } from "@/lib/constants/avatar-borders";
+
+const BorderPickerModal = dynamic(() => import("@/components/profile/BorderPickerModal"));
 
 interface Activity {
   slug: string;
@@ -18,14 +22,22 @@ interface Activity {
   image: string;
 }
 
+interface ActiveBorderData {
+  id: string | null;
+  tier: BorderTier | null;
+  color: string | null;
+}
+
 interface NavbarProps {
   user: User | null;
   role: string | null;
   loading: boolean;
   activities: Activity[];
   navLayout: string;
+  activeBorder?: ActiveBorderData | null;
   onLogout: () => void;
   onMenuOpen: () => void;
+  onBorderChange?: (borderId: string | null, tier: BorderTier | null, color: string | null) => void;
 }
 
 export default function Navbar({
@@ -34,12 +46,15 @@ export default function Navbar({
   loading,
   activities,
   navLayout,
+  activeBorder,
   onLogout,
   onMenuOpen,
+  onBorderChange,
 }: NavbarProps) {
   const pathname = usePathname();
   const [profileOpen, setProfileOpen] = useState(false);
   const [exploreOpen, setExploreOpen] = useState(false);
+  const [borderPickerOpen, setBorderPickerOpen] = useState(false);
 
   // Close dropdowns on route change
   useEffect(() => {
@@ -115,10 +130,12 @@ export default function Navbar({
                     }}
                     className="flex items-center gap-1 rounded-full hover:ring-2 hover:ring-lime-200 dark:hover:ring-lime-800 transition-all"
                   >
-                    <Avatar
+                    <AvatarWithBorder
                       src={user.user_metadata?.avatar_url}
                       alt={user.user_metadata?.full_name || "User"}
                       size="sm"
+                      borderTier={activeBorder?.tier ?? null}
+                      borderColor={activeBorder?.color ?? null}
                     />
                     <ChevronDownIcon
                       className={`w-4 h-4 text-gray-400 transition-transform ${profileOpen ? "rotate-180" : ""}`}
@@ -154,6 +171,15 @@ export default function Navbar({
                       >
                         My Events
                       </Link>
+                      <button
+                        onClick={() => {
+                          setProfileOpen(false);
+                          setBorderPickerOpen(true);
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                      >
+                        Change Border
+                      </button>
                       <button
                         onClick={onLogout}
                         className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
@@ -194,6 +220,19 @@ export default function Navbar({
           </button>
         </div>
       </div>
+
+      {user && (
+        <BorderPickerModal
+          open={borderPickerOpen}
+          onClose={() => setBorderPickerOpen(false)}
+          avatarUrl={user.user_metadata?.avatar_url ?? null}
+          fullName={user.user_metadata?.full_name || "User"}
+          activeBorderId={activeBorder?.id ?? null}
+          onBorderChange={(borderId, tier, color) => {
+            onBorderChange?.(borderId, tier, color);
+          }}
+        />
+      )}
     </nav>
   );
 }

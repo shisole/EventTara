@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { checkAndAwardBorders } from "@/lib/borders/check-borders";
 import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
@@ -99,6 +100,9 @@ export async function POST(request: Request) {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  // Trigger border check in background (non-blocking)
+  checkAndAwardBorders(user_id, supabase).catch(() => null);
 
   const userName = (booking.users as any)?.full_name || "Participant";
   return NextResponse.json({ message: `${userName} checked in!`, userName });

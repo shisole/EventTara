@@ -7,6 +7,8 @@ import UpcomingBookings from "@/components/participant/UpcomingBookings";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import ProfileStats from "@/components/profile/ProfileStats";
 import { Button } from "@/components/ui";
+import { checkAndAwardBorders } from "@/lib/borders/check-borders";
+import type { BorderTier } from "@/lib/constants/avatar-borders";
 import { createClient } from "@/lib/supabase/server";
 
 export async function generateMetadata({ params }: { params: Promise<{ username: string }> }) {
@@ -65,6 +67,29 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
     data: { user: authUser },
   } = await supabase.auth.getUser();
   const isOwnProfile = authUser?.id === user.id;
+
+  // Auto-award borders on own profile load
+  if (isOwnProfile) {
+    await checkAndAwardBorders(user.id, supabase).catch(() => null);
+  }
+
+  // Fetch active border data
+  const activeBorderId: string | null = user.active_border_id ?? null;
+  let activeBorderTier: BorderTier | null = null;
+  let activeBorderColor: string | null = null;
+
+  if (activeBorderId) {
+    const { data: borderData } = await supabase
+      .from("avatar_borders")
+      .select("tier, border_color")
+      .eq("id", activeBorderId)
+      .single();
+
+    if (borderData) {
+      activeBorderTier = borderData.tier as BorderTier;
+      activeBorderColor = borderData.border_color;
+    }
+  }
 
   // Fetch bookings data for own profile
   let upcoming: any[] = [];
@@ -206,6 +231,9 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
         avatarUrl={user.avatar_url}
         createdAt={user.created_at}
         isOwnProfile={isOwnProfile}
+        activeBorderId={activeBorderId}
+        activeBorderTier={activeBorderTier}
+        activeBorderColor={activeBorderColor}
       />
 
       <ProfileStats

@@ -12,6 +12,7 @@ export interface Database {
           avatar_url: string | null;
           role: "organizer" | "participant" | "guest";
           is_guest: boolean;
+          active_border_id: string | null;
           created_at: string;
         };
         Insert: {
@@ -22,6 +23,7 @@ export interface Database {
           avatar_url?: string | null;
           role?: "organizer" | "participant" | "guest";
           is_guest?: boolean;
+          active_border_id?: string | null;
           created_at?: string;
         };
         Update: {
@@ -32,6 +34,7 @@ export interface Database {
           avatar_url?: string | null;
           role?: "organizer" | "participant" | "guest";
           is_guest?: boolean;
+          active_border_id?: string | null;
           created_at?: string;
         };
         Relationships: [];
@@ -570,6 +573,84 @@ export interface Database {
           parsed_params?: Json;
           result_count?: number;
           created_at?: string;
+        };
+        Relationships: [];
+      };
+      avatar_borders: {
+        Row: {
+          id: string;
+          slug: string;
+          name: string;
+          description: string | null;
+          tier: "common" | "rare" | "epic" | "legendary";
+          criteria_type:
+            | "signup_date"
+            | "event_count"
+            | "event_type_count"
+            | "all_activities"
+            | "mountain_region"
+            | "organizer_event_count";
+          criteria_value: Json;
+          border_color: string | null;
+          sort_order: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          slug: string;
+          name: string;
+          description?: string | null;
+          tier: "common" | "rare" | "epic" | "legendary";
+          criteria_type:
+            | "signup_date"
+            | "event_count"
+            | "event_type_count"
+            | "all_activities"
+            | "mountain_region"
+            | "organizer_event_count";
+          criteria_value?: Json;
+          border_color?: string | null;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          slug?: string;
+          name?: string;
+          description?: string | null;
+          tier?: "common" | "rare" | "epic" | "legendary";
+          criteria_type?:
+            | "signup_date"
+            | "event_count"
+            | "event_type_count"
+            | "all_activities"
+            | "mountain_region"
+            | "organizer_event_count";
+          criteria_value?: Json;
+          border_color?: string | null;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      user_avatar_borders: {
+        Row: {
+          id: string;
+          user_id: string;
+          border_id: string;
+          awarded_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          border_id: string;
+          awarded_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          border_id?: string;
+          awarded_at?: string;
         };
         Relationships: [];
       };

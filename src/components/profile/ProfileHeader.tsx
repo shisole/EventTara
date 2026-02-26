@@ -1,8 +1,12 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useState } from "react";
 
-import { Avatar, Button } from "@/components/ui";
+import { AvatarWithBorder, Button } from "@/components/ui";
+import type { BorderTier } from "@/lib/constants/avatar-borders";
+
+const BorderPickerModal = dynamic(() => import("@/components/profile/BorderPickerModal"));
 
 interface ProfileHeaderProps {
   fullName: string;
@@ -10,6 +14,9 @@ interface ProfileHeaderProps {
   avatarUrl: string | null;
   createdAt: string;
   isOwnProfile?: boolean;
+  activeBorderId?: string | null;
+  activeBorderTier?: BorderTier | null;
+  activeBorderColor?: string | null;
 }
 
 export default function ProfileHeader({
@@ -18,8 +25,15 @@ export default function ProfileHeader({
   avatarUrl,
   createdAt,
   isOwnProfile,
+  activeBorderId = null,
+  activeBorderTier = null,
+  activeBorderColor = null,
 }: ProfileHeaderProps) {
   const [copied, setCopied] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [currentBorderId, setCurrentBorderId] = useState(activeBorderId);
+  const [currentTier, setCurrentTier] = useState(activeBorderTier);
+  const [currentColor, setCurrentColor] = useState(activeBorderColor);
 
   const handleShare = () => {
     void navigator.clipboard.writeText(globalThis.location.href);
@@ -34,9 +48,34 @@ export default function ProfileHeader({
     year: "numeric",
   });
 
+  const handleBorderChange = (
+    borderId: string | null,
+    tier: BorderTier | null,
+    color: string | null,
+  ) => {
+    setCurrentBorderId(borderId);
+    setCurrentTier(tier);
+    setCurrentColor(color);
+  };
+
   return (
     <div className="text-center space-y-4">
-      <Avatar src={avatarUrl} alt={fullName} size="xl" className="mx-auto" />
+      <div className="flex justify-center">
+        <AvatarWithBorder
+          src={avatarUrl}
+          alt={fullName}
+          size="xl"
+          borderTier={currentTier}
+          borderColor={currentColor}
+          onClick={isOwnProfile ? () => setPickerOpen(true) : undefined}
+          className={isOwnProfile ? "cursor-pointer" : undefined}
+        />
+      </div>
+      {isOwnProfile && (
+        <p className="text-xs text-gray-400 dark:text-gray-500 -mt-2">
+          Tap avatar to change border
+        </p>
+      )}
       <div>
         <div className="flex items-center justify-center gap-2">
           <h1 className="text-2xl font-heading font-bold">{fullName}</h1>
@@ -54,6 +93,17 @@ export default function ProfileHeader({
       <Button variant="outline" size="sm" onClick={handleShare}>
         {copied ? "Link Copied!" : "Share Profile"}
       </Button>
+
+      {isOwnProfile && (
+        <BorderPickerModal
+          open={pickerOpen}
+          onClose={() => setPickerOpen(false)}
+          avatarUrl={avatarUrl}
+          fullName={fullName}
+          activeBorderId={currentBorderId}
+          onBorderChange={handleBorderChange}
+        />
+      )}
     </div>
   );
 }

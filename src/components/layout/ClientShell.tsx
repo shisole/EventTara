@@ -7,6 +7,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import MobileNav from "@/components/layout/MobileNav";
 import Navbar from "@/components/layout/Navbar";
+import type { BorderTier } from "@/lib/constants/avatar-borders";
 import { createClient } from "@/lib/supabase/client";
 
 const MobileDrawer = dynamic(() => import("@/components/layout/MobileDrawer"));
@@ -55,6 +56,11 @@ export default function ClientShell({ children, initialNavLayout = "strip" }: Cl
   const supabase = createClient();
   const [user, setUser] = useState<User | null>(null);
   const [role, setRole] = useState<string | null>(null);
+  const [activeBorder, setActiveBorder] = useState<{
+    id: string | null;
+    tier: BorderTier | null;
+    color: string | null;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [navLayout] = useState<string>(initialNavLayout);
@@ -63,8 +69,33 @@ export default function ClientShell({ children, initialNavLayout = "strip" }: Cl
 
   const fetchRole = useCallback(
     async (userId: string) => {
-      const { data } = await supabase.from("users").select("role").eq("id", userId).single();
+      const { data } = await supabase
+        .from("users")
+        .select("role, active_border_id")
+        .eq("id", userId)
+        .single();
+
       setRole(data?.role ?? null);
+
+      if (data?.active_border_id) {
+        const { data: borderData } = await supabase
+          .from("avatar_borders")
+          .select("tier, border_color")
+          .eq("id", data.active_border_id)
+          .single();
+
+        if (borderData) {
+          setActiveBorder({
+            id: data.active_border_id,
+            tier: borderData.tier,
+            color: borderData.border_color,
+          });
+        } else {
+          setActiveBorder(null);
+        }
+      } else {
+        setActiveBorder(null);
+      }
     },
     [supabase],
   );
@@ -163,8 +194,12 @@ export default function ClientShell({ children, initialNavLayout = "strip" }: Cl
           loading={loading}
           activities={activities}
           navLayout={navLayout}
+          activeBorder={activeBorder}
           onLogout={() => void handleLogout()}
           onMenuOpen={handleMenuOpen}
+          onBorderChange={(borderId, tier, color) => {
+            setActiveBorder(borderId ? { id: borderId, tier, color } : null);
+          }}
         />
         <div className="flex-1 pb-16 md:pb-0">{children}</div>
         <MobileNav user={user} role={role} />
