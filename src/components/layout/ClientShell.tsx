@@ -11,6 +11,7 @@ import type { BorderTier } from "@/lib/constants/avatar-borders";
 import { createClient } from "@/lib/supabase/client";
 
 const DemoBanner = dynamic(() => import("@/components/layout/DemoBanner"));
+const RouteLoader = dynamic(() => import("@/components/layout/RouteLoader"));
 const MobileDrawer = dynamic(() => import("@/components/layout/MobileDrawer"));
 const ChatBubble = dynamic(() => import("@/components/chat/ChatBubble"), { ssr: false });
 
@@ -230,6 +231,7 @@ export default function ClientShell({ children, initialNavLayout = "strip" }: Cl
       />
 
       <ChatBubble />
+      <RouteLoader />
     </>
   );
 }
