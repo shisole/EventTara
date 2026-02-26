@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import EventsPageClient from "@/components/events/EventsPageClient";
+import { fetchEventEnrichments, mapEventToCard } from "@/lib/events/map-event-card";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 
@@ -12,12 +13,6 @@ export const metadata = {
   title: "Explore Events \u2014 EventTara",
   description: "Find your next adventure. Browse hiking, biking, running, and trail events.",
 };
-
-function getEventStatus(eventDate: string, today: string): "upcoming" | "happening_now" | "past" {
-  const dateOnly = eventDate.split("T")[0];
-  if (dateOnly === today) return "happening_now";
-  return dateOnly > today ? "upcoming" : "past";
-}
 
 /** Fetch organizer options: organizers that have at least one published event */
 async function fetchOrganizerOptions(
@@ -263,51 +258,8 @@ export default async function EventsPage({
     events = [...upcoming, ...past].slice(0, BATCH_SIZE);
   }
 
-  // Fetch review stats for completed events
-  const completedIds = events.filter((e) => e.status === "completed").map((e) => e.id);
-  const reviewStats: Record<string, { avg: number; count: number }> = {};
-
-  if (completedIds.length > 0) {
-    const { data: allRatings } = await supabase
-      .from("event_reviews")
-      .select("rating, event_id")
-      .in("event_id", completedIds);
-
-    if (allRatings) {
-      const perEvent: Record<string, { sum: number; count: number }> = {};
-      for (const r of allRatings) {
-        if (!perEvent[r.event_id]) perEvent[r.event_id] = { sum: 0, count: 0 };
-        perEvent[r.event_id].sum += r.rating;
-        perEvent[r.event_id].count++;
-      }
-      for (const [eid, stats] of Object.entries(perEvent)) {
-        reviewStats[eid] = { avg: stats.sum / stats.count, count: stats.count };
-      }
-    }
-  }
-
-  const gridEvents = events.map((event: any) => {
-    const stats = reviewStats[event.id];
-    return {
-      id: event.id,
-      title: event.title,
-      type: event.type,
-      date: event.date,
-      endDate: event.end_date,
-      location: event.location,
-      price: Number(event.price),
-      cover_image_url: event.cover_image_url,
-      max_participants: event.max_participants,
-      booking_count: event.bookings?.[0]?.count || 0,
-      status: getEventStatus(event.date, today),
-      organizer_name: event.organizer_profiles?.org_name,
-      organizer_id: event.organizer_id,
-      coordinates: event.coordinates as { lat: number; lng: number } | null,
-      avg_rating: stats?.avg,
-      review_count: stats?.count,
-      difficulty_level: event.difficulty_level,
-    };
-  });
+  const enrichments = await fetchEventEnrichments(supabase, events);
+  const gridEvents = events.map((event: any) => mapEventToCard(event, today, enrichments));
 
   const totalCount = count ?? 0;
 

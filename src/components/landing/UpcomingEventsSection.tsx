@@ -2,11 +2,13 @@ import Link from "next/link";
 
 import EventCard from "@/components/events/EventCard";
 import EventCarousel from "@/components/events/EventCarousel";
+import { fetchEventEnrichments, mapEventToCard } from "@/lib/events/map-event-card";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function UpcomingEventsSection() {
   const supabase = await createClient();
   const now = new Date().toISOString();
+  const today = now.split("T")[0];
 
   const [{ count: totalUpcoming }, { data: upcomingEvents }] = await Promise.all([
     supabase
@@ -25,6 +27,8 @@ export default async function UpcomingEventsSection() {
 
   if (!upcomingEvents || upcomingEvents.length === 0) return null;
 
+  const enrichments = await fetchEventEnrichments(supabase, upcomingEvents);
+  const cards = upcomingEvents.map((event: any) => mapEventToCard(event, today, enrichments));
   const remainingCount = (totalUpcoming || 0) - upcomingEvents.length;
 
   return (
@@ -42,27 +46,13 @@ export default async function UpcomingEventsSection() {
           </Link>
         </div>
         <EventCarousel>
-          {upcomingEvents.map((event: any) => (
+          {cards.map((card) => (
             <div
-              key={event.id}
+              key={card.id}
               className="md:min-w-[320px] md:max-w-[350px] md:flex-shrink-0"
               style={{ scrollSnapAlign: "start" }}
             >
-              <EventCard
-                id={event.id}
-                title={event.title}
-                type={event.type}
-                date={event.date}
-                location={event.location}
-                price={Number(event.price)}
-                cover_image_url={event.cover_image_url}
-                max_participants={event.max_participants}
-                booking_count={event.bookings?.[0]?.count || 0}
-                organizer_name={event.organizer_profiles?.org_name}
-                organizer_id={event.organizer_id}
-                difficulty_level={event.difficulty_level}
-                status="upcoming"
-              />
+              <EventCard {...card} />
             </div>
           ))}
           {remainingCount > 0 && (

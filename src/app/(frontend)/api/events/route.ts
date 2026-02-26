@@ -1,16 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 import { findProvinceFromLocation } from "@/lib/constants/philippine-provinces";
+import { fetchEventEnrichments, mapEventToCard } from "@/lib/events/map-event-card";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 
 type EventType = Database["public"]["Tables"]["events"]["Row"]["type"];
-
-function getEventStatus(eventDate: string, today: string): "upcoming" | "happening_now" | "past" {
-  const dateOnly = eventDate.split("T")[0];
-  if (dateOnly === today) return "happening_now";
-  return dateOnly > today ? "upcoming" : "past";
-}
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
@@ -134,11 +129,11 @@ export async function GET(request: NextRequest) {
 
   // Distance filter: fetch linked event IDs first, then constrain both queries
   if (distance) {
-    const distanceKm = Number.parseFloat(distance);
+    const distanceKms = distance.split(",").map(Number).filter(Boolean);
     const { data: distLinks } = await supabase
       .from("event_distances")
       .select("event_id")
-      .eq("distance_km", distanceKm);
+      .in("distance_km", distanceKms);
 
     const distEventIds = distLinks?.map((d) => d.event_id) ?? [];
     if (distEventIds.length === 0) {
@@ -187,31 +182,9 @@ export async function GET(request: NextRequest) {
     events = [...upcoming, ...past].slice(offset, offset + limit);
   }
 
-  // Fetch review stats for completed events
-  const completedIds = events.filter((e) => e.status === "completed").map((e) => e.id);
-  const reviewStats: Record<string, { avg: number; count: number }> = {};
-
-  if (completedIds.length > 0) {
-    const { data: allRatings } = await supabase
-      .from("event_reviews")
-      .select("rating, event_id")
-      .in("event_id", completedIds);
-
-    if (allRatings) {
-      const perEvent: Record<string, { sum: number; count: number }> = {};
-      for (const r of allRatings) {
-        if (!perEvent[r.event_id]) perEvent[r.event_id] = { sum: 0, count: 0 };
-        perEvent[r.event_id].sum += r.rating;
-        perEvent[r.event_id].count++;
-      }
-      for (const [eid, stats] of Object.entries(perEvent)) {
-        reviewStats[eid] = { avg: stats.sum / stats.count, count: stats.count };
-      }
-    }
-  }
-
-  // Fetch distances for all returned events in a single query
+  // Fetch enrichments (race distances, review stats) and detail distances in parallel
   const eventIds = events.map((e) => e.id);
+
   const distancesByEvent: Record<
     string,
     {
@@ -223,49 +196,36 @@ export async function GET(request: NextRequest) {
     }[]
   > = {};
 
-  if (eventIds.length > 0) {
-    const { data: allDistances } = await supabase
-      .from("event_distances")
-      .select("id, event_id, distance_km, label, price, max_participants")
-      .in("event_id", eventIds)
-      .order("distance_km", { ascending: true });
+  const [enrichments] = await Promise.all([
+    fetchEventEnrichments(supabase, events),
+    // Detail distances for booking page (includes id, label, price, max_participants)
+    eventIds.length > 0
+      ? supabase
+          .from("event_distances")
+          .select("id, event_id, distance_km, label, price, max_participants")
+          .in("event_id", eventIds)
+          .order("distance_km", { ascending: true })
+          .then(({ data }) => {
+            if (data) {
+              for (const d of data) {
+                if (!distancesByEvent[d.event_id]) distancesByEvent[d.event_id] = [];
+                distancesByEvent[d.event_id].push({
+                  id: d.id,
+                  distance_km: d.distance_km,
+                  label: d.label,
+                  price: d.price,
+                  max_participants: d.max_participants,
+                });
+              }
+            }
+          })
+      : Promise.resolve(),
+  ]);
 
-    if (allDistances) {
-      for (const d of allDistances) {
-        if (!distancesByEvent[d.event_id]) distancesByEvent[d.event_id] = [];
-        distancesByEvent[d.event_id].push({
-          id: d.id,
-          distance_km: d.distance_km,
-          label: d.label,
-          price: d.price,
-          max_participants: d.max_participants,
-        });
-      }
-    }
-  }
-
-  const gridEvents = events.map((event: any) => {
-    const stats = reviewStats[event.id];
-    return {
-      id: event.id,
-      title: event.title,
-      type: event.type,
-      date: event.date,
-      location: event.location,
-      price: Number(event.price),
-      cover_image_url: event.cover_image_url,
-      max_participants: event.max_participants,
-      booking_count: event.bookings?.[0]?.count || 0,
-      status: getEventStatus(event.date, today),
-      organizer_name: event.organizer_profiles?.org_name,
-      organizer_id: event.organizer_id,
-      difficulty_level: event.difficulty_level,
-      coordinates: event.coordinates as { lat: number; lng: number } | null,
-      avg_rating: stats?.avg,
-      review_count: stats?.count,
-      distances: distancesByEvent[event.id] ?? [],
-    };
-  });
+  const gridEvents = events.map((event: any) => ({
+    ...mapEventToCard(event, today, enrichments),
+    distances: distancesByEvent[event.id] ?? [],
+  }));
 
   // Search for matching users when search param is provided
   let matchingUsers: {
