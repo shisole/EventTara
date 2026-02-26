@@ -1,27 +1,30 @@
 "use client";
 
 import Image from "next/image";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 /**
  * Full-screen loader shown during route transitions.
  * Displays the EventTara logo with a pulse animation.
  *
- * Uses a patched pushState/replaceState + popstate listener to detect
- * navigation start, and hides when pathname/searchParams settle.
+ * Uses a patched pushState + popstate listener to detect navigation start,
+ * and hides when the pathname settles. Only triggers on path changes, not
+ * search param changes (so filters on /events won't flash the loader).
  */
 export default function RouteLoader() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const [visible, setVisible] = useState(false);
-  const prevUrl = useRef(pathname + "?" + searchParams.toString());
+  const prevPathname = useRef(pathname);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Detect navigation start by intercepting pushState / replaceState
   useEffect(() => {
-    const showLoader = () => {
-      // Clear any pending hide
+    const showLoader = (url?: string | URL | null) => {
+      // Only show for path changes, not search param changes
+      const newPath = url ? new URL(url.toString(), globalThis.location.origin).pathname : null;
+      if (newPath && newPath === prevPathname.current) return;
+
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       setVisible(true);
     };
@@ -31,21 +34,22 @@ export default function RouteLoader() {
     const originalReplace = globalThis.history.replaceState.bind(globalThis.history);
 
     globalThis.history.pushState = function (...args: Parameters<typeof originalPush>) {
-      showLoader();
+      showLoader(args[2]);
       return originalPush(...args);
     };
 
     globalThis.history.replaceState = function (...args: Parameters<typeof originalReplace>) {
-      // Only show loader if the URL actually changes
-      const newUrl = args[2]?.toString();
-      if (newUrl && newUrl !== globalThis.location.pathname + globalThis.location.search) {
-        showLoader();
-      }
+      showLoader(args[2]);
       return originalReplace(...args);
     };
 
     // Detect browser back/forward
-    const handlePopState = () => showLoader();
+    const handlePopState = () => {
+      if (globalThis.location.pathname !== prevPathname.current) {
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        setVisible(true);
+      }
+    };
     globalThis.addEventListener("popstate", handlePopState);
 
     return () => {
@@ -55,14 +59,12 @@ export default function RouteLoader() {
     };
   }, []);
 
-  // Hide loader when the route settles
+  // Hide loader when the pathname settles
   useEffect(() => {
-    const currentUrl = pathname + "?" + searchParams.toString();
-    if (currentUrl === prevUrl.current) {
-      // Same URL (e.g. initial mount) — make sure it's hidden
+    if (pathname === prevPathname.current) {
       setVisible(false);
     } else {
-      prevUrl.current = currentUrl;
+      prevPathname.current = pathname;
       // Small delay so the new page has time to paint
       timeoutRef.current = setTimeout(() => setVisible(false), 100);
     }
@@ -70,7 +72,7 @@ export default function RouteLoader() {
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [pathname, searchParams]);
+  }, [pathname]);
 
   if (!visible) return null;
 
