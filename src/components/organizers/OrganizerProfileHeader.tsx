@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import { Avatar, Button } from "@/components/ui";
+import { Button } from "@/components/ui";
+import UserAvatar from "@/components/ui/UserAvatar";
+import type { BorderTier } from "@/lib/constants/avatar-borders";
 
 interface OrganizerProfileHeaderProps {
   orgName: string;
@@ -11,6 +13,8 @@ interface OrganizerProfileHeaderProps {
   description: string | null;
   createdAt: string;
   isOwnProfile?: boolean;
+  borderTier?: BorderTier | null;
+  borderColor?: string | null;
 }
 
 export default function OrganizerProfileHeader({
@@ -19,6 +23,8 @@ export default function OrganizerProfileHeader({
   description,
   createdAt,
   isOwnProfile,
+  borderTier,
+  borderColor,
 }: OrganizerProfileHeaderProps) {
   const [copied, setCopied] = useState(false);
 
@@ -37,7 +43,14 @@ export default function OrganizerProfileHeader({
 
   return (
     <div className="text-center space-y-4">
-      <Avatar src={logoUrl} alt={orgName} size="xl" className="mx-auto" />
+      <UserAvatar
+        src={logoUrl}
+        alt={orgName}
+        size="xl"
+        className="mx-auto"
+        borderTier={borderTier}
+        borderColor={borderColor}
+      />
       <div>
         <h1 className="text-2xl font-heading font-bold">{orgName}</h1>
         {description && <p className="text-gray-600 dark:text-gray-400 mt-1">{description}</p>}

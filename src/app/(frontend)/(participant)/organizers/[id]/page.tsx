@@ -7,6 +7,7 @@ import OrganizerProfileHeader from "@/components/organizers/OrganizerProfileHead
 import OrganizerStats from "@/components/organizers/OrganizerStats";
 import StarRating from "@/components/reviews/StarRating";
 import { Button } from "@/components/ui";
+import type { BorderTier } from "@/lib/constants/avatar-borders";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -47,7 +48,7 @@ export default async function OrganizerProfilePage({
   // Fetch organizer profile with user info
   const { data: profile } = await supabase
     .from("organizer_profiles")
-    .select("*, users:user_id(full_name, avatar_url, created_at)")
+    .select("*, users:user_id(full_name, avatar_url, created_at, active_border_id)")
     .eq("id", id)
     .single();
 
@@ -159,6 +160,21 @@ export default async function OrganizerProfilePage({
 
   const user = profile.users as any;
 
+  // Fetch active border tier for the organizer
+  let borderTier: BorderTier | null = null;
+  let borderColor: string | null = null;
+  if (user?.active_border_id) {
+    const { data: border } = await supabase
+      .from("avatar_borders")
+      .select("tier, border_color")
+      .eq("id", user.active_border_id)
+      .single();
+    if (border) {
+      borderTier = border.tier;
+      borderColor = border.border_color;
+    }
+  }
+
   // Check if the viewer is the organizer
   const {
     data: { user: authUser },
@@ -173,6 +189,8 @@ export default async function OrganizerProfilePage({
         description={profile.description}
         createdAt={user?.created_at || profile.created_at}
         isOwnProfile={isOwnProfile}
+        borderTier={borderTier}
+        borderColor={borderColor}
       />
 
       <OrganizerStats
