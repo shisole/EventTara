@@ -33,5 +33,5 @@ export const getCachedHeroCarousel = unstable_cache(
     }
   },
   ["hero-carousel"],
-  { revalidate: 60 },
+  { revalidate: 300 },
 );
