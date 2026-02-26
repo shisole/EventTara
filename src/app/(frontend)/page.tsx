@@ -28,27 +28,27 @@ const categories = [
   {
     name: "Hiking",
     slug: "hiking",
-    image: "https://images.unsplash.com/photo-1551632811-561732d1e306?w=1280&h=320&fit=crop",
+    image: "https://images.unsplash.com/photo-1551632811-561732d1e306?w=1280&h=200&fit=crop",
   },
   {
     name: "Mountain Biking",
     slug: "mtb",
-    image: "https://images.unsplash.com/photo-1544191696-102dbdaeeaa0?w=1280&h=320&fit=crop",
+    image: "https://images.unsplash.com/photo-1544191696-102dbdaeeaa0?w=1280&h=200&fit=crop",
   },
   {
     name: "Road Biking",
     slug: "road_bike",
-    image: "https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=1280&h=320&fit=crop",
+    image: "https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=1280&h=200&fit=crop",
   },
   {
     name: "Running",
     slug: "running",
-    image: "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=1280&h=320&fit=crop",
+    image: "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=1280&h=200&fit=crop",
   },
   {
     name: "Trail Running",
     slug: "trail_run",
-    image: "https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=1280&h=320&fit=crop",
+    image: "https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=1280&h=200&fit=crop",
   },
 ];
 
@@ -215,7 +215,7 @@ export default async function Home() {
                   src={cat.image}
                   alt={cat.name}
                   fill
-                  sizes="(max-width: 1280px) 100vw, 1280px"
+                  sizes="(max-width: 1280px) 95vw, 1280px"
                   className="object-cover transition-transform duration-300 group-hover:scale-110"
                   quality={50}
                   loading={i === 0 ? "eager" : "lazy"}

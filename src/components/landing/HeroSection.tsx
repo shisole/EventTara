@@ -1,7 +1,18 @@
+import dynamic from "next/dynamic";
 import Link from "next/link";
 
 import HeroCarousel from "@/components/landing/HeroCarousel";
-import HostEventLink from "@/components/landing/HostEventLink";
+
+const HostEventLink = dynamic(() => import("@/components/landing/HostEventLink"), {
+  loading: () => (
+    <Link
+      href="/signup?role=organizer"
+      className="inline-flex items-center justify-center font-semibold rounded-xl text-lg py-4 px-8 border-2 border-gray-300 dark:border-slate-600 text-gray-600 dark:text-gray-300 hover:border-lime-500 hover:text-lime-600 dark:hover:text-lime-400 transition-colors"
+    >
+      Host Your Event
+    </Link>
+  ),
+});
 
 interface HeroSlide {
   image: { url: string; alt: string };
@@ -27,7 +38,7 @@ export default function HeroSection({ heroData }: HeroSectionProps) {
     : [];
 
   return (
-    <section className="relative py-24 sm:py-32 overflow-hidden min-h-[500px] flex items-center">
+    <section className="relative py-24 sm:py-32 overflow-hidden min-h-[500px] lg:min-h-[600px] flex items-center">
       {heroSlides.length > 0 ? (
         <HeroCarousel slides={heroSlides} />
       ) : (

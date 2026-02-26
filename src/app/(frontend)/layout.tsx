@@ -96,8 +96,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         )}
         <link rel="preconnect" href="https://images.unsplash.com" />
       </head>
-      <GoogleAnalytics />
       <body className="font-sans min-h-screen flex flex-col">
+        <GoogleAnalytics />
         <ThemeProvider>
           <ClientShell initialNavLayout={navLayout}>{children}</ClientShell>
           <Footer />
