@@ -28,8 +28,10 @@ ALTER TABLE badges
     OR (type = 'system' AND criteria_key IS NOT NULL)
   );
 
--- RLS: allow system badge awards (existing policy only permits organizer event badges)
-CREATE POLICY "System badges can be awarded to any user" ON public.user_badges
+-- RLS: allow system badge awards to the authenticated user only
+-- (existing policy only permits organizer event badges)
+CREATE POLICY "System badges can be awarded to authenticated user" ON public.user_badges
   FOR INSERT WITH CHECK (
     badge_id IN (SELECT id FROM public.badges WHERE type = 'system')
+    AND auth.uid() = user_id
   );
