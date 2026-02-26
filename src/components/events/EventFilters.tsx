@@ -635,23 +635,19 @@ export default function EventFilters({
     };
   }, []);
 
-  /* ---- Activity type toggle (multi-select) ---- */
+  /* ---- Activity type toggle (single-select) ---- */
   const toggleType = useCallback(
     (slug: string) => {
-      const next = new Set(currentTypes);
-      if (next.has(slug)) {
-        next.delete(slug);
-      } else {
-        next.add(slug);
-      }
-      const updates: Record<string, string> = { type: serializeTypes(next) };
+      // If already selected, deselect (back to "All")
+      const next = currentTypes.has(slug) ? "" : slug;
+      const updates: Record<string, string> = { type: next };
       // If hiking is no longer selected, clear guide and difficulty filters
-      if (!next.has("hiking")) {
+      if (next !== "hiking") {
         updates.guide = "";
         updates.difficulty = "";
       }
-      // If no distance-supporting types selected, clear distance filter
-      if (![...next].some((t) => DISTANCE_TYPES.has(t))) updates.distance = "";
+      // If selected type doesn't support distance, clear distance filter
+      if (!next || !DISTANCE_TYPES.has(next)) updates.distance = "";
       updateParams(updates);
     },
     [currentTypes, updateParams],
