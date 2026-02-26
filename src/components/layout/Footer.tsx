@@ -84,7 +84,8 @@ export default async function Footer() {
         </div>
         <div className="border-t border-gray-200 dark:border-gray-800 mt-8 pt-8 text-sm text-center flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4">
           <span>
-            &copy; {new Date().getFullYear()} EventTara. All rights reserved. Built by skjghisole.
+            &copy; {new Date().getFullYear()} EventTara. All rights reserved. A passion project by
+            skjghisole.
           </span>
           {displayLegalLinks.map((link: { label: string; url: string; id?: string }, i: number) => (
             <Link
