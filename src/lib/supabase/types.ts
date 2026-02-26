@@ -439,7 +439,15 @@ export interface Database {
           rarity?: "common" | "rare" | "epic" | "legendary";
           created_at?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "badges_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "events";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       user_badges: {
         Row: {
