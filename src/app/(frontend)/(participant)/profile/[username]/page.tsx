@@ -216,7 +216,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
   const badges = (userBadges || []).map((ub: any) => ({
     id: ub.badge_id,
     title: ub.badges?.title || "Badge",
-    eventName: ub.badges?.events?.title || "Event",
+    eventName: ub.badges?.events?.title || undefined,
     imageUrl: ub.badges?.image_url || null,
     awardedAt: ub.awarded_at,
     category: ub.badges?.category || null,
