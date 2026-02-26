@@ -40,11 +40,9 @@ export async function POST(request: Request) {
       .single();
 
     if (badge) {
-      const { data: event } = await supabase
-        .from("events")
-        .select("title")
-        .eq("id", badge.event_id)
-        .single();
+      const event = badge.event_id
+        ? (await supabase.from("events").select("title").eq("id", badge.event_id).single()).data
+        : null;
 
       const { data: users } = await supabase
         .from("users")
