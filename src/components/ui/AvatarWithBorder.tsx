@@ -26,14 +26,25 @@ export default function AvatarWithBorder({
   onClick,
 }: AvatarWithBorderProps) {
   if (!borderTier) {
-    return (
-      <Avatar
-        src={src}
-        alt={alt}
-        size={size}
-        className={cn(onClick && "cursor-pointer", className)}
-      />
-    );
+    if (onClick) {
+      return (
+        <div
+          className={cn("inline-flex cursor-pointer", className)}
+          onClick={onClick}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onClick();
+            }
+          }}
+        >
+          <Avatar src={src} alt={alt} size={size} />
+        </div>
+      );
+    }
+    return <Avatar src={src} alt={alt} size={size} className={className} />;
   }
 
   const { className: borderClassName, style: borderStyle } = getBorderCSS(
