@@ -129,7 +129,7 @@ function TestimonialsSkeleton() {
 
 function GamificationSkeleton() {
   return (
-    <section className="py-20 bg-white dark:bg-slate-800">
+    <section className="py-20 bg-gray-50 dark:bg-slate-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="h-9 w-80 bg-gray-200 dark:bg-slate-700 rounded-lg animate-pulse mx-auto mb-4" />
         <div className="h-5 w-96 bg-gray-200 dark:bg-slate-700 rounded animate-pulse mx-auto mb-12" />
@@ -213,6 +213,11 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Gamification Showcase — streams as Supabase data arrives */}
+      <Suspense fallback={<GamificationSkeleton />}>
+        <GamificationSection />
+      </Suspense>
+
       {/* Event Categories — static images, renders immediately */}
       <section className="py-20 bg-gray-50 dark:bg-slate-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -253,11 +258,6 @@ export default function Home() {
       {/* Participant Testimonials — streams as Supabase data arrives */}
       <Suspense fallback={<TestimonialsSkeleton />}>
         <TestimonialsSection />
-      </Suspense>
-
-      {/* Gamification Showcase — streams as Supabase data arrives */}
-      <Suspense fallback={<GamificationSkeleton />}>
-        <GamificationSection />
       </Suspense>
 
       {/* Organizer CTA — static */}
