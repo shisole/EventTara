@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import BetaNoticeModal from "@/components/landing/BetaNoticeModal";
+import GamificationSection from "@/components/landing/GamificationSection";
 import HeroSection from "@/components/landing/HeroSection";
 import OrganizersSection from "@/components/landing/OrganizersSection";
 import TestimonialsSection from "@/components/landing/TestimonialsSection";
@@ -126,6 +127,36 @@ function TestimonialsSkeleton() {
   );
 }
 
+function GamificationSkeleton() {
+  return (
+    <section className="py-20 bg-white dark:bg-slate-800">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="h-9 w-80 bg-gray-200 dark:bg-slate-700 rounded-lg animate-pulse mx-auto mb-4" />
+        <div className="h-5 w-96 bg-gray-200 dark:bg-slate-700 rounded animate-pulse mx-auto mb-12" />
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-3xl mx-auto mb-16">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div
+              key={i}
+              className="bg-gray-50 dark:bg-gray-900 rounded-2xl p-4 flex flex-col items-center"
+            >
+              <div className="w-16 h-16 rounded-full bg-gray-200 dark:bg-slate-700 animate-pulse mb-2" />
+              <div className="h-4 w-20 bg-gray-200 dark:bg-slate-700 rounded animate-pulse" />
+            </div>
+          ))}
+        </div>
+        <div className="flex justify-center gap-8">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="flex flex-col items-center gap-2">
+              <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-slate-700 animate-pulse" />
+              <div className="h-4 w-16 bg-gray-200 dark:bg-slate-700 rounded animate-pulse" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function Home() {
   return (
     <main>
@@ -222,6 +253,11 @@ export default function Home() {
       {/* Participant Testimonials — streams as Supabase data arrives */}
       <Suspense fallback={<TestimonialsSkeleton />}>
         <TestimonialsSection />
+      </Suspense>
+
+      {/* Gamification Showcase — streams as Supabase data arrives */}
+      <Suspense fallback={<GamificationSkeleton />}>
+        <GamificationSection />
       </Suspense>
 
       {/* Organizer CTA — static */}
