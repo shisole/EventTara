@@ -8,6 +8,7 @@ import HeroSection from "@/components/landing/HeroSection";
 import OrganizersSection from "@/components/landing/OrganizersSection";
 import TestimonialsSection from "@/components/landing/TestimonialsSection";
 import UpcomingEventsSection from "@/components/landing/UpcomingEventsSection";
+import { getCachedHeroCarousel } from "@/lib/payload/cached";
 
 export const metadata = {
   title: "EventTara — Outdoor Adventure Events in Panay Island",
@@ -21,7 +22,7 @@ export const metadata = {
   },
 };
 
-export const revalidate = 60;
+export const revalidate = 300;
 
 const categories = [
   {
@@ -157,36 +158,15 @@ function GamificationSkeleton() {
   );
 }
 
-export default function Home() {
+export default async function Home() {
+  const heroData = await getCachedHeroCarousel();
+
   return (
     <main>
       <BetaNoticeModal />
 
-      {/* Hero Section — streams independently (Payload CMS fetch) */}
-      <Suspense
-        fallback={
-          <section className="relative py-24 sm:py-32 overflow-hidden min-h-[500px] flex items-center">
-            <div className="absolute inset-0 bg-gray-50 dark:bg-slate-900" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-lime-500/10 rounded-full blur-3xl" />
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 w-full">
-              <div className="inline-block mb-6 px-4 py-1.5 rounded-full bg-lime-500/10 border border-lime-500/30">
-                <span className="text-lime-600 dark:text-lime-400 text-sm font-semibold tracking-wide uppercase">
-                  Beta — Now Live
-                </span>
-              </div>
-              <h1 className="text-5xl sm:text-7xl font-heading font-bold mb-4 text-gray-900 dark:text-white">
-                Tara na!
-              </h1>
-              <p className="text-xl sm:text-2xl mb-10 max-w-2xl mx-auto text-gray-600 dark:text-gray-400">
-                Book Your Next Adventure. Discover hiking, biking, running events and more across
-                the Philippines.
-              </p>
-            </div>
-          </section>
-        }
-      >
-        <HeroSection />
-      </Suspense>
+      {/* Hero Section — renders immediately with pre-fetched data */}
+      <HeroSection heroData={heroData} />
 
       {/* Upcoming Events — streams as Supabase data arrives */}
       <Suspense fallback={<UpcomingEventsSkeleton />}>
@@ -225,7 +205,7 @@ export default function Home() {
             Find Your Adventure
           </h2>
           <div className="flex flex-col gap-4">
-            {categories.map((cat) => (
+            {categories.map((cat, i) => (
               <Link
                 key={cat.slug}
                 href={`/events?type=${cat.slug}`}
@@ -237,6 +217,7 @@ export default function Home() {
                   fill
                   sizes="(max-width: 1280px) 100vw, 1280px"
                   className="object-cover transition-transform duration-300 group-hover:scale-110"
+                  loading={i === 0 ? "eager" : "lazy"}
                 />
                 <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-colors" />
                 <div className="absolute inset-0 flex items-center px-6">
