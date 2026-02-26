@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { Button, AvatarWithBorder } from "@/components/ui";
+import { Button, UserAvatar } from "@/components/ui";
 import type { BorderTier } from "@/lib/constants/avatar-borders";
 import { cn } from "@/lib/utils";
 
@@ -88,7 +88,7 @@ export default function BadgeAwarder({ badgeId, participants }: BadgeAwarderProp
             )}
           >
             <div className="flex items-center gap-3">
-              <AvatarWithBorder
+              <UserAvatar
                 src={p.avatarUrl}
                 alt={p.fullName}
                 size="sm"

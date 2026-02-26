@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useRef, useEffect, useCallback } from "react";
 
-import { AvatarWithBorder } from "@/components/ui";
+import { UserAvatar } from "@/components/ui";
 import type { BorderTier } from "@/lib/constants/avatar-borders";
 
 import StarRating from "./StarRating";
@@ -91,7 +91,7 @@ export default function ReviewList({
               className="border-b border-gray-100 dark:border-gray-800 pb-4 last:border-0"
             >
               <div className="flex items-center gap-3 mb-2">
-                <AvatarWithBorder
+                <UserAvatar
                   src={user.avatar_url}
                   alt={user.full_name}
                   size="sm"

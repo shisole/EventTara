@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { Avatar } from "@/components/ui";
+import { UserAvatar } from "@/components/ui";
 
 interface GuideCardProps {
   id: string;
@@ -24,7 +24,7 @@ export default function GuideCard({
   return (
     <Link href={`/guides/${id}`}>
       <div className="bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-2xl p-5 flex items-center gap-4">
-        <Avatar src={avatar_url} alt={full_name} size="lg" />
+        <UserAvatar src={avatar_url} alt={full_name} size="lg" />
         <div className="min-w-0">
           <h3 className="font-heading font-bold">{full_name}</h3>
           {avg_rating != null && (

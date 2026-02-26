@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import EventCard from "@/components/events/EventCard";
 import ReviewList from "@/components/reviews/ReviewList";
 import StarRating from "@/components/reviews/StarRating";
-import { Avatar } from "@/components/ui";
+import { UserAvatar } from "@/components/ui";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -168,7 +168,7 @@ export default async function GuideProfilePage({ params }: { params: Promise<{ i
       {/* Header */}
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-6 sm:p-8 mb-8">
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-          <Avatar src={guide.avatar_url} alt={guide.full_name} size="xl" />
+          <UserAvatar src={guide.avatar_url} alt={guide.full_name} size="xl" />
           <div className="flex-1 text-center sm:text-left">
             <h1 className="text-2xl md:text-3xl font-heading font-bold mb-2">{guide.full_name}</h1>
             {avgRating > 0 && (

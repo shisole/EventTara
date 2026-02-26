@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { AvatarWithBorder, Button } from "@/components/ui";
+import { UserAvatar, Button } from "@/components/ui";
 import type { BorderTier } from "@/lib/constants/avatar-borders";
 import { TIER_LABELS, TIER_LABEL_COLORS } from "@/lib/constants/avatar-borders";
 import { createClient } from "@/lib/supabase/client";
@@ -172,7 +172,7 @@ export default function BorderPickerModal({
         {/* Preview */}
         <div className="px-6 py-4 flex justify-center border-b border-gray-100 dark:border-gray-800">
           <div className="text-center space-y-2">
-            <AvatarWithBorder
+            <UserAvatar
               src={avatarUrl}
               alt={fullName}
               size="xl"
@@ -235,7 +235,7 @@ export default function BorderPickerModal({
                         : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800",
                     )}
                   >
-                    <AvatarWithBorder
+                    <UserAvatar
                       src={avatarUrl}
                       alt={fullName}
                       size="sm"

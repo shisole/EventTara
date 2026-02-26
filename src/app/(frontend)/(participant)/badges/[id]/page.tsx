@@ -3,6 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import ReviewForm from "@/components/reviews/ReviewForm";
+import { UserAvatar } from "@/components/ui";
+import type { BorderTier } from "@/lib/constants/avatar-borders";
 import { resolvePresetImage } from "@/lib/constants/avatars";
 import { RARITY_STYLES, CATEGORY_STYLES } from "@/lib/constants/badge-rarity";
 import { createClient } from "@/lib/supabase/server";
@@ -76,7 +78,7 @@ export default async function BadgeDetailPage({ params }: { params: Promise<{ id
   // Fetch participants who earned this badge
   const { data: userBadges } = await supabase
     .from("user_badges")
-    .select("awarded_at, users(id, full_name, avatar_url, username)")
+    .select("awarded_at, users(id, full_name, avatar_url, username, active_border_id)")
     .eq("badge_id", id)
     .order("awarded_at", { ascending: false });
 
@@ -117,12 +119,32 @@ export default async function BadgeDetailPage({ params }: { params: Promise<{ id
     }
   }
 
-  const participants = (userBadges || []).map((ub: any) => ({
-    id: ub.users?.id,
-    fullName: ub.users?.full_name || "Participant",
-    avatarUrl: ub.users?.avatar_url,
-    username: ub.users?.username,
-  }));
+  // Fetch border data for participants with active borders
+  const participantBorderIds = (userBadges || [])
+    .map((ub: any) => ub.users?.active_border_id)
+    .filter(Boolean) as string[];
+
+  let participantBorderLookup = new Map<string, { tier: string; border_color: string | null }>();
+  if (participantBorderIds.length > 0) {
+    const { data: borderDefs } = await supabase
+      .from("avatar_borders")
+      .select("id, tier, border_color")
+      .in("id", participantBorderIds);
+    participantBorderLookup = new Map((borderDefs || []).map((b) => [b.id, b]));
+  }
+
+  const participants = (userBadges || []).map((ub: any) => {
+    const borderId = ub.users?.active_border_id;
+    const border = borderId ? participantBorderLookup.get(borderId) : null;
+    return {
+      id: ub.users?.id,
+      fullName: ub.users?.full_name || "Participant",
+      avatarUrl: ub.users?.avatar_url,
+      username: ub.users?.username,
+      borderTier: (border?.tier as BorderTier) ?? null,
+      borderColor: border?.border_color ?? null,
+    };
+  });
 
   const maxVisible = 12;
   const visibleParticipants = participants.slice(0, maxVisible);
@@ -254,21 +276,13 @@ export default async function BadgeDetailPage({ params }: { params: Promise<{ id
                 title={p.fullName}
                 className="flex flex-col items-center gap-1 w-16"
               >
-                <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden flex-shrink-0">
-                  {p.avatarUrl ? (
-                    <Image
-                      src={p.avatarUrl}
-                      alt={p.fullName}
-                      width={48}
-                      height={48}
-                      className="object-cover w-full h-full"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-lg text-gray-400">
-                      {p.fullName.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                </div>
+                <UserAvatar
+                  src={p.avatarUrl}
+                  alt={p.fullName}
+                  size="md"
+                  borderTier={p.borderTier}
+                  borderColor={p.borderColor}
+                />
                 <span className="text-xs text-gray-500 dark:text-gray-400 truncate w-full text-center">
                   {p.fullName.split(" ")[0]}
                 </span>

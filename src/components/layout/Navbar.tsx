@@ -10,7 +10,7 @@ import { Suspense, useEffect, useState } from "react";
 import { ChevronDownIcon, MenuIcon } from "@/components/icons";
 import ExploreDropdown from "@/components/layout/ExploreDropdown";
 import ThemeToggle from "@/components/layout/ThemeToggle";
-import { AvatarWithBorder, Button } from "@/components/ui";
+import { UserAvatar, Button } from "@/components/ui";
 import type { BorderTier } from "@/lib/constants/avatar-borders";
 
 const BorderPickerModal = dynamic(() => import("@/components/profile/BorderPickerModal"));
@@ -130,7 +130,7 @@ export default function Navbar({
                     }}
                     className="flex items-center gap-1 rounded-full hover:ring-2 hover:ring-lime-200 dark:hover:ring-lime-800 transition-all"
                   >
-                    <AvatarWithBorder
+                    <UserAvatar
                       src={user.user_metadata?.avatar_url}
                       alt={user.user_metadata?.full_name || "User"}
                       size="sm"

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { AvatarWithBorder } from "@/components/ui";
+import { UserAvatar } from "@/components/ui";
 import type { BorderTier } from "@/lib/constants/avatar-borders";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -102,7 +102,7 @@ export default function CheckinList({
             )}
           >
             <div className="flex items-center gap-3">
-              <AvatarWithBorder
+              <UserAvatar
                 src={p.avatarUrl}
                 alt={p.fullName}
                 size="sm"

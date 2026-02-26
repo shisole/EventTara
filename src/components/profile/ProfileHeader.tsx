@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { useState } from "react";
 
-import { AvatarWithBorder, Button } from "@/components/ui";
+import { UserAvatar, Button } from "@/components/ui";
 import type { BorderTier } from "@/lib/constants/avatar-borders";
 
 const BorderPickerModal = dynamic(() => import("@/components/profile/BorderPickerModal"));
@@ -66,7 +66,7 @@ export default function ProfileHeader({
   return (
     <div className="text-center space-y-4">
       <div className="flex justify-center">
-        <AvatarWithBorder
+        <UserAvatar
           src={avatarUrl}
           alt={fullName}
           size="xl"
