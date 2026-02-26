@@ -217,6 +217,7 @@ export default async function Home() {
                   fill
                   sizes="(max-width: 1280px) 100vw, 1280px"
                   className="object-cover transition-transform duration-300 group-hover:scale-110"
+                  quality={50}
                   loading={i === 0 ? "eager" : "lazy"}
                 />
                 <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-colors" />
