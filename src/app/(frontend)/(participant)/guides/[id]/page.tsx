@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import EventCard from "@/components/events/EventCard";
 import ReviewList from "@/components/reviews/ReviewList";
 import StarRating from "@/components/reviews/StarRating";
-import { Avatar } from "@/components/ui";
+import { UserAvatar } from "@/components/ui";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -122,11 +122,37 @@ export default async function GuideProfilePage({ params }: { params: Promise<{ i
   // Fetch reviews with user info
   const { data: reviews } = await supabase
     .from("guide_reviews")
-    .select("*, users(full_name, avatar_url, username)")
+    .select("*, users(full_name, avatar_url, username, active_border_id)")
     .eq("guide_id", id)
     .order("created_at", { ascending: false });
 
-  const reviewList = (reviews || []) as unknown as GuideReview[];
+  // Enrich reviews with border data
+  const rawGuideReviews = (reviews || []) as any[];
+  const guideReviewBorderIds = rawGuideReviews
+    .map((r: any) => r.users?.active_border_id)
+    .filter(Boolean) as string[];
+
+  let guideBorderLookup = new Map<string, { tier: string; border_color: string | null }>();
+  if (guideReviewBorderIds.length > 0) {
+    const { data: borderDefs } = await supabase
+      .from("avatar_borders")
+      .select("id, tier, border_color")
+      .in("id", guideReviewBorderIds);
+    guideBorderLookup = new Map((borderDefs || []).map((b) => [b.id, b]));
+  }
+
+  const reviewList = rawGuideReviews.map((r: any) => {
+    const borderId = r.users?.active_border_id;
+    const border = borderId ? guideBorderLookup.get(borderId) : null;
+    return {
+      ...r,
+      users: {
+        ...r.users,
+        active_border_tier: border?.tier ?? null,
+        active_border_color: border?.border_color ?? null,
+      },
+    };
+  }) as unknown as GuideReview[];
 
   // Calculate aggregate stats
   let avgRating = 0;
@@ -142,7 +168,7 @@ export default async function GuideProfilePage({ params }: { params: Promise<{ i
       {/* Header */}
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-6 sm:p-8 mb-8">
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-          <Avatar src={guide.avatar_url} alt={guide.full_name} size="xl" />
+          <UserAvatar src={guide.avatar_url} alt={guide.full_name} size="xl" />
           <div className="flex-1 text-center sm:text-left">
             <h1 className="text-2xl md:text-3xl font-heading font-bold mb-2">{guide.full_name}</h1>
             {avgRating > 0 && (

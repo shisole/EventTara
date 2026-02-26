@@ -148,11 +148,39 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
   // Fetch event reviews
   const { data: reviews } = await supabase
     .from("event_reviews")
-    .select("id, rating, text, created_at, user_id, users(full_name, avatar_url, username)")
+    .select(
+      "id, rating, text, created_at, user_id, users(full_name, avatar_url, username, active_border_id)",
+    )
     .eq("event_id", id)
     .order("created_at", { ascending: false });
 
-  const eventReviews = (reviews || []) as any[];
+  // Enrich reviews with border data
+  const rawReviews = (reviews || []) as any[];
+  const reviewBorderIds = rawReviews
+    .map((r: any) => r.users?.active_border_id)
+    .filter(Boolean) as string[];
+
+  let borderLookup = new Map<string, { tier: string; border_color: string | null }>();
+  if (reviewBorderIds.length > 0) {
+    const { data: borderDefs } = await supabase
+      .from("avatar_borders")
+      .select("id, tier, border_color")
+      .in("id", reviewBorderIds);
+    borderLookup = new Map((borderDefs || []).map((b) => [b.id, b]));
+  }
+
+  const eventReviews = rawReviews.map((r: any) => {
+    const borderId = r.users?.active_border_id;
+    const border = borderId ? borderLookup.get(borderId) : null;
+    return {
+      ...r,
+      users: {
+        ...r.users,
+        active_border_tier: border?.tier ?? null,
+        active_border_color: border?.border_color ?? null,
+      },
+    };
+  });
   const avgRating =
     eventReviews.length > 0
       ? eventReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / eventReviews.length

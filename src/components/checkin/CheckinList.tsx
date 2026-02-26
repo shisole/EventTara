@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 
-import { Avatar } from "@/components/ui";
+import { UserAvatar } from "@/components/ui";
+import type { BorderTier } from "@/lib/constants/avatar-borders";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +14,8 @@ interface Participant {
   avatarUrl: string | null;
   checkedIn: boolean;
   checkedInAt: string | null;
+  borderTier?: BorderTier | null;
+  borderColor?: string | null;
 }
 
 export default function CheckinList({
@@ -99,7 +102,13 @@ export default function CheckinList({
             )}
           >
             <div className="flex items-center gap-3">
-              <Avatar src={p.avatarUrl} alt={p.fullName} size="sm" />
+              <UserAvatar
+                src={p.avatarUrl}
+                alt={p.fullName}
+                size="sm"
+                borderTier={p.borderTier ?? null}
+                borderColor={p.borderColor ?? null}
+              />
               <span className="font-medium dark:text-white">{p.fullName}</span>
             </div>
             <span
