@@ -7,7 +7,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 
 import { SkeletonEventCard } from "@/components/ui";
 
-import EventsGrid from "./EventsGrid";
+import EventsGrid, { type NearbyState } from "./EventsGrid";
 
 const BATCH_SIZE = 9;
 const MAX_INFINITE = 30;
@@ -50,6 +50,7 @@ interface EventsListClientProps {
   totalCount: number;
   isFiltering?: boolean;
   initialUsers?: UserResult[];
+  nearbyState?: NearbyState | null;
 }
 
 export default function EventsListClient({
@@ -57,6 +58,7 @@ export default function EventsListClient({
   totalCount,
   isFiltering,
   initialUsers = [],
+  nearbyState,
 }: EventsListClientProps) {
   const searchParams = useSearchParams();
   const [currentPage, setCurrentPage] = useState(1);
@@ -248,7 +250,7 @@ export default function EventsListClient({
         </div>
       )}
 
-      <EventsGrid events={events} />
+      <EventsGrid events={events} nearbyState={nearbyState} />
 
       {/* Infinite scroll sentinel */}
       {hasMore && (

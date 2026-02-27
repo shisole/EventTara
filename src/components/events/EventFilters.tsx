@@ -551,6 +551,7 @@ export default function EventFilters({
   const [searchValue, setSearchValue] = useState(currentSearch);
   const [isSearching, setIsSearching] = useState(false);
   const [openId, setOpenId] = useState("");
+  const [filtersExpanded, setFiltersExpanded] = useState(false);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const orgDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const guideDebounceRef = useRef<NodeJS.Timeout | null>(null);
@@ -696,6 +697,15 @@ export default function EventFilters({
     currentTo !== "" ||
     currentSearch !== "";
 
+  /* Count of active chip filters (for badge on mobile Filters button) */
+  const activeChipCount =
+    (currentWhen ? 1 : 0) +
+    (currentFrom || currentTo ? 1 : 0) +
+    (currentOrgParam ? 1 : 0) +
+    (currentGuideParam ? 1 : 0) +
+    (currentDistanceParam ? 1 : 0) +
+    (currentDifficulty ? 1 : 0);
+
   /* ---- Instant-apply helpers (toggle: click again to deselect) ---- */
   const selectWhen = useCallback(
     (value: string) => {
@@ -827,8 +837,8 @@ export default function EventFilters({
 
   return (
     <div className="space-y-4">
-      {/* Activity type selector — grid on mobile, horizontal row on sm+ */}
-      <div className="grid grid-cols-3 gap-3 py-3 sm:flex sm:justify-center sm:gap-5 sm:overflow-x-auto sm:-mx-0 sm:px-0 scrollbar-hide">
+      {/* Activity type selector — horizontal scroll on all sizes */}
+      <div className="flex gap-3 py-2 overflow-x-auto scrollbar-hide sm:justify-center sm:gap-5 -mx-4 px-4 sm:mx-0 sm:px-0">
         {/* All Activity avatar */}
         <button
           type="button"
@@ -837,7 +847,7 @@ export default function EventFilters({
         >
           <div
             className={cn(
-              "relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden border-2 transition-all flex items-center justify-center bg-gray-100 dark:bg-gray-700",
+              "relative w-12 h-12 sm:w-16 sm:h-16 rounded-full overflow-hidden border-2 transition-all flex items-center justify-center bg-gray-100 dark:bg-gray-700",
               isAllSelected(activeTypes)
                 ? "border-lime-500 ring-2 ring-lime-300 dark:ring-lime-700 scale-105"
                 : "border-gray-200 dark:border-gray-600 opacity-70 group-hover:opacity-100 group-hover:border-gray-300 dark:group-hover:border-gray-500",
@@ -849,7 +859,7 @@ export default function EventFilters({
               viewBox="0 0 24 24"
               strokeWidth={1.5}
               stroke="currentColor"
-              className="h-6 w-6 sm:h-7 sm:w-7 text-gray-500 dark:text-gray-300"
+              className="h-5 w-5 sm:h-7 sm:w-7 text-gray-500 dark:text-gray-300"
             >
               <path
                 strokeLinecap="round"
@@ -881,7 +891,7 @@ export default function EventFilters({
             >
               <div
                 className={cn(
-                  "relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden border-2 transition-all",
+                  "relative w-12 h-12 sm:w-16 sm:h-16 rounded-full overflow-hidden border-2 transition-all",
                   isActive
                     ? "border-lime-500 ring-2 ring-lime-300 dark:ring-lime-700 scale-105"
                     : "border-gray-200 dark:border-gray-600 opacity-70 group-hover:opacity-100 group-hover:border-gray-300 dark:group-hover:border-gray-500",
@@ -891,7 +901,7 @@ export default function EventFilters({
                   src={activity.image}
                   alt={activity.label}
                   fill
-                  sizes="(max-width: 640px) 56px, 64px"
+                  sizes="(max-width: 640px) 48px, 64px"
                   className="object-cover"
                 />
               </div>
@@ -985,10 +995,55 @@ export default function EventFilters({
         </button>
       </div>
 
-      {/* Chip bar — wrap on mobile, horizontal scroll on sm+ */}
+      {/* Mobile: Filters toggle button */}
+      <div className="flex items-center gap-2 sm:hidden">
+        <button
+          type="button"
+          onClick={() => setFiltersExpanded((v) => !v)}
+          className={cn(
+            "flex items-center gap-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors border px-4 py-2",
+            activeChipCount > 0
+              ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white"
+              : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600",
+          )}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+            stroke="currentColor"
+            className="h-4 w-4"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75"
+            />
+          </svg>
+          Filters
+          {activeChipCount > 0 && (
+            <span className="ml-0.5 flex items-center justify-center w-5 h-5 rounded-full bg-lime-500 text-gray-900 text-xs font-bold">
+              {activeChipCount}
+            </span>
+          )}
+        </button>
+        {hasActiveFilters && (
+          <button
+            type="button"
+            onClick={clearAllFilters}
+            className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 whitespace-nowrap underline underline-offset-2"
+          >
+            Clear all
+          </button>
+        )}
+      </div>
+
+      {/* Chip bar — hidden on mobile by default, always visible on sm+ */}
       <div
         className={cn(
-          "flex items-center gap-2 pb-1 flex-wrap scrollbar-hide",
+          "items-center gap-2 pb-1 scrollbar-hide",
+          filtersExpanded ? "flex flex-wrap" : "hidden sm:flex",
           openId ? "sm:flex-nowrap sm:overflow-visible" : "sm:flex-nowrap sm:overflow-x-auto",
         )}
       >
@@ -1268,12 +1323,12 @@ export default function EventFilters({
           </FilterChip>
         )}
 
-        {/* ---- Clear all button ---- */}
+        {/* ---- Clear all button (desktop only — mobile has its own) ---- */}
         {hasActiveFilters && (
           <button
             type="button"
             onClick={clearAllFilters}
-            className="shrink-0 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 whitespace-nowrap underline underline-offset-2"
+            className="hidden sm:inline shrink-0 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 whitespace-nowrap underline underline-offset-2"
           >
             Clear all
           </button>
