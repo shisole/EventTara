@@ -116,7 +116,7 @@ export default function CheckinList({
             key={`${p.type}-${p.id}`}
             className={cn(
               "flex items-center justify-between p-3 rounded-xl",
-              p.checkedIn ? "bg-forest-50" : "bg-white dark:bg-gray-900",
+              p.checkedIn ? "bg-forest-50 dark:bg-forest-900/30" : "bg-white dark:bg-gray-900",
             )}
           >
             <div className="flex items-center gap-3">
