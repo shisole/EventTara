@@ -206,7 +206,7 @@ function FilterChip({
               "relative bg-white dark:bg-gray-800 flex flex-col shadow-xl",
               mobileFullscreen
                 ? "flex-1 animate-fullscreen-slide-up"
-                : "max-h-[70vh] rounded-t-2xl animate-bottom-sheet-up",
+                : "max-h-[85vh] rounded-t-2xl animate-bottom-sheet-up pb-16",
             )}
           >
             {/* Header */}
