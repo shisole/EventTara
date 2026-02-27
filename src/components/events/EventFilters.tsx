@@ -189,7 +189,7 @@ function FilterChip({
       {isOpen && (
         <div
           className={cn(
-            "fixed inset-0 z-[60] flex flex-col sm:hidden",
+            "fixed inset-0 z-[60] flex flex-col md:hidden",
             mobileFullscreen ? "" : "justify-end",
           )}
         >
@@ -240,7 +240,7 @@ function FilterChip({
       {isOpen && (
         <div
           className={cn(
-            "absolute top-full left-0 mt-2 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg z-50 hidden sm:block",
+            "absolute top-full left-0 mt-2 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg z-50 hidden md:block",
             popoverClassName ?? "min-w-[200px]",
           )}
         >
