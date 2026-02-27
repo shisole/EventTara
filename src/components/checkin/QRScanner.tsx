@@ -76,6 +76,18 @@ export default function QRScanner({ eventId }: QRScannerProps) {
               message: data.message || data.error,
               userName: data.userName,
             });
+
+            // Notify CheckinList to update immediately
+            if (res.ok) {
+              globalThis.dispatchEvent(
+                new CustomEvent("checkin-success", {
+                  detail: {
+                    type: isCompanion ? "companion" : "user",
+                    id: isCompanion ? parts[4] : parts[3],
+                  },
+                }),
+              );
+            }
           } finally {
             // Allow next scan after a short delay
             setTimeout(() => {
