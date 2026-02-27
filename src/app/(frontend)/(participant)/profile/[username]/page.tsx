@@ -216,7 +216,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
   const badges = (userBadges || []).map((ub: any) => ({
     id: ub.badge_id,
     title: ub.badges?.title || "Badge",
-    eventName: ub.badges?.events?.title || "Event",
+    eventName: ub.badges?.events?.title || undefined,
     imageUrl: ub.badges?.image_url || null,
     awardedAt: ub.awarded_at,
     category: ub.badges?.category || null,
@@ -266,7 +266,17 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
       )}
 
       <div>
-        <h2 className="text-xl font-heading font-bold mb-4 text-center">Badge Collection</h2>
+        <div className="flex items-center justify-center gap-3 mb-4">
+          <h2 className="text-xl font-heading font-bold text-center">Badge Collection</h2>
+          {isOwnProfile && (
+            <Link
+              href="/achievements"
+              className="text-sm text-teal-600 dark:text-teal-400 hover:underline"
+            >
+              View All Achievements
+            </Link>
+          )}
+        </div>
         <BadgeGrid badges={badges} />
       </div>
 

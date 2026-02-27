@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 interface BadgeCardProps {
   id: string;
   title: string;
-  eventName: string;
+  eventName?: string;
   imageUrl: string | null;
   awardedAt: string;
   category?: "distance" | "adventure" | "location" | "special";
@@ -48,7 +48,9 @@ export default function BadgeCard({
           )}
         </div>
         <h3 className="font-heading font-bold text-sm">{title}</h3>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{eventName}</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          {eventName || "System Achievement"}
+        </p>
         {categoryStyle && (
           <span
             className={cn("inline-block text-xs px-2 py-0.5 rounded-full mt-1", categoryStyle.pill)}

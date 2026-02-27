@@ -411,32 +411,38 @@ export interface Database {
       badges: {
         Row: {
           id: string;
-          event_id: string;
+          event_id: string | null;
           title: string;
           description: string | null;
           image_url: string | null;
           category: "distance" | "adventure" | "location" | "special";
           rarity: "common" | "rare" | "epic" | "legendary";
+          type: "event" | "system";
+          criteria_key: string | null;
           created_at: string;
         };
         Insert: {
           id?: string;
-          event_id: string;
+          event_id?: string | null;
           title: string;
           description?: string | null;
           image_url?: string | null;
           category?: "distance" | "adventure" | "location" | "special";
           rarity?: "common" | "rare" | "epic" | "legendary";
+          type?: "event" | "system";
+          criteria_key?: string | null;
           created_at?: string;
         };
         Update: {
           id?: string;
-          event_id?: string;
+          event_id?: string | null;
           title?: string;
           description?: string | null;
           image_url?: string | null;
           category?: "distance" | "adventure" | "location" | "special";
           rarity?: "common" | "rare" | "epic" | "legendary";
+          type?: "event" | "system";
+          criteria_key?: string | null;
           created_at?: string;
         };
         Relationships: [
