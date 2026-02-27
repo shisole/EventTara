@@ -20,13 +20,13 @@ Use these prefixes: `feat/`, `fix/`, `refactor/`, `chore/`, `docs/`. Keep the de
 ## Commands
 
 ```bash
-npm run dev          # Start dev server (Next.js, port 3001)
-npm run build        # Production build
-npm run lint         # ESLint via next lint
-npm run seed         # Seed DB with test accounts, events, guides (requires SUPABASE_SERVICE_ROLE_KEY)
-npm run unseed       # Remove seeded data
-npm run seed:cms     # Seed Payload CMS with sample pages
-npm run test:e2e     # Run Playwright E2E tests
+pnpm dev             # Start dev server (Next.js, port 3001)
+pnpm build           # Production build
+pnpm lint            # ESLint
+pnpm seed            # Seed DB with test accounts, events, guides (requires SUPABASE_SERVICE_ROLE_KEY)
+pnpm unseed          # Remove seeded data
+pnpm seed:cms        # Seed Payload CMS with sample pages
+pnpm test:e2e        # Run Playwright E2E tests
 ```
 
 ## Environment Setup
