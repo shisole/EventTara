@@ -18,13 +18,13 @@ Adventure event booking platform for the Philippines. Browse, book, and manage o
 ### Prerequisites
 
 - Node.js 18+
-- npm
+- [pnpm](https://pnpm.io/installation)
 - A [Supabase](https://supabase.com) project
 
 ### 1. Install dependencies
 
 ```bash
-npm install
+pnpm install
 ```
 
 ### 2. Set up environment variables
@@ -46,7 +46,7 @@ Fill in your keys:
 ### 3. Run the dev server
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
 Open [http://localhost:3001](http://localhost:3001).
@@ -56,29 +56,29 @@ Open [http://localhost:3001](http://localhost:3001).
 Populate the database with test accounts, events, guides, badges, and bookings:
 
 ```bash
-npm run seed
+pnpm seed
 ```
 
 To remove seeded data:
 
 ```bash
-npm run unseed
+pnpm unseed
 ```
 
 > Both require `SUPABASE_SERVICE_ROLE_KEY` in `.env.local`.
 
 ## Scripts
 
-| Command            | Description                          |
-| ------------------ | ------------------------------------ |
-| `npm run dev`      | Start development server (port 3001) |
-| `npm run build`    | Production build                     |
-| `npm run start`    | Start production server              |
-| `npm run lint`     | Run ESLint                           |
-| `npm run seed`     | Seed database with test data         |
-| `npm run unseed`   | Remove seeded data                   |
-| `npm run seed:cms` | Seed Payload CMS with sample pages   |
-| `npm run test:e2e` | Run Playwright E2E tests             |
+| Command         | Description                          |
+| --------------- | ------------------------------------ |
+| `pnpm dev`      | Start development server (port 3001) |
+| `pnpm build`    | Production build                     |
+| `pnpm start`    | Start production server              |
+| `pnpm lint`     | Run ESLint                           |
+| `pnpm seed`     | Seed database with test data         |
+| `pnpm unseed`   | Remove seeded data                   |
+| `pnpm seed:cms` | Seed Payload CMS with sample pages   |
+| `pnpm test:e2e` | Run Playwright E2E tests             |
 
 ## Project Structure
 
