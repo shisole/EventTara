@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useCallback, useState } from "react";
 
 import { ChatIcon, CloseIcon } from "@/components/icons";
@@ -8,12 +9,16 @@ import { useKeyboardHeight } from "@/lib/hooks/useKeyboardHeight";
 import ChatPanel from "./ChatPanel";
 
 export default function ChatBubble() {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const keyboard = useKeyboardHeight();
   const keyboardOpen = keyboard.keyboardHeight > 0;
 
   const handleClose = useCallback(() => setOpen(false), []);
   const handleToggle = useCallback(() => setOpen((prev) => !prev), []);
+
+  // Hide on dashboard pages
+  if (pathname.startsWith("/dashboard")) return null;
 
   return (
     <>
