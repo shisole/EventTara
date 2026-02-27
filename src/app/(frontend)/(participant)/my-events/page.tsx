@@ -48,6 +48,19 @@ export default async function MyEventsPage() {
     }
   }
 
+  // Fetch check-in status for upcoming events
+  const upcomingEventIds = upcomingBookings.map((b: any) => b.events.id);
+  let upcomingCheckins: any[] = [];
+  if (upcomingEventIds.length > 0) {
+    const { data: uc } = await supabase
+      .from("event_checkins")
+      .select("event_id")
+      .eq("user_id", user.id)
+      .in("event_id", upcomingEventIds);
+    upcomingCheckins = uc || [];
+  }
+  const upcomingCheckinSet = new Set(upcomingCheckins.map((c: any) => c.event_id));
+
   const upcoming = upcomingBookings.map((b: any) => ({
     id: b.id,
     qrCode: b.qr_code || "",
@@ -62,6 +75,8 @@ export default async function MyEventsPage() {
     paymentMethod: b.payment_method,
     paymentProofUrl: b.payment_proof_url,
     companions: companionsByBooking[b.id] || [],
+    checkedIn: upcomingCheckinSet.has(b.events.id),
+    userId: user.id,
   }));
 
   // Past bookings

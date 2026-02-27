@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
+import ScannerFAB from "@/components/dashboard/ScannerFAB";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -25,6 +26,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <main className="flex-1 p-6 md:p-8 bg-gray-50 dark:bg-gray-950 min-h-[calc(100vh-4rem)]">
         {children}
       </main>
+      <ScannerFAB />
     </div>
   );
 }

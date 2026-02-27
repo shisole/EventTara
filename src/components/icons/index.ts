@@ -20,6 +20,7 @@ export { default as LoginIcon } from "./LoginIcon";
 export { default as MenuIcon } from "./MenuIcon";
 export { default as MoonIcon } from "./MoonIcon";
 export { default as ProfileIcon } from "./ProfileIcon";
+export { default as QRScanIcon } from "./QRScanIcon";
 export { default as SendIcon } from "./SendIcon";
 export { default as ShareIcon } from "./ShareIcon";
 export { default as SpinnerIcon } from "./SpinnerIcon";

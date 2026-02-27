@@ -27,6 +27,8 @@ interface Booking {
   paymentMethod: string;
   paymentProofUrl: string | null;
   companions?: BookingCompanion[];
+  checkedIn: boolean;
+  userId: string;
 }
 
 const typeLabels: Record<string, string> = {
@@ -78,6 +80,62 @@ function ReuploadButton({ bookingId }: { bookingId: string }) {
         }}
       />
     </>
+  );
+}
+
+function CheckInOnlineButton({ booking }: { booking: Booking }) {
+  const [status, setStatus] = useState<"idle" | "loading" | "done">(
+    booking.checkedIn ? "done" : "idle",
+  );
+
+  const eventDate = new Date(booking.eventDate);
+  const hoursUntil = (eventDate.getTime() - Date.now()) / (1000 * 60 * 60);
+  const isFree = booking.eventPrice === 0;
+  const isPaid = booking.paymentStatus === "paid";
+  const isCash = booking.paymentMethod === "cash";
+
+  if (status === "done") {
+    return (
+      <span className="inline-flex items-center gap-1 text-sm font-medium text-forest-600 dark:text-forest-400">
+        <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+          <path
+            fillRule="evenodd"
+            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+            clipRule="evenodd"
+          />
+        </svg>
+        Checked In
+      </span>
+    );
+  }
+
+  // Not eligible: cash booking, unpaid non-free, outside 48h window
+  if (isCash || (!isFree && !isPaid) || hoursUntil > 48 || hoursUntil < -24) {
+    return null;
+  }
+
+  const handleCheckin = async () => {
+    setStatus("loading");
+    try {
+      const res = await fetch("/api/checkins", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ event_id: booking.eventId, user_id: booking.userId }),
+      });
+      if (res.ok) {
+        setStatus("done");
+      } else {
+        setStatus("idle");
+      }
+    } catch {
+      setStatus("idle");
+    }
+  };
+
+  return (
+    <Button size="sm" onClick={handleCheckin} disabled={status === "loading"}>
+      {status === "loading" ? "Checking in..." : "Check In Online"}
+    </Button>
   );
 }
 
@@ -141,6 +199,7 @@ export default function UpcomingBookings({ bookings }: { bookings: Booking[] }) 
                   <ReuploadButton bookingId={b.id} />
                 </div>
               )}
+              <CheckInOnlineButton booking={b} />
             </div>
             {b.qrCode && (
               <button

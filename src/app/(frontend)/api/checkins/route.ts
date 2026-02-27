@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { event_id, user_id, companion_id } = await request.json();
+  const { event_id, user_id, companion_id, force } = await request.json();
 
   if (!event_id || (!user_id && !companion_id)) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -26,7 +26,9 @@ export async function POST(request: Request) {
   if (companion_id) {
     const { data: companion } = await supabase
       .from("booking_companions")
-      .select("id, full_name, checked_in, booking_id, bookings:booking_id(event_id, status)")
+      .select(
+        "id, full_name, checked_in, booking_id, bookings:booking_id(event_id, status, payment_status, payment_method, events:event_id(title))",
+      )
       .eq("id", companion_id)
       .single();
 
@@ -42,10 +44,31 @@ export async function POST(request: Request) {
       );
     }
 
+    const eventName = booking?.events?.title || "Event";
+
     if (companion.checked_in) {
       return NextResponse.json(
-        { message: `${companion.full_name} is already checked in`, userName: companion.full_name },
+        {
+          message: `${companion.full_name} is already checked in`,
+          userName: companion.full_name,
+          eventName,
+          alreadyCheckedIn: true,
+        },
         { status: 200 },
+      );
+    }
+
+    if (booking?.payment_status !== "paid" && !force) {
+      return NextResponse.json(
+        {
+          message: `${companion.full_name}'s booking has not been paid yet`,
+          userName: companion.full_name,
+          eventName,
+          paymentStatus: booking?.payment_status,
+          paymentMethod: booking?.payment_method,
+          requiresConfirmation: true,
+        },
+        { status: 202 },
       );
     }
 
@@ -61,13 +84,19 @@ export async function POST(request: Request) {
     return NextResponse.json({
       message: `${companion.full_name} checked in!`,
       userName: companion.full_name,
+      eventName,
+      paymentStatus: booking?.payment_status,
+      paymentMethod: booking?.payment_method,
+      alreadyCheckedIn: false,
     });
   }
 
   // Handle regular user check-in
   const { data: booking } = await supabase
     .from("bookings")
-    .select("id, users:user_id(full_name)")
+    .select(
+      "id, payment_status, payment_method, users:user_id(full_name), events:event_id(title, date)",
+    )
     .eq("event_id", event_id)
     .eq("user_id", user_id)
     .in("status", ["confirmed", "pending"])
@@ -76,6 +105,11 @@ export async function POST(request: Request) {
   if (!booking) {
     return NextResponse.json({ error: "No booking found for this participant" }, { status: 404 });
   }
+
+  const userName = (booking.users as any)?.full_name || "Participant";
+  const eventName = (booking.events as any)?.title || "Event";
+  const paymentStatus = booking.payment_status;
+  const paymentMethod = booking.payment_method;
 
   // Check if already checked in
   const { data: existingCheckin } = await supabase
@@ -86,10 +120,61 @@ export async function POST(request: Request) {
     .single();
 
   if (existingCheckin) {
-    const userName = (booking.users as any)?.full_name || "Participant";
     return NextResponse.json(
-      { message: `${userName} is already checked in`, userName },
+      {
+        message: `${userName} is already checked in`,
+        userName,
+        eventName,
+        paymentStatus,
+        paymentMethod,
+        alreadyCheckedIn: true,
+      },
       { status: 200 },
+    );
+  }
+
+  // Self-check-in validation
+  const isSelfCheckin = user.id === user_id;
+  if (isSelfCheckin) {
+    if (paymentMethod === "cash") {
+      return NextResponse.json(
+        { error: "Cash bookings must check in on-site", eventName, paymentStatus, paymentMethod },
+        { status: 403 },
+      );
+    }
+    if (paymentStatus !== "paid") {
+      return NextResponse.json(
+        {
+          error: "Payment must be verified before online check-in",
+          eventName,
+          paymentStatus,
+          paymentMethod,
+        },
+        { status: 403 },
+      );
+    }
+    const eventDate = new Date((booking.events as any)?.date);
+    const hoursUntilEvent = (eventDate.getTime() - Date.now()) / (1000 * 60 * 60);
+    if (hoursUntilEvent > 48 || hoursUntilEvent < -24) {
+      return NextResponse.json(
+        { error: "Online check-in is only available within 48 hours of the event", eventName },
+        { status: 403 },
+      );
+    }
+  }
+
+  // Payment warning for organizer scanning unpaid participant
+  if (!isSelfCheckin && paymentStatus !== "paid" && !force) {
+    return NextResponse.json(
+      {
+        message: `${userName} has not paid yet`,
+        userName,
+        eventName,
+        paymentStatus,
+        paymentMethod,
+        requiresConfirmation: true,
+      },
+      { status: 202 },
     );
   }
 
@@ -97,7 +182,7 @@ export async function POST(request: Request) {
   const { error } = await supabase.from("event_checkins").insert({
     event_id,
     user_id,
-    method: "qr",
+    method: isSelfCheckin ? "online" : "qr",
   });
 
   if (error) {
@@ -106,8 +191,6 @@ export async function POST(request: Request) {
 
   // Trigger border and badge checks in background (non-blocking)
   checkAndAwardBorders(user_id, supabase).catch(() => null);
-
-  const userName = (booking.users as any)?.full_name || "Participant";
 
   // Check and award system badges, then send batched email if any earned
   checkAndAwardSystemBadges(user_id, supabase)
@@ -136,5 +219,12 @@ export async function POST(request: Request) {
     })
     .catch(() => null);
 
-  return NextResponse.json({ message: `${userName} checked in!`, userName });
+  return NextResponse.json({
+    message: `${userName} checked in!`,
+    userName,
+    eventName,
+    paymentStatus,
+    paymentMethod,
+    alreadyCheckedIn: false,
+  });
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import DashboardStats from "@/components/dashboard/DashboardStats";
+import ScannerButton from "@/components/dashboard/ScannerButton";
 import { Button } from "@/components/ui";
 import { createClient } from "@/lib/supabase/server";
 
@@ -62,9 +63,12 @@ export default async function DashboardPage() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-heading font-bold dark:text-white">Dashboard</h1>
-        <Link href="/dashboard/events/new">
-          <Button>Create Event</Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <ScannerButton />
+          <Link href="/dashboard/events/new">
+            <Button>Create Event</Button>
+          </Link>
+        </div>
       </div>
 
       <DashboardStats
