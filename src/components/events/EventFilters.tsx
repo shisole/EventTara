@@ -520,369 +520,6 @@ function isAllSelected(types: Set<string>): boolean {
 }
 
 /* ------------------------------------------------------------------ */
-/*  FilterChips — shared chip content for mobile & desktop wrappers   */
-/* ------------------------------------------------------------------ */
-
-interface FilterChipsProps {
-  openId: string;
-  onToggle: (id: string) => void;
-  whenLabel?: string;
-  currentWhen: string;
-  selectWhen: (value: string) => void;
-  dateLabel?: string;
-  currentFrom: string;
-  currentTo: string;
-  draftFrom: string;
-  draftTo: string;
-  setDraftFrom: (v: string) => void;
-  setDraftTo: (v: string) => void;
-  applyDate: () => void;
-  clearDate: () => void;
-  organizers: FilterOption[];
-  orgLabel?: string;
-  draftOrgs: Set<string>;
-  toggleOrg: (v: string) => void;
-  clearOrgs: () => void;
-  guides: FilterOption[];
-  guideLabel?: string;
-  draftGuides: Set<string>;
-  toggleGuide: (v: string) => void;
-  clearGuides: () => void;
-  showGuideChip: boolean;
-  showDifficultyChip: boolean;
-  difficultyLabel?: string;
-  currentDifficulty: string;
-  selectDifficulty: (v: string) => void;
-  showDistanceChip: boolean;
-  distanceLabel?: string;
-  draftDistances: Set<string>;
-  toggleDistance: (v: string) => void;
-  clearDistances: () => void;
-  updateParams: (updates: Record<string, string>) => void;
-  hasActiveFilters: boolean;
-  clearAllFilters: () => void;
-}
-
-function FilterChips({
-  openId,
-  onToggle,
-  whenLabel,
-  currentWhen,
-  selectWhen,
-  dateLabel,
-  currentFrom,
-  currentTo,
-  draftFrom,
-  draftTo,
-  setDraftFrom,
-  setDraftTo,
-  applyDate,
-  clearDate,
-  organizers,
-  orgLabel,
-  draftOrgs,
-  toggleOrg,
-  clearOrgs,
-  guides,
-  guideLabel,
-  draftGuides,
-  toggleGuide,
-  clearGuides,
-  showGuideChip,
-  showDifficultyChip,
-  difficultyLabel,
-  currentDifficulty,
-  selectDifficulty,
-  showDistanceChip,
-  distanceLabel,
-  draftDistances,
-  toggleDistance,
-  clearDistances,
-  updateParams,
-  hasActiveFilters,
-  clearAllFilters,
-}: FilterChipsProps) {
-  return (
-    <>
-      {/* ---- When chip ---- */}
-      <FilterChip
-        id="when"
-        label="When"
-        activeLabel={whenLabel}
-        isActive={!!currentWhen}
-        isOpen={openId === "when"}
-        onToggle={onToggle}
-        onClear={() => updateParams({ when: "" })}
-      >
-        <div className="p-3 space-y-1">
-          {TIME_FILTERS.map((f) => (
-            <button
-              key={f.value}
-              type="button"
-              onClick={() => selectWhen(f.value)}
-              className={cn(
-                "w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center",
-                currentWhen === f.value
-                  ? "bg-gray-100 dark:bg-gray-700 font-medium text-gray-900 dark:text-gray-100"
-                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-gray-100",
-              )}
-            >
-              {f.value === "now" && (
-                <span className="relative flex h-2 w-2 mr-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
-                </span>
-              )}
-              {f.label}
-            </button>
-          ))}
-        </div>
-      </FilterChip>
-
-      {/* ---- Date chip (calendar picker) ---- */}
-      <FilterChip
-        id="date"
-        label="Date"
-        activeLabel={dateLabel}
-        isActive={!!(currentFrom || currentTo)}
-        isOpen={openId === "date"}
-        onToggle={onToggle}
-        onClear={() => updateParams({ from: "", to: "" })}
-        mobileFullscreen
-        popoverClassName="sm:w-[580px]"
-      >
-        <CalendarPicker
-          from={draftFrom}
-          to={draftTo}
-          onFromChange={setDraftFrom}
-          onToChange={setDraftTo}
-          onApply={applyDate}
-          onClear={clearDate}
-        />
-      </FilterChip>
-
-      {/* ---- Organizer chip (multi-select) ---- */}
-      {organizers.length > 0 && (
-        <FilterChip
-          id="org"
-          label="Organizer"
-          activeLabel={orgLabel}
-          isActive={draftOrgs.size > 0}
-          isOpen={openId === "org"}
-          onToggle={onToggle}
-          onClear={clearOrgs}
-        >
-          <div className="p-3 space-y-1 max-h-[200px] overflow-y-auto">
-            {organizers.map((o) => (
-              <button
-                key={o.id}
-                type="button"
-                onClick={() => toggleOrg(o.id)}
-                className={cn(
-                  "w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2",
-                  draftOrgs.has(o.id)
-                    ? "bg-gray-100 dark:bg-gray-700 font-medium text-gray-900 dark:text-gray-100"
-                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-gray-100",
-                )}
-              >
-                <span
-                  className={cn(
-                    "flex items-center justify-center w-4 h-4 rounded border transition-colors shrink-0",
-                    draftOrgs.has(o.id)
-                      ? "bg-lime-500 border-lime-500 text-white"
-                      : "border-gray-300 dark:border-gray-600",
-                  )}
-                >
-                  {draftOrgs.has(o.id) && (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={3}
-                      stroke="currentColor"
-                      className="h-3 w-3"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="m4.5 12.75 6 6 9-13.5"
-                      />
-                    </svg>
-                  )}
-                </span>
-                {o.name}
-              </button>
-            ))}
-          </div>
-        </FilterChip>
-      )}
-
-      {/* ---- Guide chip (only when hiking is selected, multi-select) ---- */}
-      {showGuideChip && guides.length > 0 && (
-        <FilterChip
-          id="guide"
-          label="Guide"
-          activeLabel={guideLabel}
-          isActive={draftGuides.size > 0}
-          isOpen={openId === "guide"}
-          onToggle={onToggle}
-          onClear={clearGuides}
-        >
-          <div className="p-3 space-y-1 max-h-[200px] overflow-y-auto">
-            {guides.map((g) => (
-              <button
-                key={g.id}
-                type="button"
-                onClick={() => toggleGuide(g.id)}
-                className={cn(
-                  "w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2",
-                  draftGuides.has(g.id)
-                    ? "bg-gray-100 dark:bg-gray-700 font-medium text-gray-900 dark:text-gray-100"
-                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-gray-100",
-                )}
-              >
-                <span
-                  className={cn(
-                    "flex items-center justify-center w-4 h-4 rounded border transition-colors shrink-0",
-                    draftGuides.has(g.id)
-                      ? "bg-lime-500 border-lime-500 text-white"
-                      : "border-gray-300 dark:border-gray-600",
-                  )}
-                >
-                  {draftGuides.has(g.id) && (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={3}
-                      stroke="currentColor"
-                      className="h-3 w-3"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="m4.5 12.75 6 6 9-13.5"
-                      />
-                    </svg>
-                  )}
-                </span>
-                {g.name}
-              </button>
-            ))}
-          </div>
-        </FilterChip>
-      )}
-
-      {/* ---- Difficulty chip (only when hiking is selected) ---- */}
-      {showDifficultyChip && (
-        <FilterChip
-          id="difficulty"
-          label="Difficulty"
-          activeLabel={difficultyLabel}
-          isActive={!!currentDifficulty}
-          isOpen={openId === "difficulty"}
-          onToggle={onToggle}
-          onClear={() => updateParams({ difficulty: "" })}
-        >
-          <div className="p-3 space-y-1">
-            {DIFFICULTY_OPTIONS.map((d) => (
-              <button
-                key={d.value}
-                type="button"
-                onClick={() => selectDifficulty(d.value)}
-                className={cn(
-                  "w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2",
-                  currentDifficulty === d.value
-                    ? "bg-gray-100 dark:bg-gray-700 font-medium text-gray-900 dark:text-gray-100"
-                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-gray-100",
-                )}
-              >
-                <span
-                  className={cn(
-                    "inline-block w-2.5 h-2.5 rounded-full",
-                    d.variant === "difficulty_easy" && "bg-forest-500",
-                    d.variant === "difficulty_moderate" && "bg-amber-500",
-                    d.variant === "difficulty_hard" && "bg-red-500",
-                  )}
-                />
-                {d.label}
-              </button>
-            ))}
-          </div>
-        </FilterChip>
-      )}
-
-      {/* ---- Distance chip (only when running/trail_run/road_bike is selected, multi-select) ---- */}
-      {showDistanceChip && (
-        <FilterChip
-          id="distance"
-          label="Distance"
-          activeLabel={distanceLabel}
-          isActive={draftDistances.size > 0}
-          isOpen={openId === "distance"}
-          onToggle={onToggle}
-          onClear={clearDistances}
-        >
-          <div className="p-3 space-y-1 max-h-[200px] overflow-y-auto">
-            {DISTANCE_OPTIONS.map((d) => (
-              <button
-                key={d.value}
-                type="button"
-                onClick={() => toggleDistance(d.value)}
-                className={cn(
-                  "w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2",
-                  draftDistances.has(d.value)
-                    ? "bg-gray-100 dark:bg-gray-700 font-medium text-gray-900 dark:text-gray-100"
-                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-gray-100",
-                )}
-              >
-                <span
-                  className={cn(
-                    "flex items-center justify-center w-4 h-4 rounded border transition-colors shrink-0",
-                    draftDistances.has(d.value)
-                      ? "bg-lime-500 border-lime-500 text-white"
-                      : "border-gray-300 dark:border-gray-600",
-                  )}
-                >
-                  {draftDistances.has(d.value) && (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={3}
-                      stroke="currentColor"
-                      className="h-3 w-3"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="m4.5 12.75 6 6 9-13.5"
-                      />
-                    </svg>
-                  )}
-                </span>
-                {d.label}
-              </button>
-            ))}
-          </div>
-        </FilterChip>
-      )}
-
-      {/* ---- Clear all button ---- */}
-      {hasActiveFilters && (
-        <button
-          type="button"
-          onClick={clearAllFilters}
-          className="shrink-0 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 whitespace-nowrap underline underline-offset-2"
-        >
-          Clear all
-        </button>
-      )}
-    </>
-  );
-}
-
-/* ------------------------------------------------------------------ */
 /*  Main Component                                                    */
 /* ------------------------------------------------------------------ */
 
@@ -915,14 +552,6 @@ export default function EventFilters({
   const [isSearching, setIsSearching] = useState(false);
   const [openId, setOpenId] = useState("");
   const [filtersExpanded, setFiltersExpanded] = useState(false);
-
-  /* Close any open filter chip when collapsing on mobile */
-  const toggleFiltersExpanded = useCallback(() => {
-    setFiltersExpanded((prev) => {
-      if (prev) setOpenId(""); // collapsing → close open popover
-      return !prev;
-    });
-  }, []);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const orgDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const guideDebounceRef = useRef<NodeJS.Timeout | null>(null);
@@ -1370,7 +999,7 @@ export default function EventFilters({
       <div className="flex items-center gap-2 sm:hidden">
         <button
           type="button"
-          onClick={toggleFiltersExpanded}
+          onClick={() => setFiltersExpanded((v) => !v)}
           className={cn(
             "flex items-center gap-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors border px-4 py-2",
             activeChipCount > 0
@@ -1410,120 +1039,300 @@ export default function EventFilters({
         )}
       </div>
 
-      {/* Chip bar — mobile: only rendered when expanded (prevents fixed-position
-         bottom sheets from escaping a CSS-hidden parent). Desktop: always rendered. */}
-      {filtersExpanded && (
-        <div className="flex flex-wrap items-center gap-2 pb-1 sm:hidden">
-          <FilterChips
-            openId={openId}
+      {/* Chip bar — hidden on mobile by default, always visible on sm+ */}
+      <div
+        className={cn(
+          "items-center gap-2 pb-1 scrollbar-hide",
+          filtersExpanded ? "flex flex-wrap" : "hidden sm:flex",
+          openId ? "sm:flex-nowrap sm:overflow-visible" : "sm:flex-nowrap sm:overflow-x-auto",
+        )}
+      >
+        {/* ---- When chip ---- */}
+        <FilterChip
+          id="when"
+          label="When"
+          activeLabel={whenLabelMap[currentWhen]}
+          isActive={!!currentWhen}
+          isOpen={openId === "when"}
+          onToggle={handleToggle}
+          onClear={() => updateParams({ when: "" })}
+        >
+          <div className="p-3 space-y-1">
+            {TIME_FILTERS.map((f) => (
+              <button
+                key={f.value}
+                type="button"
+                onClick={() => selectWhen(f.value)}
+                className={cn(
+                  "w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center",
+                  currentWhen === f.value
+                    ? "bg-gray-100 dark:bg-gray-700 font-medium text-gray-900 dark:text-gray-100"
+                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-gray-100",
+                )}
+              >
+                {f.value === "now" && (
+                  <span className="relative flex h-2 w-2 mr-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+                  </span>
+                )}
+                {f.label}
+              </button>
+            ))}
+          </div>
+        </FilterChip>
+
+        {/* ---- Date chip (calendar picker) ---- */}
+        <FilterChip
+          id="date"
+          label="Date"
+          activeLabel={dateLabel}
+          isActive={!!(currentFrom || currentTo)}
+          isOpen={openId === "date"}
+          onToggle={handleToggle}
+          onClear={() => updateParams({ from: "", to: "" })}
+          mobileFullscreen
+          popoverClassName="sm:w-[580px]"
+        >
+          <CalendarPicker
+            from={draftFrom}
+            to={draftTo}
+            onFromChange={setDraftFrom}
+            onToChange={setDraftTo}
+            onApply={applyDate}
+            onClear={clearDate}
+          />
+        </FilterChip>
+
+        {/* ---- Organizer chip (multi-select) ---- */}
+        {organizers.length > 0 && (
+          <FilterChip
+            id="org"
+            label="Organizer"
+            activeLabel={orgLabel}
+            isActive={draftOrgs.size > 0}
+            isOpen={openId === "org"}
             onToggle={handleToggle}
-            whenLabel={whenLabelMap[currentWhen]}
-            currentWhen={currentWhen}
-            selectWhen={selectWhen}
-            dateLabel={dateLabel}
-            currentFrom={currentFrom}
-            currentTo={currentTo}
-            draftFrom={draftFrom}
-            draftTo={draftTo}
-            setDraftFrom={setDraftFrom}
-            setDraftTo={setDraftTo}
-            applyDate={applyDate}
-            clearDate={clearDate}
-            organizers={organizers}
-            orgLabel={orgLabel}
-            draftOrgs={draftOrgs}
-            toggleOrg={toggleOrg}
-            clearOrgs={() => {
+            onClear={() => {
               if (orgDebounceRef.current) clearTimeout(orgDebounceRef.current);
               setDraftOrgs(new Set());
               updateParams({ org: "" });
             }}
-            guides={guides}
-            guideLabel={guideLabel}
-            draftGuides={draftGuides}
-            toggleGuide={toggleGuide}
-            clearGuides={() => {
+          >
+            <div className="p-3 space-y-1 max-h-[200px] overflow-y-auto">
+              {organizers.map((o) => (
+                <button
+                  key={o.id}
+                  type="button"
+                  onClick={() => toggleOrg(o.id)}
+                  className={cn(
+                    "w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2",
+                    draftOrgs.has(o.id)
+                      ? "bg-gray-100 dark:bg-gray-700 font-medium text-gray-900 dark:text-gray-100"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-gray-100",
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "flex items-center justify-center w-4 h-4 rounded border transition-colors shrink-0",
+                      draftOrgs.has(o.id)
+                        ? "bg-lime-500 border-lime-500 text-white"
+                        : "border-gray-300 dark:border-gray-600",
+                    )}
+                  >
+                    {draftOrgs.has(o.id) && (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={3}
+                        stroke="currentColor"
+                        className="h-3 w-3"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="m4.5 12.75 6 6 9-13.5"
+                        />
+                      </svg>
+                    )}
+                  </span>
+                  {o.name}
+                </button>
+              ))}
+            </div>
+          </FilterChip>
+        )}
+
+        {/* ---- Guide chip (only when hiking is selected, multi-select) ---- */}
+        {showGuideChip && guides.length > 0 && (
+          <FilterChip
+            id="guide"
+            label="Guide"
+            activeLabel={guideLabel}
+            isActive={draftGuides.size > 0}
+            isOpen={openId === "guide"}
+            onToggle={handleToggle}
+            onClear={() => {
               if (guideDebounceRef.current) clearTimeout(guideDebounceRef.current);
               setDraftGuides(new Set());
               updateParams({ guide: "" });
             }}
-            showGuideChip={showGuideChip}
-            showDifficultyChip={showDifficultyChip}
-            difficultyLabel={difficultyLabel}
-            currentDifficulty={currentDifficulty}
-            selectDifficulty={selectDifficulty}
-            showDistanceChip={showDistanceChip}
-            distanceLabel={distanceLabel}
-            draftDistances={draftDistances}
-            toggleDistance={toggleDistance}
-            clearDistances={() => {
+          >
+            <div className="p-3 space-y-1 max-h-[200px] overflow-y-auto">
+              {guides.map((g) => (
+                <button
+                  key={g.id}
+                  type="button"
+                  onClick={() => toggleGuide(g.id)}
+                  className={cn(
+                    "w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2",
+                    draftGuides.has(g.id)
+                      ? "bg-gray-100 dark:bg-gray-700 font-medium text-gray-900 dark:text-gray-100"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-gray-100",
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "flex items-center justify-center w-4 h-4 rounded border transition-colors shrink-0",
+                      draftGuides.has(g.id)
+                        ? "bg-lime-500 border-lime-500 text-white"
+                        : "border-gray-300 dark:border-gray-600",
+                    )}
+                  >
+                    {draftGuides.has(g.id) && (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={3}
+                        stroke="currentColor"
+                        className="h-3 w-3"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="m4.5 12.75 6 6 9-13.5"
+                        />
+                      </svg>
+                    )}
+                  </span>
+                  {g.name}
+                </button>
+              ))}
+            </div>
+          </FilterChip>
+        )}
+
+        {/* ---- Difficulty chip (only when hiking is selected) ---- */}
+        {showDifficultyChip && (
+          <FilterChip
+            id="difficulty"
+            label="Difficulty"
+            activeLabel={difficultyLabel}
+            isActive={!!currentDifficulty}
+            isOpen={openId === "difficulty"}
+            onToggle={handleToggle}
+            onClear={() => updateParams({ difficulty: "" })}
+          >
+            <div className="p-3 space-y-1">
+              {DIFFICULTY_OPTIONS.map((d) => (
+                <button
+                  key={d.value}
+                  type="button"
+                  onClick={() => selectDifficulty(d.value)}
+                  className={cn(
+                    "w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2",
+                    currentDifficulty === d.value
+                      ? "bg-gray-100 dark:bg-gray-700 font-medium text-gray-900 dark:text-gray-100"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-gray-100",
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "inline-block w-2.5 h-2.5 rounded-full",
+                      d.variant === "difficulty_easy" && "bg-forest-500",
+                      d.variant === "difficulty_moderate" && "bg-amber-500",
+                      d.variant === "difficulty_hard" && "bg-red-500",
+                    )}
+                  />
+                  {d.label}
+                </button>
+              ))}
+            </div>
+          </FilterChip>
+        )}
+
+        {/* ---- Distance chip (only when running/trail_run/road_bike is selected, multi-select) ---- */}
+        {showDistanceChip && (
+          <FilterChip
+            id="distance"
+            label="Distance"
+            activeLabel={distanceLabel}
+            isActive={draftDistances.size > 0}
+            isOpen={openId === "distance"}
+            onToggle={handleToggle}
+            onClear={() => {
               if (distanceDebounceRef.current) clearTimeout(distanceDebounceRef.current);
               setDraftDistances(new Set());
               updateParams({ distance: "" });
             }}
-            updateParams={updateParams}
-            hasActiveFilters={hasActiveFilters}
-            clearAllFilters={clearAllFilters}
-          />
-        </div>
-      )}
-      <div
-        className={cn(
-          "hidden sm:flex items-center gap-2 pb-1 scrollbar-hide",
-          openId ? "sm:flex-nowrap sm:overflow-visible" : "sm:flex-nowrap sm:overflow-x-auto",
+          >
+            <div className="p-3 space-y-1 max-h-[200px] overflow-y-auto">
+              {DISTANCE_OPTIONS.map((d) => (
+                <button
+                  key={d.value}
+                  type="button"
+                  onClick={() => toggleDistance(d.value)}
+                  className={cn(
+                    "w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2",
+                    draftDistances.has(d.value)
+                      ? "bg-gray-100 dark:bg-gray-700 font-medium text-gray-900 dark:text-gray-100"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-gray-100",
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "flex items-center justify-center w-4 h-4 rounded border transition-colors shrink-0",
+                      draftDistances.has(d.value)
+                        ? "bg-lime-500 border-lime-500 text-white"
+                        : "border-gray-300 dark:border-gray-600",
+                    )}
+                  >
+                    {draftDistances.has(d.value) && (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={3}
+                        stroke="currentColor"
+                        className="h-3 w-3"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="m4.5 12.75 6 6 9-13.5"
+                        />
+                      </svg>
+                    )}
+                  </span>
+                  {d.label}
+                </button>
+              ))}
+            </div>
+          </FilterChip>
         )}
-      >
-        <FilterChips
-          openId={openId}
-          onToggle={handleToggle}
-          whenLabel={whenLabelMap[currentWhen]}
-          currentWhen={currentWhen}
-          selectWhen={selectWhen}
-          dateLabel={dateLabel}
-          currentFrom={currentFrom}
-          currentTo={currentTo}
-          draftFrom={draftFrom}
-          draftTo={draftTo}
-          setDraftFrom={setDraftFrom}
-          setDraftTo={setDraftTo}
-          applyDate={applyDate}
-          clearDate={clearDate}
-          organizers={organizers}
-          orgLabel={orgLabel}
-          draftOrgs={draftOrgs}
-          toggleOrg={toggleOrg}
-          clearOrgs={() => {
-            if (orgDebounceRef.current) clearTimeout(orgDebounceRef.current);
-            setDraftOrgs(new Set());
-            updateParams({ org: "" });
-          }}
-          guides={guides}
-          guideLabel={guideLabel}
-          draftGuides={draftGuides}
-          toggleGuide={toggleGuide}
-          clearGuides={() => {
-            if (guideDebounceRef.current) clearTimeout(guideDebounceRef.current);
-            setDraftGuides(new Set());
-            updateParams({ guide: "" });
-          }}
-          showGuideChip={showGuideChip}
-          showDifficultyChip={showDifficultyChip}
-          difficultyLabel={difficultyLabel}
-          currentDifficulty={currentDifficulty}
-          selectDifficulty={selectDifficulty}
-          showDistanceChip={showDistanceChip}
-          distanceLabel={distanceLabel}
-          draftDistances={draftDistances}
-          toggleDistance={toggleDistance}
-          clearDistances={() => {
-            if (distanceDebounceRef.current) clearTimeout(distanceDebounceRef.current);
-            setDraftDistances(new Set());
-            updateParams({ distance: "" });
-          }}
-          updateParams={updateParams}
-          hasActiveFilters={hasActiveFilters}
-          clearAllFilters={clearAllFilters}
-        />
+
+        {/* ---- Clear all button (desktop only — mobile has its own) ---- */}
+        {hasActiveFilters && (
+          <button
+            type="button"
+            onClick={clearAllFilters}
+            className="hidden sm:inline shrink-0 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 whitespace-nowrap underline underline-offset-2"
+          >
+            Clear all
+          </button>
+        )}
       </div>
     </div>
   );
