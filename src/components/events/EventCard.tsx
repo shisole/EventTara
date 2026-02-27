@@ -70,7 +70,7 @@ export default function EventCard({
           status === "past" && "opacity-60",
         )}
       >
-        <div className="relative h-48 bg-gradient-to-br from-lime-100 to-forest-100 dark:from-lime-900 dark:to-forest-900">
+        <div className="relative h-40 sm:h-48 bg-gradient-to-br from-lime-100 to-forest-100 dark:from-lime-900 dark:to-forest-900">
           {cover_image_url && (
             <Image
               src={cover_image_url}
@@ -98,8 +98,24 @@ export default function EventCard({
               </span>
             </div>
           )}
+          {/* Bottom gradient overlay with price & spots — mobile only */}
+          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent pt-10 pb-2.5 px-3 sm:hidden">
+            <div className="flex items-end justify-between">
+              <span className="font-bold text-white text-sm">
+                {price === 0 ? "Free" : `\u20B1${price.toLocaleString()}`}
+              </span>
+              <span
+                className={cn(
+                  "text-xs font-medium",
+                  spotsLeft <= 5 ? "text-red-300" : "text-gray-200",
+                )}
+              >
+                {spotsLeft <= 0 ? "Fully Booked" : `${spotsLeft} spots left`}
+              </span>
+            </div>
+          </div>
         </div>
-        <div className="p-4 space-y-2">
+        <div className="p-3 sm:p-4 space-y-1.5 sm:space-y-2">
           <div className="flex items-center gap-2 flex-wrap">
             <UIBadge variant={type}>{typeLabels[type] || type}</UIBadge>
             {difficulty_level != null && <DifficultyBadge level={difficulty_level} />}
@@ -138,7 +154,8 @@ export default function EventCard({
               <span className="text-gray-400 dark:text-gray-500">({review_count})</span>
             </div>
           )}
-          <div className="flex items-center justify-between pt-2">
+          {/* Price & spots — hidden on mobile (shown in image overlay instead) */}
+          <div className="hidden sm:flex items-center justify-between pt-2">
             <span className="font-bold text-lime-600 dark:text-lime-400">
               {price === 0 ? "Free" : `\u20B1${price.toLocaleString()}`}
             </span>
