@@ -999,7 +999,12 @@ export default function EventFilters({
       <div className="flex items-center gap-2 sm:hidden">
         <button
           type="button"
-          onClick={() => setFiltersExpanded((v) => !v)}
+          onClick={() => {
+            setFiltersExpanded((prev) => {
+              if (prev) setOpenId(""); // close any open chip when collapsing
+              return !prev;
+            });
+          }}
           className={cn(
             "flex items-center gap-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors border px-4 py-2",
             activeChipCount > 0
