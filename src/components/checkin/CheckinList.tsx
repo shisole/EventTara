@@ -28,8 +28,26 @@ export default function CheckinList({
   const [participants, setParticipants] = useState(initialParticipants);
   const supabase = createClient();
 
+  // Listen for local check-in events from QRScanner
   useEffect(() => {
-    // Subscribe to user check-ins
+    const handleCheckin = (e: Event) => {
+      const detail: { type: "user" | "companion"; id: string } =
+        (e instanceof CustomEvent && e.detail) || {};
+      const { type, id } = detail;
+      setParticipants((prev) =>
+        prev.map((p) =>
+          p.type === type && p.id === id
+            ? { ...p, checkedIn: true, checkedInAt: new Date().toISOString() }
+            : p,
+        ),
+      );
+    };
+    globalThis.addEventListener("checkin-success", handleCheckin);
+    return () => globalThis.removeEventListener("checkin-success", handleCheckin);
+  }, []);
+
+  useEffect(() => {
+    // Subscribe to user check-ins (Realtime fallback)
     const checkinChannel = supabase
       .channel(`checkins-${eventId}`)
       .on(

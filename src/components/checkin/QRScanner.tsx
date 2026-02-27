@@ -12,6 +12,8 @@ interface ScanResult {
   success: boolean;
   message: string;
   userName?: string;
+  requiresConfirmation?: boolean;
+  pendingBody?: Record<string, string>;
 }
 
 export default function QRScanner({ eventId }: QRScannerProps) {
@@ -20,6 +22,46 @@ export default function QRScanner({ eventId }: QRScannerProps) {
   const [error, setError] = useState("");
   const [lastResult, setLastResult] = useState<ScanResult | null>(null);
   const processingRef = useRef(false);
+  const [forceLoading, setForceLoading] = useState(false);
+
+  const handleForceCheckin = async () => {
+    if (!lastResult?.pendingBody) return;
+    setForceLoading(true);
+    try {
+      const res = await fetch("/api/checkins", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...lastResult.pendingBody, force: true }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setLastResult({
+          success: true,
+          message: data.message ?? `${data.userName} checked in!`,
+          userName: data.userName,
+        });
+        // Notify CheckinList to update immediately
+        const isCompanion = !!lastResult.pendingBody.companion_id;
+        globalThis.dispatchEvent(
+          new CustomEvent("checkin-success", {
+            detail: {
+              type: isCompanion ? "companion" : "user",
+              id: isCompanion
+                ? lastResult.pendingBody.companion_id
+                : lastResult.pendingBody.user_id,
+            },
+          }),
+        );
+      } else {
+        setLastResult({
+          success: false,
+          message: data.error ?? "Check-in failed",
+        });
+      }
+    } finally {
+      setForceLoading(false);
+    }
+  };
 
   const startScanning = async () => {
     setError("");
@@ -71,11 +113,35 @@ export default function QRScanner({ eventId }: QRScannerProps) {
             });
 
             const data = await res.json();
-            setLastResult({
-              success: res.ok,
-              message: data.message || data.error,
-              userName: data.userName,
-            });
+
+            if (res.status === 202) {
+              // Unpaid — show confirmation dialog
+              setLastResult({
+                success: false,
+                message: data.message,
+                userName: data.userName,
+                requiresConfirmation: true,
+                pendingBody: body,
+              });
+            } else {
+              setLastResult({
+                success: res.ok,
+                message: data.message ?? data.error,
+                userName: data.userName,
+              });
+
+              // Notify CheckinList to update immediately
+              if (res.ok && !data.alreadyCheckedIn) {
+                globalThis.dispatchEvent(
+                  new CustomEvent("checkin-success", {
+                    detail: {
+                      type: isCompanion ? "companion" : "user",
+                      id: isCompanion ? parts[4] : parts[3],
+                    },
+                  }),
+                );
+              }
+            }
           } finally {
             // Allow next scan after a short delay
             setTimeout(() => {
@@ -118,12 +184,35 @@ export default function QRScanner({ eventId }: QRScannerProps) {
       {lastResult && (
         <div
           className={`rounded-xl p-4 text-sm font-medium ${
-            lastResult.success
-              ? "bg-forest-50 text-forest-700 dark:bg-forest-900/30 dark:text-forest-300"
-              : "bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300"
+            lastResult.requiresConfirmation
+              ? "bg-yellow-50 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"
+              : lastResult.success
+                ? "bg-forest-50 text-forest-700 dark:bg-forest-900/30 dark:text-forest-300"
+                : "bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300"
           }`}
         >
-          {lastResult.message}
+          <p>{lastResult.message}</p>
+          {lastResult.requiresConfirmation && (
+            <div className="flex gap-2 mt-3">
+              <Button
+                size="sm"
+                variant="primary"
+                onClick={handleForceCheckin}
+                disabled={forceLoading}
+                className="flex-1"
+              >
+                {forceLoading ? "Checking in..." : "Check In Anyway"}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setLastResult(null)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+            </div>
+          )}
         </div>
       )}
       <Button
