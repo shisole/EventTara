@@ -6,16 +6,16 @@ EventTara will accept payments via **GCash**, **Maya**, **GrabPay**, and **credi
 
 ## Why PayMongo
 
-| Criteria              | PayMongo             | Xendit          | Dragonpay   |
-| --------------------- | -------------------- | --------------- | ----------- |
-| GCash fee             | **2.23%**            | 2.5%            | P10-20 flat |
-| Maya fee              | **1.96%**            | 2.5%            | P10-20 flat |
-| Card fee              | 3.125% + P13.39      | 2.9% + P15      | Varies      |
-| Setup fee             | None                 | None            | P36,000     |
-| Monthly fee           | None                 | None            | None        |
-| Developer experience  | Excellent (REST API) | Good            | Dated (XML) |
-| Sandbox/test mode     | Yes                  | Yes             | Yes         |
-| Next.js compatibility | Native REST API      | Native REST API | Limited     |
+| Criteria              | PayMongo             | Xendit          | Dragonpay                      |
+| --------------------- | -------------------- | --------------- | ------------------------------ |
+| GCash fee             | **2.23%**            | 2.5%            | P10-20 flat                    |
+| Maya fee              | **1.96%**            | 2.5%            | P10-20 flat                    |
+| Card fee              | 3.125% + P13.39      | 2.9% + P15      | Varies                         |
+| Setup fee             | None                 | None            | None (waived for PH merchants) |
+| Monthly fee           | None                 | None            | None                           |
+| Developer experience  | Excellent (REST API) | Good            | Dated (XML)                    |
+| Sandbox/test mode     | Yes                  | Yes             | Yes                            |
+| Next.js compatibility | Native REST API      | Native REST API | Limited                        |
 
 PayMongo is the standard choice for Philippine startups — no setup fees, lowest e-wallet rates, and a well-documented REST API with a hosted checkout option.
 
