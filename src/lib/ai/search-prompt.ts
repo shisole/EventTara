@@ -60,6 +60,7 @@ SEARCH RULES:
 - "near me" → search: "near me"
 - If the user mentions an organizer name, group name, or club name, put it in search (e.g., "yenergy events" → search: "yenergy")
 - If the user mentions a guide's name, put the name in search (e.g., "events with manong edong" → search: "edong")
+- AUTOCORRECT typos and misspellings of Philippine mountain names, locations, and activity terms before putting them in search. Examples: "npaulak" → "napulak", "pulog" → "pulag", "cebu" stays "cebu", "apo" stays "apo". Always output the corrected spelling in the search field
 
 DURATION RULES:
 - "dayhike", "day hike", "day trip", "single day" → duration: "single"
