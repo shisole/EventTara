@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-import { loadCursiveFont, loadFaviconDataUri } from "@/lib/og/brand-assets";
+import { loadCursiveFont, loadFaviconDataUri, loadSansFont } from "@/lib/og/brand-assets";
 
 export const runtime = "nodejs";
 export const alt = "EventTara — Tara na! Book Your Next Adventure";
@@ -8,7 +8,11 @@ export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 export default async function Image() {
-  const [fontData, faviconUri] = await Promise.all([loadCursiveFont(), loadFaviconDataUri()]);
+  const [cursiveFont, sansFont, faviconUri] = await Promise.all([
+    loadCursiveFont(),
+    loadSansFont(),
+    loadFaviconDataUri(),
+  ]);
 
   return new ImageResponse(
     <div
@@ -20,7 +24,7 @@ export default async function Image() {
         width: "100%",
         height: "100%",
         background: "linear-gradient(135deg, #166534 0%, #15803d 40%, #0891b2 100%)",
-        fontFamily: "sans-serif",
+        fontFamily: "Inter",
       }}
     >
       {/* Favicon icon */}
@@ -46,11 +50,11 @@ export default async function Image() {
         EventTara
       </div>
 
-      {/* Caption */}
+      {/* Caption in sans-serif */}
       <div
         style={{
           fontSize: 30,
-          fontFamily: "sans-serif",
+          fontFamily: "Inter",
           color: "rgba(255, 255, 255, 0.9)",
         }}
       >
@@ -59,7 +63,10 @@ export default async function Image() {
     </div>,
     {
       ...size,
-      fonts: [{ name: "Dancing Script", data: fontData, style: "normal", weight: 700 }],
+      fonts: [
+        { name: "Dancing Script", data: cursiveFont, style: "normal", weight: 700 },
+        { name: "Inter", data: sansFont, style: "normal", weight: 400 },
+      ],
     },
   );
 }

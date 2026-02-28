@@ -1,30 +1,36 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
-let cachedFont: ArrayBuffer | null = null;
+let cachedCursiveFont: ArrayBuffer | null = null;
+let cachedSansFont: ArrayBuffer | null = null;
 let cachedFaviconB64: string | null = null;
 
 /**
  * Load the Dancing Script Bold font for use in OG ImageResponse.
  * Fetches from Google Fonts API and caches in memory.
  */
-export async function loadCursiveFont(): Promise<ArrayBuffer> {
-  if (cachedFont) return cachedFont;
-
-  // Google Fonts static URL for Dancing Script Bold (woff2 → need ttf for Satori)
-  // Fetch the CSS first to get the actual font file URL
+async function fetchGoogleFont(family: string, weight: number): Promise<ArrayBuffer> {
   const css = await fetch(
-    "https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap",
+    `https://fonts.googleapis.com/css2?family=${encodeURIComponent(family)}:wght@${weight}&display=swap`,
     { headers: { "User-Agent": "Mozilla/5.0 (compatible; OGImageRenderer)" } },
   ).then((r) => r.text());
 
-  // Extract the font URL from the CSS
   const urlMatch = /src:\s*url\(([^)]+)\)/.exec(css);
-  if (!urlMatch) throw new Error("Failed to parse Dancing Script font URL");
+  if (!urlMatch) throw new Error(`Failed to parse ${family} font URL`);
 
-  const fontData = await fetch(urlMatch[1]).then((r) => r.arrayBuffer());
-  cachedFont = fontData;
-  return fontData;
+  return fetch(urlMatch[1]).then((r) => r.arrayBuffer());
+}
+
+export async function loadCursiveFont(): Promise<ArrayBuffer> {
+  if (cachedCursiveFont) return cachedCursiveFont;
+  cachedCursiveFont = await fetchGoogleFont("Dancing Script", 700);
+  return cachedCursiveFont;
+}
+
+export async function loadSansFont(): Promise<ArrayBuffer> {
+  if (cachedSansFont) return cachedSansFont;
+  cachedSansFont = await fetchGoogleFont("Inter", 400);
+  return cachedSansFont;
 }
 
 /**
