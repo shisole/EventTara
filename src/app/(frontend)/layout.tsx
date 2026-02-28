@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Plus_Jakarta_Sans } from "next/font/google";
+import { Dancing_Script, Inter, Plus_Jakarta_Sans } from "next/font/google";
 
 import "./globals.css";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
@@ -17,6 +17,12 @@ const inter = Inter({
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
   variable: "--font-plus-jakarta",
+  display: "swap",
+});
+
+const dancingScript = Dancing_Script({
+  subsets: ["latin"],
+  variable: "--font-cursive",
   display: "swap",
 });
 
@@ -87,7 +93,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${plusJakarta.variable}`}
+      className={`${inter.variable} ${plusJakarta.variable} ${dancingScript.variable}`}
       suppressHydrationWarning
     >
       <head>

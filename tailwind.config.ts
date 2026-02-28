@@ -51,6 +51,7 @@ const config: Config = {
       fontFamily: {
         sans: ["var(--font-inter)", "system-ui", "sans-serif"],
         heading: ["var(--font-plus-jakarta)", "system-ui", "sans-serif"],
+        cursive: ["var(--font-cursive)", "cursive"],
       },
       borderRadius: {
         xl: "1rem",

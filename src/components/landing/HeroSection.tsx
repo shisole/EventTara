@@ -1,6 +1,7 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 
+import AnimatedLogo from "@/components/landing/AnimatedLogo";
 import HeroCarousel from "@/components/landing/HeroCarousel";
 
 const HostEventLink = dynamic(() => import("@/components/landing/HostEventLink"), {
@@ -52,6 +53,9 @@ export default function HeroSection({ heroData }: HeroSectionProps) {
           <span className="text-lime-600 dark:text-lime-400 text-sm font-semibold tracking-wide uppercase">
             Beta — Now Live
           </span>
+        </div>
+        <div className={`mb-2 ${heroSlides.length > 0 ? "text-lime-400" : "text-lime-500"}`}>
+          <AnimatedLogo />
         </div>
         <h1
           className={`text-5xl sm:text-7xl font-heading font-bold mb-4 ${heroSlides.length > 0 ? "text-white" : "text-gray-900 dark:text-white"}`}
