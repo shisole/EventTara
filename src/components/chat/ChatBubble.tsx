@@ -35,7 +35,7 @@ export default function ChatBubble() {
 
       <button
         onClick={handleToggle}
-        className={`fixed z-40 bottom-[5.5rem] right-4 md:bottom-6 md:right-6 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-300 active:scale-95 ${
+        className={`fixed z-[60] bottom-[5.5rem] right-4 md:bottom-6 md:right-6 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-300 active:scale-95 ${
           keyboardOpen ? "!hidden" : ""
         } ${
           open
