@@ -92,7 +92,7 @@ export default function Navbar({
               height={32}
               className="rounded-lg"
             />
-            <span className="text-2xl font-heading font-bold text-lime-500">EventTara</span>
+            <span className="text-2xl font-cursive font-bold text-lime-500">EventTara</span>
             <span className="bg-lime-500 text-gray-900 text-xs px-2 py-0.5 rounded-full font-medium">
               BETA
             </span>
