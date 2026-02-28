@@ -13,9 +13,15 @@ interface FeedListProps {
   initialItems: FeedItem[];
   initialHasMore: boolean;
   isAuthenticated: boolean;
+  currentUserId: string | null;
 }
 
-export default function FeedList({ initialItems, initialHasMore, isAuthenticated }: FeedListProps) {
+export default function FeedList({
+  initialItems,
+  initialHasMore,
+  isAuthenticated,
+  currentUserId,
+}: FeedListProps) {
   const [items, setItems] = useState<FeedItem[]>(initialItems);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [isLoading, setIsLoading] = useState(false);
@@ -91,6 +97,7 @@ export default function FeedList({ initialItems, initialHasMore, isAuthenticated
           key={`${item.activityType}-${item.id}`}
           item={item}
           isAuthenticated={isAuthenticated}
+          currentUserId={currentUserId}
         />
       ))}
 

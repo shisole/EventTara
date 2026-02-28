@@ -175,13 +175,19 @@ export async function GET(request: Request) {
     }
   }
 
-  // Fetch reactions (likes) for paged activities
+  // Fetch reactions (likes) and comment counts for paged activities
   const activityIds = paged.map((a) => a.id);
 
-  const { data: reactions } = await supabase
-    .from("feed_reactions")
-    .select("activity_type, activity_id, user_id")
-    .in("activity_id", activityIds);
+  const [{ data: reactions }, { data: commentCounts }] = await Promise.all([
+    supabase
+      .from("feed_reactions")
+      .select("activity_type, activity_id, user_id")
+      .in("activity_id", activityIds),
+    supabase
+      .from("feed_comments")
+      .select("activity_type, activity_id")
+      .in("activity_id", activityIds),
+  ]);
 
   // Build like counts and user like status
   const likeMap = new Map<string, { count: number; isLiked: boolean }>();
@@ -195,6 +201,13 @@ export async function GET(request: Request) {
     if (r.user_id === authUser?.id) {
       entry.isLiked = true;
     }
+  }
+
+  // Build comment count map
+  const commentCountMap = new Map<string, number>();
+  for (const c of commentCounts || []) {
+    const key = `${c.activity_type}:${c.activity_id}`;
+    commentCountMap.set(key, (commentCountMap.get(key) || 0) + 1);
   }
 
   // Fetch follow status if authenticated
@@ -235,6 +248,7 @@ export async function GET(request: Request) {
       isFollowing: followingSet.has(a.userId),
       likeCount: like?.count || 0,
       isLiked: like?.isLiked || false,
+      commentCount: commentCountMap.get(key) || 0,
     };
   });
 

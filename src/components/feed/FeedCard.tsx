@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import CommentSection from "@/components/feed/CommentSection";
 import LikeButton from "@/components/feed/LikeButton";
 import { UserAvatar } from "@/components/ui";
 import type { FeedItem } from "@/lib/feed/types";
@@ -11,9 +12,10 @@ import { formatRelativeTime } from "@/lib/utils/relative-time";
 interface FeedCardProps {
   item: FeedItem;
   isAuthenticated: boolean;
+  currentUserId: string | null;
 }
 
-export default function FeedCard({ item, isAuthenticated }: FeedCardProps) {
+export default function FeedCard({ item, isAuthenticated, currentUserId }: FeedCardProps) {
   const profileHref = item.userUsername
     ? item.userRole === "organizer"
       ? `/organizers/${item.userUsername}`
@@ -79,13 +81,20 @@ export default function FeedCard({ item, isAuthenticated }: FeedCardProps) {
         </div>
       )}
 
-      {/* Like button */}
+      {/* Like button + comments */}
       <LikeButton
         activityType={item.activityType}
         activityId={item.id}
         likeCount={item.likeCount}
         isLiked={item.isLiked}
         isAuthenticated={isAuthenticated}
+      />
+      <CommentSection
+        activityType={item.activityType}
+        activityId={item.id}
+        commentCount={item.commentCount}
+        isAuthenticated={isAuthenticated}
+        currentUserId={currentUserId}
       />
     </div>
   );

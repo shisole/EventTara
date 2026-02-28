@@ -689,6 +689,33 @@ export interface Database {
         };
         Relationships: [];
       };
+      feed_comments: {
+        Row: {
+          id: string;
+          user_id: string;
+          activity_type: "booking" | "checkin" | "badge" | "border";
+          activity_id: string;
+          text: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          activity_type: "booking" | "checkin" | "badge" | "border";
+          activity_id: string;
+          text: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          activity_type?: "booking" | "checkin" | "badge" | "border";
+          activity_id?: string;
+          text?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       feed_reactions: {
         Row: {
           id: string;

@@ -27,4 +27,5 @@ export { default as ShareIcon } from "./ShareIcon";
 export { default as SpinnerIcon } from "./SpinnerIcon";
 export { default as StarIcon } from "./StarIcon";
 export { default as SunIcon } from "./SunIcon";
+export { default as TrashIcon } from "./TrashIcon";
 export { default as XTwitterIcon } from "./XTwitterIcon";

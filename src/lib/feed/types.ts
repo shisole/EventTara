@@ -23,4 +23,17 @@ export interface FeedItem {
   isFollowing: boolean;
   likeCount: number;
   isLiked: boolean;
+  commentCount: number;
+}
+
+export interface FeedComment {
+  id: string;
+  userId: string;
+  userName: string;
+  userUsername: string | null;
+  userAvatarUrl: string | null;
+  borderTier: BorderTier | null;
+  borderColor: string | null;
+  text: string;
+  createdAt: string;
 }

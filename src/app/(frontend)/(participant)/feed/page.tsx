@@ -18,7 +18,12 @@ export default async function FeedPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
       <h1 className="text-2xl font-heading font-bold dark:text-white mb-6">Activity Feed</h1>
-      <FeedList initialItems={[]} initialHasMore={true} isAuthenticated={!!user} />
+      <FeedList
+        initialItems={[]}
+        initialHasMore={true}
+        isAuthenticated={!!user}
+        currentUserId={user?.id || null}
+      />
     </div>
   );
 }

@@ -55,3 +55,31 @@ CREATE POLICY "feed_reactions_insert_own"
 CREATE POLICY "feed_reactions_delete_own"
   ON feed_reactions FOR DELETE
   USING (auth.uid() = user_id);
+
+-- ===========================================
+-- feed_comments: comments on feed items
+-- ===========================================
+CREATE TABLE feed_comments (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  activity_type text NOT NULL CHECK (activity_type IN ('booking', 'checkin', 'badge', 'border')),
+  activity_id uuid NOT NULL,
+  text varchar(300) NOT NULL,
+  created_at timestamptz DEFAULT now()
+);
+
+CREATE INDEX idx_feed_comments_activity ON feed_comments(activity_type, activity_id);
+
+ALTER TABLE feed_comments ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "feed_comments_select_public"
+  ON feed_comments FOR SELECT
+  USING (true);
+
+CREATE POLICY "feed_comments_insert_own"
+  ON feed_comments FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "feed_comments_delete_own"
+  ON feed_comments FOR DELETE
+  USING (auth.uid() = user_id);
