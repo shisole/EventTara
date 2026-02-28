@@ -1,6 +1,6 @@
 "use client";
 
-import { format, isSameDay, isSameMonth, isWithinInterval, startOfDay } from "date-fns";
+import { addMonths, format, isSameDay, isSameMonth, isWithinInterval, startOfDay } from "date-fns";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { DayPicker } from "react-day-picker";
@@ -56,21 +56,6 @@ interface EventsCalendarProps {
   events: CalendarEvent[];
 }
 
-const MONTHS = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
-
 export default function EventsCalendar({ events }: EventsCalendarProps) {
   const router = useRouter();
   const today = new Date();
@@ -82,10 +67,6 @@ export default function EventsCalendar({ events }: EventsCalendarProps) {
     events: CalendarEvent[];
   } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  // Year range: 2 years back to 2 years forward
-  const currentYear = today.getFullYear();
-  const years = Array.from({ length: 5 }, (_, i) => currentYear - 2 + i);
 
   useEffect(() => {
     const mql = globalThis.matchMedia("(min-width: 768px)");
@@ -135,16 +116,10 @@ export default function EventsCalendar({ events }: EventsCalendarProps) {
     root: "text-gray-900 dark:text-gray-100 w-full",
     months: "relative w-full",
     month: "w-full",
-    month_caption: "flex justify-center items-center h-10 text-base font-semibold",
-    nav: "absolute top-0 left-0 right-0 flex items-center justify-between z-10",
-    button_previous: cn(
-      "h-8 w-8 bg-transparent p-0 opacity-50 hover:opacity-100 inline-flex items-center justify-center rounded-md",
-      "text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
-    ),
-    button_next: cn(
-      "h-8 w-8 bg-transparent p-0 opacity-50 hover:opacity-100 inline-flex items-center justify-center rounded-md",
-      "text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
-    ),
+    month_caption: "hidden",
+    nav: "hidden",
+    button_previous: "hidden",
+    button_next: "hidden",
     month_grid: "w-full border-collapse table-fixed",
     weekdays: "flex w-full",
     weekday: cn(
@@ -173,16 +148,10 @@ export default function EventsCalendar({ events }: EventsCalendarProps) {
   const mobileClassNames = {
     root: "text-gray-900 dark:text-gray-100",
     months: "relative flex justify-center",
-    month_caption: "flex justify-center items-center h-10 text-sm font-semibold",
-    nav: "absolute top-0 left-0 right-0 flex items-center justify-between z-10",
-    button_previous: cn(
-      "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 inline-flex items-center justify-center rounded-md",
-      "text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
-    ),
-    button_next: cn(
-      "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 inline-flex items-center justify-center rounded-md",
-      "text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
-    ),
+    month_caption: "hidden",
+    nav: "hidden",
+    button_previous: "hidden",
+    button_next: "hidden",
     month_grid: "w-full border-collapse space-y-1",
     weekdays: "flex",
     weekday: "text-gray-500 dark:text-gray-400 rounded-md w-9 font-normal text-[0.8rem] uppercase",
@@ -202,53 +171,49 @@ export default function EventsCalendar({ events }: EventsCalendarProps) {
       ref={containerRef}
       className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-4 md:p-6"
     >
-      <div className="flex items-center justify-between mb-4 gap-3">
+      <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-heading font-bold dark:text-white">Event Calendar</h2>
-        <div className="flex items-center gap-2">
-          <select
-            value={month.getMonth()}
-            onChange={(e) => {
-              const newMonth = new Date(month);
-              newMonth.setMonth(Number(e.target.value));
-              setMonth(newMonth);
-            }}
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => setMonth(addMonths(month, -1))}
             className={cn(
-              "text-sm rounded-lg border border-gray-300 dark:border-gray-600",
-              "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100",
-              "px-2 py-1.5 outline-none focus:ring-2 focus:ring-teal-300 dark:focus:ring-teal-700",
+              "h-8 w-8 inline-flex items-center justify-center rounded-lg transition-colors",
+              "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800",
             )}
+            aria-label="Previous month"
           >
-            {MONTHS.map((name, i) => (
-              <option key={name} value={i}>
-                {name}
-              </option>
-            ))}
-          </select>
-          <select
-            value={month.getFullYear()}
-            onChange={(e) => {
-              const newMonth = new Date(month);
-              newMonth.setFullYear(Number(e.target.value));
-              setMonth(newMonth);
-            }}
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+          </button>
+          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 min-w-[120px] text-center">
+            {format(month, "MMMM yyyy")}
+          </span>
+          <button
+            type="button"
+            onClick={() => setMonth(addMonths(month, 1))}
             className={cn(
-              "text-sm rounded-lg border border-gray-300 dark:border-gray-600",
-              "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100",
-              "px-2 py-1.5 outline-none focus:ring-2 focus:ring-teal-300 dark:focus:ring-teal-700",
+              "h-8 w-8 inline-flex items-center justify-center rounded-lg transition-colors",
+              "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800",
             )}
+            aria-label="Next month"
           >
-            {years.map((y) => (
-              <option key={y} value={y}>
-                {y}
-              </option>
-            ))}
-          </select>
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
           {!isSameMonth(month, today) && (
             <button
               type="button"
               onClick={() => setMonth(today)}
               className={cn(
-                "text-sm px-2.5 py-1.5 rounded-lg transition-colors",
+                "text-xs px-2 py-1 ml-1 rounded-lg transition-colors",
                 "text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/30",
                 "font-medium",
               )}
