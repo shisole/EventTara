@@ -171,57 +171,55 @@ export default function EventsCalendar({ events }: EventsCalendarProps) {
       ref={containerRef}
       className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-4 md:p-6"
     >
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-heading font-bold dark:text-white">Event Calendar</h2>
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={() => setMonth(addMonths(month, -1))}
-            className={cn(
-              "h-8 w-8 inline-flex items-center justify-center rounded-lg transition-colors",
-              "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800",
-            )}
-            aria-label="Previous month"
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-          </button>
-          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 min-w-[120px] text-center">
-            {format(month, "MMMM yyyy")}
-          </span>
-          <button
-            type="button"
-            onClick={() => setMonth(addMonths(month, 1))}
-            className={cn(
-              "h-8 w-8 inline-flex items-center justify-center rounded-lg transition-colors",
-              "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800",
-            )}
-            aria-label="Next month"
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-          {!isSameMonth(month, today) && (
-            <button
-              type="button"
-              onClick={() => setMonth(today)}
-              className={cn(
-                "text-xs px-2 py-1 ml-1 rounded-lg transition-colors",
-                "text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/30",
-                "font-medium",
-              )}
-            >
-              Today
-            </button>
+      <h2 className="text-lg font-heading font-bold dark:text-white mb-3">Event Calendar</h2>
+      <div className="flex items-center justify-center gap-2 mb-4">
+        <button
+          type="button"
+          onClick={() => setMonth(addMonths(month, -1))}
+          className={cn(
+            "h-8 w-8 inline-flex items-center justify-center rounded-lg transition-colors",
+            "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800",
           )}
-        </div>
+          aria-label="Previous month"
+        >
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
+        </button>
+        <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 min-w-[120px] text-center">
+          {format(month, "MMMM yyyy")}
+        </span>
+        <button
+          type="button"
+          onClick={() => setMonth(addMonths(month, 1))}
+          className={cn(
+            "h-8 w-8 inline-flex items-center justify-center rounded-lg transition-colors",
+            "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800",
+          )}
+          aria-label="Next month"
+        >
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+        {!isSameMonth(month, today) && (
+          <button
+            type="button"
+            onClick={() => setMonth(today)}
+            className={cn(
+              "text-xs px-2 py-1 rounded-lg transition-colors",
+              "text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/30",
+              "font-medium",
+            )}
+          >
+            Today
+          </button>
+        )}
       </div>
 
       <DayPicker
