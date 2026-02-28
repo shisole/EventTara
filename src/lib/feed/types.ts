@@ -13,6 +13,7 @@ export interface FeedItem {
   userUsername: string | null;
   userAvatarUrl: string | null;
   userRole: string | null;
+  organizerProfileId: string | null;
   borderTier: BorderTier | null;
   borderColor: string | null;
   topBadgeTitle: string | null;

@@ -132,6 +132,19 @@ export async function GET(request: Request) {
 
   const userMap = new Map((users || []).map((u) => [u.id, u]));
 
+  // Fetch organizer profile IDs for organizer users
+  const organizerUserIds = (users || []).filter((u) => u.role === "organizer").map((u) => u.id);
+  const organizerMap = new Map<string, string>();
+  if (organizerUserIds.length > 0) {
+    const { data: orgProfiles } = await supabase
+      .from("organizer_profiles")
+      .select("id, user_id")
+      .in("user_id", organizerUserIds);
+    for (const op of orgProfiles || []) {
+      organizerMap.set(op.user_id, op.id);
+    }
+  }
+
   // Fetch border tier/color for users with active borders
   const borderUserIds = (users || [])
     .filter((u) => u.active_border_id)
@@ -212,6 +225,7 @@ export async function GET(request: Request) {
       userUsername: user?.username || null,
       userAvatarUrl: user?.avatar_url || null,
       userRole: user?.role || null,
+      organizerProfileId: organizerMap.get(a.userId) || null,
       borderTier: border?.tier || null,
       borderColor: border?.color || null,
       topBadgeTitle: topBadgeMap.get(a.userId) || null,
