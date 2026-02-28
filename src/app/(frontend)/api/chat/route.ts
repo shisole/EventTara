@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
-import { buildSearchSystemPrompt } from "@/lib/ai/search-prompt";
+import { buildSearchSystemPrompt, buildSuggestionPrompt } from "@/lib/ai/search-prompt";
 import type { ParsedSearchParams } from "@/lib/ai/search-prompt";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, Json } from "@/lib/supabase/types";
@@ -289,15 +289,86 @@ export async function POST(request: Request) {
     console.error("[chat] Failed to log query:", insertErr.message);
   }
 
-  // Adjust reply when no results found
-  const searchTerm = parsed.search ?? message.trim();
-  const reply =
-    count === 0
-      ? `Sorry, but there are no results for "${searchTerm}". Try a different search or browse all events!`
-      : parsed.reply;
+  // When no results found, run fallback query and suggest nearest events
+  if (count === 0) {
+    // Fallback: keep type + search, drop date/distance/difficulty, find nearest upcoming
+    let fallbackQ = supabase
+      .from("events")
+      .select("id, title, type, date, location, price, cover_image_url")
+      .eq("status", "published")
+      .gt("date", today);
+
+    if (parsed.type) {
+      fallbackQ = fallbackQ.eq("type", parsed.type);
+    }
+    if (parsed.search) {
+      const pattern = parsed.search.trim().replaceAll(/\s+/g, "%");
+      fallbackQ = fallbackQ.or(`title.ilike.%${pattern}%,location.ilike.%${pattern}%`);
+    }
+
+    fallbackQ = fallbackQ.order("date", { ascending: true }).limit(3);
+    const { data: fallbackEvents } = await fallbackQ;
+
+    if (fallbackEvents && fallbackEvents.length > 0) {
+      // Second Claude call to generate a natural suggestion
+      try {
+        const suggestionCompletion = await anthropic.messages.create({
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: 200,
+          system: buildSuggestionPrompt(message.trim(), parsed.type, fallbackEvents),
+          messages: [{ role: "user", content: "Suggest the nearest events." }],
+        });
+
+        const suggestionText =
+          suggestionCompletion.content[0].type === "text"
+            ? suggestionCompletion.content[0].text
+            : "";
+        const cleanedSuggestion = suggestionText
+          .replace(/^```(?:json)?\s*\n?/i, "")
+          .replace(/\n?```\s*$/i, "")
+          .trim();
+        const suggestionParsed = JSON.parse(cleanedSuggestion) as { reply: string };
+
+        const fallbackMini = fallbackEvents.map((e) => ({
+          id: e.id,
+          title: e.title,
+          type: e.type,
+          date: e.date,
+          location: e.location,
+          price: e.price,
+          cover_image_url: e.cover_image_url,
+        }));
+
+        // Build broader filter URL for "View all results"
+        const fallbackFilterParts: string[] = [];
+        if (parsed.type) fallbackFilterParts.push(`type=${parsed.type}`);
+        if (parsed.search) fallbackFilterParts.push(`search=${encodeURIComponent(parsed.search)}`);
+        fallbackFilterParts.push("when=upcoming");
+        const fallbackFilterUrl = `/events?${fallbackFilterParts.join("&")}`;
+
+        return NextResponse.json({
+          reply: suggestionParsed.reply,
+          events: fallbackMini,
+          totalCount: fallbackEvents.length,
+          filterUrl: fallbackFilterUrl,
+        });
+      } catch {
+        // If suggestion call fails, fall through to generic empty response
+      }
+    }
+
+    // No fallback events found either, or suggestion call failed
+    const searchTerm = parsed.search ?? message.trim();
+    return NextResponse.json({
+      reply: `Sorry, but there are no results for "${searchTerm}". Try a different search or browse all events!`,
+      events: [],
+      totalCount: 0,
+      filterUrl,
+    });
+  }
 
   return NextResponse.json({
-    reply,
+    reply: parsed.reply,
     events: miniEvents,
     totalCount: count,
     filterUrl,
