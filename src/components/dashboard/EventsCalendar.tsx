@@ -112,26 +112,27 @@ export default function EventsCalendar({ events }: EventsCalendarProps) {
   // Desktop: bigger cells with event names
   const desktopClassNames = {
     root: "text-gray-900 dark:text-gray-100 w-full",
-    months: "relative flex justify-center",
-    month_caption: "flex justify-center items-center h-10 text-sm font-semibold",
+    months: "relative w-full",
+    month: "w-full",
+    month_caption: "flex justify-center items-center h-10 text-base font-semibold",
     nav: "absolute top-0 left-0 right-0 flex items-center justify-between z-10",
     button_previous: cn(
-      "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 inline-flex items-center justify-center rounded-md",
+      "h-8 w-8 bg-transparent p-0 opacity-50 hover:opacity-100 inline-flex items-center justify-center rounded-md",
       "text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
     ),
     button_next: cn(
-      "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 inline-flex items-center justify-center rounded-md",
+      "h-8 w-8 bg-transparent p-0 opacity-50 hover:opacity-100 inline-flex items-center justify-center rounded-md",
       "text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
     ),
-    month_grid: "w-full border-collapse",
-    weekdays: "flex",
+    month_grid: "w-full border-collapse table-fixed",
+    weekdays: "flex w-full",
     weekday: cn(
-      "flex-1 text-gray-500 dark:text-gray-400 font-normal text-[0.8rem] uppercase",
-      "text-center py-2 border-b border-gray-200 dark:border-gray-700",
+      "flex-1 text-gray-500 dark:text-gray-400 font-medium text-sm uppercase",
+      "text-center py-3 border-b border-gray-200 dark:border-gray-700",
     ),
     week: "flex w-full",
     day: cn(
-      "flex-1 min-h-[5.5rem] text-sm p-0 relative",
+      "flex-1 min-h-[6.5rem] text-sm p-0 relative",
       "border-b border-r border-gray-100 dark:border-gray-800",
       "last:border-r-0",
       "focus-within:relative focus-within:z-20",
@@ -203,7 +204,7 @@ export default function EventsCalendar({ events }: EventsCalendarProps) {
                 >
                   <span
                     className={cn(
-                      "text-xs font-medium px-1.5 py-0.5 mt-1 ml-1 rounded",
+                      "text-sm font-medium px-1.5 py-0.5 mt-1 ml-1 rounded",
                       hasEvents && "text-teal-700 dark:text-teal-300",
                     )}
                   >
@@ -215,7 +216,7 @@ export default function EventsCalendar({ events }: EventsCalendarProps) {
                         <div
                           key={evt.id}
                           className={cn(
-                            "text-[0.65rem] leading-tight px-1 py-0.5 rounded truncate",
+                            "text-xs leading-tight px-1.5 py-0.5 rounded truncate",
                             typeBgColors[evt.type],
                             typeChipText[evt.type],
                           )}
@@ -224,7 +225,7 @@ export default function EventsCalendar({ events }: EventsCalendarProps) {
                         </div>
                       ))}
                       {dayEvents.length > 2 && (
-                        <div className="text-[0.6rem] text-gray-500 dark:text-gray-400 px-1">
+                        <div className="text-[0.65rem] text-gray-500 dark:text-gray-400 px-1">
                           +{dayEvents.length - 2} more
                         </div>
                       )}
