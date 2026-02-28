@@ -18,8 +18,11 @@ export default function EventCarousel({
   speed = 30,
 }: EventCarouselProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const mobileRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [totalCards, setTotalCards] = useState(0);
   const isPaused = useRef(false);
 
   const checkScroll = () => {
@@ -68,6 +71,26 @@ export default function EventCarousel({
       clearInterval(interval);
     };
   }, [autoSlide, autoSlideInterval, scrollByOne]);
+
+  // Mobile: track active card index for dot indicators
+  useEffect(() => {
+    const el = mobileRef.current;
+    if (!el) return;
+
+    setTotalCards(el.children.length);
+
+    const handleScroll = () => {
+      const scrollLeft = el.scrollLeft;
+      const card = el.querySelector<HTMLElement>(":scope > *");
+      const cardWidth = card?.offsetWidth || 280;
+      const gap = 16;
+      const index = Math.round(scrollLeft / (cardWidth + gap));
+      setActiveIndex(index);
+    };
+
+    el.addEventListener("scroll", handleScroll, { passive: true });
+    return () => el.removeEventListener("scroll", handleScroll);
+  }, [children]);
 
   const scroll = (direction: "left" | "right") => {
     isPaused.current = true;
@@ -175,11 +198,27 @@ export default function EventCarousel({
   return (
     <div className="relative">
       {/* Mobile: horizontal carousel */}
-      <div
-        className="md:hidden flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2 -mx-4 px-4"
-        style={{ scrollSnapType: "x mandatory" }}
-      >
-        {children}
+      <div className="md:hidden">
+        <div
+          ref={mobileRef}
+          className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-4 pl-4 -mr-4"
+          style={{ scrollSnapType: "x mandatory" }}
+        >
+          {children}
+        </div>
+        {/* Scroll indicator dots */}
+        {totalCards > 1 && (
+          <div className="flex justify-center gap-1.5 mt-3">
+            {Array.from({ length: totalCards }, (_, i) => (
+              <span
+                key={i}
+                className={`h-1.5 rounded-full transition-all duration-200 ${
+                  i === activeIndex ? "w-4 bg-lime-500" : "w-1.5 bg-gray-300 dark:bg-gray-600"
+                }`}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Desktop: horizontal carousel */}
