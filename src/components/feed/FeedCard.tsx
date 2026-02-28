@@ -5,6 +5,9 @@ import Link from "next/link";
 
 import CommentSection from "@/components/feed/CommentSection";
 import LikeButton from "@/components/feed/LikeButton";
+import RepostButton from "@/components/feed/RepostButton";
+import ShareButton from "@/components/feed/ShareButton";
+import { RepostIcon } from "@/components/icons";
 import { UserAvatar } from "@/components/ui";
 import type { FeedItem } from "@/lib/feed/types";
 import { formatRelativeTime } from "@/lib/utils/relative-time";
@@ -24,6 +27,26 @@ export default function FeedCard({ item, isAuthenticated, currentUserId }: FeedC
 
   return (
     <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm dark:shadow-gray-950/20 p-4 space-y-3">
+      {/* Repost attribution */}
+      {item.repostedBy && (
+        <div className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500">
+          <RepostIcon className="w-3.5 h-3.5" />
+          <span>
+            Reposted by{" "}
+            {item.repostedBy.userUsername ? (
+              <Link
+                href={`/profile/${item.repostedBy.userUsername}`}
+                className="font-medium hover:underline"
+              >
+                {item.repostedBy.userName}
+              </Link>
+            ) : (
+              <span className="font-medium">{item.repostedBy.userName}</span>
+            )}
+          </span>
+        </div>
+      )}
+
       {/* Header: avatar + name + badge + organizer + following */}
       <div className="flex items-center gap-3">
         <Link href={profileHref} className="shrink-0">
@@ -81,14 +104,30 @@ export default function FeedCard({ item, isAuthenticated, currentUserId }: FeedC
         </div>
       )}
 
-      {/* Like button + comments */}
-      <LikeButton
-        activityType={item.activityType}
-        activityId={item.id}
-        likeCount={item.likeCount}
-        isLiked={item.isLiked}
-        isAuthenticated={isAuthenticated}
-      />
+      {/* Action bar: like, repost, share */}
+      <div className="flex items-center gap-4">
+        <LikeButton
+          activityType={item.activityType}
+          activityId={item.id}
+          likeCount={item.likeCount}
+          isLiked={item.isLiked}
+          isAuthenticated={isAuthenticated}
+        />
+        <RepostButton
+          activityType={item.activityType}
+          activityId={item.id}
+          repostCount={item.repostCount}
+          isReposted={item.isReposted}
+          isAuthenticated={isAuthenticated}
+        />
+        <ShareButton
+          activityType={item.activityType}
+          activityId={item.id}
+          userName={item.userName}
+          text={item.text}
+        />
+      </div>
+
       <CommentSection
         activityType={item.activityType}
         activityId={item.id}

@@ -743,6 +743,30 @@ export interface Database {
         };
         Relationships: [];
       };
+      feed_reposts: {
+        Row: {
+          id: string;
+          user_id: string;
+          activity_type: "booking" | "checkin" | "badge" | "border";
+          activity_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          activity_type: "booking" | "checkin" | "badge" | "border";
+          activity_id: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          activity_type?: "booking" | "checkin" | "badge" | "border";
+          activity_id?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<never, never>;
     Functions: {

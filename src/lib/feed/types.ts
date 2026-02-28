@@ -24,6 +24,9 @@ export interface FeedItem {
   likeCount: number;
   isLiked: boolean;
   commentCount: number;
+  repostCount: number;
+  isReposted: boolean;
+  repostedBy?: { userName: string; userUsername: string | null };
 }
 
 export interface FeedComment {

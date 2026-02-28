@@ -83,3 +83,31 @@ CREATE POLICY "feed_comments_insert_own"
 CREATE POLICY "feed_comments_delete_own"
   ON feed_comments FOR DELETE
   USING (auth.uid() = user_id);
+
+-- ===========================================
+-- feed_reposts: reposts on feed items
+-- ===========================================
+CREATE TABLE feed_reposts (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  activity_type text NOT NULL CHECK (activity_type IN ('booking', 'checkin', 'badge', 'border')),
+  activity_id uuid NOT NULL,
+  created_at timestamptz DEFAULT now(),
+  CONSTRAINT feed_reposts_unique UNIQUE (user_id, activity_type, activity_id)
+);
+
+CREATE INDEX idx_feed_reposts_activity ON feed_reposts(activity_type, activity_id);
+
+ALTER TABLE feed_reposts ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "feed_reposts_select_public"
+  ON feed_reposts FOR SELECT
+  USING (true);
+
+CREATE POLICY "feed_reposts_insert_own"
+  ON feed_reposts FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "feed_reposts_delete_own"
+  ON feed_reposts FOR DELETE
+  USING (auth.uid() = user_id);

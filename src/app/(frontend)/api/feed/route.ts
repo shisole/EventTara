@@ -13,6 +13,7 @@ interface RawActivity {
   text: string;
   contextImageUrl: string | null;
   timestamp: string;
+  repostedBy?: { userId: string; createdAt: string };
 }
 
 export async function GET(request: Request) {
@@ -60,6 +61,13 @@ export async function GET(request: Request) {
     .select("id, user_id, awarded_at, avatar_borders(name, tier), users!inner(is_guest)")
     .eq("users.is_guest", false)
     .order("awarded_at", { ascending: false })
+    .limit(fetchLimit);
+
+  // 5. Reposts — fetch reposted activities to inject as separate feed entries
+  const { data: reposts } = await supabase
+    .from("feed_reposts")
+    .select("id, user_id, activity_type, activity_id, created_at")
+    .order("created_at", { ascending: false })
     .limit(fetchLimit);
 
   // Build unified activity list
@@ -113,6 +121,25 @@ export async function GET(request: Request) {
     });
   }
 
+  // Build a lookup from the original activities so we can create repost entries
+  const activityLookup = new Map<string, RawActivity>();
+  for (const a of activities) {
+    activityLookup.set(`${a.activityType}:${a.id}`, a);
+  }
+
+  // Inject repost entries as duplicates with repostedBy attribution
+  for (const rp of reposts || []) {
+    const originalKey = `${rp.activity_type}:${rp.activity_id}`;
+    const original = activityLookup.get(originalKey);
+    if (original) {
+      activities.push({
+        ...original,
+        timestamp: rp.created_at,
+        repostedBy: { userId: rp.user_id, createdAt: rp.created_at },
+      });
+    }
+  }
+
   // Sort by timestamp descending, then paginate
   activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
   const paged = activities.slice(offset, offset + limit);
@@ -121,8 +148,12 @@ export async function GET(request: Request) {
     return NextResponse.json({ items: [], hasMore: false });
   }
 
-  // Collect unique user IDs
-  const userIds = [...new Set(paged.map((a) => a.userId))];
+  // Collect unique user IDs (including reposters)
+  const userIdSet = new Set(paged.map((a) => a.userId));
+  for (const a of paged) {
+    if (a.repostedBy) userIdSet.add(a.repostedBy.userId);
+  }
+  const userIds = [...userIdSet];
 
   // Fetch user profiles (including role)
   const { data: users } = await supabase
@@ -175,10 +206,10 @@ export async function GET(request: Request) {
     }
   }
 
-  // Fetch reactions (likes) and comment counts for paged activities
+  // Fetch reactions (likes), comment counts, and repost counts for paged activities
   const activityIds = paged.map((a) => a.id);
 
-  const [{ data: reactions }, { data: commentCounts }] = await Promise.all([
+  const [{ data: reactions }, { data: commentCounts }, { data: repostCounts }] = await Promise.all([
     supabase
       .from("feed_reactions")
       .select("activity_type, activity_id, user_id")
@@ -186,6 +217,10 @@ export async function GET(request: Request) {
     supabase
       .from("feed_comments")
       .select("activity_type, activity_id")
+      .in("activity_id", activityIds),
+    supabase
+      .from("feed_reposts")
+      .select("activity_type, activity_id, user_id")
       .in("activity_id", activityIds),
   ]);
 
@@ -210,6 +245,20 @@ export async function GET(request: Request) {
     commentCountMap.set(key, (commentCountMap.get(key) || 0) + 1);
   }
 
+  // Build repost count map and user repost status
+  const repostMap = new Map<string, { count: number; isReposted: boolean }>();
+  for (const r of repostCounts || []) {
+    const key = `${r.activity_type}:${r.activity_id}`;
+    if (!repostMap.has(key)) {
+      repostMap.set(key, { count: 0, isReposted: false });
+    }
+    const entry = repostMap.get(key)!;
+    entry.count++;
+    if (r.user_id === authUser?.id) {
+      entry.isReposted = true;
+    }
+  }
+
   // Fetch follow status if authenticated
   const followingSet = new Set<string>();
   if (authUser) {
@@ -228,9 +277,10 @@ export async function GET(request: Request) {
     const user = userMap.get(a.userId);
     const key = `${a.activityType}:${a.id}`;
     const like = likeMap.get(key);
+    const repost = repostMap.get(key);
     const border = user?.active_border_id ? borderMap.get(user.active_border_id) : null;
 
-    return {
+    const item: FeedItem = {
       id: a.id,
       activityType: a.activityType,
       userId: a.userId,
@@ -249,7 +299,19 @@ export async function GET(request: Request) {
       likeCount: like?.count || 0,
       isLiked: like?.isLiked || false,
       commentCount: commentCountMap.get(key) || 0,
+      repostCount: repost?.count || 0,
+      isReposted: repost?.isReposted || false,
     };
+
+    if (a.repostedBy) {
+      const reposter = userMap.get(a.repostedBy.userId);
+      item.repostedBy = {
+        userName: reposter?.full_name || "Someone",
+        userUsername: reposter?.username || null,
+      };
+    }
+
+    return item;
   });
 
   return NextResponse.json({
