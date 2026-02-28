@@ -1,6 +1,6 @@
 "use client";
 
-import { format, isSameDay, isWithinInterval, startOfDay } from "date-fns";
+import { format, isSameDay, isSameMonth, isWithinInterval, startOfDay } from "date-fns";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { DayPicker } from "react-day-picker";
@@ -56,8 +56,25 @@ interface EventsCalendarProps {
   events: CalendarEvent[];
 }
 
+const MONTHS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
 export default function EventsCalendar({ events }: EventsCalendarProps) {
   const router = useRouter();
+  const today = new Date();
+  const [month, setMonth] = useState(today);
   const [isDesktop, setIsDesktop] = useState(false);
   const [popover, setPopover] = useState<{
     x: number;
@@ -65,6 +82,10 @@ export default function EventsCalendar({ events }: EventsCalendarProps) {
     events: CalendarEvent[];
   } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Year range: 2 years back to 2 years forward
+  const currentYear = today.getFullYear();
+  const years = Array.from({ length: 5 }, (_, i) => currentYear - 2 + i);
 
   useEffect(() => {
     const mql = globalThis.matchMedia("(min-width: 768px)");
@@ -181,10 +202,67 @@ export default function EventsCalendar({ events }: EventsCalendarProps) {
       ref={containerRef}
       className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-4 md:p-6"
     >
-      <h2 className="text-lg font-heading font-bold mb-4 dark:text-white">Event Calendar</h2>
+      <div className="flex items-center justify-between mb-4 gap-3">
+        <h2 className="text-lg font-heading font-bold dark:text-white">Event Calendar</h2>
+        <div className="flex items-center gap-2">
+          <select
+            value={month.getMonth()}
+            onChange={(e) => {
+              const newMonth = new Date(month);
+              newMonth.setMonth(Number(e.target.value));
+              setMonth(newMonth);
+            }}
+            className={cn(
+              "text-sm rounded-lg border border-gray-300 dark:border-gray-600",
+              "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100",
+              "px-2 py-1.5 outline-none focus:ring-2 focus:ring-teal-300 dark:focus:ring-teal-700",
+            )}
+          >
+            {MONTHS.map((name, i) => (
+              <option key={name} value={i}>
+                {name}
+              </option>
+            ))}
+          </select>
+          <select
+            value={month.getFullYear()}
+            onChange={(e) => {
+              const newMonth = new Date(month);
+              newMonth.setFullYear(Number(e.target.value));
+              setMonth(newMonth);
+            }}
+            className={cn(
+              "text-sm rounded-lg border border-gray-300 dark:border-gray-600",
+              "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100",
+              "px-2 py-1.5 outline-none focus:ring-2 focus:ring-teal-300 dark:focus:ring-teal-700",
+            )}
+          >
+            {years.map((y) => (
+              <option key={y} value={y}>
+                {y}
+              </option>
+            ))}
+          </select>
+          {!isSameMonth(month, today) && (
+            <button
+              type="button"
+              onClick={() => setMonth(today)}
+              className={cn(
+                "text-sm px-2.5 py-1.5 rounded-lg transition-colors",
+                "text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/30",
+                "font-medium",
+              )}
+            >
+              Today
+            </button>
+          )}
+        </div>
+      </div>
 
       <DayPicker
         mode="single"
+        month={month}
+        onMonthChange={setMonth}
         classNames={isDesktop ? desktopClassNames : mobileClassNames}
         components={{
           DayButton: ({ day, ...props }) => {
