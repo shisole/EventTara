@@ -12,6 +12,7 @@ export {
   SkeletonText,
   SkeletonCircle,
   SkeletonEventCard,
+  SkeletonFeedCard,
   SkeletonStatCard,
   SkeletonTableRow,
 } from "./Skeleton";

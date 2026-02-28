@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import FeedCard from "@/components/feed/FeedCard";
 import { SpinnerIcon } from "@/components/icons";
+import { SkeletonFeedCard } from "@/components/ui";
 import type { FeedItem } from "@/lib/feed/types";
 
 const BATCH_SIZE = 15;
@@ -64,8 +65,10 @@ export default function FeedList({ initialItems, initialHasMore, isAuthenticated
 
   if (!initialLoaded && isLoading) {
     return (
-      <div className="flex justify-center py-16">
-        <SpinnerIcon className="w-8 h-8 text-lime-500 animate-spin" />
+      <div className="space-y-4">
+        <SkeletonFeedCard />
+        <SkeletonFeedCard />
+        <SkeletonFeedCard />
       </div>
     );
   }
