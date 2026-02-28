@@ -49,7 +49,10 @@ export default async function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <h3 className="text-gray-900 dark:text-white font-cursive font-bold text-2xl mb-3">
+            <h3
+              className="text-gray-900 dark:text-white font-cursive font-bold text-2xl mb-3"
+              style={{ WebkitTextStroke: "0.5px currentColor" }}
+            >
               EventTara
             </h3>
             <p className="text-sm">{footerTagline}</p>
