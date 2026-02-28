@@ -9,6 +9,7 @@ import {
   CogIcon,
   DashboardIcon,
   ExploreIcon,
+  FeedIcon,
   HomeIcon,
   LoginIcon,
   ProfileIcon,
@@ -65,6 +66,12 @@ function getNavItems(user: User | null, role: string | null, pathname: string): 
       label: "Explore",
       icon: ExploreIcon,
       isActive: (p) => p === "/events" || (p.startsWith("/events/") && !p.includes("/book")),
+    },
+    {
+      href: "/feed",
+      label: "Feed",
+      icon: FeedIcon,
+      isActive: (p) => p === "/feed",
     },
   ];
 
