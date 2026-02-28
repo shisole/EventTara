@@ -62,7 +62,7 @@ The app uses Next.js route groups with a nested structure:
 - `(frontend)` — parent route group containing all user-facing pages:
   - `(auth)` — `/login`, `/signup`, `/guest-setup` with a shared centered layout
   - `(participant)` — `/events`, `/events/[id]`, `/events/[id]/book`, `/my-events`, `/profile/[username]`, `/guides/[id]`
-  - `(organizer)` — `/dashboard` and nested pages (`/events`, `/events/new`, `/events/[id]`, `/events/[id]/edit`, `/events/[id]/checkin`, `/guides`, `/guides/new`, `/guides/[id]`, `/settings`)
+  - `(organizer)` — `/dashboard` and nested pages (`/events`, `/events/new`, `/events/[id]`, `/events/[id]/edit`, `/events/[id]/checkin`, `/settings`)
 - `(payload)` — Payload CMS admin interface (accessed at `/admin`)
 
 SEO files (`robots.ts`, `sitemap.ts`, `opengraph-image.tsx`) remain at the `src/app/` root level.
@@ -91,8 +91,8 @@ Thin wrappers in `src/app/api/` that authenticate via `createClient()` server-si
 - `GET/POST /api/events` — list/create events (GET supports pagination, filters)
 - `GET/PATCH/DELETE /api/events/[id]` — manage single event
 - `GET/POST/DELETE /api/events/[id]/guides` — event-guide linking (hiking events)
-- `GET/POST /api/guides` — list/create guides (GET supports `created_by` filter)
-- `GET/PATCH/DELETE /api/guides/[id]` — manage single guide
+- `GET /api/guides` — list guides (supports availability check via `check_date` param)
+- `GET /api/guides/[id]` — single guide with events, reviews, and stats
 - `GET/POST /api/guides/[id]/reviews` — guide reviews (POST validates booking + completed event)
 - `POST /api/bookings` — book an event
 - `POST /api/checkins` — record a check-in (QR or manual)

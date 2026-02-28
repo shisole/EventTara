@@ -122,38 +122,3 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({ guides: result });
 }
-
-export async function POST(request: Request) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const body = await request.json();
-
-  if (!body.full_name) {
-    return NextResponse.json({ error: "full_name is required" }, { status: 400 });
-  }
-
-  const { data: guide, error } = await supabase
-    .from("guides")
-    .insert({
-      full_name: body.full_name,
-      bio: body.bio || null,
-      avatar_url: body.avatar_url || null,
-      contact_number: body.contact_number || null,
-      created_by: user.id,
-    })
-    .select()
-    .single();
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
-  return NextResponse.json({ guide });
-}

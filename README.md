@@ -144,7 +144,7 @@ Organizers create badges for events. Participants earn badges after check-in, vi
 
 ### Dashboard
 
-Organizers manage events, guides, bookings, check-ins, and payments from `/dashboard`. Organizers are redirected to the dashboard automatically on login. Event publishing shows real-time loading feedback.
+Organizers manage events, bookings, check-ins, and payments from `/dashboard`. Organizers are redirected to the dashboard automatically on login. Event publishing shows real-time loading feedback.
 
 ## API Routes
 
@@ -153,8 +153,8 @@ Organizers manage events, guides, bookings, check-ins, and payments from `/dashb
 | `/api/events`              | GET, POST          | List/create events                  |
 | `/api/events/[id]`         | GET, PATCH, DELETE | Manage event                        |
 | `/api/events/[id]/guides`  | GET, POST, DELETE  | Event-guide linking                 |
-| `/api/guides`              | GET, POST          | List/create guides                  |
-| `/api/guides/[id]`         | GET, PATCH, DELETE | Manage guide                        |
+| `/api/guides`              | GET                | List guides                         |
+| `/api/guides/[id]`         | GET                | Guide details with events & reviews |
 | `/api/guides/[id]/reviews` | GET, POST          | Guide reviews                       |
 | `/api/bookings`            | POST               | Book an event                       |
 | `/api/checkins`            | POST               | Check in participant (QR or manual) |
