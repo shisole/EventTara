@@ -6,6 +6,7 @@ export type EmojiType = "heart";
 export const EMOJI_ICON = "💚";
 
 export interface FeedItem {
+  feedKey: string;
   id: string;
   activityType: ActivityType;
   userId: string;

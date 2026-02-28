@@ -5,7 +5,7 @@ export default function RepostIcon({ className }: { className?: string }) {
         strokeLinecap="round"
         strokeLinejoin="round"
         strokeWidth={2}
-        d="M17 1l4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4m14 4v2a4 4 0 0 1-4 4H3"
+        d="M7 16l-3-3 3-3m10-4l3 3-3 3M4 13h13a3 3 0 0 0 3-3V8M20 11H7a3 3 0 0 0-3 3v2"
       />
     </svg>
   );

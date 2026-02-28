@@ -30,45 +30,47 @@ export async function GET(request: Request) {
 
   const fetchLimit = offset + limit + 10;
 
-  // 1. Bookings (non-guest, non-cancelled)
-  const { data: bookings } = await supabase
-    .from("bookings")
-    .select("id, user_id, booked_at, status, events(title, cover_image_url), users!inner(is_guest)")
-    .in("status", ["pending", "confirmed"])
-    .eq("users.is_guest", false)
-    .order("booked_at", { ascending: false })
-    .limit(fetchLimit);
-
-  // 2. Check-ins
-  const { data: checkins } = await supabase
-    .from("event_checkins")
-    .select("id, user_id, checked_in_at, events(title, cover_image_url), users!inner(is_guest)")
-    .eq("users.is_guest", false)
-    .order("checked_in_at", { ascending: false })
-    .limit(fetchLimit);
-
-  // 3. Badges earned
-  const { data: userBadges } = await supabase
-    .from("user_badges")
-    .select("id, user_id, awarded_at, badges(title, image_url), users!inner(is_guest)")
-    .eq("users.is_guest", false)
-    .order("awarded_at", { ascending: false })
-    .limit(fetchLimit);
-
-  // 4. Borders unlocked
-  const { data: userBorders } = await supabase
-    .from("user_avatar_borders")
-    .select("id, user_id, awarded_at, avatar_borders(name, tier), users!inner(is_guest)")
-    .eq("users.is_guest", false)
-    .order("awarded_at", { ascending: false })
-    .limit(fetchLimit);
-
-  // 5. Reposts — fetch reposted activities to inject as separate feed entries
-  const { data: reposts } = await supabase
-    .from("feed_reposts")
-    .select("id, user_id, activity_type, activity_id, created_at")
-    .order("created_at", { ascending: false })
-    .limit(fetchLimit);
+  // Phase 1: Fetch all activity sources in parallel
+  const [
+    { data: bookings },
+    { data: checkins },
+    { data: userBadges },
+    { data: userBorders },
+    { data: reposts },
+  ] = await Promise.all([
+    supabase
+      .from("bookings")
+      .select(
+        "id, user_id, booked_at, status, events(title, cover_image_url), users!inner(is_guest)",
+      )
+      .in("status", ["pending", "confirmed"])
+      .eq("users.is_guest", false)
+      .order("booked_at", { ascending: false })
+      .limit(fetchLimit),
+    supabase
+      .from("event_checkins")
+      .select("id, user_id, checked_in_at, events(title, cover_image_url), users!inner(is_guest)")
+      .eq("users.is_guest", false)
+      .order("checked_in_at", { ascending: false })
+      .limit(fetchLimit),
+    supabase
+      .from("user_badges")
+      .select("id, user_id, awarded_at, badges(title, image_url), users!inner(is_guest)")
+      .eq("users.is_guest", false)
+      .order("awarded_at", { ascending: false })
+      .limit(fetchLimit),
+    supabase
+      .from("user_avatar_borders")
+      .select("id, user_id, awarded_at, avatar_borders(name, tier), users!inner(is_guest)")
+      .eq("users.is_guest", false)
+      .order("awarded_at", { ascending: false })
+      .limit(fetchLimit),
+    supabase
+      .from("feed_reposts")
+      .select("id, user_id, activity_type, activity_id, created_at")
+      .order("created_at", { ascending: false })
+      .limit(fetchLimit),
+  ]);
 
   // Build unified activity list
   const activities: RawActivity[] = [];
@@ -154,8 +156,9 @@ export async function GET(request: Request) {
     if (a.repostedBy) userIdSet.add(a.repostedBy.userId);
   }
   const userIds = [...userIdSet];
+  const activityIds = paged.map((a) => a.id);
 
-  // Fetch user profiles (including role)
+  // Phase 2: Fetch user profiles (needed for organizer/border lookups)
   const { data: users } = await supabase
     .from("users")
     .select("id, full_name, username, avatar_url, active_border_id, role")
@@ -163,70 +166,108 @@ export async function GET(request: Request) {
 
   const userMap = new Map((users || []).map((u) => [u.id, u]));
 
-  // Fetch organizer profile IDs for organizer users
+  // Derive IDs needed for sub-queries
   const organizerUserIds = (users || []).filter((u) => u.role === "organizer").map((u) => u.id);
-  const organizerMap = new Map<string, string>();
-  if (organizerUserIds.length > 0) {
-    const { data: orgProfiles } = await supabase
-      .from("organizer_profiles")
-      .select("id, user_id")
-      .in("user_id", organizerUserIds);
-    for (const op of orgProfiles || []) {
-      organizerMap.set(op.user_id, op.id);
-    }
+  const borderIds = (users || []).filter((u) => u.active_border_id).map((u) => u.active_border_id!);
+
+  // Phase 3: Fetch all enrichment data in parallel
+  interface OrgProfile {
+    id: string;
+    user_id: string;
+  }
+  interface BorderRow {
+    id: string;
+    tier: string;
+    border_color: string | null;
+  }
+  interface TopBadgeRow {
+    user_id: string;
+    badges: any;
+  }
+  interface ReactionRow {
+    activity_type: string;
+    activity_id: string;
+    user_id: string;
+  }
+  interface CommentRow {
+    activity_type: string;
+    activity_id: string;
+  }
+  interface FollowRow {
+    following_id: string;
   }
 
-  // Fetch border tier/color for users with active borders
-  const borderUserIds = (users || [])
-    .filter((u) => u.active_border_id)
-    .map((u) => u.active_border_id!);
-
-  const borderMap = new Map<string, { tier: BorderTier; color: string | null }>();
-  if (borderUserIds.length > 0) {
-    const { data: borders } = await supabase
-      .from("avatar_borders")
-      .select("id, tier, border_color")
-      .in("id", borderUserIds);
-    for (const b of borders || []) {
-      borderMap.set(b.id, { tier: b.tier as BorderTier, color: b.border_color });
-    }
-  }
-
-  // Fetch top badge title for each user (most recent)
-  const { data: topBadges } = await supabase
-    .from("user_badges")
-    .select("user_id, badges(title)")
-    .in("user_id", userIds)
-    .order("awarded_at", { ascending: false });
-
-  const topBadgeMap = new Map<string, string | null>();
-  for (const tb of topBadges || []) {
-    if (!topBadgeMap.has(tb.user_id)) {
-      topBadgeMap.set(tb.user_id, (tb.badges as any)?.title || null);
-    }
-  }
-
-  // Fetch reactions (likes), comment counts, and repost counts for paged activities
-  const activityIds = paged.map((a) => a.id);
-
-  const [{ data: reactions }, { data: commentCounts }, { data: repostCounts }] = await Promise.all([
+  const [
+    orgResult,
+    borderResult,
+    topBadgeResult,
+    reactionsResult,
+    commentsResult,
+    repostsResult,
+    followsResult,
+  ] = await Promise.all([
+    // Organizer profiles
+    organizerUserIds.length > 0
+      ? supabase.from("organizer_profiles").select("id, user_id").in("user_id", organizerUserIds)
+      : Promise.resolve({ data: [] as OrgProfile[] }),
+    // Avatar borders
+    borderIds.length > 0
+      ? supabase.from("avatar_borders").select("id, tier, border_color").in("id", borderIds)
+      : Promise.resolve({ data: [] as BorderRow[] }),
+    // Top badge per user
+    supabase
+      .from("user_badges")
+      .select("user_id, badges(title)")
+      .in("user_id", userIds)
+      .order("awarded_at", { ascending: false }),
+    // Reactions
     supabase
       .from("feed_reactions")
       .select("activity_type, activity_id, user_id")
       .in("activity_id", activityIds),
+    // Comment counts
     supabase
       .from("feed_comments")
       .select("activity_type, activity_id")
       .in("activity_id", activityIds),
+    // Repost counts
     supabase
       .from("feed_reposts")
       .select("activity_type, activity_id, user_id")
       .in("activity_id", activityIds),
+    // Follow status
+    authUser
+      ? supabase
+          .from("user_follows")
+          .select("following_id")
+          .eq("follower_id", authUser.id)
+          .in("following_id", userIds)
+      : Promise.resolve({ data: [] as FollowRow[] }),
   ]);
+
+  // Build organizer map
+  const organizerMap = new Map<string, string>();
+  for (const op of (orgResult.data as OrgProfile[]) || []) {
+    organizerMap.set(op.user_id, op.id);
+  }
+
+  // Build border map
+  const borderMap = new Map<string, { tier: BorderTier; color: string | null }>();
+  for (const b of (borderResult.data as BorderRow[]) || []) {
+    borderMap.set(b.id, { tier: b.tier as BorderTier, color: b.border_color });
+  }
+
+  // Build top badge map
+  const topBadgeMap = new Map<string, string | null>();
+  for (const tb of (topBadgeResult.data as TopBadgeRow[]) || []) {
+    if (!topBadgeMap.has(tb.user_id)) {
+      topBadgeMap.set(tb.user_id, tb.badges?.title || null);
+    }
+  }
 
   // Build like counts and user like status
   const likeMap = new Map<string, { count: number; isLiked: boolean }>();
-  for (const r of reactions || []) {
+  for (const r of (reactionsResult.data as ReactionRow[]) || []) {
     const key = `${r.activity_type}:${r.activity_id}`;
     if (!likeMap.has(key)) {
       likeMap.set(key, { count: 0, isLiked: false });
@@ -240,14 +281,14 @@ export async function GET(request: Request) {
 
   // Build comment count map
   const commentCountMap = new Map<string, number>();
-  for (const c of commentCounts || []) {
+  for (const c of (commentsResult.data as CommentRow[]) || []) {
     const key = `${c.activity_type}:${c.activity_id}`;
     commentCountMap.set(key, (commentCountMap.get(key) || 0) + 1);
   }
 
   // Build repost count map and user repost status
   const repostMap = new Map<string, { count: number; isReposted: boolean }>();
-  for (const r of repostCounts || []) {
+  for (const r of (repostsResult.data as ReactionRow[]) || []) {
     const key = `${r.activity_type}:${r.activity_id}`;
     if (!repostMap.has(key)) {
       repostMap.set(key, { count: 0, isReposted: false });
@@ -259,17 +300,10 @@ export async function GET(request: Request) {
     }
   }
 
-  // Fetch follow status if authenticated
+  // Build follow set
   const followingSet = new Set<string>();
-  if (authUser) {
-    const { data: follows } = await supabase
-      .from("user_follows")
-      .select("following_id")
-      .eq("follower_id", authUser.id)
-      .in("following_id", userIds);
-    for (const f of follows || []) {
-      followingSet.add(f.following_id);
-    }
+  for (const f of (followsResult.data as FollowRow[]) || []) {
+    followingSet.add(f.following_id);
   }
 
   // Build final feed items
@@ -281,6 +315,9 @@ export async function GET(request: Request) {
     const border = user?.active_border_id ? borderMap.get(user.active_border_id) : null;
 
     const item: FeedItem = {
+      feedKey: a.repostedBy
+        ? `repost-${a.repostedBy.userId}-${a.activityType}-${a.id}`
+        : `${a.activityType}-${a.id}`,
       id: a.id,
       activityType: a.activityType,
       userId: a.userId,

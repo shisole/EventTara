@@ -94,7 +94,7 @@ export default function FeedList({
     <div className="space-y-4">
       {items.map((item) => (
         <FeedCard
-          key={`${item.activityType}-${item.id}`}
+          key={item.feedKey}
           item={item}
           isAuthenticated={isAuthenticated}
           currentUserId={currentUserId}
