@@ -265,6 +265,9 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
   const [startTime, setStartTime] = useState(
     initialData?.date ? new Date(initialData.date).toTimeString().slice(0, 5) : "05:00",
   );
+  const [endTime, setEndTime] = useState(
+    initialData?.end_date ? new Date(initialData.end_date).toTimeString().slice(0, 5) : "",
+  );
 
   const [location, setLocation] = useState(initialData?.location || "");
   const [maxParticipants, setMaxParticipants] = useState(initialData?.max_participants || 50);
@@ -499,11 +502,23 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
     const dateTimeStart = new Date(startDate);
     dateTimeStart.setHours(hours, minutes, 0, 0);
 
-    // Calculate end_date if endDate differs from startDate
+    // Calculate end_date from endDate + endTime, or endTime on same day
     let endDateTime: string | null = null;
     if (endDate && endDate.getTime() !== startDate.getTime()) {
+      // Multi-day event: use end time if provided, otherwise end of day
       const dateTimeEnd = new Date(endDate);
-      dateTimeEnd.setHours(23, 59, 59, 999); // End of day
+      if (endTime) {
+        const [endH, endM] = endTime.split(":").map(Number);
+        dateTimeEnd.setHours(endH, endM, 0, 0);
+      } else {
+        dateTimeEnd.setHours(23, 59, 59, 999);
+      }
+      endDateTime = dateTimeEnd.toISOString();
+    } else if (endTime) {
+      // Single-day event with end time
+      const dateTimeEnd = new Date(startDate);
+      const [endH, endM] = endTime.split(":").map(Number);
+      dateTimeEnd.setHours(endH, endM, 0, 0);
       endDateTime = dateTimeEnd.toISOString();
     }
 
@@ -672,9 +687,11 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
         startDate={startDate}
         endDate={endDate}
         startTime={startTime}
+        endTime={endTime}
         onStartDateChange={setStartDate}
         onEndDateChange={setEndDate}
         onStartTimeChange={setStartTime}
+        onEndTimeChange={setEndTime}
         eventDates={eventDatesForPicker}
       />
 

@@ -17,9 +17,11 @@ interface DateRangePickerProps {
   startDate: Date | undefined;
   endDate: Date | undefined;
   startTime: string;
+  endTime: string;
   onStartDateChange: (date: Date | undefined) => void;
   onEndDateChange: (date: Date | undefined) => void;
   onStartTimeChange: (time: string) => void;
+  onEndTimeChange: (time: string) => void;
   eventDates?: EventDateInfo[];
 }
 
@@ -36,9 +38,11 @@ export default function DateRangePicker({
   startDate,
   endDate,
   startTime,
+  endTime,
   onStartDateChange,
   onEndDateChange,
   onStartTimeChange,
+  onEndTimeChange,
   eventDates,
 }: DateRangePickerProps) {
   const [isMobile, setIsMobile] = useState(false);
@@ -227,27 +231,50 @@ export default function DateRangePicker({
           </div>
         )}
 
-        {/* Time input */}
-        <div className="space-y-1">
-          <label
-            htmlFor="start-time"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-          >
-            Start / Meet-up Time
-          </label>
-          <input
-            id="start-time"
-            type="time"
-            value={startTime}
-            onChange={(e) => onStartTimeChange(e.target.value)}
-            className={cn(
-              "w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600",
-              "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100",
-              "focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800",
-              "outline-none transition-colors",
-            )}
-            required
-          />
+        {/* Time inputs */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1">
+            <label
+              htmlFor="start-time"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
+              Start / Meet-up Time
+            </label>
+            <input
+              id="start-time"
+              type="time"
+              value={startTime}
+              onChange={(e) => onStartTimeChange(e.target.value)}
+              className={cn(
+                "w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600",
+                "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100",
+                "focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800",
+                "outline-none transition-colors",
+              )}
+              required
+            />
+          </div>
+          <div className="space-y-1">
+            <label
+              htmlFor="end-time"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
+              End Time{" "}
+              <span className="text-gray-400 dark:text-gray-500 font-normal">(optional)</span>
+            </label>
+            <input
+              id="end-time"
+              type="time"
+              value={endTime}
+              onChange={(e) => onEndTimeChange(e.target.value)}
+              className={cn(
+                "w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600",
+                "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100",
+                "focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800",
+                "outline-none transition-colors",
+              )}
+            />
+          </div>
         </div>
       </div>
     </div>
