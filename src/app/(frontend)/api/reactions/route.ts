@@ -1,16 +1,14 @@
 import { NextResponse } from "next/server";
 
-import type { ActivityType, EmojiType } from "@/lib/feed/types";
+import type { ActivityType } from "@/lib/feed/types";
 import { createClient } from "@/lib/supabase/server";
 
 interface ReactionBody {
   activityType: ActivityType;
   activityId: string;
-  emoji: EmojiType;
 }
 
 const VALID_TYPES = new Set(["booking", "checkin", "badge", "border"]);
-const VALID_EMOJIS = new Set(["fire", "clap", "green_heart", "mountain"]);
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -20,7 +18,7 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = (await request.json()) as ReactionBody;
-  if (!VALID_TYPES.has(body.activityType) || !VALID_EMOJIS.has(body.emoji) || !body.activityId) {
+  if (!VALID_TYPES.has(body.activityType) || !body.activityId) {
     return NextResponse.json({ error: "Invalid parameters" }, { status: 400 });
   }
 
@@ -28,17 +26,17 @@ export async function POST(request: Request) {
     user_id: user.id,
     activity_type: body.activityType,
     activity_id: body.activityId,
-    emoji: body.emoji,
+    emoji: "heart",
   });
 
   if (error) {
     if (error.code === "23505") {
-      return NextResponse.json({ message: "Already reacted" }, { status: 200 });
+      return NextResponse.json({ message: "Already liked" }, { status: 200 });
     }
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ message: "Reacted" }, { status: 201 });
+  return NextResponse.json({ message: "Liked" }, { status: 201 });
 }
 
 export async function DELETE(request: Request) {
@@ -49,7 +47,7 @@ export async function DELETE(request: Request) {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = (await request.json()) as ReactionBody;
-  if (!VALID_TYPES.has(body.activityType) || !VALID_EMOJIS.has(body.emoji) || !body.activityId) {
+  if (!VALID_TYPES.has(body.activityType) || !body.activityId) {
     return NextResponse.json({ error: "Invalid parameters" }, { status: 400 });
   }
 
@@ -58,8 +56,7 @@ export async function DELETE(request: Request) {
     .delete()
     .eq("user_id", user.id)
     .eq("activity_type", body.activityType)
-    .eq("activity_id", body.activityId)
-    .eq("emoji", body.emoji);
+    .eq("activity_id", body.activityId);
 
   return NextResponse.json({ message: "Removed" }, { status: 200 });
 }

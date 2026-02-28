@@ -35,9 +35,9 @@ CREATE TABLE feed_reactions (
   user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   activity_type text NOT NULL CHECK (activity_type IN ('booking', 'checkin', 'badge', 'border')),
   activity_id uuid NOT NULL,
-  emoji text NOT NULL CHECK (emoji IN ('fire', 'clap', 'green_heart', 'mountain')),
+  emoji text NOT NULL CHECK (emoji IN ('heart')),
   created_at timestamptz DEFAULT now(),
-  CONSTRAINT feed_reactions_unique UNIQUE (user_id, activity_type, activity_id, emoji)
+  CONSTRAINT feed_reactions_unique UNIQUE (user_id, activity_type, activity_id)
 );
 
 CREATE INDEX idx_feed_reactions_activity ON feed_reactions(activity_type, activity_id);

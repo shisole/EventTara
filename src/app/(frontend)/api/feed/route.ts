@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import type { ActivityType, EmojiType, FeedItem, ReactionSummary } from "@/lib/feed/types";
+import type { ActivityType, FeedItem } from "@/lib/feed/types";
 import { createClient } from "@/lib/supabase/server";
 
 const BATCH_SIZE = 15;
@@ -145,28 +145,25 @@ export async function GET(request: Request) {
     }
   }
 
-  // Fetch reactions for paged activities
+  // Fetch reactions (likes) for paged activities
   const activityIds = paged.map((a) => a.id);
 
   const { data: reactions } = await supabase
     .from("feed_reactions")
-    .select("activity_type, activity_id, emoji, user_id")
+    .select("activity_type, activity_id, user_id")
     .in("activity_id", activityIds);
 
-  // Build reaction summaries
-  const reactionMap = new Map<
-    string,
-    { counts: Map<EmojiType, number>; userEmojis: Set<EmojiType> }
-  >();
+  // Build like counts and user like status
+  const likeMap = new Map<string, { count: number; isLiked: boolean }>();
   for (const r of reactions || []) {
     const key = `${r.activity_type}:${r.activity_id}`;
-    if (!reactionMap.has(key)) {
-      reactionMap.set(key, { counts: new Map(), userEmojis: new Set() });
+    if (!likeMap.has(key)) {
+      likeMap.set(key, { count: 0, isLiked: false });
     }
-    const entry = reactionMap.get(key)!;
-    entry.counts.set(r.emoji, (entry.counts.get(r.emoji) || 0) + 1);
+    const entry = likeMap.get(key)!;
+    entry.count++;
     if (r.user_id === authUser?.id) {
-      entry.userEmojis.add(r.emoji);
+      entry.isLiked = true;
     }
   }
 
@@ -187,13 +184,7 @@ export async function GET(request: Request) {
   const items: FeedItem[] = paged.map((a) => {
     const user = userMap.get(a.userId);
     const key = `${a.activityType}:${a.id}`;
-    const rxn = reactionMap.get(key);
-    const reactionSummaries: ReactionSummary[] = [];
-    if (rxn) {
-      for (const [emoji, count] of rxn.counts) {
-        reactionSummaries.push({ emoji, count });
-      }
-    }
+    const like = likeMap.get(key);
 
     return {
       id: a.id,
@@ -208,8 +199,8 @@ export async function GET(request: Request) {
       contextImageUrl: a.contextImageUrl,
       timestamp: a.timestamp,
       isFollowing: followingSet.has(a.userId),
-      reactions: reactionSummaries,
-      userReactions: rxn ? [...rxn.userEmojis] : [],
+      likeCount: like?.count || 0,
+      isLiked: like?.isLiked || false,
     };
   });
 

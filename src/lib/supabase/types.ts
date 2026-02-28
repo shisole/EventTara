@@ -695,7 +695,7 @@ export interface Database {
           user_id: string;
           activity_type: "booking" | "checkin" | "badge" | "border";
           activity_id: string;
-          emoji: "fire" | "clap" | "green_heart" | "mountain";
+          emoji: "heart";
           created_at: string;
         };
         Insert: {
@@ -703,7 +703,7 @@ export interface Database {
           user_id: string;
           activity_type: "booking" | "checkin" | "badge" | "border";
           activity_id: string;
-          emoji: "fire" | "clap" | "green_heart" | "mountain";
+          emoji: "heart";
           created_at?: string;
         };
         Update: {
@@ -711,7 +711,7 @@ export interface Database {
           user_id?: string;
           activity_type?: "booking" | "checkin" | "badge" | "border";
           activity_id?: string;
-          emoji?: "fire" | "clap" | "green_heart" | "mountain";
+          emoji?: "heart";
           created_at?: string;
         };
         Relationships: [];

@@ -1,12 +1,7 @@
 export type ActivityType = "booking" | "checkin" | "badge" | "border";
-export type EmojiType = "fire" | "clap" | "green_heart" | "mountain";
+export type EmojiType = "heart";
 
-export const EMOJI_MAP: Record<EmojiType, string> = {
-  fire: "🔥",
-  clap: "👏",
-  green_heart: "💚",
-  mountain: "⛰️",
-};
+export const EMOJI_ICON = "❤️";
 
 export interface FeedItem {
   id: string;
@@ -21,11 +16,6 @@ export interface FeedItem {
   contextImageUrl: string | null;
   timestamp: string;
   isFollowing: boolean;
-  reactions: ReactionSummary[];
-  userReactions: EmojiType[];
-}
-
-export interface ReactionSummary {
-  emoji: EmojiType;
-  count: number;
+  likeCount: number;
+  isLiked: boolean;
 }
