@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 
 import { findProvinceFromLocation } from "@/lib/constants/philippine-provinces";
 import { fetchEventEnrichments, mapEventToCard } from "@/lib/events/map-event-card";
+import { findOverlappingEvent, formatOverlapDate } from "@/lib/events/overlap";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 
@@ -290,6 +291,25 @@ export async function POST(request: Request) {
     const province = findProvinceFromLocation(body.location);
     if (province) {
       coordinates = { lat: province.lat, lng: province.lng };
+    }
+  }
+
+  // Check for overlapping events by this organizer
+  const { data: organizerEvents } = await supabase
+    .from("events")
+    .select("id, title, date, end_date")
+    .eq("organizer_id", profile.id)
+    .in("status", ["draft", "published"]);
+
+  if (organizerEvents) {
+    const overlap = findOverlappingEvent(body.date, body.end_date || null, organizerEvents);
+    if (overlap) {
+      return NextResponse.json(
+        {
+          error: `Cannot create this event — it overlaps with your event "${overlap.title}" on ${formatOverlapDate(overlap.date, overlap.end_date)}. Adjust the date/time or update the other event first.`,
+        },
+        { status: 409 },
+      );
     }
   }
 
