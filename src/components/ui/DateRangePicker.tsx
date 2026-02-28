@@ -1,11 +1,17 @@
 "use client";
 
 import { format } from "date-fns";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/style.css";
 
 import { cn } from "@/lib/utils";
+
+export interface EventDateInfo {
+  date: string;
+  end_date: string | null;
+  title: string;
+}
 
 interface DateRangePickerProps {
   startDate: Date | undefined;
@@ -14,6 +20,16 @@ interface DateRangePickerProps {
   onStartDateChange: (date: Date | undefined) => void;
   onEndDateChange: (date: Date | undefined) => void;
   onStartTimeChange: (time: string) => void;
+  eventDates?: EventDateInfo[];
+}
+
+/** Strip time from a Date to get midnight-local */
+function toDateOnly(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+function dateKey(d: Date): string {
+  return `${String(d.getFullYear())}-${String(d.getMonth())}-${String(d.getDate())}`;
 }
 
 export default function DateRangePicker({
@@ -23,6 +39,7 @@ export default function DateRangePicker({
   onStartDateChange,
   onEndDateChange,
   onStartTimeChange,
+  eventDates,
 }: DateRangePickerProps) {
   const [isMobile, setIsMobile] = useState(false);
 
@@ -33,6 +50,42 @@ export default function DateRangePicker({
     mql.addEventListener("change", handler);
     return () => mql.removeEventListener("change", handler);
   }, []);
+
+  // Compute indicator dates (days with any event) and blocked dates (multi-day events)
+  const { indicatorDates, blockedDates } = useMemo(() => {
+    if (!eventDates || eventDates.length === 0) return { indicatorDates: [], blockedDates: [] };
+
+    const indicatorSet = new Map<string, Date>();
+    const blockedSet = new Map<string, Date>();
+
+    for (const evt of eventDates) {
+      const start = toDateOnly(new Date(evt.date));
+
+      indicatorSet.set(dateKey(start), start);
+
+      if (evt.end_date) {
+        const end = toDateOnly(new Date(evt.end_date));
+        const isMultiDay = end.getTime() !== start.getTime();
+
+        if (isMultiDay) {
+          // Block all days in multi-day range
+          const current = new Date(start);
+          while (current <= end) {
+            const k = dateKey(current);
+            const d = new Date(current);
+            blockedSet.set(k, d);
+            indicatorSet.set(k, d);
+            current.setDate(current.getDate() + 1);
+          }
+        }
+      }
+    }
+
+    return {
+      indicatorDates: [...indicatorSet.values()],
+      blockedDates: [...blockedSet.values()],
+    };
+  }, [eventDates]);
 
   const noDate: Date | undefined = undefined;
   const resetEndDate = () => onEndDateChange(noDate);
@@ -65,11 +118,39 @@ export default function DateRangePicker({
     return `${format(startDate, "MMM d")} - ${format(endDate, "MMM d, yyyy")}`;
   };
 
+  const disabledMatchers: ({ before: Date } | Date)[] = [{ before: new Date() }];
+  if (blockedDates.length > 0) {
+    disabledMatchers.push(...blockedDates);
+  }
+
   return (
     <div className="space-y-1">
       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
         Date & Time
       </label>
+
+      {/* CSS for event indicator dots */}
+      {indicatorDates.length > 0 && (
+        <style>{`
+          .day-has-event {
+            position: relative;
+          }
+          .day-has-event::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background-color: #f59e0b;
+          }
+          .dark .day-has-event::after {
+            background-color: #fbbf24;
+          }
+        `}</style>
+      )}
 
       <div className="rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-4 space-y-4">
         <DayPicker
@@ -83,7 +164,13 @@ export default function DateRangePicker({
                 : undefined
           }
           onDayClick={handleDayClick}
-          disabled={{ before: new Date() }}
+          disabled={disabledMatchers}
+          modifiers={{
+            hasEvent: indicatorDates,
+          }}
+          modifiersClassNames={{
+            hasEvent: "day-has-event",
+          }}
           classNames={{
             root: "text-gray-900 dark:text-gray-100",
             months: "relative flex justify-center gap-6",

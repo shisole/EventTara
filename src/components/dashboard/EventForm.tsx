@@ -3,11 +3,15 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 
 import DifficultyBadge from "@/components/events/DifficultyBadge";
+import { type ExistingEventMarker } from "@/components/maps/MapPicker";
 import { Button, Input } from "@/components/ui";
+import { type EventDateInfo } from "@/components/ui/DateRangePicker";
 import { findProvinceFromLocation } from "@/lib/constants/philippine-provinces";
+import { rangesOverlap, getEffectiveEnd } from "@/lib/events/overlap";
+import { createClient } from "@/lib/supabase/client";
 
 import MountainCombobox, { type SelectedMountain } from "./MountainCombobox";
 import PhotoUploader from "./PhotoUploader";
@@ -259,7 +263,7 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
     initialData?.end_date ? new Date(initialData.end_date) : undefined,
   );
   const [startTime, setStartTime] = useState(
-    initialData?.date ? new Date(initialData.date).toTimeString().slice(0, 5) : "",
+    initialData?.date ? new Date(initialData.date).toTimeString().slice(0, 5) : "05:00",
   );
 
   const [location, setLocation] = useState(initialData?.location || "");
@@ -281,6 +285,85 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
   const [customDistanceInput, setCustomDistanceInput] = useState("");
 
   const supportsDistances = DISTANCE_TYPES.has(type);
+
+  // Organizer's existing events (for map markers + date indicators)
+  interface OrganizerEvent {
+    id: string;
+    title: string;
+    date: string;
+    end_date: string | null;
+    coordinates: { lat: number; lng: number } | null;
+    status: string;
+  }
+  const [organizerEvents, setOrganizerEvents] = useState<OrganizerEvent[]>([]);
+
+  useEffect(() => {
+    const fetchOrganizerEvents = async () => {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from("organizer_profiles")
+        .select("id")
+        .eq("user_id", user.id)
+        .single();
+      if (!profile) return;
+
+      const { data: events } = await supabase
+        .from("events")
+        .select("id, title, date, end_date, coordinates, status")
+        .eq("organizer_id", profile.id)
+        .in("status", ["draft", "published", "completed"]);
+
+      if (!events) return;
+
+      // Exclude current event when editing
+      const filtered =
+        mode === "edit" && initialData?.id ? events.filter((e) => e.id !== initialData.id) : events;
+
+      const typedFiltered: OrganizerEvent[] = filtered;
+      setOrganizerEvents(typedFiltered);
+    };
+    void fetchOrganizerEvents();
+  }, [mode, initialData?.id]);
+
+  // All organizer events → date indicators for the calendar
+  const eventDatesForPicker: EventDateInfo[] = useMemo(
+    () =>
+      organizerEvents.map((e) => ({
+        date: e.date,
+        end_date: e.end_date,
+        title: e.title,
+      })),
+    [organizerEvents],
+  );
+
+  // Events overlapping the selected date range → map markers
+  const existingEventsForMap: ExistingEventMarker[] = useMemo(() => {
+    if (!startDate) return [];
+
+    const selStart = new Date(startDate);
+    selStart.setHours(0, 0, 0, 0);
+    const selEnd = endDate
+      ? getEffectiveEnd(endDate.toISOString(), null)
+      : getEffectiveEnd(startDate.toISOString(), null);
+
+    return organizerEvents
+      .filter((e) => {
+        if (!e.coordinates) return false;
+        const evtStart = new Date(e.date);
+        const evtEnd = getEffectiveEnd(e.date, e.end_date);
+        return rangesOverlap(selStart, selEnd, evtStart, evtEnd);
+      })
+      .map((e) => ({
+        title: e.title,
+        lat: e.coordinates!.lat,
+        lng: e.coordinates!.lng,
+      }));
+  }, [organizerEvents, startDate, endDate]);
 
   // Clear distances when switching to a non-distance event type
   useEffect(() => {
@@ -592,6 +675,7 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
         onStartDateChange={setStartDate}
         onEndDateChange={setEndDate}
         onStartTimeChange={setStartTime}
+        eventDates={eventDatesForPicker}
       />
 
       <Input
@@ -651,7 +735,14 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
             <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
           </svg>
         </button>
-        {showMap && <MapPicker value={coordinates} onChange={setCoordinates} center={mapCenter} />}
+        {showMap && (
+          <MapPicker
+            value={coordinates}
+            onChange={setCoordinates}
+            center={mapCenter}
+            existingEvents={existingEventsForMap}
+          />
+        )}
       </div>
 
       {/* Distance Categories (running, trail_run, road_bike only) */}
