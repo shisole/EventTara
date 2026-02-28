@@ -88,3 +88,46 @@ REPLY FORMAT:
 - NEVER use "Searching for..." or "Looking for..." — always phrase as "Here are..." since results will be shown alongside
 - Return raw JSON only, no markdown code blocks`;
 }
+
+interface SuggestionEvent {
+  title: string;
+  date: string;
+  location: string;
+  price: number;
+}
+
+export function buildSuggestionPrompt(
+  userQuery: string,
+  activityType: string | undefined,
+  events: SuggestionEvent[],
+): string {
+  const eventList = events
+    .map((e) => {
+      const date = new Date(e.date).toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+      const price = e.price === 0 ? "Free" : `₱${e.price}`;
+      return `- "${e.title}" on ${date} in ${e.location} (${price})`;
+    })
+    .join("\n");
+
+  const typeLabel = activityType?.replace("_", " ") ?? "outdoor";
+
+  return `You are EventTara's search assistant. The user searched for ${typeLabel} events but nothing matched their specific criteria.
+
+User's original query: "${userQuery}"
+
+Here are the nearest upcoming ${typeLabel} events available:
+${eventList}
+
+Write a short, friendly 1-2 sentence response that:
+1. Acknowledges nothing matched their specific request
+2. Suggests the nearest event(s) from the list above — mention the event name, date, and location
+3. Sounds natural and helpful, not robotic
+
+Return ONLY valid JSON: { "reply": "your response here" }
+Do not use markdown code blocks.`;
+}
