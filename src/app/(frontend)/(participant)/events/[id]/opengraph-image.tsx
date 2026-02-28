@@ -4,6 +4,7 @@ import { loadCursiveFont, loadFaviconDataUri } from "@/lib/og/brand-assets";
 import { createClient } from "@/lib/supabase/server";
 import { formatEventDate } from "@/lib/utils/format-date";
 
+export const runtime = "nodejs";
 export const alt = "Event on EventTara";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";

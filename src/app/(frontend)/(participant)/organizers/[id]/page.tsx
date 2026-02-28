@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
   const { data: profile } = await supabase
     .from("organizer_profiles")
-    .select("org_name, description")
+    .select("org_name, description, logo_url")
     .eq("id", id)
     .single();
 
@@ -29,11 +29,13 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     ? profile.description.slice(0, 160)
     : `Check out events organized by ${profile.org_name} on EventTara!`;
 
+  const images = profile.logo_url ? [{ url: profile.logo_url, width: 200, height: 200 }] : [];
+
   return {
     title,
     description,
-    openGraph: { title, description, type: "profile" },
-    twitter: { card: "summary", title, description },
+    openGraph: { title, description, type: "profile", images },
+    twitter: { card: profile.logo_url ? "summary" : "summary", title, description, images },
   };
 }
 
