@@ -38,7 +38,7 @@ export default async function OrganizersSection() {
   if (uniqueOrganizers.length === 0) return null;
 
   return (
-    <section className="py-16 bg-white dark:bg-slate-800">
+    <section className="py-10 bg-white dark:bg-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <p className="text-center text-sm font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-8">
           Trusted by Organizers

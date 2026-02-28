@@ -32,7 +32,7 @@ export default async function UpcomingEventsSection() {
   const remainingCount = (totalUpcoming || 0) - upcomingEvents.length;
 
   return (
-    <section className="py-20 bg-white dark:bg-slate-800">
+    <section className="py-12 bg-white dark:bg-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-10">
           <h2 className="text-3xl sm:text-4xl font-heading font-bold text-gray-900 dark:text-white">
@@ -49,14 +49,17 @@ export default async function UpcomingEventsSection() {
           {cards.map((card) => (
             <div
               key={card.id}
-              className="md:min-w-[320px] md:max-w-[350px] md:flex-shrink-0"
+              className="min-w-[280px] max-w-[300px] flex-shrink-0 md:min-w-[320px] md:max-w-[350px]"
               style={{ scrollSnapAlign: "start" }}
             >
               <EventCard {...card} />
             </div>
           ))}
           {remainingCount > 0 && (
-            <div className="md:min-w-[280px] md:flex-shrink-0" style={{ scrollSnapAlign: "start" }}>
+            <div
+              className="min-w-[240px] flex-shrink-0 md:min-w-[280px]"
+              style={{ scrollSnapAlign: "start" }}
+            >
               <Link
                 href="/events"
                 className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 dark:border-slate-600 hover:border-lime-500 dark:hover:border-lime-500 transition-colors h-full min-h-[280px]"
