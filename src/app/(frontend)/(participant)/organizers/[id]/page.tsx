@@ -12,14 +12,51 @@ import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+async function resolveOrganizerProfile(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  idOrUsername: string,
+) {
+  // Try UUID lookup first
+  if (UUID_REGEX.test(idOrUsername)) {
+    const { data } = await supabase
+      .from("organizer_profiles")
+      .select("id")
+      .eq("id", idOrUsername)
+      .single();
+    if (data) return data.id;
+  }
+
+  // Fall back to username lookup via users table
+  const { data: user } = await supabase
+    .from("users")
+    .select("id")
+    .eq("username", idOrUsername)
+    .single();
+
+  if (!user) return null;
+
+  const { data: orgProfile } = await supabase
+    .from("organizer_profiles")
+    .select("id")
+    .eq("user_id", user.id)
+    .single();
+
+  return orgProfile?.id ?? null;
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+  const { id: idOrUsername } = await params;
   const supabase = await createClient();
+
+  const orgId = await resolveOrganizerProfile(supabase, idOrUsername);
+  if (!orgId) return { title: "Organizer Not Found" };
 
   const { data: profile } = await supabase
     .from("organizer_profiles")
     .select("org_name, description, logo_url")
-    .eq("id", id)
+    .eq("id", orgId)
     .single();
 
   if (!profile) return { title: "Organizer Not Found" };
@@ -44,14 +81,17 @@ export default async function OrganizerProfilePage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
+  const { id: idOrUsername } = await params;
   const supabase = await createClient();
+
+  const orgId = await resolveOrganizerProfile(supabase, idOrUsername);
+  if (!orgId) notFound();
 
   // Fetch organizer profile with user info
   const { data: profile } = await supabase
     .from("organizer_profiles")
     .select("*, users:user_id(full_name, avatar_url, created_at, active_border_id)")
-    .eq("id", id)
+    .eq("id", orgId)
     .single();
 
   if (!profile) notFound();
@@ -60,7 +100,7 @@ export default async function OrganizerProfilePage({
   const { data: events } = await supabase
     .from("events")
     .select("*, bookings(count)")
-    .eq("organizer_id", id)
+    .eq("organizer_id", orgId)
     .in("status", ["published", "completed"])
     .order("date", { ascending: true });
 

@@ -14,7 +14,11 @@ interface FeedCardProps {
 }
 
 export default function FeedCard({ item, isAuthenticated }: FeedCardProps) {
-  const profileHref = item.userUsername ? `/profile/${item.userUsername}` : "#";
+  const profileHref = item.userUsername
+    ? item.userRole === "organizer"
+      ? `/organizers/${item.userUsername}`
+      : `/profile/${item.userUsername}`
+    : "#";
 
   return (
     <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm dark:shadow-gray-950/20 p-4 space-y-3">
