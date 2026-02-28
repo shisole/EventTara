@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import type { BorderTier } from "@/lib/constants/avatar-borders";
 import type { ActivityType, FeedItem } from "@/lib/feed/types";
 import { createClient } from "@/lib/supabase/server";
 
@@ -123,25 +124,41 @@ export async function GET(request: Request) {
   // Collect unique user IDs
   const userIds = [...new Set(paged.map((a) => a.userId))];
 
-  // Fetch user profiles
+  // Fetch user profiles (including role)
   const { data: users } = await supabase
     .from("users")
-    .select("id, full_name, username, avatar_url, active_border_id")
+    .select("id, full_name, username, avatar_url, active_border_id, role")
     .in("id", userIds);
 
   const userMap = new Map((users || []).map((u) => [u.id, u]));
 
-  // Fetch top badge for each user (most recent)
+  // Fetch border tier/color for users with active borders
+  const borderUserIds = (users || [])
+    .filter((u) => u.active_border_id)
+    .map((u) => u.active_border_id!);
+
+  const borderMap = new Map<string, { tier: BorderTier; color: string | null }>();
+  if (borderUserIds.length > 0) {
+    const { data: borders } = await supabase
+      .from("avatar_borders")
+      .select("id, tier, border_color")
+      .in("id", borderUserIds);
+    for (const b of borders || []) {
+      borderMap.set(b.id, { tier: b.tier as BorderTier, color: b.border_color });
+    }
+  }
+
+  // Fetch top badge title for each user (most recent)
   const { data: topBadges } = await supabase
     .from("user_badges")
-    .select("user_id, badges(image_url)")
+    .select("user_id, badges(title)")
     .in("user_id", userIds)
     .order("awarded_at", { ascending: false });
 
   const topBadgeMap = new Map<string, string | null>();
   for (const tb of topBadges || []) {
     if (!topBadgeMap.has(tb.user_id)) {
-      topBadgeMap.set(tb.user_id, (tb.badges as any)?.image_url || null);
+      topBadgeMap.set(tb.user_id, (tb.badges as any)?.title || null);
     }
   }
 
@@ -185,6 +202,7 @@ export async function GET(request: Request) {
     const user = userMap.get(a.userId);
     const key = `${a.activityType}:${a.id}`;
     const like = likeMap.get(key);
+    const border = user?.active_border_id ? borderMap.get(user.active_border_id) : null;
 
     return {
       id: a.id,
@@ -193,8 +211,10 @@ export async function GET(request: Request) {
       userName: user?.full_name || "Unknown",
       userUsername: user?.username || null,
       userAvatarUrl: user?.avatar_url || null,
-      activeBorderId: user?.active_border_id || null,
-      topBadgeImageUrl: topBadgeMap.get(a.userId) || null,
+      userRole: user?.role || null,
+      borderTier: border?.tier || null,
+      borderColor: border?.color || null,
+      topBadgeTitle: topBadgeMap.get(a.userId) || null,
       text: a.text,
       contextImageUrl: a.contextImageUrl,
       timestamp: a.timestamp,

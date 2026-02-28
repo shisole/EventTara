@@ -62,13 +62,13 @@ export default function LikeButton({
           isLiked ? "scale-110" : "grayscale opacity-50",
         )}
       >
-        {isLiked ? "❤️" : "🤍"}
+        {isLiked ? "💚" : "🤍"}
       </span>
       {likeCount > 0 && (
         <span
           className={cn(
             "text-sm font-medium",
-            isLiked ? "text-red-500 dark:text-red-400" : "text-gray-400 dark:text-gray-500",
+            isLiked ? "text-lime-600 dark:text-lime-400" : "text-gray-400 dark:text-gray-500",
           )}
         >
           {likeCount}

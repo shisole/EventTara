@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import LikeButton from "@/components/feed/LikeButton";
+import { UserAvatar } from "@/components/ui";
 import type { FeedItem } from "@/lib/feed/types";
 import { formatRelativeTime } from "@/lib/utils/relative-time";
 
@@ -17,45 +18,38 @@ export default function FeedCard({ item, isAuthenticated }: FeedCardProps) {
 
   return (
     <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm dark:shadow-gray-950/20 p-4 space-y-3">
-      {/* Header: avatar + name + badge + following */}
+      {/* Header: avatar + name + badge + organizer + following */}
       <div className="flex items-center gap-3">
         <Link href={profileHref} className="shrink-0">
-          <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700">
-            {item.userAvatarUrl ? (
-              <Image
-                src={item.userAvatarUrl}
-                alt={item.userName}
-                width={40}
-                height={40}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm font-bold">
-                {item.userName.charAt(0).toUpperCase()}
-              </div>
-            )}
-          </div>
+          <UserAvatar
+            src={item.userAvatarUrl}
+            alt={item.userName}
+            size="sm"
+            borderTier={item.borderTier}
+            borderColor={item.borderColor}
+          />
         </Link>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 flex-wrap">
             <Link
               href={profileHref}
               className="font-semibold text-gray-900 dark:text-white text-sm truncate hover:underline"
             >
               {item.userName}
             </Link>
-            {item.topBadgeImageUrl && (
-              <Image
-                src={item.topBadgeImageUrl}
-                alt="Badge"
-                width={18}
-                height={18}
-                className="rounded-full"
-              />
+            {item.userRole === "organizer" && (
+              <span className="text-[10px] bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 px-1.5 py-0.5 rounded-full font-medium">
+                Organizer
+              </span>
+            )}
+            {item.topBadgeTitle && (
+              <span className="text-[10px] bg-golden-100 dark:bg-golden-900/30 text-golden-700 dark:text-golden-400 px-1.5 py-0.5 rounded-full font-medium truncate max-w-[120px]">
+                {item.topBadgeTitle}
+              </span>
             )}
             {item.isFollowing && (
-              <span className="text-xs bg-lime-100 dark:bg-lime-900/30 text-lime-700 dark:text-lime-400 px-1.5 py-0.5 rounded-full font-medium">
+              <span className="text-[10px] bg-lime-100 dark:bg-lime-900/30 text-lime-700 dark:text-lime-400 px-1.5 py-0.5 rounded-full font-medium">
                 Following
               </span>
             )}
