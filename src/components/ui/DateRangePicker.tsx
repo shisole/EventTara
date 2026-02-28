@@ -2,7 +2,7 @@
 
 import { format } from "date-fns";
 import { type ButtonHTMLAttributes, useState, useEffect, useMemo } from "react";
-import { type CalendarDay, type Modifiers, DayPicker } from "react-day-picker";
+import { type CalendarDay, type DateRange, type Modifiers, DayPicker } from "react-day-picker";
 import "react-day-picker/style.css";
 
 import { cn } from "@/lib/utils";
@@ -92,35 +92,19 @@ export default function DateRangePicker({
   }, [eventDates]);
 
   const noDate: Date | undefined = undefined;
-  const clearEnd = () => onEndDateChange(noDate);
   const clearBoth = () => {
     onStartDateChange(noDate);
     onEndDateChange(noDate);
   };
 
-  // Simple two-click flow: 1st click = start, 2nd click = end
-  const handleDayClick = (date: Date | undefined) => {
-    if (!date) return;
-
-    if (!startDate) {
-      // First click — set start
-      onStartDateChange(date);
-      clearEnd();
-    } else if (endDate && endDate.getTime() !== startDate.getTime()) {
-      // Both set — start over with new start
-      onStartDateChange(date);
-      clearEnd();
-    } else if (date < startDate) {
-      // Clicked before start — swap
-      onEndDateChange(startDate);
-      onStartDateChange(date);
-    } else if (date.getTime() === startDate.getTime()) {
-      // Same date — single-day event, just clear end
-      clearEnd();
-    } else {
-      // Second click after start — set end
-      onEndDateChange(date);
+  // Handle range selection from DayPicker (fully controlled)
+  const handleSelect = (range: DateRange | undefined) => {
+    if (!range) {
+      clearBoth();
+      return;
     }
+    onStartDateChange(range.from);
+    onEndDateChange(range.to ?? noDate);
   };
 
   const formatDateRange = () => {
@@ -179,14 +163,9 @@ export default function DateRangePicker({
         <DayPicker
           mode="range"
           numberOfMonths={isMobile ? 1 : 2}
-          selected={
-            startDate && endDate
-              ? { from: startDate, to: endDate }
-              : startDate
-                ? { from: startDate, to: startDate }
-                : undefined
-          }
-          onDayClick={handleDayClick}
+          selected={startDate ? { from: startDate, to: endDate ?? startDate } : undefined}
+          onSelect={handleSelect}
+          excludeDisabled
           disabled={disabledMatchers}
           components={{
             DayButton: EventDayButton,
