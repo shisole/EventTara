@@ -1,5 +1,6 @@
 import { ImageResponse } from "next/og";
 
+import { loadCursiveFont, loadFaviconDataUri } from "@/lib/og/brand-assets";
 import { createClient } from "@/lib/supabase/server";
 import { formatEventDate } from "@/lib/utils/format-date";
 
@@ -25,7 +26,11 @@ const typeColors: Record<string, string> = {
 
 export default async function OGImage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const supabase = await createClient();
+  const [fontData, faviconUri, supabase] = await Promise.all([
+    loadCursiveFont(),
+    loadFaviconDataUri(),
+    createClient(),
+  ]);
 
   const { data: event } = await supabase
     .from("events")
@@ -243,26 +248,14 @@ export default async function OGImage({ params }: { params: Promise<{ id: string
             gap: 12,
           }}
         >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={faviconUri} alt="" width={36} height={36} style={{ borderRadius: 8 }} />
           <div
             style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: 36,
-              height: 36,
-              borderRadius: 18,
-              backgroundColor: "rgba(255,255,255,0.3)",
-              fontSize: 16,
+              fontSize: 24,
+              fontFamily: "Dancing Script",
               fontWeight: 700,
-              color: "white",
-            }}
-          >
-            ET
-          </div>
-          <div
-            style={{
-              fontSize: 20,
-              color: "rgba(255,255,255,0.9)",
+              color: "#84cc16",
               textShadow: "0 1px 4px rgba(0,0,0,0.5)",
             }}
           >
@@ -271,6 +264,9 @@ export default async function OGImage({ params }: { params: Promise<{ id: string
         </div>
       </div>
     </div>,
-    { ...size },
+    {
+      ...size,
+      fonts: [{ name: "Dancing Script", data: fontData, style: "normal", weight: 700 }],
+    },
   );
 }
