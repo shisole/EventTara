@@ -39,7 +39,7 @@ export default function FeedCard({ item, isAuthenticated }: FeedCardProps) {
               {item.userName}
             </Link>
             {item.userRole === "organizer" && (
-              <span className="text-[10px] bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 px-1.5 py-0.5 rounded-full font-medium">
+              <span className="text-[10px] border border-teal-400 dark:border-teal-600 text-teal-600 dark:text-teal-400 px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide">
                 Organizer
               </span>
             )}
