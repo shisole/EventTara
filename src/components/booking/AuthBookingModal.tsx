@@ -334,7 +334,7 @@ export default function AuthBookingModal({
                 className="text-sm text-lime-600 dark:text-lime-400 hover:text-lime-700 dark:hover:text-lime-300 font-medium"
               >
                 {authMethod === "password"
-                  ? "Sign in with email code instead"
+                  ? "Use a one-time code instead"
                   : "Sign in with password instead"}
               </button>
             </div>
