@@ -62,6 +62,7 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: siteName,
       title: defaultTitle,
       description: siteDescription,
+      url: siteUrl,
       locale: settings?.seo?.ogLocale || "en_PH",
     },
     twitter: {
