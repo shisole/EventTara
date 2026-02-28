@@ -10,7 +10,6 @@ import {
   DashboardIcon,
   ExploreIcon,
   HomeIcon,
-  LocationPinIcon,
   LoginIcon,
   ProfileIcon,
 } from "@/components/icons";
@@ -44,12 +43,6 @@ function getNavItems(user: User | null, role: string | null, pathname: string): 
         label: "Events",
         icon: CalendarIcon,
         isActive: (p) => p.startsWith("/dashboard/events"),
-      },
-      {
-        href: "/dashboard/guides",
-        label: "Guides",
-        icon: LocationPinIcon,
-        isActive: (p) => p.startsWith("/dashboard/guides"),
       },
       {
         href: "/dashboard/settings",

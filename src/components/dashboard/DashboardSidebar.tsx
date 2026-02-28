@@ -3,13 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { CalendarIcon, CogIcon, DashboardIcon, LocationPinIcon } from "@/components/icons";
+import { CalendarIcon, CogIcon, DashboardIcon } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Overview", icon: DashboardIcon },
   { href: "/dashboard/events", label: "Events", icon: CalendarIcon },
-  { href: "/dashboard/guides", label: "Guides", icon: LocationPinIcon },
   { href: "/dashboard/settings", label: "Settings", icon: CogIcon },
 ];
 
