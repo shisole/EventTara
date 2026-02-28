@@ -55,61 +55,57 @@ export default function DateRangePicker({
     return () => mql.removeEventListener("change", handler);
   }, []);
 
-  // Compute indicator dates (days with any event) and blocked dates (multi-day events)
-  const { indicatorDates, blockedDates } = useMemo(() => {
-    if (!eventDates || eventDates.length === 0) return { indicatorDates: [], blockedDates: [] };
+  // Compute blocked dates — block all days that have any existing event
+  const blockedDates = useMemo(() => {
+    if (!eventDates || eventDates.length === 0) return [];
 
-    const indicatorSet = new Map<string, Date>();
     const blockedSet = new Map<string, Date>();
 
     for (const evt of eventDates) {
       const start = toDateOnly(new Date(evt.date));
-
-      indicatorSet.set(dateKey(start), start);
+      blockedSet.set(dateKey(start), start);
 
       if (evt.end_date) {
         const end = toDateOnly(new Date(evt.end_date));
-        const isMultiDay = end.getTime() !== start.getTime();
-
-        if (isMultiDay) {
-          // Block all days in multi-day range
-          const current = new Date(start);
-          while (current <= end) {
-            const k = dateKey(current);
-            const d = new Date(current);
-            blockedSet.set(k, d);
-            indicatorSet.set(k, d);
-            current.setDate(current.getDate() + 1);
-          }
+        const current = new Date(start);
+        while (current <= end) {
+          blockedSet.set(dateKey(current), new Date(current));
+          current.setDate(current.getDate() + 1);
         }
       }
     }
 
-    return {
-      indicatorDates: [...indicatorSet.values()],
-      blockedDates: [...blockedSet.values()],
-    };
+    return [...blockedSet.values()];
   }, [eventDates]);
 
   const noDate: Date | undefined = undefined;
-  const resetEndDate = () => onEndDateChange(noDate);
+  const clearEnd = () => onEndDateChange(noDate);
+  const clearBoth = () => {
+    onStartDateChange(noDate);
+    onEndDateChange(noDate);
+  };
 
+  // Simple two-click flow: 1st click = start, 2nd click = end
   const handleDayClick = (date: Date | undefined) => {
     if (!date) return;
 
-    if (!startDate || (startDate && endDate)) {
-      // First click or resetting range
+    if (!startDate) {
+      // First click — set start
       onStartDateChange(date);
-      resetEndDate();
-    } else if (date.getTime() === startDate.getTime()) {
-      // Same date clicked - single-day event
-      resetEndDate();
+      clearEnd();
+    } else if (endDate && endDate.getTime() !== startDate.getTime()) {
+      // Both set — start over with new start
+      onStartDateChange(date);
+      clearEnd();
     } else if (date < startDate) {
-      // Clicked date before start - make it the new start
-      onStartDateChange(date);
+      // Clicked before start — swap
       onEndDateChange(startDate);
+      onStartDateChange(date);
+    } else if (date.getTime() === startDate.getTime()) {
+      // Same date — single-day event, just clear end
+      clearEnd();
     } else {
-      // Clicked date after start - set as end
+      // Second click after start — set end
       onEndDateChange(date);
     }
   };
@@ -133,29 +129,6 @@ export default function DateRangePicker({
         Date & Time
       </label>
 
-      {/* CSS for event indicator dots */}
-      {indicatorDates.length > 0 && (
-        <style>{`
-          .day-has-event {
-            position: relative;
-          }
-          .day-has-event::after {
-            content: '';
-            position: absolute;
-            bottom: 2px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 5px;
-            height: 5px;
-            border-radius: 50%;
-            background-color: #f59e0b;
-          }
-          .dark .day-has-event::after {
-            background-color: #fbbf24;
-          }
-        `}</style>
-      )}
-
       <div className="rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-4 space-y-4">
         <DayPicker
           mode="range"
@@ -169,12 +142,6 @@ export default function DateRangePicker({
           }
           onDayClick={handleDayClick}
           disabled={disabledMatchers}
-          modifiers={{
-            hasEvent: indicatorDates,
-          }}
-          modifiersClassNames={{
-            hasEvent: "day-has-event",
-          }}
           classNames={{
             root: "text-gray-900 dark:text-gray-100",
             months: "relative flex justify-center gap-6",
@@ -219,15 +186,30 @@ export default function DateRangePicker({
           }}
         />
 
-        {/* Selected range summary */}
+        {/* Selected range summary + reset */}
         {startDate && (
-          <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between pt-2 border-t border-gray-200 dark:border-gray-700">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Selected:{" "}
-              <span className="font-medium text-gray-900 dark:text-gray-100">
-                {formatDateRange()}
-              </span>
+              {endDate ? (
+                <>
+                  Selected:{" "}
+                  <span className="font-medium text-gray-900 dark:text-gray-100">
+                    {formatDateRange()}
+                  </span>
+                </>
+              ) : (
+                <span className="text-amber-600 dark:text-amber-400">
+                  Now click an end date (or same date for single-day)
+                </span>
+              )}
             </p>
+            <button
+              type="button"
+              onClick={clearBoth}
+              className="text-xs text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 transition-colors"
+            >
+              Reset dates
+            </button>
           </div>
         )}
 
