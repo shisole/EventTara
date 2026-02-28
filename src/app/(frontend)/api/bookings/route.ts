@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { sendEmail } from "@/lib/email/send";
 import { bookingConfirmationHtml } from "@/lib/email/templates/booking-confirmation";
+import { findOverlappingEvent, formatOverlapDate } from "@/lib/events/overlap";
 import { createClient } from "@/lib/supabase/server";
 
 interface CompanionInput {
@@ -74,6 +75,34 @@ export async function POST(request: Request) {
 
   if (!event) {
     return NextResponse.json({ error: "Event not found" }, { status: 404 });
+  }
+
+  // Check for overlapping bookings by this participant
+  const { data: userBookings } = await supabase
+    .from("bookings")
+    .select("event_id")
+    .eq("user_id", user.id)
+    .in("status", ["pending", "confirmed"]);
+
+  if (userBookings && userBookings.length > 0) {
+    const bookedEventIds = userBookings.map((b) => b.event_id);
+    const { data: bookedEvents } = await supabase
+      .from("events")
+      .select("id, title, date, end_date")
+      .in("id", bookedEventIds)
+      .in("status", ["published"]);
+
+    if (bookedEvents) {
+      const overlap = findOverlappingEvent(event.date, event.end_date, bookedEvents);
+      if (overlap) {
+        return NextResponse.json(
+          {
+            error: `You can't book this event — you already have "${overlap.title}" on ${formatOverlapDate(overlap.date, overlap.end_date)}. Cancel that booking first if you'd like to join this one instead.`,
+          },
+          { status: 409 },
+        );
+      }
+    }
   }
 
   // Check capacity — per-distance if distances are involved, otherwise event-level

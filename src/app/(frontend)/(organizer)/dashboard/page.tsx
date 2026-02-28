@@ -1,9 +1,13 @@
+import dynamic from "next/dynamic";
 import Link from "next/link";
 
 import DashboardStats from "@/components/dashboard/DashboardStats";
+import { type CalendarEvent } from "@/components/dashboard/EventsCalendar";
 import ScannerButton from "@/components/dashboard/ScannerButton";
 import { Button } from "@/components/ui";
 import { createClient } from "@/lib/supabase/server";
+
+const EventsCalendar = dynamic(() => import("@/components/dashboard/EventsCalendar"));
 
 export const metadata = {
   title: "Dashboard — EventTara",
@@ -25,22 +29,25 @@ export default async function DashboardPage() {
   let totalEvents = 0;
   let totalBookings = 0;
   let upcomingEvents = 0;
+  let calendarEvents: CalendarEvent[] = [];
 
   if (profile) {
-    // Count total events
-    const { count: eventCount } = await supabase
-      .from("events")
-      .select("*", { count: "exact", head: true })
-      .eq("organizer_id", profile.id);
-    totalEvents = eventCount || 0;
-
-    // Count total bookings across all events
+    // Fetch all events for stats + calendar
     const { data: events } = await supabase
       .from("events")
-      .select("id")
-      .eq("organizer_id", profile.id);
+      .select("id, title, date, end_date, type, status")
+      .eq("organizer_id", profile.id)
+      .order("date", { ascending: true });
 
     if (events && events.length > 0) {
+      totalEvents = events.length;
+      calendarEvents = events as CalendarEvent[];
+
+      // Count upcoming published events
+      const now = new Date().toISOString();
+      upcomingEvents = events.filter((e) => e.status === "published" && e.date >= now).length;
+
+      // Count total bookings across all events
       const eventIds = events.map((e) => e.id);
       const { count: bookingCount } = await supabase
         .from("bookings")
@@ -48,15 +55,6 @@ export default async function DashboardPage() {
         .in("event_id", eventIds);
       totalBookings = bookingCount || 0;
     }
-
-    // Count upcoming events
-    const { count: upcomingCount } = await supabase
-      .from("events")
-      .select("*", { count: "exact", head: true })
-      .eq("organizer_id", profile.id)
-      .eq("status", "published")
-      .gte("date", new Date().toISOString());
-    upcomingEvents = upcomingCount || 0;
   }
 
   return (
@@ -76,6 +74,8 @@ export default async function DashboardPage() {
         totalBookings={totalBookings}
         upcomingEvents={upcomingEvents}
       />
+
+      {calendarEvents.length > 0 && <EventsCalendar events={calendarEvents} />}
 
       {!profile && (
         <div className="bg-golden-50 dark:bg-golden-900/20 border border-golden-200 dark:border-golden-800 rounded-2xl p-6 text-center">

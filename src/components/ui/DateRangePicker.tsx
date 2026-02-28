@@ -97,18 +97,22 @@ export default function DateRangePicker({
             ),
             month_grid: "w-full border-collapse space-y-1",
             weekdays: "flex",
-            weekday:
-              "text-gray-500 dark:text-gray-400 rounded-md w-9 font-normal text-[0.8rem] uppercase",
+            weekday: cn(
+              "text-gray-500 dark:text-gray-400 rounded-md font-normal text-[0.8rem] uppercase",
+              isMobile ? "w-9" : "w-11",
+            ),
             week: "flex w-full mt-2",
             day: cn(
-              "h-9 w-9 text-center text-sm p-0 relative",
+              "text-center text-sm p-0 relative",
+              isMobile ? "h-9 w-9" : "h-11 w-11",
               "[&:has([aria-selected].range_start)]:rounded-l-md [&:has([aria-selected].range_end)]:rounded-r-md",
               "[&:has([aria-selected].range_middle)]:rounded-none",
               "first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md",
               "focus-within:relative focus-within:z-20",
             ),
             day_button: cn(
-              "h-9 w-9 p-0 font-normal aria-selected:opacity-100 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
+              "p-0 font-normal aria-selected:opacity-100 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
+              isMobile ? "h-9 w-9" : "h-11 w-11",
             ),
             range_start:
               "bg-lime-500 text-white hover:bg-lime-600 dark:bg-lime-600 dark:hover:bg-lime-700",

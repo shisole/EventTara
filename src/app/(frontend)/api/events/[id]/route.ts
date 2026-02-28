@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { findProvinceFromLocation } from "@/lib/constants/philippine-provinces";
+import { findOverlappingEvent, formatOverlapDate } from "@/lib/events/overlap";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -42,6 +43,41 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     const province = findProvinceFromLocation(body.location);
     if (province) {
       coordinates = { lat: province.lat, lng: province.lng };
+    }
+  }
+
+  // Check for overlapping events by this organizer (when date is being changed)
+  if (body.date) {
+    // Get the organizer_id for this event
+    const { data: currentEvent } = await supabase
+      .from("events")
+      .select("organizer_id")
+      .eq("id", id)
+      .single();
+
+    if (currentEvent) {
+      const { data: organizerEvents } = await supabase
+        .from("events")
+        .select("id, title, date, end_date")
+        .eq("organizer_id", currentEvent.organizer_id)
+        .in("status", ["draft", "published"]);
+
+      if (organizerEvents) {
+        const overlap = findOverlappingEvent(
+          body.date,
+          body.end_date === undefined ? null : body.end_date,
+          organizerEvents,
+          id, // exclude the event being updated
+        );
+        if (overlap) {
+          return NextResponse.json(
+            {
+              error: `Cannot update this event — it would overlap with your event "${overlap.title}" on ${formatOverlapDate(overlap.date, overlap.end_date)}. Adjust the date/time or update the other event first.`,
+            },
+            { status: 409 },
+          );
+        }
+      }
     }
   }
 
