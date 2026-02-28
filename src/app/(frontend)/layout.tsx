@@ -39,6 +39,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     metadataBase: new URL(siteUrl),
+    other: { "fb:app_id": "2075920046597865" },
     title: {
       default: defaultTitle,
       template: settings?.seo?.titleTemplate || "%s — EventTara",
