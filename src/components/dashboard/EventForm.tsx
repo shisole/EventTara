@@ -421,16 +421,6 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
   const [selectedMountains, setSelectedMountains] = useState<SelectedMountain[]>(
     initialData?.initialMountains || [],
   );
-  const [availableMountains, setAvailableMountains] = useState<
-    {
-      id: string;
-      name: string;
-      province: string;
-      difficulty_level: number;
-      elevation_masl: number | null;
-    }[]
-  >([]);
-  const [loadingMountains, setLoadingMountains] = useState(false);
   const [difficultyLevel, setDifficultyLevel] = useState<number | null>(
     initialData?.difficulty_level ?? null,
   );
@@ -457,23 +447,6 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
     };
     void fetchGuides();
   }, [type, startDate, mode, initialData?.id]);
-
-  useEffect(() => {
-    if (type !== "hiking") {
-      setAvailableMountains([]);
-      return;
-    }
-    const fetchMountains = async () => {
-      setLoadingMountains(true);
-      const res = await fetch("/api/mountains");
-      if (res.ok) {
-        const data = await res.json();
-        setAvailableMountains(data.mountains);
-      }
-      setLoadingMountains(false);
-    };
-    void fetchMountains();
-  }, [type]);
 
   useEffect(() => {
     if (selectedMountains.length === 0) {
@@ -965,12 +938,7 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
 
       {type === "hiking" && (
         <>
-          <MountainCombobox
-            mountains={availableMountains}
-            selectedMountains={selectedMountains}
-            onChange={setSelectedMountains}
-            loading={loadingMountains}
-          />
+          <MountainCombobox selectedMountains={selectedMountains} onChange={setSelectedMountains} />
           {selectedMountains.length > 0 && (
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">

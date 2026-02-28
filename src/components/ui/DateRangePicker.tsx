@@ -1,8 +1,8 @@
 "use client";
 
 import { format } from "date-fns";
-import { useState, useEffect, useMemo } from "react";
-import { DayPicker } from "react-day-picker";
+import { type ButtonHTMLAttributes, useState, useEffect, useMemo } from "react";
+import { type CalendarDay, type Modifiers, DayPicker } from "react-day-picker";
 import "react-day-picker/style.css";
 
 import { cn } from "@/lib/utils";
@@ -55,27 +55,40 @@ export default function DateRangePicker({
     return () => mql.removeEventListener("change", handler);
   }, []);
 
-  // Compute blocked dates — block all days that have any existing event
-  const blockedDates = useMemo(() => {
-    if (!eventDates || eventDates.length === 0) return [];
+  // Compute blocked dates and a lookup map for tooltips
+  const { blockedDates, eventsByDate } = useMemo(() => {
+    if (!eventDates || eventDates.length === 0)
+      return { blockedDates: [], eventsByDate: new Map<string, string[]>() };
 
     const blockedSet = new Map<string, Date>();
+    const evtMap = new Map<string, string[]>();
+
+    const addToMap = (key: string, date: Date, title: string) => {
+      blockedSet.set(key, date);
+      const existing = evtMap.get(key);
+      if (existing) {
+        if (!existing.includes(title)) existing.push(title);
+      } else {
+        evtMap.set(key, [title]);
+      }
+    };
 
     for (const evt of eventDates) {
       const start = toDateOnly(new Date(evt.date));
-      blockedSet.set(dateKey(start), start);
+      addToMap(dateKey(start), start, evt.title);
 
       if (evt.end_date) {
         const end = toDateOnly(new Date(evt.end_date));
         const current = new Date(start);
+        current.setDate(current.getDate() + 1); // start already added
         while (current <= end) {
-          blockedSet.set(dateKey(current), new Date(current));
+          addToMap(dateKey(current), new Date(current), evt.title);
           current.setDate(current.getDate() + 1);
         }
       }
     }
 
-    return [...blockedSet.values()];
+    return { blockedDates: [...blockedSet.values()], eventsByDate: evtMap };
   }, [eventDates]);
 
   const noDate: Date | undefined = undefined;
@@ -123,6 +136,39 @@ export default function DateRangePicker({
     disabledMatchers.push(...blockedDates);
   }
 
+  // Custom DayButton to show colored dot + tooltip on event dates
+  function EventDayButton({
+    day,
+    modifiers,
+    ...buttonProps
+  }: {
+    day: CalendarDay;
+    modifiers: Modifiers;
+  } & ButtonHTMLAttributes<HTMLButtonElement>) {
+    const key = dateKey(day.date);
+    const events = eventsByDate.get(key);
+    const hasEvent = !!events;
+    // Use modifiers to keep ESLint happy — disabled dates get cursor style
+    const isDisabled = modifiers.disabled;
+
+    return (
+      <button
+        type="button"
+        {...buttonProps}
+        title={hasEvent ? events.join(", ") : ""}
+        aria-disabled={isDisabled}
+      >
+        {day.date.getDate()}
+        {hasEvent && (
+          <span
+            className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-amber-400"
+            aria-hidden="true"
+          />
+        )}
+      </button>
+    );
+  }
+
   return (
     <div className="space-y-1">
       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -142,6 +188,9 @@ export default function DateRangePicker({
           }
           onDayClick={handleDayClick}
           disabled={disabledMatchers}
+          components={{
+            DayButton: EventDayButton,
+          }}
           classNames={{
             root: "text-gray-900 dark:text-gray-100",
             months: "relative flex justify-center gap-6",
