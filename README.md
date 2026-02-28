@@ -17,8 +17,8 @@ Adventure event booking platform for the Philippines. Browse, book, and manage o
 
 ### Prerequisites
 
-- Node.js 18+
-- [pnpm](https://pnpm.io/installation)
+- Node.js 20+
+- [pnpm](https://pnpm.io/installation) (strictly enforced — npm/yarn will not work)
 - A [Supabase](https://supabase.com) project
 
 ### 1. Install dependencies
@@ -35,13 +35,15 @@ cp .env.local.example .env.local
 
 Fill in your keys:
 
-| Variable                        | Required | Where to get it                                                          |
-| ------------------------------- | -------- | ------------------------------------------------------------------------ |
-| `NEXT_PUBLIC_SUPABASE_URL`      | Yes      | Supabase Dashboard > Settings > API                                      |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes      | Supabase Dashboard > Settings > API                                      |
-| `RESEND_API_KEY`                | No       | [resend.com](https://resend.com) — emails are skipped if absent          |
-| `ANTHROPIC_API_KEY`             | No       | [console.anthropic.com](https://console.anthropic.com) — for AI features |
-| `SUPABASE_SERVICE_ROLE_KEY`     | No       | Supabase Dashboard > Settings > API — only for seed scripts              |
+| Variable                        | Required | Where to get it                                                                          |
+| ------------------------------- | -------- | ---------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Yes      | Supabase Dashboard > Settings > API                                                      |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes      | Supabase Dashboard > Settings > API                                                      |
+| `DATABASE_URI`                  | Yes      | Supabase Dashboard > Settings > Database > Connection string (session pooler, port 5432) |
+| `PAYLOAD_SECRET`                | Yes      | Any random string, min 32 characters                                                     |
+| `RESEND_API_KEY`                | No       | [resend.com](https://resend.com) — emails are skipped if absent                          |
+| `ANTHROPIC_API_KEY`             | No       | [console.anthropic.com](https://console.anthropic.com) — for AI features                 |
+| `SUPABASE_SERVICE_ROLE_KEY`     | No       | Supabase Dashboard > Settings > API — only for seed scripts                              |
 
 ### 3. Run the dev server
 
@@ -69,16 +71,19 @@ pnpm unseed
 
 ## Scripts
 
-| Command         | Description                          |
-| --------------- | ------------------------------------ |
-| `pnpm dev`      | Start development server (port 3001) |
-| `pnpm build`    | Production build                     |
-| `pnpm start`    | Start production server              |
-| `pnpm lint`     | Run ESLint                           |
-| `pnpm seed`     | Seed database with test data         |
-| `pnpm unseed`   | Remove seeded data                   |
-| `pnpm seed:cms` | Seed Payload CMS with sample pages   |
-| `pnpm test:e2e` | Run Playwright E2E tests             |
+| Command             | Description                          |
+| ------------------- | ------------------------------------ |
+| `pnpm dev`          | Start development server (port 3001) |
+| `pnpm build`        | Production build                     |
+| `pnpm start`        | Start production server              |
+| `pnpm lint`         | Run ESLint                           |
+| `pnpm typecheck`    | TypeScript type checking             |
+| `pnpm format`       | Format all files with Prettier       |
+| `pnpm format:check` | Check formatting (used in CI)        |
+| `pnpm seed`         | Seed database with test data         |
+| `pnpm unseed`       | Remove seeded data                   |
+| `pnpm seed:cms`     | Seed Payload CMS with sample pages   |
+| `pnpm test:e2e`     | Run Playwright E2E tests             |
 
 ## Project Structure
 
