@@ -6,7 +6,6 @@ import CommentForm from "@/components/feed/CommentForm";
 import CommentItem from "@/components/feed/CommentItem";
 import { ChatIcon } from "@/components/icons";
 import type { ActivityType, FeedComment } from "@/lib/feed/types";
-import { cn } from "@/lib/utils";
 
 interface CommentSectionProps {
   activityType: ActivityType;
@@ -68,26 +67,23 @@ export default function CommentSection({
 
   return (
     <div className="space-y-2">
-      {/* Toggle button */}
-      <button
-        type="button"
-        onClick={handleToggle}
-        className={cn(
-          "inline-flex items-center gap-1.5 text-sm transition-colors",
-          count > 0
-            ? "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-            : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400",
-        )}
-      >
-        <ChatIcon className="w-4 h-4" />
-        <span>
-          {count > 0 ? `${String(count)} comment${count === 1 ? "" : "s"}` : "Add a comment..."}
-        </span>
-      </button>
+      {/* View comments toggle — only shown when there are comments */}
+      {count > 0 && (
+        <button
+          type="button"
+          onClick={handleToggle}
+          className="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+        >
+          <ChatIcon className="w-4 h-4" />
+          <span>
+            {expanded ? "Hide comments" : `View ${String(count)} comment${count === 1 ? "" : "s"}`}
+          </span>
+        </button>
+      )}
 
-      {/* Expanded section */}
+      {/* Expanded comments list */}
       {expanded && (
-        <div className="space-y-3 pl-1">
+        <div className="space-y-2 pl-1">
           {/* Loading skeleton */}
           {loading && (
             <div className="space-y-2">
@@ -116,16 +112,16 @@ export default function CommentSection({
               ))}
             </div>
           )}
-
-          {/* Comment form */}
-          <CommentForm
-            activityType={activityType}
-            activityId={activityId}
-            isAuthenticated={isAuthenticated}
-            onSubmit={handleNewComment}
-          />
         </div>
       )}
+
+      {/* Comment input — always visible */}
+      <CommentForm
+        activityType={activityType}
+        activityId={activityId}
+        isAuthenticated={isAuthenticated}
+        onSubmit={handleNewComment}
+      />
     </div>
   );
 }
