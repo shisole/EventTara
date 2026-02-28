@@ -50,6 +50,7 @@ export default async function Image() {
       <div
         style={{
           fontSize: 30,
+          fontFamily: "sans-serif",
           color: "rgba(255, 255, 255, 0.9)",
         }}
       >
