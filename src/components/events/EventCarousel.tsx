@@ -174,8 +174,13 @@ export default function EventCarousel({
 
   return (
     <div className="relative">
-      {/* Mobile: vertical stack */}
-      <div className="md:hidden grid grid-cols-1 sm:grid-cols-2 gap-6">{children}</div>
+      {/* Mobile: horizontal carousel */}
+      <div
+        className="md:hidden flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2 -mx-4 px-4"
+        style={{ scrollSnapType: "x mandatory" }}
+      >
+        {children}
+      </div>
 
       {/* Desktop: horizontal carousel */}
       <div className="hidden md:block">

@@ -49,14 +49,17 @@ export default async function UpcomingEventsSection() {
           {cards.map((card) => (
             <div
               key={card.id}
-              className="md:min-w-[320px] md:max-w-[350px] md:flex-shrink-0"
+              className="min-w-[280px] max-w-[300px] flex-shrink-0 md:min-w-[320px] md:max-w-[350px]"
               style={{ scrollSnapAlign: "start" }}
             >
               <EventCard {...card} />
             </div>
           ))}
           {remainingCount > 0 && (
-            <div className="md:min-w-[280px] md:flex-shrink-0" style={{ scrollSnapAlign: "start" }}>
+            <div
+              className="min-w-[240px] flex-shrink-0 md:min-w-[280px]"
+              style={{ scrollSnapAlign: "start" }}
+            >
               <Link
                 href="/events"
                 className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 dark:border-slate-600 hover:border-lime-500 dark:hover:border-lime-500 transition-colors h-full min-h-[280px]"

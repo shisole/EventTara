@@ -116,7 +116,7 @@ export default async function GamificationSection() {
           <h3 className="text-xl font-heading font-semibold text-center text-gray-900 dark:text-white mb-8">
             Avatar Border Tiers
           </h3>
-          <div className="flex flex-wrap justify-center gap-8 sm:gap-12">
+          <div className="grid grid-cols-2 justify-items-center sm:flex sm:flex-wrap sm:justify-center gap-8 sm:gap-12">
             {BORDER_TIERS.map((tier) => (
               <div
                 key={tier}
