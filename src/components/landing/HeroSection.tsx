@@ -39,7 +39,7 @@ export default function HeroSection({ heroData }: HeroSectionProps) {
     : [];
 
   return (
-    <section className="relative py-24 sm:py-32 overflow-hidden min-h-[500px] lg:min-h-[600px] flex items-center">
+    <section className="relative py-16 sm:py-24 overflow-hidden min-h-[500px] lg:min-h-[600px] flex items-center">
       {heroSlides.length > 0 ? (
         <HeroCarousel slides={heroSlides} />
       ) : (

@@ -32,7 +32,7 @@ export default async function UpcomingEventsSection() {
   const remainingCount = (totalUpcoming || 0) - upcomingEvents.length;
 
   return (
-    <section className="py-20 bg-white dark:bg-slate-800">
+    <section className="py-12 bg-white dark:bg-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-10">
           <h2 className="text-3xl sm:text-4xl font-heading font-bold text-gray-900 dark:text-white">
