@@ -1,14 +1,14 @@
 import { ImageResponse } from "next/og";
 
-import { loadFaviconDataUri } from "@/lib/og/brand-assets";
+import { loadCursiveFont, loadFaviconDataUri } from "@/lib/og/brand-assets";
 
 export const runtime = "nodejs";
-export const alt = "EventTara — Outdoor Adventure Events in Panay Island";
+export const alt = "EventTara — Tara na! Book Your Next Adventure";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 export default async function Image() {
-  const faviconUri = await loadFaviconDataUri();
+  const [fontData, faviconUri] = await Promise.all([loadCursiveFont(), loadFaviconDataUri()]);
 
   return new ImageResponse(
     <div
@@ -33,28 +33,32 @@ export default async function Image() {
         style={{ borderRadius: 24, marginBottom: 32 }}
       />
 
-      {/* Brand name */}
+      {/* Brand name in cursive */}
       <div
         style={{
           fontSize: 80,
-          fontWeight: 800,
+          fontWeight: 700,
+          fontFamily: "Dancing Script",
           color: "#84cc16",
+          marginBottom: 16,
         }}
       >
         EventTara
       </div>
 
-      {/* Subtitle */}
+      {/* Caption */}
       <div
         style={{
-          fontSize: 28,
-          color: "rgba(255, 255, 255, 0.85)",
-          marginTop: 12,
+          fontSize: 30,
+          color: "rgba(255, 255, 255, 0.9)",
         }}
       >
-        Outdoor Adventure Events in Panay Island
+        Tara na! Book your next adventure!
       </div>
     </div>,
-    { ...size },
+    {
+      ...size,
+      fonts: [{ name: "Dancing Script", data: fontData, style: "normal", weight: 700 }],
+    },
   );
 }
