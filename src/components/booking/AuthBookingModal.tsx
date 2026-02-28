@@ -1,6 +1,7 @@
 "use client";
 
 import confetti from "canvas-confetti";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
@@ -9,7 +10,8 @@ import { Button, OtpCodeInput } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
 import { generateUsername } from "@/lib/utils/generate-username";
 
-type ModalState = "email" | "verify-code" | "success";
+type ModalState = "form" | "verify-code" | "success";
+type AuthMethod = "password" | "otp";
 
 const CODE_LENGTH = 6;
 const emptyCode = () => Array.from<string>({ length: CODE_LENGTH }).fill("");
@@ -26,8 +28,10 @@ export default function AuthBookingModal({
   onAuthenticated,
 }: AuthBookingModalProps) {
   const router = useRouter();
-  const [state, setState] = useState<ModalState>("email");
+  const [state, setState] = useState<ModalState>("form");
+  const [authMethod, setAuthMethod] = useState<AuthMethod>("password");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [code, setCode] = useState<string[]>(emptyCode());
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -75,7 +79,40 @@ export default function AuthBookingModal({
     };
   }, [state, userDisplay, onAuthenticated]);
 
-  const handleEmailSubmit = async (e: React.FormEvent) => {
+  const handlePasswordLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    const trimmed = email.trim();
+    if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const supabase = createClient();
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email: trimmed,
+        password,
+      });
+
+      if (signInError) {
+        setError("Invalid email or password.");
+        return;
+      }
+
+      const displayName = data.user?.user_metadata?.full_name || data.user?.email || trimmed;
+      setUserDisplay(displayName);
+      setState("success");
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOtpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -173,6 +210,9 @@ export default function AuthBookingModal({
     }
   };
 
+  const inputClassName =
+    "w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-lime-500 focus:border-transparent outline-none transition-colors";
+
   return (
     <div
       className={`fixed inset-0 z-50 flex items-center justify-center p-4 transition-opacity duration-200 ${
@@ -201,8 +241,11 @@ export default function AuthBookingModal({
           </button>
         )}
 
-        {state === "email" && (
-          <form onSubmit={handleEmailSubmit} className="space-y-5">
+        {state === "form" && (
+          <form
+            onSubmit={authMethod === "password" ? handlePasswordLogin : handleOtpSubmit}
+            className="space-y-5"
+          >
             <div className="text-center">
               <div className="w-14 h-14 bg-lime-100 dark:bg-lime-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
                 <EnvelopeIcon className="w-7 h-7 text-lime-600 dark:text-lime-400" />
@@ -232,9 +275,38 @@ export default function AuthBookingModal({
                 }}
                 placeholder="you@example.com"
                 autoFocus
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-lime-500 focus:border-transparent outline-none transition-colors"
+                className={inputClassName}
               />
             </div>
+
+            {authMethod === "password" && (
+              <div>
+                <label
+                  htmlFor="auth-password"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
+                >
+                  Password
+                </label>
+                <input
+                  id="auth-password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                  }}
+                  placeholder="Enter your password"
+                  className={inputClassName}
+                />
+                <div className="flex justify-end mt-1.5">
+                  <Link
+                    href="/forgot-password"
+                    className="text-sm text-lime-600 dark:text-lime-400 hover:text-lime-700 dark:hover:text-lime-300 font-medium"
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
+              </div>
+            )}
 
             {error && (
               <p className="text-sm text-red-500" role="alert">
@@ -243,12 +315,35 @@ export default function AuthBookingModal({
             )}
 
             <Button type="submit" className="w-full" size="lg" disabled={loading}>
-              {loading ? "Sending code..." : "Continue"}
+              {loading
+                ? authMethod === "password"
+                  ? "Signing in..."
+                  : "Sending code..."
+                : authMethod === "password"
+                  ? "Sign In"
+                  : "Send Code"}
             </Button>
 
-            <p className="text-xs text-center text-gray-400 dark:text-gray-500">
-              We&apos;ll send a 6-digit code to your email. Works for new and existing accounts.
-            </p>
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setAuthMethod(authMethod === "password" ? "otp" : "password");
+                  setError("");
+                }}
+                className="text-sm text-lime-600 dark:text-lime-400 hover:text-lime-700 dark:hover:text-lime-300 font-medium"
+              >
+                {authMethod === "password"
+                  ? "Sign in with email code instead"
+                  : "Sign in with password instead"}
+              </button>
+            </div>
+
+            {authMethod === "otp" && (
+              <p className="text-xs text-center text-gray-400 dark:text-gray-500">
+                We&apos;ll send a 6-digit code to your email. Works for new and existing accounts.
+              </p>
+            )}
           </form>
         )}
 
@@ -265,7 +360,7 @@ export default function AuthBookingModal({
             onChangeEmail={() => {
               setError("");
               setCode(emptyCode());
-              setState("email");
+              setState("form");
             }}
             loading={loading}
             error={error}
