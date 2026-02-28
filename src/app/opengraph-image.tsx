@@ -1,14 +1,14 @@
 import { ImageResponse } from "next/og";
 
-import { loadCursiveFont, loadFaviconDataUri } from "@/lib/og/brand-assets";
+import { loadFaviconDataUri } from "@/lib/og/brand-assets";
 
 export const runtime = "nodejs";
-export const alt = "EventTara — Tara na! Book Your Next Adventure";
+export const alt = "EventTara — Outdoor Adventure Events in Panay Island";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 export default async function Image() {
-  const [fontData, faviconUri] = await Promise.all([loadCursiveFont(), loadFaviconDataUri()]);
+  const faviconUri = await loadFaviconDataUri();
 
   return new ImageResponse(
     <div
@@ -28,56 +28,33 @@ export default async function Image() {
       <img
         src={faviconUri}
         alt=""
-        width={100}
-        height={100}
-        style={{ borderRadius: 20, marginBottom: 24 }}
+        width={120}
+        height={120}
+        style={{ borderRadius: 24, marginBottom: 32 }}
       />
 
-      {/* Brand name in cursive */}
+      {/* Brand name */}
       <div
         style={{
           fontSize: 80,
-          fontWeight: 700,
-          fontFamily: "Dancing Script",
+          fontWeight: 800,
           color: "#84cc16",
-          marginBottom: 12,
         }}
       >
         EventTara
       </div>
 
-      {/* Tagline */}
+      {/* Subtitle */}
       <div
         style={{
-          fontSize: 32,
-          color: "rgba(255, 255, 255, 0.9)",
-          marginBottom: 32,
+          fontSize: 28,
+          color: "rgba(255, 255, 255, 0.85)",
+          marginTop: 12,
         }}
       >
-        Tara na! Book Your Next Adventure
-      </div>
-
-      {/* Category pills */}
-      <div style={{ display: "flex", gap: 16 }}>
-        {["Hiking", "Mountain Biking", "Road Biking", "Running", "Trail Running"].map((cat) => (
-          <div
-            key={cat}
-            style={{
-              padding: "8px 20px",
-              borderRadius: 9999,
-              backgroundColor: "rgba(255, 255, 255, 0.2)",
-              color: "white",
-              fontSize: 18,
-            }}
-          >
-            {cat}
-          </div>
-        ))}
+        Outdoor Adventure Events in Panay Island
       </div>
     </div>,
-    {
-      ...size,
-      fonts: [{ name: "Dancing Script", data: fontData, style: "normal", weight: 700 }],
-    },
+    { ...size },
   );
 }
