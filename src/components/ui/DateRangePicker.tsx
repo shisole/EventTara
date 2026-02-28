@@ -199,7 +199,7 @@ export default function DateRangePicker({
                 </>
               ) : (
                 <span className="text-amber-600 dark:text-amber-400">
-                  Now click an end date (or same date for single-day)
+                  Now click an end date (or let it be for a single day event)
                 </span>
               )}
             </p>
