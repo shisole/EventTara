@@ -668,6 +668,54 @@ export interface Database {
         };
         Relationships: [];
       };
+      user_follows: {
+        Row: {
+          id: string;
+          follower_id: string;
+          following_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          follower_id: string;
+          following_id: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          follower_id?: string;
+          following_id?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      feed_reactions: {
+        Row: {
+          id: string;
+          user_id: string;
+          activity_type: "booking" | "checkin" | "badge" | "border";
+          activity_id: string;
+          emoji: "fire" | "clap" | "green_heart" | "mountain";
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          activity_type: "booking" | "checkin" | "badge" | "border";
+          activity_id: string;
+          emoji: "fire" | "clap" | "green_heart" | "mountain";
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          activity_type?: "booking" | "checkin" | "badge" | "border";
+          activity_id?: string;
+          emoji?: "fire" | "clap" | "green_heart" | "mountain";
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<never, never>;
     Functions: {
