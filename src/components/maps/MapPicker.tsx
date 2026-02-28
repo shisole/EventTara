@@ -65,7 +65,7 @@ export default function MapPicker({ value, onChange, center }: MapPickerProps) {
     <div className="space-y-2">
       <div
         className="relative z-0 rounded-xl overflow-hidden border border-gray-300 dark:border-gray-600"
-        style={{ height: 300 }}
+        style={{ height: 450 }}
       >
         <MapContainer
           center={[mapCenter.lat, mapCenter.lng]}
