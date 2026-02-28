@@ -38,14 +38,14 @@ export default function FeedCard({ item, isAuthenticated }: FeedCardProps) {
             >
               {item.userName}
             </Link>
-            {item.userRole === "organizer" && (
-              <span className="text-[10px] border border-teal-400 dark:border-teal-600 text-teal-600 dark:text-teal-400 px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide">
-                Organizer
-              </span>
-            )}
             {item.topBadgeTitle && (
               <span className="text-[10px] bg-golden-100 dark:bg-golden-900/30 text-golden-700 dark:text-golden-400 px-1.5 py-0.5 rounded-full font-medium truncate max-w-[120px]">
                 {item.topBadgeTitle}
+              </span>
+            )}
+            {item.userRole === "organizer" && (
+              <span className="text-[10px] bg-teal-500 dark:bg-teal-600 text-white px-1.5 py-0.5 rounded-full font-semibold">
+                Organizer
               </span>
             )}
             {item.isFollowing && (
