@@ -1,5 +1,6 @@
 import { ImageResponse } from "next/og";
 
+import { loadCursiveFont, loadFaviconDataUri } from "@/lib/og/brand-assets";
 import { createClient } from "@/lib/supabase/server";
 
 export const alt = "Adventure Profile on EventTara";
@@ -8,7 +9,11 @@ export const contentType = "image/png";
 
 export default async function Image({ params }: { params: Promise<{ username: string }> }) {
   const { username } = await params;
-  const supabase = await createClient();
+  const [fontData, faviconUri, supabase] = await Promise.all([
+    loadCursiveFont(),
+    loadFaviconDataUri(),
+    createClient(),
+  ]);
 
   const { data: user } = await supabase
     .from("users")
@@ -169,25 +174,23 @@ export default async function Image({ params }: { params: Promise<{ username: st
           gap: 12,
         }}
       >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={faviconUri} alt="" width={36} height={36} style={{ borderRadius: 8 }} />
         <div
           style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: 36,
-            height: 36,
-            borderRadius: 18,
-            backgroundColor: "rgba(255,255,255,0.3)",
-            fontSize: 16,
+            fontSize: 24,
+            fontFamily: "Dancing Script",
             fontWeight: 700,
-            color: "white",
+            color: "#84cc16",
           }}
         >
-          ET
+          EventTara
         </div>
-        <div style={{ fontSize: 20, color: "rgba(255,255,255,0.8)" }}>EventTara</div>
       </div>
     </div>,
-    { ...size },
+    {
+      ...size,
+      fonts: [{ name: "Dancing Script", data: fontData, style: "normal", weight: 700 }],
+    },
   );
 }
