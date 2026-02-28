@@ -39,7 +39,7 @@ export default function SplashScreen() {
       <div className="flex flex-col items-center gap-4">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/favicon-192x192.png" alt="EventTara" width={80} height={80} />
-        <span className="text-4xl font-heading font-bold text-lime-500">EventTara</span>
+        <span className="text-5xl font-cursive font-bold text-lime-500">EventTara</span>
         <span className="text-sm text-gray-400">Tara na!</span>
       </div>
     </div>
