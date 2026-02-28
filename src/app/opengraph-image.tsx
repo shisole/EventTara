@@ -1,13 +1,18 @@
 import { ImageResponse } from "next/og";
 
-import { loadCursiveFont, loadFaviconDataUri } from "@/lib/og/brand-assets";
+import { loadCursiveFont, loadFaviconDataUri, loadSansFont } from "@/lib/og/brand-assets";
 
+export const runtime = "nodejs";
 export const alt = "EventTara — Tara na! Book Your Next Adventure";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 export default async function Image() {
-  const [fontData, faviconUri] = await Promise.all([loadCursiveFont(), loadFaviconDataUri()]);
+  const [cursiveFont, sansFont, faviconUri] = await Promise.all([
+    loadCursiveFont(),
+    loadSansFont(),
+    loadFaviconDataUri(),
+  ]);
 
   return new ImageResponse(
     <div
@@ -19,7 +24,7 @@ export default async function Image() {
         width: "100%",
         height: "100%",
         background: "linear-gradient(135deg, #166534 0%, #15803d 40%, #0891b2 100%)",
-        fontFamily: "sans-serif",
+        fontFamily: "Inter",
       }}
     >
       {/* Favicon icon */}
@@ -27,9 +32,9 @@ export default async function Image() {
       <img
         src={faviconUri}
         alt=""
-        width={100}
-        height={100}
-        style={{ borderRadius: 20, marginBottom: 24 }}
+        width={120}
+        height={120}
+        style={{ borderRadius: 24, marginBottom: 32 }}
       />
 
       {/* Brand name in cursive */}
@@ -39,44 +44,29 @@ export default async function Image() {
           fontWeight: 700,
           fontFamily: "Dancing Script",
           color: "#84cc16",
-          marginBottom: 12,
+          marginBottom: 16,
         }}
       >
         EventTara
       </div>
 
-      {/* Tagline */}
+      {/* Caption in sans-serif */}
       <div
         style={{
-          fontSize: 32,
+          fontSize: 30,
+          fontFamily: "Inter",
           color: "rgba(255, 255, 255, 0.9)",
-          marginBottom: 32,
         }}
       >
-        Tara na! Book Your Next Adventure
-      </div>
-
-      {/* Category pills */}
-      <div style={{ display: "flex", gap: 16 }}>
-        {["Hiking", "Mountain Biking", "Road Biking", "Running", "Trail Running"].map((cat) => (
-          <div
-            key={cat}
-            style={{
-              padding: "8px 20px",
-              borderRadius: 9999,
-              backgroundColor: "rgba(255, 255, 255, 0.2)",
-              color: "white",
-              fontSize: 18,
-            }}
-          >
-            {cat}
-          </div>
-        ))}
+        Tara na! Book your next adventure!
       </div>
     </div>,
     {
       ...size,
-      fonts: [{ name: "Dancing Script", data: fontData, style: "normal", weight: 700 }],
+      fonts: [
+        { name: "Dancing Script", data: cursiveFont, style: "normal", weight: 700 },
+        { name: "Inter", data: sansFont, style: "normal", weight: 400 },
+      ],
     },
   );
 }

@@ -3,6 +3,7 @@ import { ImageResponse } from "next/og";
 import { loadCursiveFont, loadFaviconDataUri } from "@/lib/og/brand-assets";
 import { createClient } from "@/lib/supabase/server";
 
+export const runtime = "nodejs";
 export const alt = "Adventure Profile on EventTara";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
