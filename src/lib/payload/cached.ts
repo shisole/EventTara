@@ -37,13 +37,13 @@ export const getCachedFeatureFlags = unstable_cache(
 );
 
 /**
- * Returns whether the badge showcase feature flag is enabled.
+ * Returns whether the activity feed feature flag is enabled.
  * Defaults to false when Payload is unreachable.
  */
-export async function isBadgeShowcaseEnabled(): Promise<boolean> {
+export async function isActivityFeedEnabled(): Promise<boolean> {
   try {
     const flags = await getCachedFeatureFlags();
-    return flags?.badgeShowcase === true;
+    return flags?.activityFeed === true;
   } catch {
     return false;
   }

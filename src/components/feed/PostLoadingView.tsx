@@ -15,7 +15,6 @@ export default function PostLoadingView() {
         item={cached.item}
         isAuthenticated={cached.isAuthenticated}
         currentUserId={cached.currentUserId}
-        badgeShowcase={false}
       />
     );
   }

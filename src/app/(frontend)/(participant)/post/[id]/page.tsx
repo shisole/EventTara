@@ -5,7 +5,7 @@ import PostView from "@/components/feed/PostView";
 import type { BorderTier } from "@/lib/constants/avatar-borders";
 import type { BadgeCategory, BadgeRarity } from "@/lib/constants/badge-rarity";
 import type { ActivityType, FeedItem } from "@/lib/feed/types";
-import { isBadgeShowcaseEnabled } from "@/lib/payload/cached";
+import { isActivityFeedEnabled } from "@/lib/payload/cached";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -27,6 +27,9 @@ interface RawActivity {
 }
 
 export default async function PostPage({ params }: { params: Promise<{ id: string }> }) {
+  const enabled = await isActivityFeedEnabled();
+  if (!enabled) notFound();
+
   const { id } = await params;
   const supabase = await createClient();
 
@@ -228,14 +231,5 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
     isReposted,
   };
 
-  const badgeShowcase = await isBadgeShowcaseEnabled();
-
-  return (
-    <PostView
-      item={item}
-      isAuthenticated={!!authUser}
-      currentUserId={authUser?.id || null}
-      badgeShowcase={badgeShowcase}
-    />
-  );
+  return <PostView item={item} isAuthenticated={!!authUser} currentUserId={authUser?.id || null} />;
 }

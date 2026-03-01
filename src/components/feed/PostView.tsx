@@ -10,15 +10,9 @@ interface PostViewProps {
   item: FeedItem;
   isAuthenticated: boolean;
   currentUserId: string | null;
-  badgeShowcase: boolean;
 }
 
-export default function PostView({
-  item,
-  isAuthenticated,
-  currentUserId,
-  badgeShowcase,
-}: PostViewProps) {
+export default function PostView({ item, isAuthenticated, currentUserId }: PostViewProps) {
   return (
     <div className="max-w-xl mx-auto px-4 py-6">
       <Link
@@ -29,12 +23,7 @@ export default function PostView({
         Back to feed
       </Link>
 
-      <FeedCard
-        item={item}
-        isAuthenticated={isAuthenticated}
-        currentUserId={currentUserId}
-        badgeShowcase={badgeShowcase}
-      />
+      <FeedCard item={item} isAuthenticated={isAuthenticated} currentUserId={currentUserId} />
     </div>
   );
 }

@@ -8,13 +8,13 @@ export const FeatureFlags: GlobalConfig = {
   },
   fields: [
     {
-      name: "badgeShowcase",
+      name: "activityFeed",
       type: "checkbox",
       defaultValue: false,
-      label: "Badge Showcase",
+      label: "Activity Feed",
       admin: {
         description:
-          "When enabled, badge activities in the feed display a visual showcase with the badge image, rarity ring, and category pill. When disabled, badge activities show plain text only.",
+          "When enabled, the /feed and /post pages are accessible. When disabled, these pages show a coming-soon message.",
       },
     },
   ],
