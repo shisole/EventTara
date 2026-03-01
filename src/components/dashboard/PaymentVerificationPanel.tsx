@@ -152,7 +152,25 @@ export default function PaymentVerificationPanel({
         <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse" />
         <div className="space-y-3">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-16 bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse" />
+            <div
+              key={i}
+              className="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm dark:shadow-gray-950/30 animate-pulse space-y-3"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="space-y-2 flex-1">
+                  <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-32" />
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24" />
+                </div>
+                <div className="flex gap-2">
+                  <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-14" />
+                  <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-16" />
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded-xl w-24" />
+                <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded-xl w-20" />
+              </div>
+            </div>
           ))}
         </div>
       </div>
