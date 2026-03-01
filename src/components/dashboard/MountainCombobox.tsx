@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import DifficultyBadge from "@/components/events/DifficultyBadge";
+import { normalizeMountainName, stripMountainPrefix } from "@/lib/utils/normalize-mountain-name";
 
 export interface SelectedMountain {
   mountain_id: string;
@@ -53,7 +54,8 @@ export default function MountainCombobox({ selectedMountains, onChange }: Mounta
     debounceRef.current = setTimeout(async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/mountains?search=${encodeURIComponent(query)}`);
+        const searchTerm = stripMountainPrefix(query) || query;
+        const res = await fetch(`/api/mountains?search=${encodeURIComponent(searchTerm)}`);
         const json: { mountains: ApiMountain[] } = await res.json();
         // Filter out already-selected mountains
         const selectedIds = new Set(selectedMountains.map((m) => m.mountain_id));
@@ -104,7 +106,7 @@ export default function MountainCombobox({ selectedMountains, onChange }: Mounta
   }
 
   function addCustomMountain() {
-    const trimmed = input.trim();
+    const trimmed = normalizeMountainName(input);
     if (!trimmed) return;
     if (selectedMountains.some((m) => m.name.toLowerCase() === trimmed.toLowerCase())) return;
 

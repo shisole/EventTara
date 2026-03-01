@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { createClient } from "@/lib/supabase/server";
+import { normalizeMountainName, stripMountainPrefix } from "@/lib/utils/normalize-mountain-name";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -58,7 +59,56 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   }
 
   const body = await request.json();
-  const { mountain_id, route_name, difficulty_override, sort_order } = body;
+  let { mountain_id } = body;
+  const {
+    name,
+    province,
+    difficulty_level,
+    elevation_masl,
+    route_name,
+    difficulty_override,
+    sort_order,
+  } = body;
+
+  // Handle custom mountains (mountain_id starts with "custom-")
+  if (typeof mountain_id === "string" && mountain_id.startsWith("custom-")) {
+    if (!name) {
+      return NextResponse.json({ error: "Name is required for custom mountains" }, { status: 400 });
+    }
+
+    const normalizedName = normalizeMountainName(name);
+    const stripped = stripMountainPrefix(normalizedName);
+
+    // Search for an existing mountain with the same base name
+    const { data: matches } = await supabase
+      .from("mountains")
+      .select("id, name")
+      .ilike("name", `%${stripped}%`);
+
+    const exactMatch = (matches || []).find((m) => stripMountainPrefix(m.name) === stripped);
+
+    if (exactMatch) {
+      mountain_id = exactMatch.id;
+    } else {
+      // Create a new mountain row
+      const { data: newMountain, error: createError } = await supabase
+        .from("mountains")
+        .insert({
+          name: normalizedName,
+          province: province || "",
+          difficulty_level: difficulty_level ?? 2,
+          elevation_masl: elevation_masl ?? null,
+        })
+        .select("id")
+        .single();
+
+      if (createError) {
+        return NextResponse.json({ error: createError.message }, { status: 500 });
+      }
+
+      mountain_id = newMountain.id;
+    }
+  }
 
   // Check for existing link
   const { data: existing } = await supabase
