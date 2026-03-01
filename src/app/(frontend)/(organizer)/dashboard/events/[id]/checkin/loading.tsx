@@ -3,6 +3,9 @@ import { Skeleton, SkeletonText, SkeletonCircle } from "@/components/ui";
 export default function Loading() {
   return (
     <div className="space-y-6">
+      {/* Back link */}
+      <Skeleton className="h-5 w-32" />
+
       {/* Page title: "Check-in: <event name>" */}
       <Skeleton className="h-8 w-72" />
 

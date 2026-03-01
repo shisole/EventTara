@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import EventDashboardTabs from "@/components/dashboard/EventDashboardTabs";
 import ParticipantsTable from "@/components/dashboard/ParticipantsTable";
 import PublishButton from "@/components/dashboard/PublishButton";
+import { ChevronLeftIcon } from "@/components/icons";
 import { Button, UIBadge } from "@/components/ui";
 import { createClient } from "@/lib/supabase/server";
 
@@ -66,6 +67,14 @@ export default async function ManageEventPage({ params }: { params: Promise<{ id
 
   return (
     <div className="space-y-8">
+      <Link
+        href="/dashboard/events"
+        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+      >
+        <ChevronLeftIcon className="h-4 w-4" />
+        Back to Events
+      </Link>
+
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-heading font-bold dark:text-white">{event.title}</h1>

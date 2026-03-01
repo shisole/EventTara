@@ -3,6 +3,9 @@ import { Skeleton, SkeletonText, SkeletonStatCard, SkeletonCircle } from "@/comp
 export default function Loading() {
   return (
     <div className="space-y-8">
+      {/* Back link */}
+      <Skeleton className="h-5 w-32" />
+
       {/* Event title + badge + action buttons */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="space-y-2">
@@ -15,7 +18,13 @@ export default function Loading() {
         </div>
       </div>
 
-      {/* Stat cards: Bookings, Checked In, Revenue */}
+      {/* Tab bar (overview / payments) */}
+      <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
+        <Skeleton className="flex-1 h-9 rounded-lg" />
+        <Skeleton className="flex-1 h-9 rounded-lg" />
+      </div>
+
+      {/* Stat cards: Participants, Checked In, Revenue */}
       <div className="grid grid-cols-3 gap-4">
         <SkeletonStatCard />
         <SkeletonStatCard />
