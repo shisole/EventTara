@@ -1,28 +1,49 @@
 "use client";
 
 import { format } from "date-fns";
-import { useState, useEffect } from "react";
-import { DayPicker } from "react-day-picker";
+import { type ButtonHTMLAttributes, useState, useEffect, useMemo } from "react";
+import { type CalendarDay, type DateRange, type Modifiers, DayPicker } from "react-day-picker";
 import "react-day-picker/style.css";
 
 import { cn } from "@/lib/utils";
+
+export interface EventDateInfo {
+  date: string;
+  end_date: string | null;
+  title: string;
+}
 
 interface DateRangePickerProps {
   startDate: Date | undefined;
   endDate: Date | undefined;
   startTime: string;
+  endTime: string;
   onStartDateChange: (date: Date | undefined) => void;
   onEndDateChange: (date: Date | undefined) => void;
   onStartTimeChange: (time: string) => void;
+  onEndTimeChange: (time: string) => void;
+  eventDates?: EventDateInfo[];
+}
+
+/** Strip time from a Date to get midnight-local */
+function toDateOnly(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+function dateKey(d: Date): string {
+  return `${String(d.getFullYear())}-${String(d.getMonth())}-${String(d.getDate())}`;
 }
 
 export default function DateRangePicker({
   startDate,
   endDate,
   startTime,
+  endTime,
   onStartDateChange,
   onEndDateChange,
   onStartTimeChange,
+  onEndTimeChange,
+  eventDates,
 }: DateRangePickerProps) {
   const [isMobile, setIsMobile] = useState(false);
 
@@ -34,27 +55,56 @@ export default function DateRangePicker({
     return () => mql.removeEventListener("change", handler);
   }, []);
 
-  const noDate: Date | undefined = undefined;
-  const resetEndDate = () => onEndDateChange(noDate);
+  // Compute blocked dates and a lookup map for tooltips
+  const { blockedDates, eventsByDate } = useMemo(() => {
+    if (!eventDates || eventDates.length === 0)
+      return { blockedDates: [], eventsByDate: new Map<string, string[]>() };
 
-  const handleDayClick = (date: Date | undefined) => {
-    if (!date) return;
+    const blockedSet = new Map<string, Date>();
+    const evtMap = new Map<string, string[]>();
 
-    if (!startDate || (startDate && endDate)) {
-      // First click or resetting range
-      onStartDateChange(date);
-      resetEndDate();
-    } else if (date.getTime() === startDate.getTime()) {
-      // Same date clicked - single-day event
-      resetEndDate();
-    } else if (date < startDate) {
-      // Clicked date before start - make it the new start
-      onStartDateChange(date);
-      onEndDateChange(startDate);
-    } else {
-      // Clicked date after start - set as end
-      onEndDateChange(date);
+    const addToMap = (key: string, date: Date, title: string) => {
+      blockedSet.set(key, date);
+      const existing = evtMap.get(key);
+      if (existing) {
+        if (!existing.includes(title)) existing.push(title);
+      } else {
+        evtMap.set(key, [title]);
+      }
+    };
+
+    for (const evt of eventDates) {
+      const start = toDateOnly(new Date(evt.date));
+      addToMap(dateKey(start), start, evt.title);
+
+      if (evt.end_date) {
+        const end = toDateOnly(new Date(evt.end_date));
+        const current = new Date(start);
+        current.setDate(current.getDate() + 1); // start already added
+        while (current <= end) {
+          addToMap(dateKey(current), new Date(current), evt.title);
+          current.setDate(current.getDate() + 1);
+        }
+      }
     }
+
+    return { blockedDates: [...blockedSet.values()], eventsByDate: evtMap };
+  }, [eventDates]);
+
+  const noDate: Date | undefined = undefined;
+  const clearBoth = () => {
+    onStartDateChange(noDate);
+    onEndDateChange(noDate);
+  };
+
+  // Handle range selection from DayPicker (fully controlled)
+  const handleSelect = (range: DateRange | undefined) => {
+    if (!range) {
+      clearBoth();
+      return;
+    }
+    onStartDateChange(range.from);
+    onEndDateChange(range.to ?? noDate);
   };
 
   const formatDateRange = () => {
@@ -64,6 +114,44 @@ export default function DateRangePicker({
     }
     return `${format(startDate, "MMM d")} - ${format(endDate, "MMM d, yyyy")}`;
   };
+
+  const disabledMatchers: ({ before: Date } | Date)[] = [{ before: new Date() }];
+  if (blockedDates.length > 0) {
+    disabledMatchers.push(...blockedDates);
+  }
+
+  // Custom DayButton to show colored dot + tooltip on event dates
+  function EventDayButton({
+    day,
+    modifiers,
+    ...buttonProps
+  }: {
+    day: CalendarDay;
+    modifiers: Modifiers;
+  } & ButtonHTMLAttributes<HTMLButtonElement>) {
+    const key = dateKey(day.date);
+    const events = eventsByDate.get(key);
+    const hasEvent = !!events;
+    // Use modifiers to keep ESLint happy — disabled dates get cursor style
+    const isDisabled = modifiers.disabled;
+
+    return (
+      <button
+        type="button"
+        {...buttonProps}
+        title={hasEvent ? events.join(", ") : ""}
+        aria-disabled={isDisabled}
+      >
+        {day.date.getDate()}
+        {hasEvent && (
+          <span
+            className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-amber-400"
+            aria-hidden="true"
+          />
+        )}
+      </button>
+    );
+  }
 
   return (
     <div className="space-y-1">
@@ -75,15 +163,13 @@ export default function DateRangePicker({
         <DayPicker
           mode="range"
           numberOfMonths={isMobile ? 1 : 2}
-          selected={
-            startDate && endDate
-              ? { from: startDate, to: endDate }
-              : startDate
-                ? { from: startDate, to: startDate }
-                : undefined
-          }
-          onDayClick={handleDayClick}
-          disabled={{ before: new Date() }}
+          selected={startDate ? { from: startDate, to: endDate ?? startDate } : undefined}
+          onSelect={handleSelect}
+          excludeDisabled
+          disabled={disabledMatchers}
+          components={{
+            DayButton: EventDayButton,
+          }}
           classNames={{
             root: "text-gray-900 dark:text-gray-100",
             months: "relative flex justify-center gap-6",
@@ -128,39 +214,77 @@ export default function DateRangePicker({
           }}
         />
 
-        {/* Selected range summary */}
+        {/* Selected range summary + reset */}
         {startDate && (
-          <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between pt-2 border-t border-gray-200 dark:border-gray-700">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Selected:{" "}
-              <span className="font-medium text-gray-900 dark:text-gray-100">
-                {formatDateRange()}
-              </span>
+              {endDate ? (
+                <>
+                  Selected:{" "}
+                  <span className="font-medium text-gray-900 dark:text-gray-100">
+                    {formatDateRange()}
+                  </span>
+                </>
+              ) : (
+                <span className="text-amber-600 dark:text-amber-400">
+                  Now click an end date (or let it be for a single day event)
+                </span>
+              )}
             </p>
+            <button
+              type="button"
+              onClick={clearBoth}
+              className="text-xs text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 transition-colors"
+            >
+              Reset dates
+            </button>
           </div>
         )}
 
-        {/* Time input */}
-        <div className="space-y-1">
-          <label
-            htmlFor="start-time"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-          >
-            Start / Meet-up Time
-          </label>
-          <input
-            id="start-time"
-            type="time"
-            value={startTime}
-            onChange={(e) => onStartTimeChange(e.target.value)}
-            className={cn(
-              "w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600",
-              "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100",
-              "focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800",
-              "outline-none transition-colors",
-            )}
-            required
-          />
+        {/* Time inputs */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1">
+            <label
+              htmlFor="start-time"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
+              Start / Meet-up Time
+            </label>
+            <input
+              id="start-time"
+              type="time"
+              value={startTime}
+              onChange={(e) => onStartTimeChange(e.target.value)}
+              className={cn(
+                "w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600",
+                "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100",
+                "focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800",
+                "outline-none transition-colors",
+              )}
+              required
+            />
+          </div>
+          <div className="space-y-1">
+            <label
+              htmlFor="end-time"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
+              End Time{" "}
+              <span className="text-gray-400 dark:text-gray-500 font-normal">(optional)</span>
+            </label>
+            <input
+              id="end-time"
+              type="time"
+              value={endTime}
+              onChange={(e) => onEndTimeChange(e.target.value)}
+              className={cn(
+                "w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600",
+                "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100",
+                "focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800",
+                "outline-none transition-colors",
+              )}
+            />
+          </div>
         </div>
       </div>
     </div>

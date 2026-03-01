@@ -1,14 +1,29 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-leaflet";
+import {
+  CircleMarker,
+  MapContainer,
+  Marker,
+  TileLayer,
+  Tooltip,
+  useMap,
+  useMapEvents,
+} from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import "./leaflet-setup";
+
+export interface ExistingEventMarker {
+  title: string;
+  lat: number;
+  lng: number;
+}
 
 interface MapPickerProps {
   value: { lat: number; lng: number } | null;
   onChange: (coords: { lat: number; lng: number } | null) => void;
   center?: { lat: number; lng: number };
+  existingEvents?: ExistingEventMarker[];
 }
 
 // Philippines center
@@ -45,7 +60,12 @@ function RecenterMap({
   return null;
 }
 
-export default function MapPicker({ value, onChange, center }: MapPickerProps) {
+export default function MapPicker({
+  value,
+  onChange,
+  center,
+  existingEvents = [],
+}: MapPickerProps) {
   const mapCenter = center || (value ? { lat: value.lat, lng: value.lng } : PH_CENTER);
   const zoom = value ? PIN_ZOOM : DEFAULT_ZOOM;
 
@@ -79,6 +99,23 @@ export default function MapPicker({ value, onChange, center }: MapPickerProps) {
           />
           <ClickHandler onChange={handleClick} />
           <RecenterMap center={mapCenter} hasPin={!!value} />
+          {existingEvents.map((evt, i) => (
+            <CircleMarker
+              key={i}
+              center={[evt.lat, evt.lng]}
+              radius={8}
+              pathOptions={{
+                color: "#0d9488",
+                fillColor: "#14b8a6",
+                fillOpacity: 0.7,
+                weight: 2,
+              }}
+            >
+              <Tooltip direction="top" offset={[0, -8]}>
+                {evt.title}
+              </Tooltip>
+            </CircleMarker>
+          ))}
           {markerPosition && (
             <Marker
               position={markerPosition}

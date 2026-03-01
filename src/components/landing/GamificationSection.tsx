@@ -34,7 +34,7 @@ export default async function GamificationSection() {
   const sortedBadges = [...badges].sort((a, b) => RARITY_ORDER[a.rarity] - RARITY_ORDER[b.rarity]);
 
   return (
-    <section className="py-20 bg-gray-50 dark:bg-slate-900">
+    <section className="py-12 bg-gray-50 dark:bg-slate-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Heading */}
         <h2 className="text-3xl sm:text-4xl font-heading font-bold text-center text-gray-900 dark:text-white">
@@ -57,7 +57,8 @@ export default async function GamificationSection() {
                 <div
                   key={badge.id}
                   className={cn(
-                    "flex flex-col items-center gap-3 rounded-2xl bg-gray-50 dark:bg-slate-700/50 p-5 transition-shadow",
+                    "flex flex-col items-center gap-3 rounded-2xl bg-gray-50 dark:bg-slate-700/50 p-5",
+                    "transition-all duration-200 hover:scale-105 hover:shadow-lg cursor-default",
                     style.ring,
                     style.glow,
                   )}
@@ -115,9 +116,12 @@ export default async function GamificationSection() {
           <h3 className="text-xl font-heading font-semibold text-center text-gray-900 dark:text-white mb-8">
             Avatar Border Tiers
           </h3>
-          <div className="flex flex-wrap justify-center gap-8 sm:gap-12">
+          <div className="grid grid-cols-2 justify-items-center sm:flex sm:flex-wrap sm:justify-center gap-8 sm:gap-12">
             {BORDER_TIERS.map((tier) => (
-              <div key={tier} className="flex flex-col items-center gap-3">
+              <div
+                key={tier}
+                className="flex flex-col items-center gap-3 transition-transform duration-200 hover:scale-110 cursor-default"
+              >
                 <UserAvatar alt={`${TIER_LABELS[tier]} border`} size="lg" borderTier={tier} />
                 <span
                   className={cn(

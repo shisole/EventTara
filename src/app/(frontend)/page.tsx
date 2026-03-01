@@ -72,7 +72,7 @@ const steps = [
 
 function UpcomingEventsSkeleton() {
   return (
-    <section className="py-20 bg-white dark:bg-slate-800">
+    <section className="py-12 bg-white dark:bg-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-10">
           <div className="h-9 w-56 bg-gray-200 dark:bg-slate-700 rounded-lg animate-pulse" />
@@ -93,7 +93,7 @@ function UpcomingEventsSkeleton() {
 
 function OrganizersSkeleton() {
   return (
-    <section className="py-16 bg-white dark:bg-slate-800">
+    <section className="py-10 bg-white dark:bg-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="h-4 w-40 bg-gray-200 dark:bg-slate-700 rounded animate-pulse mx-auto mb-8" />
         <div className="flex flex-wrap justify-center gap-6">
@@ -111,7 +111,7 @@ function OrganizersSkeleton() {
 
 function TestimonialsSkeleton() {
   return (
-    <section className="py-20 bg-gray-50 dark:bg-slate-900">
+    <section className="py-12 bg-gray-50 dark:bg-slate-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="h-9 w-64 bg-gray-200 dark:bg-slate-700 rounded-lg animate-pulse mx-auto mb-4" />
         <div className="h-5 w-80 bg-gray-200 dark:bg-slate-700 rounded animate-pulse mx-auto mb-12" />
@@ -130,7 +130,7 @@ function TestimonialsSkeleton() {
 
 function GamificationSkeleton() {
   return (
-    <section className="py-20 bg-gray-50 dark:bg-slate-900">
+    <section className="py-12 bg-gray-50 dark:bg-slate-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="h-9 w-80 bg-gray-200 dark:bg-slate-700 rounded-lg animate-pulse mx-auto mb-4" />
         <div className="h-5 w-96 bg-gray-200 dark:bg-slate-700 rounded animate-pulse mx-auto mb-12" />
@@ -174,7 +174,7 @@ export default async function Home() {
       </Suspense>
 
       {/* How It Works — static, renders immediately */}
-      <section className="py-20 bg-white dark:bg-slate-800">
+      <section className="py-12 bg-white dark:bg-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl sm:text-4xl font-heading font-bold text-center text-gray-900 dark:text-white mb-12">
             How It Works
@@ -199,7 +199,7 @@ export default async function Home() {
       </Suspense>
 
       {/* Event Categories — static images, renders immediately */}
-      <section className="py-20 bg-gray-50 dark:bg-slate-900">
+      <section className="py-12 bg-gray-50 dark:bg-slate-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl sm:text-4xl font-heading font-bold text-center text-gray-900 dark:text-white mb-12">
             Find Your Adventure
@@ -243,7 +243,7 @@ export default async function Home() {
       </Suspense>
 
       {/* Organizer CTA — static */}
-      <section className="py-20 bg-lime-400 dark:bg-lime-500">
+      <section className="py-12 bg-lime-400 dark:bg-lime-500">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl sm:text-4xl font-heading font-bold text-slate-900 mb-4">
             Run Adventure Events?
@@ -262,7 +262,7 @@ export default async function Home() {
       </section>
 
       {/* Contact CTA — static */}
-      <section className="py-20 bg-white dark:bg-slate-800">
+      <section className="py-12 bg-white dark:bg-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl sm:text-4xl font-heading font-bold text-gray-900 dark:text-white mb-4">
             Have Questions?
