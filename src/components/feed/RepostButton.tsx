@@ -32,19 +32,28 @@ export default function RepostButton({
     }
     if (loading) return;
 
+    // Optimistic update
+    const wasReposted = isReposted;
+    setIsReposted(!wasReposted);
+    setRepostCount((prev) => (wasReposted ? prev - 1 : prev + 1));
     setLoading(true);
 
     try {
       const res = await fetch("/api/feed/reposts", {
-        method: isReposted ? "DELETE" : "POST",
+        method: wasReposted ? "DELETE" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ activityType, activityId }),
       });
 
-      if (res.ok) {
-        setIsReposted(!isReposted);
-        setRepostCount((prev) => (isReposted ? prev - 1 : prev + 1));
+      if (!res.ok) {
+        // Revert on failure
+        setIsReposted(wasReposted);
+        setRepostCount((prev) => (wasReposted ? prev + 1 : prev - 1));
       }
+    } catch {
+      // Revert on network error
+      setIsReposted(wasReposted);
+      setRepostCount((prev) => (wasReposted ? prev + 1 : prev - 1));
     } finally {
       setLoading(false);
     }

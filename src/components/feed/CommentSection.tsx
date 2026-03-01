@@ -113,7 +113,7 @@ export default function CommentSection({
           )}
 
           {/* Comments list */}
-          {loaded && !loading && comments.length > 0 && (
+          {!loading && comments.length > 0 && (
             <div className="space-y-2">
               {comments.map((comment) => (
                 <CommentItem

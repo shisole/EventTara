@@ -31,19 +31,28 @@ export default function LikeButton({
     }
     if (loading) return;
 
+    // Optimistic update
+    const wasLiked = isLiked;
+    setIsLiked(!wasLiked);
+    setLikeCount((prev) => (wasLiked ? prev - 1 : prev + 1));
     setLoading(true);
 
     try {
       const res = await fetch("/api/reactions", {
-        method: isLiked ? "DELETE" : "POST",
+        method: wasLiked ? "DELETE" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ activityType, activityId }),
       });
 
-      if (res.ok) {
-        setIsLiked(!isLiked);
-        setLikeCount((prev) => (isLiked ? prev - 1 : prev + 1));
+      if (!res.ok) {
+        // Revert on failure
+        setIsLiked(wasLiked);
+        setLikeCount((prev) => (wasLiked ? prev + 1 : prev - 1));
       }
+    } catch {
+      // Revert on network error
+      setIsLiked(wasLiked);
+      setLikeCount((prev) => (wasLiked ? prev + 1 : prev - 1));
     } finally {
       setLoading(false);
     }
