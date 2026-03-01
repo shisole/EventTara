@@ -142,9 +142,17 @@ export async function GET(request: Request) {
     }
   }
 
+  // Deduplicate: if a repost exists for an activity, remove the original entry
+  const repostedKeys = new Set(
+    activities.filter((a) => a.repostedBy).map((a) => `${a.activityType}:${a.id}`),
+  );
+  const deduped = activities.filter(
+    (a) => a.repostedBy || !repostedKeys.has(`${a.activityType}:${a.id}`),
+  );
+
   // Sort by timestamp descending, then paginate
-  activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-  const paged = activities.slice(offset, offset + limit);
+  deduped.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  const paged = deduped.slice(offset, offset + limit);
 
   if (paged.length === 0) {
     return NextResponse.json({ items: [], hasMore: false });
@@ -353,6 +361,6 @@ export async function GET(request: Request) {
 
   return NextResponse.json({
     items,
-    hasMore: activities.length > offset + limit,
+    hasMore: deduped.length > offset + limit,
   });
 }

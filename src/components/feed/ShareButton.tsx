@@ -3,28 +3,19 @@
 import { useCallback, useState } from "react";
 
 import { ShareIcon } from "@/components/icons";
-import type { ActivityType } from "@/lib/feed/types";
 import { cn } from "@/lib/utils";
 
 interface ShareButtonProps {
-  activityType: ActivityType;
   activityId: string;
   userName: string;
   text: string;
 }
 
-export default function ShareButton({
-  activityType,
-  activityId,
-  userName,
-  text,
-}: ShareButtonProps) {
+export default function ShareButton({ activityId, userName, text }: ShareButtonProps) {
   const [copied, setCopied] = useState(false);
 
   const shareUrl =
-    globalThis.location === undefined
-      ? ""
-      : `${globalThis.location.origin}/feed?type=${activityType}&id=${activityId}`;
+    globalThis.location === undefined ? "" : `${globalThis.location.origin}/post/${activityId}`;
 
   const handleShare = useCallback(async () => {
     const shareData = {
