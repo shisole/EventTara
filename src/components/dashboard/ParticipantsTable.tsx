@@ -109,7 +109,7 @@ export default function ParticipantsTable({
             <th className="text-left px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400 md:px-6">
               Status
             </th>
-            <th className="text-left px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400 md:px-6">
+            <th className="hidden text-left px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400 sm:table-cell md:px-6">
               Method
             </th>
             <th className="hidden text-left px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400 md:table-cell md:px-6">
@@ -160,14 +160,14 @@ export default function ParticipantsTable({
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-400 md:px-6">
+                  <td className="hidden px-4 py-4 text-sm text-gray-500 dark:text-gray-400 sm:table-cell md:px-6">
                     {booking.payment_method?.toUpperCase() || "Free"}
                   </td>
                   <td className="hidden px-4 py-4 text-sm text-gray-500 dark:text-gray-400 md:table-cell md:px-6">
                     {new Date(booking.booked_at).toLocaleDateString("en-PH")}
                   </td>
                   <td className="px-4 py-4 text-right md:px-6">
-                    <div className="flex items-center justify-end gap-2">
+                    <div className="flex flex-col items-end gap-1 sm:flex-row sm:items-center sm:justify-end sm:gap-2">
                       {isPending && (isEwallet || isCash) && (
                         <>
                           <Button
@@ -231,7 +231,7 @@ export default function ParticipantsTable({
                           {comp.status}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-400 dark:text-gray-500 md:px-6">
+                      <td className="hidden px-4 py-3 text-sm text-gray-400 dark:text-gray-500 sm:table-cell md:px-6">
                         —
                       </td>
                       <td className="hidden px-4 py-3 text-sm text-gray-400 dark:text-gray-500 md:table-cell md:px-6">
