@@ -6,7 +6,7 @@ import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import ClientShell from "@/components/layout/ClientShell";
 import Footer from "@/components/layout/Footer";
 import ThemeProvider from "@/components/layout/ThemeProvider";
-import { getCachedSiteSettings } from "@/lib/payload/cached";
+import { getCachedSiteSettings, isActivityFeedEnabled } from "@/lib/payload/cached";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -89,7 +89,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const settings = await getCachedSiteSettings();
+  const [settings, activityFeedEnabled] = await Promise.all([
+    getCachedSiteSettings(),
+    isActivityFeedEnabled(),
+  ]);
   const navLayout = (settings?.navLayout as string) || "strip";
 
   return (
@@ -107,7 +110,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className="font-sans min-h-screen flex flex-col">
         <GoogleAnalytics />
         <ThemeProvider>
-          <ClientShell initialNavLayout={navLayout}>{children}</ClientShell>
+          <ClientShell initialNavLayout={navLayout} activityFeedEnabled={activityFeedEnabled}>
+            {children}
+          </ClientShell>
           <Footer />
         </ThemeProvider>
       </body>
