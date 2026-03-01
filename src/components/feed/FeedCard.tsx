@@ -19,9 +19,15 @@ interface FeedCardProps {
   item: FeedItem;
   isAuthenticated: boolean;
   currentUserId: string | null;
+  badgeShowcase: boolean;
 }
 
-export default function FeedCard({ item, isAuthenticated, currentUserId }: FeedCardProps) {
+export default function FeedCard({
+  item,
+  isAuthenticated,
+  currentUserId,
+  badgeShowcase,
+}: FeedCardProps) {
   const postHref = `/post/${item.id}`;
 
   return (
@@ -93,8 +99,10 @@ export default function FeedCard({ item, isAuthenticated, currentUserId }: FeedC
           </span>
         </div>
 
-        {/* Badge showcase */}
-        {item.activityType === "badge" && item.badgeImageUrl && <BadgeShowcase item={item} />}
+        {/* Badge showcase (gated by feature flag) */}
+        {badgeShowcase && item.activityType === "badge" && item.badgeImageUrl && (
+          <BadgeShowcase item={item} />
+        )}
 
         {/* Context image (non-badge activities) */}
         {item.activityType !== "badge" && item.contextImageUrl && (

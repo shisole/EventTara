@@ -15,6 +15,7 @@ interface FeedListProps {
   initialHasMore: boolean;
   isAuthenticated: boolean;
   currentUserId: string | null;
+  badgeShowcase: boolean;
 }
 
 export default function FeedList({
@@ -22,6 +23,7 @@ export default function FeedList({
   initialHasMore,
   isAuthenticated,
   currentUserId,
+  badgeShowcase,
 }: FeedListProps) {
   const cached = useRef(feedListStore.restore()).current;
 
@@ -125,6 +127,7 @@ export default function FeedList({
           item={item}
           isAuthenticated={isAuthenticated}
           currentUserId={currentUserId}
+          badgeShowcase={badgeShowcase}
         />
       ))}
 

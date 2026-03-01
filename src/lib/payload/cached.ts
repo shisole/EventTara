@@ -20,6 +20,32 @@ export const getCachedSiteSettings = unstable_cache(
 );
 
 /**
+ * Cached Payload CMS feature-flags fetch.
+ * Revalidates every 30 seconds so admin toggles propagate quickly.
+ */
+export const getCachedFeatureFlags = unstable_cache(
+  async () => {
+    try {
+      const payload = await getPayloadClient();
+      return await payload.findGlobal({ slug: "feature-flags" });
+    } catch {
+      return null;
+    }
+  },
+  ["feature-flags"],
+  { revalidate: 30 },
+);
+
+/**
+ * Returns whether the badge showcase feature flag is enabled.
+ * Defaults to false when Payload is unreachable.
+ */
+export async function isBadgeShowcaseEnabled(): Promise<boolean> {
+  const flags = await getCachedFeatureFlags();
+  return flags?.badgeShowcase === true;
+}
+
+/**
  * Cached Payload CMS hero-carousel fetch.
  * Revalidates every 60 seconds.
  */

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import FeedList from "@/components/feed/FeedList";
+import { isBadgeShowcaseEnabled } from "@/lib/payload/cached";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -10,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 export default async function FeedPage() {
-  const supabase = await createClient();
+  const [supabase, badgeShowcase] = await Promise.all([createClient(), isBadgeShowcaseEnabled()]);
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -23,6 +24,7 @@ export default async function FeedPage() {
         initialHasMore={true}
         isAuthenticated={!!user}
         currentUserId={user?.id || null}
+        badgeShowcase={badgeShowcase}
       />
     </div>
   );
