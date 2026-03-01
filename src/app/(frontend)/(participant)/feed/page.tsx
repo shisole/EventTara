@@ -11,10 +11,13 @@ export const metadata: Metadata = {
 };
 
 export default async function FeedPage() {
-  const [supabase, badgeShowcase] = await Promise.all([createClient(), isBadgeShowcaseEnabled()]);
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const supabase = await createClient();
+  const [
+    {
+      data: { user },
+    },
+    badgeShowcase,
+  ] = await Promise.all([supabase.auth.getUser(), isBadgeShowcaseEnabled()]);
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">

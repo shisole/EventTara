@@ -41,8 +41,12 @@ export const getCachedFeatureFlags = unstable_cache(
  * Defaults to false when Payload is unreachable.
  */
 export async function isBadgeShowcaseEnabled(): Promise<boolean> {
-  const flags = await getCachedFeatureFlags();
-  return flags?.badgeShowcase === true;
+  try {
+    const flags = await getCachedFeatureFlags();
+    return flags?.badgeShowcase === true;
+  } catch {
+    return false;
+  }
 }
 
 /**
