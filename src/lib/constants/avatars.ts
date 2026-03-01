@@ -1,12 +1,19 @@
+const EMOJI_RE = /^[\p{Emoji_Presentation}\p{Extended_Pictographic}]/u;
+
 export function resolvePresetImage(
   imageUrl: string | null,
 ): { type: "url"; url: string } | { type: "emoji"; emoji: string; color: string } | null {
   if (!imageUrl) return null;
-  if (!imageUrl.startsWith("preset:")) return { type: "url", url: imageUrl };
-  const presetId = imageUrl.replace("preset:", "");
-  const preset = PRESET_AVATARS.find((a) => a.id === presetId);
-  if (!preset) return null;
-  return { type: "emoji", emoji: preset.emoji, color: preset.color };
+  if (imageUrl.startsWith("preset:")) {
+    const presetId = imageUrl.replace("preset:", "");
+    const preset = PRESET_AVATARS.find((a) => a.id === presetId);
+    if (!preset) return null;
+    return { type: "emoji", emoji: preset.emoji, color: preset.color };
+  }
+  if (EMOJI_RE.test(imageUrl)) {
+    return { type: "emoji", emoji: imageUrl, color: "bg-golden-100" };
+  }
+  return { type: "url", url: imageUrl };
 }
 
 export const PRESET_AVATARS = [

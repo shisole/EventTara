@@ -20,6 +20,40 @@ export const getCachedSiteSettings = unstable_cache(
 );
 
 /**
+ * Cached Payload CMS feature-flags fetch.
+ * Revalidates every 30 seconds so admin toggles propagate quickly.
+ */
+export const getCachedFeatureFlags = unstable_cache(
+  async () => {
+    try {
+      const payload = await getPayloadClient();
+      return await payload.findGlobal({ slug: "feature-flags" });
+    } catch {
+      return null;
+    }
+  },
+  ["feature-flags"],
+  { revalidate: 30 },
+);
+
+/**
+ * Returns whether the activity feed feature flag is enabled.
+ * Checks env var override first (for Vercel preview where Payload
+ * local API may be unreliable), then falls back to the CMS global.
+ */
+export async function isActivityFeedEnabled(): Promise<boolean> {
+  if (process.env.ACTIVITY_FEED_ENABLED === "true") return true;
+  if (process.env.ACTIVITY_FEED_ENABLED === "false") return false;
+
+  try {
+    const flags = await getCachedFeatureFlags();
+    return flags?.activityFeed === true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Cached Payload CMS hero-carousel fetch.
  * Revalidates every 60 seconds.
  */

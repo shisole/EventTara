@@ -44,6 +44,27 @@ export function SkeletonStatCard() {
   );
 }
 
+/** Skeleton shaped like a FeedCard */
+export function SkeletonFeedCard() {
+  return (
+    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm dark:shadow-gray-950/20 p-4 space-y-3">
+      <div className="flex items-center gap-3">
+        <SkeletonCircle />
+        <div className="flex-1 space-y-2">
+          <div className="flex items-center gap-2">
+            <SkeletonText className="w-28" />
+            <Skeleton className="h-4 w-16 rounded-full" />
+          </div>
+          <SkeletonText className="w-48" />
+        </div>
+        <SkeletonText className="w-12" />
+      </div>
+      <Skeleton className="h-40 w-full rounded-xl" />
+      <Skeleton className="h-6 w-8 rounded-full" />
+    </div>
+  );
+}
+
 /** Skeleton for a table row */
 export function SkeletonTableRow() {
   return (

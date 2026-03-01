@@ -9,6 +9,7 @@ import {
   CogIcon,
   DashboardIcon,
   ExploreIcon,
+  FeedIcon,
   HomeIcon,
   LoginIcon,
   ProfileIcon,
@@ -19,6 +20,7 @@ import { cn } from "@/lib/utils";
 interface MobileNavProps {
   user: User | null;
   role: string | null;
+  activityFeedEnabled?: boolean;
 }
 
 interface NavItem {
@@ -28,7 +30,12 @@ interface NavItem {
   isActive: (pathname: string) => boolean;
 }
 
-function getNavItems(user: User | null, role: string | null, pathname: string): NavItem[] {
+function getNavItems(
+  user: User | null,
+  role: string | null,
+  pathname: string,
+  activityFeedEnabled: boolean,
+): NavItem[] {
   // Dashboard-specific nav items when on /dashboard
   if (user && role === "organizer" && pathname.startsWith("/dashboard")) {
     return [
@@ -66,6 +73,16 @@ function getNavItems(user: User | null, role: string | null, pathname: string): 
       icon: ExploreIcon,
       isActive: (p) => p === "/events" || (p.startsWith("/events/") && !p.includes("/book")),
     },
+    ...(activityFeedEnabled
+      ? [
+          {
+            href: "/feed",
+            label: "Feed",
+            icon: FeedIcon,
+            isActive: (p: string) => p === "/feed",
+          },
+        ]
+      : []),
   ];
 
   if (user) {
@@ -104,7 +121,7 @@ function getNavItems(user: User | null, role: string | null, pathname: string): 
   return items;
 }
 
-export default function MobileNav({ user, role }: MobileNavProps) {
+export default function MobileNav({ user, role, activityFeedEnabled = false }: MobileNavProps) {
   const pathname = usePathname();
   const { keyboardHeight } = useKeyboardHeight();
   const keyboardOpen = keyboardHeight > 0;
@@ -115,7 +132,7 @@ export default function MobileNav({ user, role }: MobileNavProps) {
   )
     return null;
 
-  const navItems = getNavItems(user, role, pathname);
+  const navItems = getNavItems(user, role, pathname, activityFeedEnabled);
 
   return (
     <nav

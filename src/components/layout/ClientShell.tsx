@@ -50,9 +50,14 @@ const activities = [
 interface ClientShellProps {
   children: React.ReactNode;
   initialNavLayout?: string;
+  activityFeedEnabled?: boolean;
 }
 
-export default function ClientShell({ children, initialNavLayout = "strip" }: ClientShellProps) {
+export default function ClientShell({
+  children,
+  initialNavLayout = "strip",
+  activityFeedEnabled = false,
+}: ClientShellProps) {
   const pathname = usePathname();
   const isLighthouse = useMemo(
     () =>
@@ -217,6 +222,7 @@ export default function ClientShell({ children, initialNavLayout = "strip" }: Cl
           activities={activities}
           navLayout={navLayout}
           activeBorder={activeBorder}
+          activityFeedEnabled={activityFeedEnabled}
           onLogout={() => void handleLogout()}
           onMenuOpen={handleMenuOpen}
           onBorderChange={(borderId, tier, color) => {
@@ -224,7 +230,7 @@ export default function ClientShell({ children, initialNavLayout = "strip" }: Cl
           }}
         />
         <div className="flex-1 pb-16 md:pb-0">{children}</div>
-        <MobileNav user={user} role={role} />
+        <MobileNav user={user} role={role} activityFeedEnabled={activityFeedEnabled} />
       </div>
 
       <MobileDrawer

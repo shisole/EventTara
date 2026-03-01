@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import BadgeGrid from "@/components/badges/BadgeGrid";
 import PastEvents from "@/components/participant/PastEvents";
 import UpcomingBookings from "@/components/participant/UpcomingBookings";
+import FollowButton from "@/components/profile/FollowButton";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import ProfileStats from "@/components/profile/ProfileStats";
 import { Button } from "@/components/ui";
@@ -67,6 +68,18 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
     data: { user: authUser },
   } = await supabase.auth.getUser();
   const isOwnProfile = authUser?.id === user.id;
+
+  // Check follow status
+  let isFollowing = false;
+  if (authUser && !isOwnProfile) {
+    const { data: followRow } = await supabase
+      .from("user_follows")
+      .select("id")
+      .eq("follower_id", authUser.id)
+      .eq("following_id", user.id)
+      .maybeSingle();
+    isFollowing = !!followRow;
+  }
 
   // Auto-award borders on own profile load
   if (isOwnProfile) {
@@ -235,6 +248,12 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
         activeBorderTier={activeBorderTier}
         activeBorderColor={activeBorderColor}
       />
+
+      {authUser && !isOwnProfile && (
+        <div className="flex justify-center -mt-6">
+          <FollowButton targetUserId={user.id} initialIsFollowing={isFollowing} />
+        </div>
+      )}
 
       <ProfileStats
         totalEvents={totalEvents}
