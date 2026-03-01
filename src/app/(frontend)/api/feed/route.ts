@@ -348,7 +348,7 @@ export async function GET(request: Request) {
 
     const item: FeedItem = {
       feedKey: a.repostedBy
-        ? `repost-${a.repostedBy.userId}-${a.activityType}-${a.id}`
+        ? `repost-${a.repostedBy.userId}-${a.repostedBy.createdAt}-${a.activityType}-${a.id}`
         : `${a.activityType}-${a.id}`,
       id: a.id,
       activityType: a.activityType,
