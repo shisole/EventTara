@@ -50,7 +50,7 @@ export default function ChatPanel({ open, onClose, keyboard }: ChatPanelProps) {
     {
       role: "assistant",
       content:
-        'Hey there! I\'m Coco, your friendly EventTara assistant. Ask me anything about events and I\'ll help you find your next adventure! Try:\n\n"hiking near Mt. Pulag next week"\n"MTB events this weekend"\n"trail running events in Cebu"',
+        'Hey there! I\'m Coco, your friendly EventTara assistant. Ask me anything about events and I\'ll help you find your next adventure! Try:\n\n"hiking near Mt. Madias next week"\n"MTB events this weekend in Iloilo"\n"trail running events in Antique"',
     },
   ]);
   const [input, setInput] = useState("");
