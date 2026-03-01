@@ -123,6 +123,12 @@ export default function Navbar({
                 </Suspense>
               )}
             </div>
+            <Link
+              href="/feed"
+              className={`text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium ${pathname === "/feed" ? "text-lime-600 dark:text-lime-400" : ""}`}
+            >
+              Feed
+            </Link>
             {loading ? (
               <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 animate-pulse" />
             ) : user ? (
