@@ -197,7 +197,7 @@ export default function ChatPanel({ open, onClose, keyboard }: ChatPanelProps) {
                 BETA
               </span>
             </div>
-            <p className="text-[11px] text-gray-500 dark:text-gray-400">Your EventTara assistant</p>
+            <p className="text-[11px] text-gray-500 dark:text-gray-400">AI-powered assistant</p>
           </div>
           <div className="flex items-center gap-2">
             {/* Limit dots */}
