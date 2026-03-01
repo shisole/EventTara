@@ -35,27 +35,23 @@ export default function ChatBubble() {
 
       <button
         onClick={handleToggle}
-        className={`fixed z-[60] bottom-[5.5rem] right-4 md:bottom-6 md:right-6 flex items-center justify-center rounded-full shadow-lg transition-all duration-300 ease-out active:scale-90 ${
+        className={`fixed z-[60] bottom-[5.5rem] right-4 md:bottom-6 md:right-6 flex items-center justify-center rounded-full shadow-md transition-all duration-200 ease-out active:scale-95 ${
           keyboardOpen ? "!hidden" : ""
         } ${
           open
-            ? "h-12 w-12 bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
-            : "animate-chat-bubble-in animate-chat-bubble-pulse gap-2 bg-lime-500 pl-3.5 pr-4 py-3 text-gray-900 hover:bg-lime-400 hover:shadow-xl hover:scale-105 dark:bg-lime-500 dark:text-gray-900 dark:hover:bg-lime-400"
+            ? "h-12 w-12 bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+            : "animate-chat-bubble-in gap-2 bg-lime-500 pl-3.5 pr-4 py-3 text-gray-900 hover:bg-lime-400 hover:shadow-lg dark:bg-lime-500 dark:text-gray-900 dark:hover:bg-lime-400"
         }`}
         aria-label={open ? "Close Coco chat" : "Ask Coco"}
       >
-        <div
-          className={`flex items-center justify-center transition-all duration-300 ${open ? "rotate-90 scale-100" : "rotate-0 scale-100"}`}
-        >
-          {open ? (
-            <CloseIcon className="h-5 w-5" />
-          ) : (
-            <div className="flex items-center gap-2">
-              <ChatIcon className="h-5 w-5" variant="filled" />
-              <span className="font-heading text-sm font-bold">Ask Coco!</span>
-            </div>
-          )}
-        </div>
+        {open ? (
+          <CloseIcon className="h-5 w-5" />
+        ) : (
+          <>
+            <ChatIcon className="h-5 w-5" variant="filled" />
+            <span className="font-heading text-sm font-bold">Ask Coco!</span>
+          </>
+        )}
       </button>
     </>
   );

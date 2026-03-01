@@ -94,77 +94,51 @@
 
 /* Chat bubble & panel animations */
 @keyframes chatBubbleIn {
-  0% {
-    transform: scale(0) rotate(-12deg);
+  from {
     opacity: 0;
+    transform: translateY(1rem);
   }
-  60% {
-    transform: scale(1.08) rotate(2deg);
+  to {
     opacity: 1;
-  }
-  80% {
-    transform: scale(0.96) rotate(-1deg);
-  }
-  100% {
-    transform: scale(1) rotate(0deg);
-  }
-}
-
-@keyframes chatBubblePulse {
-  0%,
-  100% {
-    box-shadow:
-      0 4px 12px rgba(0, 0, 0, 0.15),
-      0 0 0 0 rgba(132, 204, 22, 0.4);
-  }
-  50% {
-    box-shadow:
-      0 4px 12px rgba(0, 0, 0, 0.15),
-      0 0 0 8px rgba(132, 204, 22, 0);
-  }
-}
-
-@keyframes chatPanelOpen {
-  0% {
-    transform: scale(0.6) translateY(2rem);
-    opacity: 0;
-  }
-  70% {
-    transform: scale(1.02) translateY(-0.15rem);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(1) translateY(0);
-    opacity: 1;
+    transform: translateY(0);
   }
 }
 
 @keyframes chatMessageIn {
   from {
-    transform: translateY(0.5rem);
     opacity: 0;
+    transform: translateY(0.25rem);
   }
   to {
-    transform: translateY(0);
     opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes chatBubbleNudge {
+  0%,
+  90% {
+    transform: translateY(0);
+  }
+  93% {
+    transform: translateY(-4px);
+  }
+  96% {
+    transform: translateY(1px);
+  }
+  100% {
+    transform: translateY(0);
   }
 }
 
 .animate-chat-bubble-in {
-  animation: chatBubbleIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-}
-
-.animate-chat-bubble-pulse {
-  animation: chatBubblePulse 3s ease-in-out 4s infinite;
-}
-
-.animate-chat-panel-open {
-  animation: chatPanelOpen 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  transform-origin: bottom right;
+  animation:
+    chatBubbleIn 0.3s ease-out forwards,
+    chatBubbleNudge 6s ease-in-out 5s infinite;
 }
 
 .animate-chat-message-in {
-  animation: chatMessageIn 0.3s ease-out forwards;
+  animation: chatMessageIn 0.2s ease-out forwards;
 }
 
 /* Hero carousel crossfade animation */

@@ -178,16 +178,14 @@ export default function ChatPanel({ open, onClose, keyboard }: ChatPanelProps) {
 
   return (
     <div
-      className={`fixed z-[60] transition-all duration-300 ease-out origin-bottom-right ${
+      className={`fixed z-[60] transition-all duration-200 ease-out ${
         open
-          ? "opacity-100 pointer-events-auto scale-100 translate-y-0"
-          : "opacity-0 pointer-events-none scale-90 translate-y-4"
+          ? "opacity-100 pointer-events-auto translate-y-0"
+          : "opacity-0 pointer-events-none translate-y-2"
       } right-4 w-[calc(100vw-2rem)] max-w-[400px] ${keyboardOpen ? "" : "bottom-[9.5rem] h-[min(460px,calc(100vh-12rem))]"} md:bottom-6 md:right-[5.25rem] md:w-[400px] md:h-[min(500px,calc(100vh-6rem))]`}
       style={keyboardStyle}
     >
-      <div
-        className={`flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-900 ${open ? "animate-chat-panel-open" : ""}`}
-      >
+      <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-900">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-200 bg-gradient-to-r from-lime-50 to-teal-50 px-4 py-3 dark:border-gray-700 dark:from-gray-800 dark:to-gray-800">
           <div>
