@@ -180,7 +180,7 @@ export default function PaymentVerificationPanel({
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
+      <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl p-1 overflow-x-auto">
         {(["all", "pending", "paid", "rejected"] as const).map((tab) => (
           <button
             key={tab}
@@ -188,7 +188,7 @@ export default function PaymentVerificationPanel({
               setFilter(tab);
             }}
             className={cn(
-              "flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors capitalize",
+              "flex-1 shrink-0 py-2 px-3 rounded-lg text-sm font-medium transition-colors capitalize whitespace-nowrap",
               filter === tab
                 ? "bg-white dark:bg-gray-900 shadow-sm"
                 : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200",
@@ -223,83 +223,87 @@ export default function PaymentVerificationPanel({
             return (
               <div
                 key={booking.id}
-                className="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm dark:shadow-gray-950/30 flex items-center justify-between gap-4"
+                className="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm dark:shadow-gray-950/30 space-y-3"
               >
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate dark:text-white">
-                    {booking.users?.full_name || "Guest"}
-                    {booking.companion_count && booking.companion_count > 0 && (
-                      <span className="ml-2 text-xs text-gray-400 dark:text-gray-500 font-normal">
-                        +{booking.companion_count} companion
-                        {booking.companion_count === 1 ? "" : "s"}
-                      </span>
-                    )}
-                  </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {new Date(booking.booked_at).toLocaleDateString("en-PH", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
-                  </p>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-medium truncate dark:text-white">
+                      {booking.users?.full_name || "Guest"}
+                      {booking.companion_count && booking.companion_count > 0 && (
+                        <span className="ml-2 text-xs text-gray-400 dark:text-gray-500 font-normal">
+                          +{booking.companion_count} companion
+                          {booking.companion_count === 1 ? "" : "s"}
+                        </span>
+                      )}
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {new Date(booking.booked_at).toLocaleDateString("en-PH", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span
+                      className={cn(
+                        "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
+                        paymentMethodStyle(booking.payment_method),
+                      )}
+                    >
+                      {paymentMethodLabel(booking.payment_method)}
+                    </span>
+                    <PaymentStatusBadge status={booking.payment_status} />
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <span
-                    className={cn(
-                      "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
-                      paymentMethodStyle(booking.payment_method),
+                {isPending && (isEwallet || isCash) && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    {isEwallet && (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setViewingProof(booking.payment_proof_url);
+                            setViewingBookingId(booking.id);
+                          }}
+                          disabled={!booking.payment_proof_url}
+                        >
+                          View Proof
+                        </Button>
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          onClick={() => handleAction(booking.id, "approve")}
+                          disabled={actionLoading === booking.id}
+                        >
+                          {actionLoading === booking.id ? "..." : "Approve"}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleAction(booking.id, "reject")}
+                          disabled={actionLoading === booking.id}
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
+                        >
+                          Reject
+                        </Button>
+                      </>
                     )}
-                  >
-                    {paymentMethodLabel(booking.payment_method)}
-                  </span>
-                  <PaymentStatusBadge status={booking.payment_status} />
-                </div>
-
-                <div className="flex items-center gap-2 shrink-0">
-                  {isPending && isEwallet && (
-                    <>
+                    {isCash && (
                       <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setViewingProof(booking.payment_proof_url);
-                          setViewingBookingId(booking.id);
-                        }}
-                        disabled={!booking.payment_proof_url}
-                      >
-                        View Proof
-                      </Button>
-                      <Button
-                        variant="primary"
+                        variant="secondary"
                         size="sm"
                         onClick={() => handleAction(booking.id, "approve")}
                         disabled={actionLoading === booking.id}
                       >
-                        {actionLoading === booking.id ? "..." : "Approve"}
+                        {actionLoading === booking.id ? "..." : "Mark as Paid"}
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleAction(booking.id, "reject")}
-                        disabled={actionLoading === booking.id}
-                        className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
-                      >
-                        Reject
-                      </Button>
-                    </>
-                  )}
-                  {isPending && isCash && (
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => handleAction(booking.id, "approve")}
-                      disabled={actionLoading === booking.id}
-                    >
-                      {actionLoading === booking.id ? "..." : "Mark as Paid"}
-                    </Button>
-                  )}
-                </div>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}
