@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import FeedCard from "@/components/feed/FeedCard";
 import { SpinnerIcon } from "@/components/icons";
 import { SkeletonFeedCard } from "@/components/ui";
+import { feedListStore } from "@/lib/feed/cache";
 import type { FeedItem } from "@/lib/feed/types";
 
 const BATCH_SIZE = 15;
@@ -22,11 +23,37 @@ export default function FeedList({
   isAuthenticated,
   currentUserId,
 }: FeedListProps) {
-  const [items, setItems] = useState<FeedItem[]>(initialItems);
-  const [hasMore, setHasMore] = useState(initialHasMore);
+  const cached = useRef(feedListStore.restore()).current;
+
+  const [items, setItems] = useState<FeedItem[]>(cached?.items ?? initialItems);
+  const [hasMore, setHasMore] = useState(cached?.hasMore ?? initialHasMore);
   const [isLoading, setIsLoading] = useState(false);
-  const [initialLoaded, setInitialLoaded] = useState(initialItems.length > 0);
+  const [initialLoaded, setInitialLoaded] = useState(cached ? true : initialItems.length > 0);
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const itemsRef = useRef(items);
+  const hasMoreRef = useRef(hasMore);
+
+  // Keep refs in sync for the unmount save
+  useEffect(() => {
+    itemsRef.current = items;
+    hasMoreRef.current = hasMore;
+  }, [items, hasMore]);
+
+  // Restore scroll position after cache restore
+  useEffect(() => {
+    if (cached && cached.scrollY > 0) {
+      window.scrollTo(0, cached.scrollY);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Save feed state on unmount (navigating away)
+  useEffect(() => {
+    return () => {
+      if (itemsRef.current.length > 0) {
+        feedListStore.save(itemsRef.current, hasMoreRef.current, window.scrollY);
+      }
+    };
+  }, []);
 
   const loadMore = useCallback(async () => {
     if (isLoading || !hasMore) return;
@@ -45,7 +72,7 @@ export default function FeedList({
     }
   }, [isLoading, hasMore, items.length]);
 
-  // Load on mount if no initial items were provided
+  // Load on mount if no initial items were provided and no cache
   useEffect(() => {
     if (!initialLoaded) {
       void loadMore();
