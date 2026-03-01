@@ -35,22 +35,23 @@ export default function ChatBubble() {
 
       <button
         onClick={handleToggle}
-        className={`fixed z-[60] bottom-[5.5rem] right-4 md:bottom-6 md:right-6 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-300 active:scale-95 ${
+        className={`fixed z-[60] bottom-[5.5rem] right-4 md:bottom-6 md:right-6 flex items-center justify-center rounded-full shadow-md transition-all duration-200 ease-out active:scale-95 ${
           keyboardOpen ? "!hidden" : ""
         } ${
           open
-            ? "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
-            : "animate-chat-bubble-in bg-lime-500 text-gray-900 hover:bg-lime-400 hover:shadow-xl hover:scale-105 dark:bg-lime-500 dark:text-gray-900 dark:hover:bg-lime-400"
+            ? "h-12 w-12 bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+            : "animate-chat-bubble-in gap-2 bg-lime-500 pl-3.5 pr-4 py-3 text-gray-900 hover:bg-lime-400 hover:shadow-lg dark:bg-lime-500 dark:text-gray-900 dark:hover:bg-lime-400"
         }`}
-        aria-label={open ? "Close search chat" : "Open search chat"}
+        aria-label={open ? "Close Coco chat" : "Ask Coco"}
       >
-        <div className={`transition-transform duration-300 ${open ? "rotate-180" : "rotate-0"}`}>
-          {open ? (
-            <CloseIcon className="h-6 w-6" />
-          ) : (
-            <ChatIcon className="h-6 w-6" variant="filled" />
-          )}
-        </div>
+        {open ? (
+          <CloseIcon className="h-5 w-5" />
+        ) : (
+          <>
+            <ChatIcon className="h-5 w-5" variant="filled" />
+            <span className="font-heading text-sm font-bold">Ask Coco!</span>
+          </>
+        )}
       </button>
     </>
   );

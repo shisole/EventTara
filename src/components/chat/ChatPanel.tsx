@@ -50,7 +50,7 @@ export default function ChatPanel({ open, onClose, keyboard }: ChatPanelProps) {
     {
       role: "assistant",
       content:
-        'Tara, let\'s find your next adventure! Try:\n\n"hiking near Mt. Pulag next week"\n"MTB events this weekend"\n"trail running events in Cebu"',
+        'Hey there! I\'m Coco, your friendly EventTara assistant. Ask me anything about events and I\'ll help you find your next adventure! Try:\n\n"hiking near Mt. Madias next week"\n"MTB events this weekend in Iloilo"\n"trail running events in Antique"',
     },
   ]);
   const [input, setInput] = useState("");
@@ -178,26 +178,26 @@ export default function ChatPanel({ open, onClose, keyboard }: ChatPanelProps) {
 
   return (
     <div
-      className={`fixed z-[60] transition-[opacity] duration-200 ease-out ${
-        open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+      className={`fixed z-[60] transition-all duration-200 ease-out ${
+        open
+          ? "opacity-100 pointer-events-auto translate-y-0"
+          : "opacity-0 pointer-events-none translate-y-2"
       } right-4 w-[calc(100vw-2rem)] max-w-[400px] ${keyboardOpen ? "" : "bottom-[9.5rem] h-[min(460px,calc(100vh-12rem))]"} md:bottom-6 md:right-[5.25rem] md:w-[400px] md:h-[min(500px,calc(100vh-6rem))]`}
       style={keyboardStyle}
     >
-      <div
-        className={`flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-900 ${open ? "animate-chat-panel-up" : ""}`}
-      >
+      <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-900">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-200 bg-gradient-to-r from-lime-50 to-teal-50 px-4 py-3 dark:border-gray-700 dark:from-gray-800 dark:to-gray-800">
           <div>
             <div className="flex items-center gap-1.5">
               <h3 className="font-heading text-sm font-bold text-gray-900 dark:text-gray-100">
-                Tara, search na!
+                Coco
               </h3>
               <span className="rounded-full bg-lime-500 px-1.5 py-0.5 text-[9px] font-bold leading-none text-gray-900">
                 BETA
               </span>
             </div>
-            <p className="text-[11px] text-gray-500 dark:text-gray-400">AI-powered event finder</p>
+            <p className="text-[11px] text-gray-500 dark:text-gray-400">AI-powered assistant</p>
           </div>
           <div className="flex items-center gap-2">
             {/* Limit dots */}
