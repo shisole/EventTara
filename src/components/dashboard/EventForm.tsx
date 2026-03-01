@@ -592,6 +592,10 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 mountain_id: selected.mountain_id,
+                name: selected.name,
+                province: selected.province,
+                difficulty_level: selected.difficulty_level,
+                elevation_masl: selected.elevation_masl,
                 route_name: selected.route_name || null,
                 difficulty_override: selected.difficulty_override,
                 sort_order: selected.sort_order,
