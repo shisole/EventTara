@@ -9,6 +9,7 @@ import RepostButton from "@/components/feed/RepostButton";
 import ShareButton from "@/components/feed/ShareButton";
 import { RepostIcon } from "@/components/icons";
 import { UserAvatar } from "@/components/ui";
+import { feedCache } from "@/lib/feed/cache";
 import type { FeedItem } from "@/lib/feed/types";
 import { formatRelativeTime } from "@/lib/utils/relative-time";
 
@@ -44,7 +45,11 @@ export default function FeedCard({ item, isAuthenticated, currentUserId }: FeedC
       )}
 
       {/* Clickable content area */}
-      <Link href={postHref} className="block space-y-3">
+      <Link
+        href={postHref}
+        className="block space-y-3"
+        onClick={() => feedCache.set(item.id, item, isAuthenticated, currentUserId)}
+      >
         {/* Header: avatar + name + badge + organizer + following */}
         <div className="flex items-center gap-3">
           <div className="shrink-0">
