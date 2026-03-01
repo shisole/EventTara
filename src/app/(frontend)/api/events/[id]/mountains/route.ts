@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { createClient, createServiceClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { normalizeMountainName, stripMountainPrefix } from "@/lib/utils/normalize-mountain-name";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -79,11 +79,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const normalizedName = normalizeMountainName(name);
     const stripped = stripMountainPrefix(normalizedName);
 
-    // Use service client to bypass RLS on the mountains reference table
-    const adminClient = createServiceClient();
-
     // Search for an existing mountain with the same base name
-    const { data: matches } = await adminClient
+    const { data: matches } = await supabase
       .from("mountains")
       .select("id, name")
       .ilike("name", `%${stripped}%`);
@@ -94,7 +91,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       mountain_id = exactMatch.id;
     } else {
       // Create a new mountain row
-      const { data: newMountain, error: createError } = await adminClient
+      const { data: newMountain, error: createError } = await supabase
         .from("mountains")
         .insert({
           name: normalizedName,
@@ -106,7 +103,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         .single();
 
       if (createError) {
-        console.error("[mountains] Failed to create mountain:", createError);
         return NextResponse.json({ error: createError.message }, { status: 500 });
       }
 
@@ -139,7 +135,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     .single();
 
   if (error) {
-    console.error("[mountains] Failed to link mountain:", { mountain_id, event_id: id, error });
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
