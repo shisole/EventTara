@@ -1,6 +1,8 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import EventForm from "@/components/dashboard/EventForm";
+import { ChevronLeftIcon } from "@/components/icons";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = { title: "Edit Event — EventTara" };
@@ -71,6 +73,13 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
 
   return (
     <div>
+      <Link
+        href={`/dashboard/events/${id}`}
+        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors mb-6"
+      >
+        <ChevronLeftIcon className="h-4 w-4" />
+        Back to Event
+      </Link>
       <h1 className="text-2xl font-heading font-bold mb-8 dark:text-white">Edit Event</h1>
       <EventForm
         mode="edit"

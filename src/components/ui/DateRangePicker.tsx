@@ -3,7 +3,6 @@
 import { format } from "date-fns";
 import { type ButtonHTMLAttributes, useState, useEffect, useMemo } from "react";
 import { type CalendarDay, type DateRange, type Modifiers, DayPicker } from "react-day-picker";
-import "react-day-picker/style.css";
 
 import { cn } from "@/lib/utils";
 
@@ -242,7 +241,7 @@ export default function DateRangePicker({
         )}
 
         {/* Time inputs */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="space-y-1">
             <label
               htmlFor="start-time"

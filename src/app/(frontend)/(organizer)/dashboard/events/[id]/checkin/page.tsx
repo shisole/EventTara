@@ -1,7 +1,9 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import CheckinList from "@/components/checkin/CheckinList";
 import QRScanner from "@/components/checkin/QRScanner";
+import { ChevronLeftIcon } from "@/components/icons";
 import type { BorderTier } from "@/lib/constants/avatar-borders";
 import { createClient } from "@/lib/supabase/server";
 
@@ -93,6 +95,14 @@ export default async function CheckinPage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="space-y-6">
+      <Link
+        href={`/dashboard/events/${id}`}
+        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+      >
+        <ChevronLeftIcon className="h-4 w-4" />
+        Back to Event
+      </Link>
+
       <h1 className="text-2xl font-heading font-bold dark:text-white">Check-in: {event.title}</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
