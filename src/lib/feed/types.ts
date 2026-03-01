@@ -40,4 +40,6 @@ export interface FeedComment {
   borderColor: string | null;
   text: string;
   createdAt: string;
+  pending?: boolean;
+  failed?: boolean;
 }

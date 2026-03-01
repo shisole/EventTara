@@ -6,6 +6,7 @@ import { useState } from "react";
 import { TrashIcon } from "@/components/icons";
 import { UserAvatar } from "@/components/ui";
 import type { FeedComment } from "@/lib/feed/types";
+import { cn } from "@/lib/utils";
 import { formatRelativeTime } from "@/lib/utils/relative-time";
 
 interface CommentItemProps {
@@ -36,7 +37,7 @@ export default function CommentItem({ comment, currentUserId, onDelete }: Commen
   };
 
   return (
-    <div className="flex gap-2 group">
+    <div className={cn("flex gap-2 group", comment.pending && "opacity-50")}>
       <Link href={profileHref} className="shrink-0 mt-0.5">
         <UserAvatar
           src={comment.userAvatarUrl}
@@ -56,13 +57,18 @@ export default function CommentItem({ comment, currentUserId, onDelete }: Commen
             {comment.userName}
           </Link>
           <span className="text-[10px] text-gray-400 dark:text-gray-500 shrink-0">
-            {formatRelativeTime(comment.createdAt)}
+            {comment.pending ? "Sending..." : formatRelativeTime(comment.createdAt)}
           </span>
         </div>
         <p className="text-sm text-gray-700 dark:text-gray-300 break-words">{comment.text}</p>
+        {comment.failed && (
+          <span className="text-[10px] text-red-500 dark:text-red-400">
+            Failed to send. Please try again.
+          </span>
+        )}
       </div>
 
-      {isOwn && (
+      {isOwn && !comment.pending && !comment.failed && (
         <button
           type="button"
           onClick={handleDelete}
@@ -71,6 +77,17 @@ export default function CommentItem({ comment, currentUserId, onDelete }: Commen
           aria-label="Delete comment"
         >
           <TrashIcon className="w-3.5 h-3.5" />
+        </button>
+      )}
+
+      {comment.failed && (
+        <button
+          type="button"
+          onClick={() => onDelete(comment.id)}
+          className="shrink-0 text-[10px] text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 mt-0.5"
+          aria-label="Dismiss"
+        >
+          Dismiss
         </button>
       )}
     </div>

@@ -56,8 +56,21 @@ export default function CommentSection({
   };
 
   const handleNewComment = (comment: FeedComment) => {
+    // Optimistic comment — add it and bump count
     setComments((prev) => [...prev, comment]);
     setCount((prev) => prev + 1);
+    // Auto-expand so user sees their comment
+    if (!expanded) setExpanded(true);
+  };
+
+  const handleConfirmed = (tempId: string, comment: FeedComment) => {
+    setComments((prev) => prev.map((c) => (c.id === tempId ? comment : c)));
+  };
+
+  const handleFailed = (tempId: string) => {
+    setComments((prev) =>
+      prev.map((c) => (c.id === tempId ? { ...c, pending: false, failed: true } : c)),
+    );
   };
 
   const handleDelete = (commentId: string) => {
@@ -121,6 +134,8 @@ export default function CommentSection({
         activityId={activityId}
         isAuthenticated={isAuthenticated}
         onSubmit={handleNewComment}
+        onConfirmed={handleConfirmed}
+        onFailed={handleFailed}
       />
     </div>
   );
