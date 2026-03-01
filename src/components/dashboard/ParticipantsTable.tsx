@@ -96,26 +96,26 @@ export default function ParticipantsTable({
   }
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 overflow-hidden">
-      <table className="w-full">
+    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 overflow-x-auto">
+      <table className="w-full min-w-0">
         <thead className="bg-gray-50 dark:bg-gray-800">
           <tr>
-            <th className="text-left px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
+            <th className="text-left px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400 md:px-6">
               Name
             </th>
-            <th className="text-left px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
+            <th className="hidden text-left px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400 sm:table-cell md:px-6">
               Email
             </th>
-            <th className="text-left px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
+            <th className="text-left px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400 md:px-6">
               Status
             </th>
-            <th className="text-left px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
+            <th className="text-left px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400 md:px-6">
               Method
             </th>
-            <th className="text-left px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
+            <th className="hidden text-left px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400 md:table-cell md:px-6">
               Booked
             </th>
-            <th className="text-right px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
+            <th className="text-right px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400 md:px-6">
               Actions
             </th>
           </tr>
@@ -135,7 +135,7 @@ export default function ParticipantsTable({
             return (
               <Fragment key={booking.id}>
                 <tr className={booking.participant_cancelled ? "opacity-60" : ""}>
-                  <td className="px-6 py-4 font-medium dark:text-white">
+                  <td className="px-4 py-4 font-medium dark:text-white md:px-6">
                     <span className={booking.participant_cancelled ? "line-through" : ""}>
                       {booking.users?.full_name || "Guest"}
                     </span>
@@ -148,10 +148,10 @@ export default function ParticipantsTable({
                       </span>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 truncate max-w-[200px]">
+                  <td className="hidden px-4 py-4 text-sm text-gray-500 dark:text-gray-400 truncate max-w-[200px] sm:table-cell md:px-6">
                     {booking.users?.email || "—"}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-4 md:px-6">
                     {booking.payment_method ? (
                       <PaymentStatusBadge status={booking.payment_status} />
                     ) : (
@@ -160,13 +160,13 @@ export default function ParticipantsTable({
                       </span>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                  <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-400 md:px-6">
                     {booking.payment_method?.toUpperCase() || "Free"}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                  <td className="hidden px-4 py-4 text-sm text-gray-500 dark:text-gray-400 md:table-cell md:px-6">
                     {new Date(booking.booked_at).toLocaleDateString("en-PH")}
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-4 py-4 text-right md:px-6">
                     <div className="flex items-center justify-end gap-2">
                       {isPending && (isEwallet || isCash) && (
                         <>
@@ -217,21 +217,27 @@ export default function ParticipantsTable({
                   const isCompLoading = actionLoading === `comp-${comp.id}`;
                   return (
                     <tr key={comp.id} className="bg-gray-50/50 dark:bg-gray-800/50">
-                      <td className="px-6 py-3 pl-12 text-sm text-gray-600 dark:text-gray-400">
+                      <td className="px-4 py-3 pl-10 text-sm text-gray-600 dark:text-gray-400 md:px-6 md:pl-12">
                         ↳ {comp.full_name}{" "}
                         <span className="text-gray-400 dark:text-gray-500">(companion)</span>
                       </td>
-                      <td className="px-6 py-3 text-sm text-gray-400 dark:text-gray-500">—</td>
-                      <td className="px-6 py-3">
+                      <td className="hidden px-4 py-3 text-sm text-gray-400 dark:text-gray-500 sm:table-cell md:px-6">
+                        —
+                      </td>
+                      <td className="px-4 py-3 md:px-6">
                         <span
                           className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium capitalize ${companionStatusStyle[comp.status] || companionStatusStyle.pending}`}
                         >
                           {comp.status}
                         </span>
                       </td>
-                      <td className="px-6 py-3 text-sm text-gray-400 dark:text-gray-500">—</td>
-                      <td className="px-6 py-3 text-sm text-gray-400 dark:text-gray-500">—</td>
-                      <td className="px-6 py-3 text-right">
+                      <td className="px-4 py-3 text-sm text-gray-400 dark:text-gray-500 md:px-6">
+                        —
+                      </td>
+                      <td className="hidden px-4 py-3 text-sm text-gray-400 dark:text-gray-500 md:table-cell md:px-6">
+                        —
+                      </td>
+                      <td className="px-4 py-3 text-right md:px-6">
                         {isBookingPaid && comp.status === "confirmed" && (
                           <Button
                             variant="ghost"
