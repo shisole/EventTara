@@ -50,7 +50,7 @@ export default function ChatPanel({ open, onClose, keyboard }: ChatPanelProps) {
     {
       role: "assistant",
       content:
-        'Tara, let\'s find your next adventure! Try:\n\n"hiking near Mt. Pulag next week"\n"MTB events this weekend"\n"trail running events in Cebu"',
+        'Hey there! I\'m Coco, your friendly EventTara assistant. Ask me anything about events and I\'ll help you find your next adventure! Try:\n\n"hiking near Mt. Pulag next week"\n"MTB events this weekend"\n"trail running events in Cebu"',
     },
   ]);
   const [input, setInput] = useState("");
@@ -191,13 +191,13 @@ export default function ChatPanel({ open, onClose, keyboard }: ChatPanelProps) {
           <div>
             <div className="flex items-center gap-1.5">
               <h3 className="font-heading text-sm font-bold text-gray-900 dark:text-gray-100">
-                Tara, search na!
+                Coco
               </h3>
               <span className="rounded-full bg-lime-500 px-1.5 py-0.5 text-[9px] font-bold leading-none text-gray-900">
                 BETA
               </span>
             </div>
-            <p className="text-[11px] text-gray-500 dark:text-gray-400">AI-powered event finder</p>
+            <p className="text-[11px] text-gray-500 dark:text-gray-400">Your EventTara assistant</p>
           </div>
           <div className="flex items-center gap-2">
             {/* Limit dots */}
