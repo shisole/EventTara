@@ -66,14 +66,14 @@ export default async function ManageEventPage({ params }: { params: Promise<{ id
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-heading font-bold dark:text-white">{event.title}</h1>
           <UIBadge variant={event.status === "published" ? "hiking" : "default"} className="mt-2">
             {event.status}
           </UIBadge>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
           <Link href={`/dashboard/events/${id}/edit`}>
             <Button variant="outline">Edit</Button>
           </Link>
