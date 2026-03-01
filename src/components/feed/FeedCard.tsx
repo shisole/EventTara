@@ -9,6 +9,8 @@ import RepostButton from "@/components/feed/RepostButton";
 import ShareButton from "@/components/feed/ShareButton";
 import { RepostIcon } from "@/components/icons";
 import { UserAvatar } from "@/components/ui";
+import { resolvePresetImage } from "@/lib/constants/avatars";
+import { CATEGORY_STYLES, RARITY_STYLES } from "@/lib/constants/badge-rarity";
 import { feedCache } from "@/lib/feed/cache";
 import type { FeedItem } from "@/lib/feed/types";
 import { formatRelativeTime } from "@/lib/utils/relative-time";
@@ -91,8 +93,11 @@ export default function FeedCard({ item, isAuthenticated, currentUserId }: FeedC
           </span>
         </div>
 
-        {/* Context image */}
-        {item.contextImageUrl && (
+        {/* Badge showcase */}
+        {item.activityType === "badge" && item.badgeImageUrl && <BadgeShowcase item={item} />}
+
+        {/* Context image (non-badge activities) */}
+        {item.activityType !== "badge" && item.contextImageUrl && (
           <div className="relative w-full h-40 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800">
             <Image
               src={item.contextImageUrl}
@@ -131,6 +136,54 @@ export default function FeedCard({ item, isAuthenticated, currentUserId }: FeedC
         isAuthenticated={isAuthenticated}
         currentUserId={currentUserId}
       />
+    </div>
+  );
+}
+
+function BadgeShowcase({ item }: { item: FeedItem }) {
+  const resolved = resolvePresetImage(item.badgeImageUrl);
+  const rarity = item.badgeRarity ? RARITY_STYLES[item.badgeRarity] : RARITY_STYLES.common;
+  const category = item.badgeCategory ? CATEGORY_STYLES[item.badgeCategory] : null;
+
+  return (
+    <div className="flex flex-col items-center gap-3 py-4">
+      {/* Badge image with rarity ring + glow */}
+      <div className={`rounded-full ${rarity.ring} ${rarity.glow}`}>
+        {resolved?.type === "emoji" ? (
+          <div
+            className={`w-24 h-24 rounded-full flex items-center justify-center ${resolved.color}`}
+          >
+            <span className="text-5xl">{resolved.emoji}</span>
+          </div>
+        ) : resolved?.type === "url" ? (
+          <div className="relative w-24 h-24 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800">
+            <Image
+              src={resolved.url}
+              alt={item.badgeTitle || "Badge"}
+              fill
+              className="object-cover"
+              sizes="96px"
+            />
+          </div>
+        ) : null}
+      </div>
+
+      {/* Badge title */}
+      {item.badgeTitle && (
+        <p className="font-semibold text-gray-900 dark:text-white text-sm">{item.badgeTitle}</p>
+      )}
+
+      {/* Rarity + category pills */}
+      <div className="flex items-center gap-2">
+        <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${rarity.pill}`}>
+          {rarity.label}
+        </span>
+        {category && (
+          <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${category.pill}`}>
+            {category.label}
+          </span>
+        )}
+      </div>
     </div>
   );
 }

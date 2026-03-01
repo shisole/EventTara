@@ -1,4 +1,5 @@
 import type { BorderTier } from "@/lib/constants/avatar-borders";
+import type { BadgeCategory, BadgeRarity } from "@/lib/constants/badge-rarity";
 
 export type ActivityType = "booking" | "checkin" | "badge" | "border";
 export type EmojiType = "heart";
@@ -20,6 +21,11 @@ export interface FeedItem {
   topBadgeTitle: string | null;
   text: string;
   contextImageUrl: string | null;
+  badgeId: string | null;
+  badgeTitle: string | null;
+  badgeImageUrl: string | null;
+  badgeRarity: BadgeRarity | null;
+  badgeCategory: BadgeCategory | null;
   timestamp: string;
   isFollowing: boolean;
   likeCount: number;

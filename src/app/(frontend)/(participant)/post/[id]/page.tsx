@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import PostView from "@/components/feed/PostView";
 import type { BorderTier } from "@/lib/constants/avatar-borders";
+import type { BadgeCategory, BadgeRarity } from "@/lib/constants/badge-rarity";
 import type { ActivityType, FeedItem } from "@/lib/feed/types";
 import { createClient } from "@/lib/supabase/server";
 
@@ -16,6 +17,11 @@ interface RawActivity {
   userId: string;
   text: string;
   contextImageUrl: string | null;
+  badgeId: string | null;
+  badgeTitle: string | null;
+  badgeImageUrl: string | null;
+  badgeRarity: BadgeRarity | null;
+  badgeCategory: BadgeCategory | null;
   timestamp: string;
 }
 
@@ -43,7 +49,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
         .maybeSingle(),
       supabase
         .from("user_badges")
-        .select("id, user_id, awarded_at, badges(title, image_url)")
+        .select("id, user_id, awarded_at, badges(id, title, image_url, rarity, category)")
         .eq("id", id)
         .maybeSingle(),
       supabase
@@ -56,6 +62,14 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
   // Determine which table matched
   let activity: RawActivity | null = null;
 
+  const nullBadge = {
+    badgeId: null,
+    badgeTitle: null,
+    badgeImageUrl: null,
+    badgeRarity: null,
+    badgeCategory: null,
+  } as const;
+
   if (booking) {
     const event = booking.events as any;
     activity = {
@@ -64,6 +78,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
       userId: booking.user_id,
       text: `is joining ${event?.title || "an event"}`,
       contextImageUrl: event?.cover_image_url || null,
+      ...nullBadge,
       timestamp: booking.booked_at,
     };
   } else if (checkin) {
@@ -74,6 +89,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
       userId: checkin.user_id,
       text: `completed ${event?.title || "an event"}`,
       contextImageUrl: event?.cover_image_url || null,
+      ...nullBadge,
       timestamp: checkin.checked_in_at,
     };
   } else if (userBadge) {
@@ -83,7 +99,12 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
       activityType: "badge",
       userId: userBadge.user_id,
       text: `earned ${badge?.title || "a badge"}`,
-      contextImageUrl: badge?.image_url || null,
+      contextImageUrl: null,
+      badgeId: badge?.id || null,
+      badgeTitle: badge?.title || null,
+      badgeImageUrl: badge?.image_url || null,
+      badgeRarity: badge?.rarity || null,
+      badgeCategory: badge?.category || null,
       timestamp: userBadge.awarded_at,
     };
   } else if (userBorder) {
@@ -94,6 +115,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
       userId: userBorder.user_id,
       text: `unlocked ${border?.tier || ""} ${border?.name || "border"}`,
       contextImageUrl: null,
+      ...nullBadge,
       timestamp: userBorder.awarded_at,
     };
   }
@@ -191,6 +213,11 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
     topBadgeTitle: topBadge?.badges?.title || null,
     text: activity.text,
     contextImageUrl: activity.contextImageUrl,
+    badgeId: activity.badgeId,
+    badgeTitle: activity.badgeTitle,
+    badgeImageUrl: activity.badgeImageUrl,
+    badgeRarity: activity.badgeRarity,
+    badgeCategory: activity.badgeCategory,
     timestamp: activity.timestamp,
     isFollowing: !!followResult.data,
     likeCount,

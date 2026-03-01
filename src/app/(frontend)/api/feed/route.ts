@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import type { BorderTier } from "@/lib/constants/avatar-borders";
+import type { BadgeCategory, BadgeRarity } from "@/lib/constants/badge-rarity";
 import type { ActivityType, FeedItem } from "@/lib/feed/types";
 import { createClient } from "@/lib/supabase/server";
 
@@ -12,6 +13,11 @@ interface RawActivity {
   userId: string;
   text: string;
   contextImageUrl: string | null;
+  badgeId: string | null;
+  badgeTitle: string | null;
+  badgeImageUrl: string | null;
+  badgeRarity: BadgeRarity | null;
+  badgeCategory: BadgeCategory | null;
   timestamp: string;
   repostedBy?: { userId: string; createdAt: string };
 }
@@ -55,7 +61,9 @@ export async function GET(request: Request) {
       .limit(fetchLimit),
     supabase
       .from("user_badges")
-      .select("id, user_id, awarded_at, badges(title, image_url), users!inner(is_guest)")
+      .select(
+        "id, user_id, awarded_at, badges(id, title, image_url, rarity, category), users!inner(is_guest)",
+      )
       .eq("users.is_guest", false)
       .order("awarded_at", { ascending: false })
       .limit(fetchLimit),
@@ -75,6 +83,14 @@ export async function GET(request: Request) {
   // Build unified activity list
   const activities: RawActivity[] = [];
 
+  const nullBadge = {
+    badgeId: null,
+    badgeTitle: null,
+    badgeImageUrl: null,
+    badgeRarity: null,
+    badgeCategory: null,
+  } as const;
+
   for (const b of bookings || []) {
     const event = b.events as any;
     activities.push({
@@ -83,6 +99,7 @@ export async function GET(request: Request) {
       userId: b.user_id,
       text: `is joining ${event?.title || "an event"}`,
       contextImageUrl: event?.cover_image_url || null,
+      ...nullBadge,
       timestamp: b.booked_at,
     });
   }
@@ -95,6 +112,7 @@ export async function GET(request: Request) {
       userId: c.user_id,
       text: `completed ${event?.title || "an event"}`,
       contextImageUrl: event?.cover_image_url || null,
+      ...nullBadge,
       timestamp: c.checked_in_at,
     });
   }
@@ -106,7 +124,12 @@ export async function GET(request: Request) {
       activityType: "badge",
       userId: ub.user_id,
       text: `earned ${badge?.title || "a badge"}`,
-      contextImageUrl: badge?.image_url || null,
+      contextImageUrl: null,
+      badgeId: badge?.id || null,
+      badgeTitle: badge?.title || null,
+      badgeImageUrl: badge?.image_url || null,
+      badgeRarity: badge?.rarity || null,
+      badgeCategory: badge?.category || null,
       timestamp: ub.awarded_at,
     });
   }
@@ -119,6 +142,7 @@ export async function GET(request: Request) {
       userId: ab.user_id,
       text: `unlocked ${border?.tier || ""} ${border?.name || "border"}`,
       contextImageUrl: null,
+      ...nullBadge,
       timestamp: ab.awarded_at,
     });
   }
@@ -339,6 +363,11 @@ export async function GET(request: Request) {
       topBadgeTitle: topBadgeMap.get(a.userId) || null,
       text: a.text,
       contextImageUrl: a.contextImageUrl,
+      badgeId: a.badgeId,
+      badgeTitle: a.badgeTitle,
+      badgeImageUrl: a.badgeImageUrl,
+      badgeRarity: a.badgeRarity,
+      badgeCategory: a.badgeCategory,
       timestamp: a.timestamp,
       isFollowing: followingSet.has(a.userId),
       likeCount: like?.count || 0,
