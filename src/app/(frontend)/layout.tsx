@@ -106,6 +106,45 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <link rel="preconnect" href={process.env.NEXT_PUBLIC_SUPABASE_URL} />
         )}
         <link rel="preconnect" href="https://images.unsplash.com" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@graph": [
+                {
+                  "@type": "Organization",
+                  name: settings?.siteName || "EventTara",
+                  url:
+                    settings?.siteUrl ||
+                    process.env.NEXT_PUBLIC_SITE_URL ||
+                    "https://eventtara.com",
+                  logo: `${settings?.siteUrl || process.env.NEXT_PUBLIC_SITE_URL || "https://eventtara.com"}/favicon-512x512.png`,
+                  description:
+                    settings?.siteDescription ||
+                    "EventTara is an adventure event booking platform for hiking, mountain biking, road biking, running, and more.",
+                  sameAs: [],
+                },
+                {
+                  "@type": "WebSite",
+                  name: settings?.siteName || "EventTara",
+                  url:
+                    settings?.siteUrl ||
+                    process.env.NEXT_PUBLIC_SITE_URL ||
+                    "https://eventtara.com",
+                  potentialAction: {
+                    "@type": "SearchAction",
+                    target: {
+                      "@type": "EntryPoint",
+                      urlTemplate: `${settings?.siteUrl || process.env.NEXT_PUBLIC_SITE_URL || "https://eventtara.com"}/events?search={search_term_string}`,
+                    },
+                    "query-input": "required name=search_term_string",
+                  },
+                },
+              ],
+            }),
+          }}
+        />
       </head>
       <body className="font-sans min-h-screen flex flex-col">
         <GoogleAnalytics />

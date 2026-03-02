@@ -301,8 +301,118 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
 
   const organizer = event.organizer_profiles as any;
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://eventtara.com";
+
+  // JSON-LD Event structured data
+  const eventJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Event",
+    name: event.title,
+    description: event.description || undefined,
+    startDate: event.date,
+    ...(event.end_date && { endDate: event.end_date }),
+    eventStatus: "https://schema.org/EventScheduled",
+    eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+    location: {
+      "@type": "Place",
+      name: event.location,
+      ...(event.coordinates &&
+        typeof event.coordinates === "object" &&
+        "lat" in event.coordinates && {
+          geo: {
+            "@type": "GeoCoordinates",
+            latitude: (event.coordinates as { lat: number; lng: number }).lat,
+            longitude: (event.coordinates as { lat: number; lng: number }).lng,
+          },
+        }),
+    },
+    ...(event.cover_image_url && { image: event.cover_image_url }),
+    organizer: organizer
+      ? {
+          "@type": "Organization",
+          name: organizer.org_name,
+          ...(organizer.logo_url && { logo: organizer.logo_url }),
+        }
+      : undefined,
+    offers: {
+      "@type": "Offer",
+      price: event.price,
+      priceCurrency: "PHP",
+      availability: spotsLeft <= 0 ? "https://schema.org/SoldOut" : "https://schema.org/InStock",
+      url: `${siteUrl}/events/${id}`,
+      validFrom: event.created_at,
+    },
+    ...(avgRating > 0 && {
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: avgRating.toFixed(1),
+        reviewCount: eventReviews.length,
+        bestRating: 5,
+        worstRating: 1,
+      },
+    }),
+    url: `${siteUrl}/events/${id}`,
+    maximumAttendeeCapacity: event.max_participants,
+    remainingAttendeeCapacity: Math.max(spotsLeft, 0),
+  };
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: siteUrl,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Events",
+        item: `${siteUrl}/events`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: event.title,
+        item: `${siteUrl}/events/${id}`,
+      },
+    ],
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(eventJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+
+      {/* Breadcrumb navigation */}
+      <nav aria-label="Breadcrumb" className="mb-4 text-sm text-gray-500 dark:text-gray-400">
+        <ol className="flex items-center gap-1.5">
+          <li>
+            <Link href="/" className="hover:text-gray-700 dark:hover:text-gray-300">
+              Home
+            </Link>
+          </li>
+          <li aria-hidden="true">/</li>
+          <li>
+            <Link href="/events" className="hover:text-gray-700 dark:hover:text-gray-300">
+              Events
+            </Link>
+          </li>
+          <li aria-hidden="true">/</li>
+          <li className="text-gray-900 dark:text-white font-medium truncate max-w-[200px]">
+            {event.title}
+          </li>
+        </ol>
+      </nav>
+
       {/* Hero Image */}
       <div className="relative h-64 md:h-96 rounded-2xl overflow-hidden bg-gradient-to-br from-lime-100 to-forest-100 dark:from-lime-900 dark:to-forest-900 mb-8">
         {event.cover_image_url && (
