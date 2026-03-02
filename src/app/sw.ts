@@ -48,7 +48,7 @@ self.addEventListener("push", (event) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  const href: string = (String(event.notification.data?.href)) || "/";
+  const href: string = String(event.notification.data?.href) || "/";
 
   event.waitUntil(
     self.clients
