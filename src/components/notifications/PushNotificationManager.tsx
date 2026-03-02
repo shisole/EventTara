@@ -13,13 +13,15 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
   return outputArray;
 }
 
+const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "";
+
 export default function PushNotificationManager() {
   const [isSupported, setIsSupported] = useState(false);
   const [subscription, setSubscription] = useState<PushSubscription | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if ("serviceWorker" in navigator && "PushManager" in globalThis) {
+    if (VAPID_PUBLIC_KEY && "serviceWorker" in navigator && "PushManager" in globalThis) {
       setIsSupported(true);
       void navigator.serviceWorker.ready.then(async (registration) => {
         const sub = await registration.pushManager.getSubscription();
@@ -34,7 +36,7 @@ export default function PushNotificationManager() {
       const registration = await navigator.serviceWorker.ready;
       const sub = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? ""),
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
       });
 
       const serialized = sub.toJSON();
