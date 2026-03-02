@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { awardEventBadge } from "@/lib/badges/award-event-badge";
+import { onEventCompleted } from "@/lib/badges/award-event-badge";
 import { createServiceClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
@@ -41,7 +41,7 @@ export async function POST(request: Request) {
       continue;
     }
 
-    await awardEventBadge(event.id, supabase);
+    await onEventCompleted(event.id, supabase);
     completed++;
   }
 

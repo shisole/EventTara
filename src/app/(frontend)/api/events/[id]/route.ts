@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { awardEventBadge } from "@/lib/badges/award-event-badge";
+import { onEventCompleted } from "@/lib/badges/award-event-badge";
 import { findProvinceFromLocation } from "@/lib/constants/philippine-provinces";
 import { findOverlappingEvent, formatOverlapDate } from "@/lib/events/overlap";
 import { createClient } from "@/lib/supabase/server";
@@ -108,7 +108,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
   // Auto-award event badge when marked as completed (fire-and-forget)
   if (body.status === "completed") {
-    awardEventBadge(id, supabase).catch(() => null);
+    onEventCompleted(id, supabase).catch(() => null);
   }
 
   // Replace distances if provided (delete all then re-insert)

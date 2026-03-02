@@ -58,10 +58,10 @@ export async function checkAndAwardSystemBadges(
   try {
     // 1. Parallel fetch: check-in stats, existing system badge criteria_keys, system badge rows, and distance data
     const [checkinsResult, existingResult, systemBadgesResult, distanceResult] = await Promise.all([
-      // User's check-ins joined to events for type
+      // User's check-ins joined to events for type and status
       supabase
         .from("event_checkins")
-        .select("event_id, events:event_id(type)")
+        .select("event_id, events:event_id(type, status)")
         .eq("user_id", userId),
 
       // User's existing system badges only (via inner join to badges table)
@@ -89,6 +89,7 @@ export async function checkAndAwardSystemBadges(
     // Build check-in stats
     const checkins = checkinsResult.data ?? [];
     const checkedInEventIds = new Set<string>();
+    const completedCheckedInEventIds = new Set<string>();
     const eventCountByType: Record<string, number> = {};
     let totalCheckins = 0;
     for (const checkin of checkins) {
@@ -99,12 +100,15 @@ export async function checkAndAwardSystemBadges(
       if (eventType) {
         eventCountByType[eventType] = (eventCountByType[eventType] ?? 0) + 1;
       }
+      if (event?.status === "completed") {
+        completedCheckedInEventIds.add(checkin.event_id);
+      }
     }
 
-    // Find max distance from checked-in events only
+    // Find max distance from completed checked-in events only
     let maxDistanceKm = 0;
     for (const booking of distanceResult.data ?? []) {
-      if (!checkedInEventIds.has(booking.event_id)) continue;
+      if (!completedCheckedInEventIds.has(booking.event_id)) continue;
       const dist = (booking.event_distances as any)?.distance_km as number | undefined;
       if (dist && dist > maxDistanceKm) {
         maxDistanceKm = dist;
