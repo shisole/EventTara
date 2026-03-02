@@ -1,24 +1,35 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { ChatIcon, CloseIcon } from "@/components/icons";
 import { useKeyboardHeight } from "@/lib/hooks/useKeyboardHeight";
 
 import ChatPanel from "./ChatPanel";
 
+/** Collapse pill to circle after intro + 2 nudges (~17s) */
+const COLLAPSE_DELAY = 17_000;
+
 export default function ChatBubble() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const keyboard = useKeyboardHeight();
   const keyboardOpen = keyboard.keyboardHeight > 0;
 
   const handleClose = useCallback(() => setOpen(false), []);
   const handleToggle = useCallback(() => setOpen((prev) => !prev), []);
 
+  useEffect(() => {
+    const timer = setTimeout(() => setCollapsed(true), COLLAPSE_DELAY);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Hide on dashboard pages
   if (pathname.startsWith("/dashboard")) return null;
+
+  const isCircle = open || collapsed;
 
   return (
     <>
@@ -35,17 +46,21 @@ export default function ChatBubble() {
 
       <button
         onClick={handleToggle}
-        className={`fixed z-[60] bottom-[5.5rem] right-4 md:bottom-6 md:right-6 flex items-center justify-center rounded-full shadow-md transition-all duration-200 ease-out active:scale-95 ${
+        className={`fixed z-[60] bottom-[5.5rem] right-4 md:bottom-6 md:right-6 flex items-center justify-center rounded-full shadow-md transition-all duration-300 ease-out active:scale-95 ${
           keyboardOpen ? "!hidden" : ""
         } ${
           open
             ? "h-12 w-12 bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
-            : "animate-chat-bubble-in gap-2 bg-lime-500 pl-3.5 pr-4 py-3 text-gray-900 hover:bg-lime-400 hover:shadow-lg dark:bg-lime-500 dark:text-gray-900 dark:hover:bg-lime-400"
+            : collapsed
+              ? "h-12 w-12 bg-lime-500 text-gray-900 hover:bg-lime-400 hover:shadow-lg dark:bg-lime-500 dark:text-gray-900 dark:hover:bg-lime-400"
+              : "animate-chat-bubble-in gap-2 bg-lime-500 pl-3.5 pr-4 py-3 text-gray-900 hover:bg-lime-400 hover:shadow-lg dark:bg-lime-500 dark:text-gray-900 dark:hover:bg-lime-400"
         }`}
         aria-label={open ? "Close Coco chat" : "Ask Coco"}
       >
         {open ? (
           <CloseIcon className="h-5 w-5" />
+        ) : isCircle ? (
+          <ChatIcon className="h-5 w-5" variant="filled" />
         ) : (
           <>
             <ChatIcon className="h-5 w-5" variant="filled" />
