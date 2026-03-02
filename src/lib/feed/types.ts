@@ -33,7 +33,7 @@ export interface FeedItem {
   commentCount: number;
   repostCount: number;
   isReposted: boolean;
-  repostedBy?: { userName: string; userUsername: string | null };
+  repostedBy?: { userId: string; userName: string; userUsername: string | null };
 }
 
 export interface FeedComment {

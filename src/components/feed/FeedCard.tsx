@@ -32,7 +32,9 @@ export default function FeedCard({ item, isAuthenticated, currentUserId }: FeedC
           <RepostIcon className="w-3.5 h-3.5" />
           <span>
             Reposted by{" "}
-            {item.repostedBy.userUsername ? (
+            {item.repostedBy.userId === currentUserId ? (
+              <span className="font-medium">you</span>
+            ) : item.repostedBy.userUsername ? (
               <Link
                 href={`/profile/${item.repostedBy.userUsername}`}
                 className="font-medium hover:underline"

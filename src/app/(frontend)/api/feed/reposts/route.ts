@@ -46,7 +46,7 @@ export async function POST(request: Request) {
         type: "feed_repost",
         title: "New Repost",
         body: `${user.user_metadata?.full_name || "Someone"} reposted your activity.`,
-        href: "/feed",
+        href: `/post/${body.activityId}`,
         actorId: user.id,
       });
     })

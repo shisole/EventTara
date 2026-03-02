@@ -380,6 +380,7 @@ export async function GET(request: Request) {
     if (a.repostedBy) {
       const reposter = userMap.get(a.repostedBy.userId);
       item.repostedBy = {
+        userId: a.repostedBy.userId,
         userName: reposter?.full_name || "Someone",
         userUsername: reposter?.username || null,
       };
