@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { sendEmail } from "@/lib/email/send";
 import { bookingConfirmationHtml } from "@/lib/email/templates/booking-confirmation";
 import { findOverlappingEvent, formatOverlapDate } from "@/lib/events/overlap";
+import { createNotification } from "@/lib/notifications/create";
 import { createClient } from "@/lib/supabase/server";
 
 interface CompanionInput {
@@ -359,6 +360,17 @@ export async function POST(request: Request) {
     } catch (error) {
       console.error("[Email] Error preparing booking confirmation:", error);
     }
+  }
+
+  // Notify participant of confirmed booking (fire-and-forget)
+  if (bookingStatus === "confirmed") {
+    createNotification(supabase, {
+      userId: user.id,
+      type: "booking_confirmed",
+      title: "Booking Confirmed",
+      body: `Your booking for ${event.title} has been confirmed.`,
+      href: `/my-events`,
+    }).catch(() => null);
   }
 
   return NextResponse.json({

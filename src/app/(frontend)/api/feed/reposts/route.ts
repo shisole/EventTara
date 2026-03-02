@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 
 import type { ActivityType } from "@/lib/feed/types";
+import { createNotification } from "@/lib/notifications/create";
+import { resolveActivityOwner } from "@/lib/notifications/resolve-activity-owner";
 import { createClient } from "@/lib/supabase/server";
 
 interface RepostBody {
@@ -34,6 +36,21 @@ export async function POST(request: Request) {
     }
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  // Notify activity owner of the repost (fire-and-forget)
+  resolveActivityOwner(supabase, body.activityType, body.activityId)
+    .then((ownerId) => {
+      if (!ownerId) return;
+      return createNotification(supabase, {
+        userId: ownerId,
+        type: "feed_repost",
+        title: "New Repost",
+        body: `${user.user_metadata?.full_name || "Someone"} reposted your activity.`,
+        href: "/feed",
+        actorId: user.id,
+      });
+    })
+    .catch(() => null);
 
   return NextResponse.json({ message: "Reposted" }, { status: 201 });
 }

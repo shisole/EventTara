@@ -1,3 +1,4 @@
+export { default as BellIcon } from "./BellIcon";
 export { default as CalendarIcon } from "./CalendarIcon";
 export { default as ChatIcon } from "./ChatIcon";
 export { default as CheckCircleIcon } from "./CheckCircleIcon";

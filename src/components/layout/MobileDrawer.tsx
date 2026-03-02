@@ -131,6 +131,13 @@ export default function MobileDrawer({
               >
                 My Events
               </Link>
+              <Link
+                href="/notifications"
+                onClick={onClose}
+                className="block px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium"
+              >
+                Notifications
+              </Link>
               <button
                 onClick={() => {
                   onClose();

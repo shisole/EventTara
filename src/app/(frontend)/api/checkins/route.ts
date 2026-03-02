@@ -4,6 +4,7 @@ import { checkAndAwardSystemBadges } from "@/lib/badges/check-system-badges";
 import { checkAndAwardBorders } from "@/lib/borders/check-borders";
 import { sendEmail } from "@/lib/email/send";
 import { badgesEarnedHtml } from "@/lib/email/templates/badges-earned";
+import { createNotifications } from "@/lib/notifications/create";
 import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
@@ -196,6 +197,18 @@ export async function POST(request: Request) {
   checkAndAwardSystemBadges(user_id, supabase)
     .then(async (awardedBadges) => {
       if (awardedBadges.length === 0) return;
+
+      // In-app badge notifications
+      createNotifications(
+        supabase,
+        awardedBadges.map((b) => ({
+          userId: user_id,
+          type: "badge_earned" as const,
+          title: "Badge Earned",
+          body: `You earned the "${b.title}" badge!`,
+          href: "/achievements",
+        })),
+      ).catch(() => null);
 
       // Fetch user email for notification
       const { data: participant } = await supabase

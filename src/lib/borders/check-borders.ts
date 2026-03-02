@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { createNotifications } from "@/lib/notifications/create";
 import type { Database } from "@/lib/supabase/types";
 
 type AvatarBorderRow = Database["public"]["Tables"]["avatar_borders"]["Row"];
@@ -47,6 +48,19 @@ export async function checkAndAwardBorders(
   // Batch insert new awards
   if (newAwards.length > 0) {
     await supabase.from("user_avatar_borders").insert(newAwards);
+
+    // Notify user of new border unlocks
+    const awardedBorders = allBorders.filter((b) => newAwards.some((a) => a.border_id === b.id));
+    createNotifications(
+      supabase,
+      awardedBorders.map((border) => ({
+        userId,
+        type: "border_earned" as const,
+        title: "Border Unlocked",
+        body: `You unlocked the "${border.name}" avatar border!`,
+        href: "/profile",
+      })),
+    ).catch(() => null);
   }
 }
 
