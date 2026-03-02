@@ -1,4 +1,18 @@
+import { spawnSync } from "node:child_process";
+
+import withSerwistInit from "@serwist/next";
 import { withPayload } from "@payloadcms/next/withPayload";
+
+const revision =
+  spawnSync("git", ["rev-parse", "HEAD"], { encoding: "utf-8" }).stdout?.trim() ??
+  crypto.randomUUID();
+
+const withSerwist = withSerwistInit({
+  swSrc: "src/app/sw.ts",
+  swDest: "public/sw.js",
+  additionalPrecacheEntries: [{ url: "/~offline", revision }],
+  disable: process.env.NODE_ENV === "development",
+});
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseHostname = supabaseUrl ? new URL(supabaseUrl).hostname : "**.supabase.co";
@@ -36,7 +50,6 @@ const nextConfig = {
   async rewrites() {
     /** @type {import('next').Rewrite[]} */
     const rules = [
-      // Payload CMS media: serve from public/media/ instead of Payload API
       {
         source: "/api/media/file/:path*",
         destination: "/media/:path*",
@@ -70,8 +83,21 @@ const nextConfig = {
           },
         ],
       },
+      {
+        source: "/sw.js",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "no-cache, no-store, must-revalidate",
+          },
+          {
+            key: "Content-Type",
+            value: "application/javascript; charset=utf-8",
+          },
+        ],
+      },
     ];
   },
 };
 
-export default withPayload(nextConfig);
+export default withSerwist(withPayload(nextConfig));
