@@ -362,16 +362,17 @@ export async function POST(request: Request) {
     }
   }
 
-  // Notify participant of confirmed booking (fire-and-forget)
-  if (bookingStatus === "confirmed") {
-    createNotification(supabase, {
-      userId: user.id,
-      type: "booking_confirmed",
-      title: "Booking Confirmed",
-      body: `Your booking for ${event.title} has been confirmed.`,
-      href: `/my-events`,
-    }).catch(() => null);
-  }
+  // Notify participant of booking (fire-and-forget)
+  createNotification(supabase, {
+    userId: user.id,
+    type: "booking_confirmed",
+    title: bookingStatus === "confirmed" ? "Booking Confirmed" : "Spot Reserved",
+    body:
+      bookingStatus === "confirmed"
+        ? `Your booking for ${event.title} has been confirmed.`
+        : `Your spot for ${event.title} has been reserved. Payment is pending.`,
+    href: `/my-events`,
+  }).catch(() => null);
 
   return NextResponse.json({
     booking: bookingRecord,
