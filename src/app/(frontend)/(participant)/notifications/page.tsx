@@ -1,10 +1,15 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import NotificationItem from "@/components/notifications/NotificationItem";
 import { Button } from "@/components/ui";
-import type { Database } from "@/lib/supabase/types";
+import { type Database } from "@/lib/supabase/types";
+
+const PushNotificationManager = dynamic(
+  () => import("@/components/notifications/PushNotificationManager"),
+);
 
 type NotificationRow = Database["public"]["Tables"]["notifications"]["Row"];
 type NotificationWithActor = NotificationRow & {
@@ -127,6 +132,10 @@ export default function NotificationsPage() {
             Mark all as read
           </Button>
         )}
+      </div>
+
+      <div className="mb-6">
+        <PushNotificationManager />
       </div>
 
       {loading && notifications.length === 0 ? (
