@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { Button, Input } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
+import { uploadImage } from "@/lib/upload";
 
 import PhotoUploader from "./PhotoUploader";
 
@@ -22,19 +23,33 @@ export default function OrganizerProfileForm({ profile }: OrganizerProfileFormPr
   const supabase = createClient();
   const [orgName, setOrgName] = useState(profile?.org_name || "");
   const [description, setDescription] = useState(profile?.description || "");
-  const [logoUrl, setLogoUrl] = useState<string | null>(profile?.logo_url || null);
+  const [logoUrl, setLogoUrl] = useState<string | File | null>(profile?.logo_url || null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setSuccess(false);
+    setError("");
+
+    // Upload logo if it's a pending File
+    let resolvedLogoUrl: string | null = typeof logoUrl === "string" ? logoUrl : null;
+    if (logoUrl instanceof File) {
+      try {
+        resolvedLogoUrl = await uploadImage(logoUrl, "organizers/logos");
+      } catch {
+        setError("Failed to upload logo. Please try again.");
+        setLoading(false);
+        return;
+      }
+    }
 
     if (profile) {
       await supabase
         .from("organizer_profiles")
-        .update({ org_name: orgName, description, logo_url: logoUrl })
+        .update({ org_name: orgName, description, logo_url: resolvedLogoUrl })
         .eq("id", profile.id);
     } else {
       const {
@@ -44,7 +59,7 @@ export default function OrganizerProfileForm({ profile }: OrganizerProfileFormPr
         user_id: user!.id,
         org_name: orgName,
         description,
-        logo_url: logoUrl,
+        logo_url: resolvedLogoUrl,
       });
       await supabase.from("users").update({ role: "organizer" }).eq("id", user!.id);
     }
@@ -82,8 +97,15 @@ export default function OrganizerProfileForm({ profile }: OrganizerProfileFormPr
         />
       </div>
 
-      <PhotoUploader folder="organizers/logos" value={logoUrl} onChange={setLogoUrl} label="Logo" />
+      <PhotoUploader
+        value={logoUrl}
+        onChange={(file) => {
+          setLogoUrl(file);
+        }}
+        label="Logo"
+      />
 
+      {error && <p className="text-sm text-red-500">{error}</p>}
       {success && <p className="text-sm text-forest-500">Profile saved!</p>}
 
       <Button type="submit" disabled={loading}>
