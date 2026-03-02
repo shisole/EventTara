@@ -64,7 +64,11 @@ export default function FeedList({
         `/api/feed?offset=${String(items.length)}&limit=${String(BATCH_SIZE)}`,
       );
       const data: { items: FeedItem[]; hasMore: boolean } = await res.json();
-      setItems((prev) => [...prev, ...data.items]);
+      setItems((prev) => {
+        const existingKeys = new Set(prev.map((i) => i.feedKey));
+        const newItems = data.items.filter((i: FeedItem) => !existingKeys.has(i.feedKey));
+        return [...prev, ...newItems];
+      });
       setHasMore(data.hasMore);
       setInitialLoaded(true);
     } finally {
