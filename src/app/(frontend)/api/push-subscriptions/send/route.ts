@@ -11,11 +11,23 @@ if (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
   );
 }
 
-interface SendPushBody {
-  user_id?: string;
-  title?: string;
-  body?: string;
-  href?: string;
+const PUSH_TYPES = new Set([
+  "booking_confirmed",
+  "event_reminder",
+  "badge_earned",
+  "border_earned",
+]);
+
+interface SupabaseWebhookPayload {
+  type: string;
+  table: string;
+  record: {
+    user_id?: string;
+    type?: string;
+    title?: string;
+    body?: string;
+    href?: string | null;
+  };
 }
 
 export async function POST(request: Request) {
@@ -24,10 +36,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = (await request.json()) as SendPushBody;
+  const webhook = (await request.json()) as SupabaseWebhookPayload;
+  const record = webhook.record;
 
-  if (!body.user_id || !body.title) {
+  if (!record?.user_id || !record?.title) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+  }
+
+  // Only send push for specific notification types
+  if (!record.type || !PUSH_TYPES.has(record.type)) {
+    return NextResponse.json({ skipped: true });
   }
 
   const supabase = await createClient();
@@ -35,17 +53,17 @@ export async function POST(request: Request) {
   const { data: subscriptions } = await supabase
     .from("push_subscriptions")
     .select("id, endpoint, keys_p256dh, keys_auth")
-    .eq("user_id", body.user_id);
+    .eq("user_id", record.user_id);
 
   if (!subscriptions?.length) {
     return NextResponse.json({ sent: 0 });
   }
 
   const payload = JSON.stringify({
-    title: body.title,
-    body: body.body ?? "",
+    title: record.title,
+    body: record.body ?? "",
     icon: "/favicon-192x192.png",
-    href: body.href ?? "/",
+    href: record.href ?? "/",
   });
 
   const expiredIds: string[] = [];
