@@ -29,8 +29,6 @@ export default function ChatBubble() {
   // Hide on dashboard pages
   if (pathname.startsWith("/dashboard")) return null;
 
-  const isCircle = open || collapsed;
-
   return (
     <>
       {/* Backdrop */}
@@ -52,19 +50,23 @@ export default function ChatBubble() {
           open
             ? "h-12 w-12 bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
             : collapsed
-              ? "h-12 w-12 bg-lime-500 text-gray-900 hover:bg-lime-400 hover:shadow-lg dark:bg-lime-500 dark:text-gray-900 dark:hover:bg-lime-400"
+              ? "gap-0 p-3.5 bg-lime-500 text-gray-900 hover:bg-lime-400 hover:shadow-lg dark:bg-lime-500 dark:text-gray-900 dark:hover:bg-lime-400"
               : "animate-chat-bubble-in gap-2 bg-lime-500 pl-3.5 pr-4 py-3 text-gray-900 hover:bg-lime-400 hover:shadow-lg dark:bg-lime-500 dark:text-gray-900 dark:hover:bg-lime-400"
         }`}
         aria-label={open ? "Close Coco chat" : "Ask Coco"}
       >
         {open ? (
           <CloseIcon className="h-5 w-5" />
-        ) : isCircle ? (
-          <ChatIcon className="h-5 w-5" variant="filled" />
         ) : (
           <>
-            <ChatIcon className="h-5 w-5" variant="filled" />
-            <span className="font-heading text-sm font-bold">Ask Coco!</span>
+            <ChatIcon className="h-5 w-5 shrink-0" variant="filled" />
+            <span
+              className={`font-heading text-sm font-bold whitespace-nowrap overflow-hidden transition-all duration-300 ease-out ${
+                collapsed ? "max-w-0 opacity-0" : "max-w-24 opacity-100"
+              }`}
+            >
+              Ask Coco!
+            </span>
           </>
         )}
       </button>
