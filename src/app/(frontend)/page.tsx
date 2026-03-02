@@ -193,6 +193,28 @@ export default async function Home() {
         </div>
       </section>
 
+      {/* Parallax mountain reveal */}
+      <section className="relative h-[60vh] sm:h-[70vh] overflow-hidden">
+        <div
+          className="absolute inset-0 bg-fixed bg-center bg-cover"
+          style={{
+            backgroundImage:
+              "url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80')",
+          }}
+        />
+        <div className="absolute inset-0 bg-black/30" />
+        <div className="relative h-full flex items-center justify-center text-center px-4">
+          <div>
+            <p className="text-lg sm:text-xl text-white/80 font-medium mb-3">
+              Your next adventure awaits
+            </p>
+            <h2 className="text-3xl sm:text-5xl font-heading font-bold text-white drop-shadow-lg">
+              Conquer New Heights
+            </h2>
+          </div>
+        </div>
+      </section>
+
       {/* Gamification Showcase — streams as Supabase data arrives */}
       <Suspense fallback={<GamificationSkeleton />}>
         <GamificationSection />
