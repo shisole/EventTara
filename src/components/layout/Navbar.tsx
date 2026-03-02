@@ -227,14 +227,17 @@ export default function Navbar({
             )}
           </div>
 
-          {/* Mobile hamburger button */}
-          <button
-            onClick={onMenuOpen}
-            className="md:hidden flex items-center justify-center w-11 h-11 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-            aria-label="Open menu"
-          >
-            <MenuIcon className="w-6 h-6" />
-          </button>
+          {/* Mobile: bell + hamburger */}
+          <div className="md:hidden flex items-center gap-1">
+            {user && <NotificationBell userId={user.id} />}
+            <button
+              onClick={onMenuOpen}
+              className="flex items-center justify-center w-11 h-11 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              aria-label="Open menu"
+            >
+              <MenuIcon className="w-6 h-6" />
+            </button>
+          </div>
         </div>
       </div>
 
