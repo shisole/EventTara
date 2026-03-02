@@ -80,7 +80,8 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
     try {
       const res = await fetch("/api/notifications?limit=15");
       const data: { notifications?: NotificationWithActor[] } = await res.json();
-      setNotifications(data.notifications ?? []);
+      // Mark all as read locally since we clear badge on open
+      setNotifications((data.notifications ?? []).map((n) => ({ ...n, read: true })));
     } catch {
       // silently fail
     } finally {
@@ -91,7 +92,14 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
   const handleToggle = () => {
     const willOpen = !open;
     setOpen(willOpen);
-    if (willOpen) void fetchNotifications();
+    if (willOpen) {
+      void fetchNotifications();
+      // Clear badge on open — user has "seen" notifications
+      if (unreadCount > 0) {
+        setUnreadCount(0);
+        void fetch("/api/notifications", { method: "PATCH" }).catch(() => null);
+      }
+    }
   };
 
   const handleMarkRead = (id: string) => {
