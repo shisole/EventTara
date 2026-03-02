@@ -4,6 +4,7 @@ import { sendEmail } from "@/lib/email/send";
 import { bookingConfirmationHtml } from "@/lib/email/templates/booking-confirmation";
 import { findOverlappingEvent, formatOverlapDate } from "@/lib/events/overlap";
 import { createNotification } from "@/lib/notifications/create";
+import { uploadToR2 } from "@/lib/r2";
 import { createClient } from "@/lib/supabase/server";
 
 interface CompanionInput {
@@ -261,21 +262,20 @@ export async function POST(request: Request) {
     // Upload proof file if e-wallet
     if (isEwallet && proofFile) {
       const fileExt = proofFile.name.split(".").pop() || "jpg";
-      const filePath = `${eventId}/${booking.id}.${fileExt}`;
+      const key = `payment-proofs/${eventId}/${booking.id}.${fileExt}`;
+      const buffer = Buffer.from(await proofFile.arrayBuffer());
 
-      const { error: uploadError } = await supabase.storage
-        .from("payment-proofs")
-        .upload(filePath, proofFile, { upsert: true });
-
-      if (!uploadError) {
-        const { data: urlData } = supabase.storage.from("payment-proofs").getPublicUrl(filePath);
+      try {
+        const proofUrl = await uploadToR2(key, buffer, proofFile.type || "image/jpeg");
 
         await supabase
           .from("bookings")
-          .update({ payment_proof_url: urlData.publicUrl })
+          .update({ payment_proof_url: proofUrl })
           .eq("id", booking.id);
 
-        bookingRecord.payment_proof_url = urlData.publicUrl;
+        bookingRecord.payment_proof_url = proofUrl;
+      } catch {
+        // Non-critical: booking was created, proof upload failed silently
       }
     }
   } else {

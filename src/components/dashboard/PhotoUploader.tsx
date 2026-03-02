@@ -4,8 +4,6 @@ import Image from "next/image";
 import { useState, useRef } from "react";
 
 import { Button } from "@/components/ui";
-import { cdnUrl } from "@/lib/storage";
-import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
 const MAX_SIZE_BYTES = 1 * 1024 * 1024; // 1 MB
@@ -60,21 +58,13 @@ async function compressImage(file: File): Promise<File> {
 }
 
 interface PhotoUploaderProps {
-  bucket: string;
-  path: string;
+  folder: string;
   value: string | null;
   onChange: (url: string | null) => void;
   label?: string;
 }
 
-export default function PhotoUploader({
-  bucket,
-  path,
-  value,
-  onChange,
-  label,
-}: PhotoUploaderProps) {
-  const supabase = createClient();
+export default function PhotoUploader({ folder, value, onChange, label }: PhotoUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -101,20 +91,26 @@ export default function PhotoUploader({
       return;
     }
 
-    const fileName = `${path}/${Date.now()}.jpg`;
-    const { error: uploadError } = await supabase.storage.from(bucket).upload(fileName, compressed);
+    const body = new FormData();
+    body.append("file", compressed);
+    body.append("folder", folder);
 
-    if (uploadError) {
-      setError("Upload failed: " + uploadError.message);
+    try {
+      const res = await fetch("/api/upload", { method: "POST", body });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Upload failed");
+        setUploading(false);
+        return;
+      }
+
+      onChange(data.url);
+    } catch {
+      setError("Upload failed. Please try again.");
+    } finally {
       setUploading(false);
-      return;
     }
-
-    const {
-      data: { publicUrl },
-    } = supabase.storage.from(bucket).getPublicUrl(fileName);
-    onChange(cdnUrl(publicUrl) || publicUrl);
-    setUploading(false);
   };
 
   return (

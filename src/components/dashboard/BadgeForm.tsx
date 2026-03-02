@@ -103,8 +103,7 @@ export default function BadgeForm({ eventId, existingBadge }: BadgeFormProps) {
         />
 
         <PhotoUploader
-          bucket="badges"
-          path="images"
+          folder="badges/images"
           value={imageUrl}
           onChange={setImageUrl}
           label="Badge Image"

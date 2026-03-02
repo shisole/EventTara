@@ -933,8 +933,7 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
       )}
 
       <PhotoUploader
-        bucket="events"
-        path="covers"
+        folder="events/covers"
         value={coverImage}
         onChange={setCoverImage}
         label="Cover Image"
