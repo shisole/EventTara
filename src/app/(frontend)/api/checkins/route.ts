@@ -186,7 +186,7 @@ export async function POST(request: Request) {
   const { error } = await supabase.from("event_checkins").insert({
     event_id,
     user_id,
-    method: isSelfCheckin ? "manual" : "qr",
+    method: isSelfCheckin ? "online" : "qr",
   });
 
   if (error) {
