@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 import { Button } from "@/components/ui";
 import { cn } from "@/lib/utils";
@@ -58,59 +58,57 @@ async function compressImage(file: File): Promise<File> {
 }
 
 interface PhotoUploaderProps {
-  folder: string;
-  value: string | null;
-  onChange: (url: string | null) => void;
+  value: string | File | null;
+  onChange: (value: File | null) => void;
   label?: string;
 }
 
-export default function PhotoUploader({ folder, value, onChange, label }: PhotoUploaderProps) {
+export default function PhotoUploader({ value, onChange, label }: PhotoUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
+  const [compressing, setCompressing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Generate / revoke object URL for File previews
+  useEffect(() => {
+    if (value instanceof File) {
+      const url = URL.createObjectURL(value);
+      setPreviewUrl(url);
+      return () => {
+        URL.revokeObjectURL(url);
+      };
+    }
+    // For string URLs or null, use the value directly
+    setPreviewUrl(typeof value === "string" ? value : null);
+  }, [value]);
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Reset input so the same file can be re-selected
+    e.target.value = "";
+
     setError(null);
-    setUploading(true);
+    setCompressing(true);
 
     let compressed: File;
     try {
       compressed = await compressImage(file);
     } catch {
       setError("Could not process image. Please try a different file.");
-      setUploading(false);
+      setCompressing(false);
       return;
     }
 
     if (compressed.size > MAX_SIZE_BYTES) {
       setError("Image is too large even after compression. Please use a smaller image.");
-      setUploading(false);
+      setCompressing(false);
       return;
     }
 
-    const body = new FormData();
-    body.append("file", compressed);
-    body.append("folder", folder);
-
-    try {
-      const res = await fetch("/api/upload", { method: "POST", body });
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || "Upload failed");
-        setUploading(false);
-        return;
-      }
-
-      onChange(data.url);
-    } catch {
-      setError("Upload failed. Please try again.");
-    } finally {
-      setUploading(false);
-    }
+    setCompressing(false);
+    onChange(compressed);
   };
 
   return (
@@ -124,19 +122,25 @@ export default function PhotoUploader({ folder, value, onChange, label }: PhotoU
         onClick={() => inputRef.current?.click()}
         className={cn(
           "border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-colors",
-          value
+          previewUrl
             ? "border-forest-300 bg-forest-50"
             : "border-gray-300 dark:border-gray-600 hover:border-lime-300",
         )}
       >
-        {value ? (
+        {previewUrl ? (
           <div className="relative w-full h-40">
-            <Image src={value} alt="Upload preview" fill className="object-cover rounded-lg" />
+            <Image
+              src={previewUrl}
+              alt="Upload preview"
+              fill
+              className="object-cover rounded-lg"
+              unoptimized={value instanceof File}
+            />
           </div>
         ) : (
           <div className="py-8">
             <p className="text-gray-500 dark:text-gray-400">
-              {uploading ? "Compressing & uploading..." : "Click to upload image"}
+              {compressing ? "Compressing..." : "Click to upload image"}
             </p>
             <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
               Max 1 MB · auto-compressed to JPEG
@@ -149,7 +153,7 @@ export default function PhotoUploader({ folder, value, onChange, label }: PhotoU
         type="file"
         accept="image/*"
         className="hidden"
-        onChange={handleUpload}
+        onChange={handleFileSelect}
       />
       {error && <p className="text-sm text-red-500">{error}</p>}
       {value && (

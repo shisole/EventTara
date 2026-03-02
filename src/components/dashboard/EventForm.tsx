@@ -12,6 +12,7 @@ import { type EventDateInfo } from "@/components/ui/DateRangePicker";
 import { findProvinceFromLocation } from "@/lib/constants/philippine-provinces";
 import { rangesOverlap, getEffectiveEnd } from "@/lib/events/overlap";
 import { createClient } from "@/lib/supabase/client";
+import { uploadImage } from "@/lib/upload";
 
 import MountainCombobox, { type SelectedMountain } from "./MountainCombobox";
 import PhotoUploader from "./PhotoUploader";
@@ -272,7 +273,9 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
   const [location, setLocation] = useState(initialData?.location || "");
   const [maxParticipants, setMaxParticipants] = useState(initialData?.max_participants || 50);
   const [price, setPrice] = useState(initialData?.price || 0);
-  const [coverImage, setCoverImage] = useState<string | null>(initialData?.cover_image_url || null);
+  const [coverImage, setCoverImage] = useState<string | File | null>(
+    initialData?.cover_image_url || null,
+  );
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(
     initialData?.coordinates || null,
   );
@@ -495,6 +498,18 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
       endDateTime = dateTimeEnd.toISOString();
     }
 
+    // Upload cover image if it's a pending File
+    let coverImageUrl: string | null = typeof coverImage === "string" ? coverImage : null;
+    if (coverImage instanceof File) {
+      try {
+        coverImageUrl = await uploadImage(coverImage, "events/covers");
+      } catch {
+        setError("Failed to upload cover image. Please try again.");
+        setLoading(false);
+        return;
+      }
+    }
+
     const body: Record<string, unknown> = {
       title,
       description,
@@ -505,7 +520,7 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
       coordinates,
       max_participants: maxParticipants,
       price,
-      cover_image_url: coverImage,
+      cover_image_url: coverImageUrl,
       difficulty_level: difficultyLevel,
     };
 
@@ -933,9 +948,10 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
       )}
 
       <PhotoUploader
-        folder="events/covers"
         value={coverImage}
-        onChange={setCoverImage}
+        onChange={(file) => {
+          setCoverImage(file);
+        }}
         label="Cover Image"
       />
 

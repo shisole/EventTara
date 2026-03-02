@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { Button, Input } from "@/components/ui";
 import { BADGE_CATEGORIES, BADGE_RARITIES } from "@/lib/constants/badge-templates";
+import { uploadImage } from "@/lib/upload";
 
 import BadgeTemplatePicker from "./BadgeTemplatePicker";
 import PhotoUploader from "./PhotoUploader";
@@ -25,9 +26,10 @@ export default function BadgeForm({ eventId, existingBadge }: BadgeFormProps) {
   const router = useRouter();
   const [title, setTitle] = useState(existingBadge?.title || "");
   const [description, setDescription] = useState(existingBadge?.description || "");
-  const [imageUrl, setImageUrl] = useState<string | null>(existingBadge?.image_url || null);
+  const [imageUrl, setImageUrl] = useState<string | File | null>(existingBadge?.image_url || null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
   const [category, setCategory] = useState(existingBadge?.category || "special");
   const [rarity, setRarity] = useState(existingBadge?.rarity || "common");
   const [showTemplatePicker, setShowTemplatePicker] = useState(!existingBadge);
@@ -48,6 +50,19 @@ export default function BadgeForm({ eventId, existingBadge }: BadgeFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
+
+    // Upload image if it's a pending File
+    let resolvedImageUrl: string | null = typeof imageUrl === "string" ? imageUrl : null;
+    if (imageUrl instanceof File) {
+      try {
+        resolvedImageUrl = await uploadImage(imageUrl, "badges/images");
+      } catch {
+        setError("Failed to upload badge image. Please try again.");
+        setLoading(false);
+        return;
+      }
+    }
 
     const res = await fetch("/api/badges", {
       method: "POST",
@@ -56,7 +71,7 @@ export default function BadgeForm({ eventId, existingBadge }: BadgeFormProps) {
         event_id: eventId,
         title,
         description,
-        image_url: imageUrl,
+        image_url: resolvedImageUrl,
         category,
         rarity,
       }),
@@ -103,9 +118,10 @@ export default function BadgeForm({ eventId, existingBadge }: BadgeFormProps) {
         />
 
         <PhotoUploader
-          folder="badges/images"
           value={imageUrl}
-          onChange={setImageUrl}
+          onChange={(file) => {
+            setImageUrl(file);
+          }}
           label="Badge Image"
         />
 
@@ -157,6 +173,7 @@ export default function BadgeForm({ eventId, existingBadge }: BadgeFormProps) {
           </div>
         </div>
 
+        {error && <p className="text-sm text-red-500">{error}</p>}
         {success && <p className="text-sm text-forest-500">Badge saved!</p>}
 
         <Button type="submit" size="sm" disabled={loading}>
