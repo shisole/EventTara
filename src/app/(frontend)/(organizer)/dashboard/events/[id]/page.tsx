@@ -1,11 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import BadgeAwarder from "@/components/dashboard/BadgeAwarder";
+import CompleteEventButton from "@/components/dashboard/CompleteEventButton";
 import EventDashboardTabs from "@/components/dashboard/EventDashboardTabs";
 import ParticipantsTable from "@/components/dashboard/ParticipantsTable";
 import PublishButton from "@/components/dashboard/PublishButton";
 import { ChevronLeftIcon } from "@/components/icons";
 import { Button, UIBadge } from "@/components/ui";
+import type { BorderTier } from "@/lib/constants/avatar-borders";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function ManageEventPage({ params }: { params: Promise<{ id: string }> }) {
@@ -19,7 +22,7 @@ export default async function ManageEventPage({ params }: { params: Promise<{ id
   // Get bookings with user info
   const { data: bookings } = await supabase
     .from("bookings")
-    .select("*, users:user_id(full_name, email, avatar_url)")
+    .select("*, users:user_id(full_name, email, avatar_url, active_border_id)")
     .eq("event_id", id)
     .order("booked_at", { ascending: false });
 
@@ -48,11 +51,14 @@ export default async function ManageEventPage({ params }: { params: Promise<{ id
   const activeBookings = (bookings || []).filter((b: any) => !b.participant_cancelled).length;
   const totalParticipants = activeBookings + totalCompanions;
 
-  // Get check-in count
-  const { count: checkinCount } = await supabase
+  // Get check-ins
+  const { data: checkins } = await supabase
     .from("event_checkins")
-    .select("*", { count: "exact", head: true })
+    .select("user_id")
     .eq("event_id", id);
+
+  const checkedInUserIds = new Set((checkins ?? []).map((c) => c.user_id));
+  const checkinCount = checkedInUserIds.size;
 
   // Revenue: count main participant (if not cancelled) + confirmed companions
   const revenue = (bookings || [])
@@ -64,6 +70,76 @@ export default async function ManageEventPage({ params }: { params: Promise<{ id
       ).length;
       return sum + (mainCount + confirmedComps) * event.price;
     }, 0);
+
+  // Fetch event badge (if any)
+  const { data: eventBadge } = await supabase
+    .from("badges")
+    .select("id")
+    .eq("event_id", id)
+    .eq("type", "event")
+    .maybeSingle();
+
+  // If badge exists, fetch which users already have it
+  let awardedUserIds = new Set<string>();
+  if (eventBadge) {
+    const { data: userBadges } = await supabase
+      .from("user_badges")
+      .select("user_id")
+      .eq("badge_id", eventBadge.id);
+
+    awardedUserIds = new Set((userBadges ?? []).map((ub) => ub.user_id));
+  }
+
+  // Fetch active border info for badge awarder participants
+  const allUserIds = (bookings || [])
+    .filter((b: any) => !b.participant_cancelled)
+    .map((b: any) => b.user_id);
+
+  const bordersByUserId: Record<string, { tier: BorderTier | null; color: string | null }> = {};
+  if (allUserIds.length > 0) {
+    const borderIds = (bookings || []).map((b: any) => b.users?.active_border_id).filter(Boolean);
+
+    if (borderIds.length > 0) {
+      const { data: borders } = await supabase
+        .from("avatar_borders")
+        .select("id, tier, border_color")
+        .in("id", borderIds);
+
+      if (borders) {
+        const borderMap = new Map(borders.map((b) => [b.id, b]));
+        for (const booking of bookings || []) {
+          const user = (booking as any).users;
+          if (user?.active_border_id) {
+            const border = borderMap.get(user.active_border_id);
+            if (border) {
+              bordersByUserId[(booking as any).user_id] = {
+                tier: border.tier as BorderTier | null,
+                color: border.border_color,
+              };
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Build participants array for BadgeAwarder
+  const badgeParticipants = eventBadge
+    ? (bookings || [])
+        .filter((b: any) => !b.participant_cancelled)
+        .map((b: any) => ({
+          userId: b.user_id as string,
+          fullName: (b.users?.full_name as string) || "Unknown",
+          avatarUrl: (b.users?.avatar_url as string | null) ?? null,
+          checkedIn: checkedInUserIds.has(b.user_id),
+          alreadyAwarded: awardedUserIds.has(b.user_id),
+          borderTier: bordersByUserId[b.user_id]?.tier ?? null,
+          borderColor: bordersByUserId[b.user_id]?.color ?? null,
+        }))
+    : [];
+
+  const showBadgeAwarder =
+    eventBadge && (event.status === "published" || event.status === "completed");
 
   return (
     <div className="space-y-8">
@@ -90,8 +166,16 @@ export default async function ManageEventPage({ params }: { params: Promise<{ id
             <Button variant="secondary">Check-in Tool</Button>
           </Link>
           {event.status === "draft" && <PublishButton eventId={id} />}
+          {event.status === "published" && <CompleteEventButton eventId={id} />}
         </div>
       </div>
+
+      {event.status === "completed" && (
+        <div className="bg-forest-50 dark:bg-forest-900/40 border border-forest-200 dark:border-forest-700 rounded-xl p-4 text-sm text-forest-700 dark:text-forest-200">
+          Badges were automatically awarded to checked-in participants when this event was marked as
+          completed.
+        </div>
+      )}
 
       <EventDashboardTabs eventId={id} eventPrice={event.price}>
         {/* Stats */}
@@ -104,7 +188,7 @@ export default async function ManageEventPage({ params }: { params: Promise<{ id
           </div>
           <div className="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm dark:shadow-gray-950/30">
             <p className="text-sm text-gray-500 dark:text-gray-400">Checked In</p>
-            <p className="text-2xl font-bold dark:text-white">{checkinCount || 0}</p>
+            <p className="text-2xl font-bold dark:text-white">{checkinCount}</p>
           </div>
           <div className="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm dark:shadow-gray-950/30">
             <p className="text-sm text-gray-500 dark:text-gray-400">Revenue</p>
@@ -118,8 +202,16 @@ export default async function ManageEventPage({ params }: { params: Promise<{ id
           <ParticipantsTable
             bookings={(bookings || []) as any}
             companionsByBooking={companionsByBooking}
+            checkedInUserIds={checkedInUserIds}
           />
         </div>
+
+        {/* Badge Awarder */}
+        {showBadgeAwarder && (
+          <div className="mt-8 bg-white dark:bg-gray-900 rounded-xl p-6 shadow-sm dark:shadow-gray-950/30">
+            <BadgeAwarder badgeId={eventBadge.id} participants={badgeParticipants} />
+          </div>
+        )}
       </EventDashboardTabs>
     </div>
   );

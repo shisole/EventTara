@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 
 interface Booking {
   id: string;
+  user_id: string;
   status: string;
   payment_status: "pending" | "paid" | "rejected" | "refunded";
   payment_method: string | null;
@@ -26,6 +27,7 @@ interface Companion {
 interface ParticipantsTableProps {
   bookings: Booking[];
   companionsByBooking: Record<string, Companion[]>;
+  checkedInUserIds?: Set<string>;
 }
 
 const companionStatusStyle: Record<string, string> = {
@@ -37,6 +39,7 @@ const companionStatusStyle: Record<string, string> = {
 export default function ParticipantsTable({
   bookings,
   companionsByBooking,
+  checkedInUserIds,
 }: ParticipantsTableProps) {
   const router = useRouter();
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -183,7 +186,19 @@ export default function ParticipantsTable({
                     {booking.users?.email || "—"}
                   </p>
                 </div>
-                <div className="shrink-0">
+                <div className="shrink-0 flex items-center gap-2">
+                  {checkedInUserIds && (
+                    <span
+                      className={cn(
+                        "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium",
+                        checkedInUserIds.has(booking.user_id)
+                          ? "bg-teal-100 text-teal-700 dark:bg-teal-900/50 dark:text-teal-300"
+                          : "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-500",
+                      )}
+                    >
+                      {checkedInUserIds.has(booking.user_id) ? "Checked in" : "Not checked in"}
+                    </span>
+                  )}
                   {booking.payment_method ? (
                     <PaymentStatusBadge status={booking.payment_status} />
                   ) : (
@@ -273,6 +288,11 @@ export default function ParticipantsTable({
               <th className="text-left px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
                 Status
               </th>
+              {checkedInUserIds && (
+                <th className="text-left px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Check-in
+                </th>
+              )}
               <th className="text-left px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
                 Method
               </th>
@@ -318,6 +338,20 @@ export default function ParticipantsTable({
                         </span>
                       )}
                     </td>
+                    {checkedInUserIds && (
+                      <td className="px-6 py-4">
+                        <span
+                          className={cn(
+                            "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium",
+                            checkedInUserIds.has(booking.user_id)
+                              ? "bg-teal-100 text-teal-700 dark:bg-teal-900/50 dark:text-teal-300"
+                              : "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-500",
+                          )}
+                        >
+                          {checkedInUserIds.has(booking.user_id) ? "Checked in" : "—"}
+                        </span>
+                      </td>
+                    )}
                     <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                       {booking.payment_method?.toUpperCase() || "Free"}
                     </td>
@@ -346,6 +380,9 @@ export default function ParticipantsTable({
                             {comp.status}
                           </span>
                         </td>
+                        {checkedInUserIds && (
+                          <td className="px-6 py-3 text-sm text-gray-400 dark:text-gray-500">—</td>
+                        )}
                         <td className="px-6 py-3 text-sm text-gray-400 dark:text-gray-500">—</td>
                         <td className="px-6 py-3 text-sm text-gray-400 dark:text-gray-500">—</td>
                         <td className="px-6 py-3 text-right">

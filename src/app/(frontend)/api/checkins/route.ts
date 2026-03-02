@@ -17,7 +17,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { event_id, user_id, companion_id, force } = await request.json();
+  const { event_id, user_id: bodyUserId, companion_id, force } = await request.json();
+
+  // Default to authenticated user for self-check-in
+  const user_id = bodyUserId || (companion_id ? undefined : user.id);
 
   if (!event_id || (!user_id && !companion_id)) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
