@@ -47,7 +47,7 @@ export async function POST(request: Request) {
         type: "feed_like",
         title: "New Like",
         body: `${user.user_metadata?.full_name || "Someone"} liked your activity.`,
-        href: "/feed",
+        href: `/post/${body.activityId}`,
         actorId: user.id,
       });
     })
