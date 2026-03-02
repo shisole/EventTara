@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { sendEmail } from "@/lib/email/send";
 import { badgeAwardedHtml } from "@/lib/email/templates/badge-awarded";
+import { createNotifications } from "@/lib/notifications/create";
 import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
@@ -30,6 +31,19 @@ export async function POST(request: Request) {
     .upsert(records, { onConflict: "user_id,badge_id" });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Send in-app badge notifications (fire-and-forget)
+  createNotifications(
+    supabase,
+    user_ids.map((uid: string) => ({
+      userId: uid,
+      type: "badge_earned" as const,
+      title: "Badge Earned",
+      body: "You earned a new badge! Check your achievements.",
+      href: "/achievements",
+      actorId: user.id,
+    })),
+  ).catch(() => null);
 
   // Send badge notification emails (non-blocking)
   try {

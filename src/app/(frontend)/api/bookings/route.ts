@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { sendEmail } from "@/lib/email/send";
 import { bookingConfirmationHtml } from "@/lib/email/templates/booking-confirmation";
 import { findOverlappingEvent, formatOverlapDate } from "@/lib/events/overlap";
+import { createNotification } from "@/lib/notifications/create";
 import { createClient } from "@/lib/supabase/server";
 
 interface CompanionInput {
@@ -360,6 +361,18 @@ export async function POST(request: Request) {
       console.error("[Email] Error preparing booking confirmation:", error);
     }
   }
+
+  // Notify participant of booking (fire-and-forget)
+  createNotification(supabase, {
+    userId: user.id,
+    type: "booking_confirmed",
+    title: bookingStatus === "confirmed" ? "Booking Confirmed" : "Spot Reserved",
+    body:
+      bookingStatus === "confirmed"
+        ? `Your booking for ${event.title} has been confirmed.`
+        : `Your spot for ${event.title} has been reserved. Payment is pending.`,
+    href: `/events/${eventId}`,
+  }).catch(() => null);
 
   return NextResponse.json({
     booking: bookingRecord,

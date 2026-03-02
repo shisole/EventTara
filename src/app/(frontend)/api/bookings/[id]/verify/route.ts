@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { sendEmail } from "@/lib/email/send";
 import { bookingConfirmationHtml } from "@/lib/email/templates/booking-confirmation";
 import { paymentRejectedHtml } from "@/lib/email/templates/payment-rejected";
+import { createNotification } from "@/lib/notifications/create";
 import { createClient } from "@/lib/supabase/server";
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -100,6 +101,16 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         console.error("[Email] Confirmation failed:", error_);
       });
     }
+
+    // Notify participant that booking is confirmed (fire-and-forget)
+    createNotification(supabase, {
+      userId: booking.user_id,
+      type: "booking_confirmed",
+      title: "Booking Confirmed",
+      body: `Your payment for ${(booking.events as any).title} has been approved. You're all set!`,
+      href: `/events/${booking.event_id}`,
+      actorId: user.id,
+    }).catch(() => null);
 
     return NextResponse.json({ message: "Payment approved", qrCode });
   }

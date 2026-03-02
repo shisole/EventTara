@@ -14,6 +14,7 @@ import { UserAvatar, Button } from "@/components/ui";
 import type { BorderTier } from "@/lib/constants/avatar-borders";
 
 const BorderPickerModal = dynamic(() => import("@/components/profile/BorderPickerModal"));
+const NotificationBell = dynamic(() => import("@/components/notifications/NotificationBell"));
 
 interface Activity {
   slug: string;
@@ -138,6 +139,7 @@ export default function Navbar({
             ) : user ? (
               <div className="flex items-center gap-3">
                 <ThemeToggle />
+                <NotificationBell userId={user.id} />
                 <div className="relative" data-profile-dropdown>
                   <button
                     onClick={() => {
