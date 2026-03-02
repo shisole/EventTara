@@ -171,7 +171,7 @@ export default async function ManageEventPage({ params }: { params: Promise<{ id
       </div>
 
       {event.status === "completed" && (
-        <div className="bg-forest-50 dark:bg-forest-950/30 border border-forest-200 dark:border-forest-800 rounded-xl p-4 text-sm text-forest-700 dark:text-forest-300">
+        <div className="bg-forest-50 dark:bg-forest-900/40 border border-forest-200 dark:border-forest-700 rounded-xl p-4 text-sm text-forest-700 dark:text-forest-200">
           Badges were automatically awarded to checked-in participants when this event was marked as
           completed.
         </div>
