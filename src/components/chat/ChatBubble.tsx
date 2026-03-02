@@ -8,8 +8,8 @@ import { useKeyboardHeight } from "@/lib/hooks/useKeyboardHeight";
 
 import ChatPanel from "./ChatPanel";
 
-/** Collapse pill to circle after intro + 2 nudges (~17s) */
-const COLLAPSE_DELAY = 17_000;
+/** Collapse pill to circle after 5 seconds */
+const COLLAPSE_DELAY = 5_000;
 
 export default function ChatBubble() {
   const pathname = usePathname();

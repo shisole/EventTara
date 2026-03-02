@@ -132,9 +132,7 @@
 }
 
 .animate-chat-bubble-in {
-  animation:
-    chatBubbleIn 0.3s ease-out forwards,
-    chatBubbleNudge 6s ease-in-out 5s 2;
+  animation: chatBubbleIn 0.3s ease-out forwards;
 }
 
 .animate-chat-message-in {
