@@ -27,7 +27,7 @@ export default function NotificationDropdown({
   const hasUnread = notifications.some((n) => !n.read);
 
   return (
-    <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-gray-900 rounded-xl shadow-lg dark:shadow-gray-950/30 border border-gray-100 dark:border-gray-700 z-50 overflow-hidden">
+    <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-gray-900 rounded-xl shadow-lg dark:shadow-gray-950/30 border border-gray-100 dark:border-gray-700 z-[60] overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800">
         <h3 className="font-semibold text-gray-900 dark:text-white text-sm">Notifications</h3>
         {hasUnread && (
