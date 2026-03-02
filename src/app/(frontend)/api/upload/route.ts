@@ -40,7 +40,8 @@ export async function POST(request: Request) {
   try {
     const url = await uploadToR2(key, buffer, file.type || "image/jpeg");
     return NextResponse.json({ url });
-  } catch {
+  } catch (error) {
+    console.error("[upload] R2 error:", error);
     return NextResponse.json({ error: "Upload failed" }, { status: 500 });
   }
 }
