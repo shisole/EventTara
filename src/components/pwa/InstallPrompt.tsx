@@ -67,7 +67,7 @@ export default function InstallPrompt() {
   if (!showPrompt) return null;
 
   return (
-    <div className="fixed bottom-16 left-0 right-0 z-50 mx-4 mb-2 md:bottom-0 md:mb-4 md:mx-auto md:max-w-md">
+    <div className="fixed bottom-[8.5rem] left-0 right-0 z-[61] mx-4 md:bottom-8 md:mx-auto md:max-w-md">
       <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-lg dark:border-gray-700 dark:bg-gray-900">
         <div className="flex items-start gap-3">
           <Image src="/favicon-48x48.png" alt="" width={40} height={40} className="rounded-lg" />
