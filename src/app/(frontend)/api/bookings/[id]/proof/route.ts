@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { uploadToR2 } from "@/lib/r2";
 import { createClient } from "@/lib/supabase/server";
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -36,25 +37,23 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     return NextResponse.json({ error: "No file provided" }, { status: 400 });
   }
 
-  // Upload to Supabase Storage
+  // Upload to R2
   const ext = file.name.split(".").pop() || "jpg";
-  const path = `${booking.event_id}/${booking.id}.${ext}`;
+  const key = `payment-proofs/${booking.event_id}/${booking.id}.${ext}`;
+  const buffer = Buffer.from(await file.arrayBuffer());
 
-  const { error: uploadError } = await supabase.storage
-    .from("payment-proofs")
-    .upload(path, file, { upsert: true, contentType: file.type });
-
-  if (uploadError) {
-    return NextResponse.json({ error: "Upload failed: " + uploadError.message }, { status: 500 });
+  let proofUrl: string;
+  try {
+    proofUrl = await uploadToR2(key, buffer, file.type || "image/jpeg");
+  } catch {
+    return NextResponse.json({ error: "Upload failed" }, { status: 500 });
   }
-
-  const { data: publicUrl } = supabase.storage.from("payment-proofs").getPublicUrl(path);
 
   // Update booking
   const { error } = await supabase
     .from("bookings")
     .update({
-      payment_proof_url: publicUrl.publicUrl,
+      payment_proof_url: proofUrl,
       payment_status: "pending",
     })
     .eq("id", id);
@@ -63,5 +62,5 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ message: "Proof uploaded", payment_proof_url: publicUrl.publicUrl });
+  return NextResponse.json({ message: "Proof uploaded", payment_proof_url: proofUrl });
 }

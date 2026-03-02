@@ -2,6 +2,7 @@ import { withPayload } from "@payloadcms/next/withPayload";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseHostname = supabaseUrl ? new URL(supabaseUrl).hostname : "**.supabase.co";
+const r2PublicUrl = process.env.R2_PUBLIC_URL || "";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -26,6 +27,10 @@ const nextConfig = {
         protocol: "https",
         hostname: "images.unsplash.com",
       },
+      // Cloudflare R2 public bucket
+      ...(r2PublicUrl
+        ? [{ protocol: "https", hostname: new URL(r2PublicUrl).hostname }]
+        : [{ protocol: "https", hostname: "pub-*.r2.dev" }]),
     ],
   },
   async rewrites() {

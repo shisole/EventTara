@@ -82,13 +82,7 @@ export default function OrganizerProfileForm({ profile }: OrganizerProfileFormPr
         />
       </div>
 
-      <PhotoUploader
-        bucket="organizers"
-        path="logos"
-        value={logoUrl}
-        onChange={setLogoUrl}
-        label="Logo"
-      />
+      <PhotoUploader folder="organizers/logos" value={logoUrl} onChange={setLogoUrl} label="Logo" />
 
       {success && <p className="text-sm text-forest-500">Profile saved!</p>}
 
