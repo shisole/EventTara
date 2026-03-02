@@ -58,6 +58,14 @@ export const SiteSettings: GlobalConfig = {
       },
     },
     {
+      name: "parallaxImageUrl",
+      type: "text",
+      admin: {
+        description:
+          "Full URL to the parallax background image on the homepage. Leave empty to use the default mountain image.",
+      },
+    },
+    {
       name: "seo",
       type: "group",
       fields: [
