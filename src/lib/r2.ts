@@ -5,8 +5,8 @@ let _r2: AwsClient | null = null;
 function getR2Client(): AwsClient {
   if (!_r2) {
     _r2 = new AwsClient({
-      accessKeyId: process.env.R2_ACCESS_KEY_ID!,
-      secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
+      accessKeyId: process.env.R2_ACCESS_KEY_ID!.trim(),
+      secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!.trim(),
     });
   }
   return _r2;
