@@ -202,6 +202,7 @@ export default async function ManageEventPage({ params }: { params: Promise<{ id
           <ParticipantsTable
             bookings={(bookings || []) as any}
             companionsByBooking={companionsByBooking}
+            checkedInUserIds={checkedInUserIds}
           />
         </div>
 
