@@ -30,7 +30,6 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.77.0",
-    "@aws-sdk/client-s3": "^3.1000.0",
     "@payloadcms/db-postgres": "^3.77.0",
     "@payloadcms/next": "^3.77.0",
     "@payloadcms/richtext-lexical": "^3.77.0",
@@ -38,6 +37,7 @@
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.97.0",
     "@types/leaflet": "^1.9.21",
+    "aws4fetch": "^1.0.20",
     "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",
     "critters": "^0.0.23",
