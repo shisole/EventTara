@@ -29,6 +29,7 @@ export default function BadgeAwarder({ badgeId, participants }: BadgeAwarderProp
   );
   const [loading, setLoading] = useState(false);
   const [awarded, setAwarded] = useState(false);
+  const [revokingUserId, setRevokingUserId] = useState<string | null>(null);
 
   const toggleUser = (userId: string) => {
     const next = new Set(selected);
@@ -60,6 +61,21 @@ export default function BadgeAwarder({ badgeId, participants }: BadgeAwarderProp
     }
   };
 
+  const handleRevoke = async (userId: string) => {
+    setRevokingUserId(userId);
+
+    const res = await fetch("/api/badges/award", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ badge_id: badgeId, user_id: userId }),
+    });
+
+    setRevokingUserId(null);
+    if (res.ok) {
+      router.refresh();
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -71,23 +87,25 @@ export default function BadgeAwarder({ badgeId, participants }: BadgeAwarderProp
 
       <div className="space-y-2 max-h-80 overflow-y-auto">
         {participants.map((p) => (
-          <button
+          <div
             key={p.userId}
-            type="button"
-            disabled={p.alreadyAwarded}
-            onClick={() => {
-              toggleUser(p.userId);
-            }}
             className={cn(
-              "w-full flex items-center justify-between p-3 rounded-xl transition-colors text-left",
+              "w-full flex items-center justify-between p-3 rounded-xl transition-colors",
               p.alreadyAwarded
-                ? "bg-golden-50 opacity-60"
+                ? "bg-golden-50 dark:bg-golden-950/30"
                 : selected.has(p.userId)
                   ? "bg-lime-50 dark:bg-lime-950 border-2 border-lime-300 dark:border-lime-700"
-                  : "bg-white dark:bg-gray-900 border-2 border-gray-100 dark:border-gray-800 hover:border-gray-200 dark:hover:border-gray-700",
+                  : "bg-white dark:bg-gray-900 border-2 border-gray-100 dark:border-gray-800",
             )}
           >
-            <div className="flex items-center gap-3">
+            <button
+              type="button"
+              disabled={p.alreadyAwarded}
+              onClick={() => {
+                toggleUser(p.userId);
+              }}
+              className="flex items-center gap-3 text-left flex-1 min-w-0"
+            >
               <UserAvatar
                 src={p.avatarUrl}
                 alt={p.fullName}
@@ -95,21 +113,28 @@ export default function BadgeAwarder({ badgeId, participants }: BadgeAwarderProp
                 borderTier={p.borderTier ?? null}
                 borderColor={p.borderColor ?? null}
               />
-              <div>
+              <div className="min-w-0">
                 <span className="font-medium dark:text-white">{p.fullName}</span>
                 <span className="text-xs text-gray-400 dark:text-gray-500 ml-2">
-                  {p.alreadyAwarded
-                    ? "Already awarded"
-                    : p.checkedIn
-                      ? "Checked in"
-                      : "Not checked in"}
+                  {p.alreadyAwarded ? "Awarded" : p.checkedIn ? "Checked in" : "Not checked in"}
                 </span>
               </div>
-            </div>
-            {!p.alreadyAwarded && selected.has(p.userId) && (
-              <span className="text-lime-600 dark:text-lime-400 text-lg">&#10003;</span>
+            </button>
+            {p.alreadyAwarded ? (
+              <button
+                type="button"
+                onClick={() => handleRevoke(p.userId)}
+                disabled={revokingUserId === p.userId}
+                className="text-xs text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-medium px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors shrink-0"
+              >
+                {revokingUserId === p.userId ? "Revoking..." : "Revoke"}
+              </button>
+            ) : (
+              selected.has(p.userId) && (
+                <span className="text-lime-600 dark:text-lime-400 text-lg shrink-0">&#10003;</span>
+              )
             )}
-          </button>
+          </div>
         ))}
       </div>
 
