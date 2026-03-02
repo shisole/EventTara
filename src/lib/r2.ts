@@ -1,16 +1,12 @@
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { AwsClient } from "aws4fetch";
 
-let _r2: S3Client | null = null;
+let _r2: AwsClient | null = null;
 
-function getR2Client(): S3Client {
+function getR2Client(): AwsClient {
   if (!_r2) {
-    _r2 = new S3Client({
-      region: "auto",
-      endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-      credentials: {
-        accessKeyId: process.env.R2_ACCESS_KEY_ID!,
-        secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
-      },
+    _r2 = new AwsClient({
+      accessKeyId: process.env.R2_ACCESS_KEY_ID!,
+      secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
     });
   }
   return _r2;
@@ -28,14 +24,20 @@ export async function uploadToR2(
   body: Buffer | Uint8Array,
   contentType: string,
 ): Promise<string> {
-  await getR2Client().send(
-    new PutObjectCommand({
-      Bucket: process.env.R2_BUCKET_NAME || "eventtara",
-      Key: key,
-      Body: body,
-      ContentType: contentType,
-    }),
-  );
+  const bucket = process.env.R2_BUCKET_NAME || "eventtara";
+  const endpoint = `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`;
+  const url = `${endpoint}/${bucket}/${key}`;
+
+  const res = await getR2Client().fetch(url, {
+    method: "PUT",
+    headers: { "Content-Type": contentType },
+    body: new Uint8Array(body),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`R2 upload failed (${res.status}): ${text}`);
+  }
 
   return `${process.env.R2_PUBLIC_URL}/${key}`;
 }
