@@ -3,9 +3,11 @@
   "short_name": "EventTara",
   "description": "Outdoor adventure event booking platform for hiking, mountain biking, road biking, running, and trail running.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#84cc16",
+  "categories": ["sports", "lifestyle", "travel"],
   "icons": [
     {
       "src": "/favicon-48x48.png",
@@ -16,6 +18,12 @@
       "src": "/favicon-192x192.png",
       "sizes": "192x192",
       "type": "image/png"
+    },
+    {
+      "src": "/favicon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "/favicon-512x512.png",
