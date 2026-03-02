@@ -371,7 +371,7 @@ export async function POST(request: Request) {
       bookingStatus === "confirmed"
         ? `Your booking for ${event.title} has been confirmed.`
         : `Your spot for ${event.title} has been reserved. Payment is pending.`,
-    href: `/my-events`,
+    href: `/events/${eventId}`,
   }).catch(() => null);
 
   return NextResponse.json({

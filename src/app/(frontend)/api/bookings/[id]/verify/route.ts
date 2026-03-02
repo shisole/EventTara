@@ -108,7 +108,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       type: "booking_confirmed",
       title: "Booking Confirmed",
       body: `Your payment for ${(booking.events as any).title} has been approved. You're all set!`,
-      href: `/my-events`,
+      href: `/events/${booking.event_id}`,
       actorId: user.id,
     }).catch(() => null);
 
