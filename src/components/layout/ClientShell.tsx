@@ -7,12 +7,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import MobileNav from "@/components/layout/MobileNav";
 import Navbar from "@/components/layout/Navbar";
+import OfflineIndicator from "@/components/pwa/OfflineIndicator";
 import type { BorderTier } from "@/lib/constants/avatar-borders";
 import { createClient } from "@/lib/supabase/client";
 
 const DemoBanner = dynamic(() => import("@/components/layout/DemoBanner"));
 const MobileDrawer = dynamic(() => import("@/components/layout/MobileDrawer"));
 const ChatBubble = dynamic(() => import("@/components/chat/ChatBubble"), { ssr: false });
+const InstallPrompt = dynamic(() => import("@/components/pwa/InstallPrompt"));
 
 const activities = [
   {
@@ -209,6 +211,7 @@ export default function ClientShell({
 
   return (
     <>
+      <OfflineIndicator />
       <div
         className={`transition-all duration-300 origin-top min-h-screen flex flex-col ${
           drawerOpen ? "scale-[0.95] opacity-50 rounded-xl overflow-hidden pointer-events-none" : ""
@@ -243,6 +246,7 @@ export default function ClientShell({
       />
 
       <ChatBubble />
+      <InstallPrompt />
     </>
   );
 }

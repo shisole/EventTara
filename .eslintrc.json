@@ -71,6 +71,7 @@
     ".next",
     "out",
     "scripts",
+    "supabase/functions",
     "src/app/(payload)/admin/importMap.js"
   ]
 }
