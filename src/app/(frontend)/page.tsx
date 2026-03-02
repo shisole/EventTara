@@ -346,19 +346,24 @@ function FAQSection() {
         <p className="text-center text-gray-600 dark:text-gray-400 mb-10">
           Everything you need to know about EventTara.
         </p>
-        <dl className="space-y-4">
+        <div className="space-y-3">
           {faqs.map((faq, i) => (
-            <div
+            <details
               key={i}
-              className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm dark:shadow-gray-950/20 p-5"
+              className="group bg-white dark:bg-slate-800 rounded-2xl shadow-sm dark:shadow-gray-950/20"
             >
-              <dt className="font-semibold text-gray-900 dark:text-white mb-2">{faq.question}</dt>
-              <dd className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+              <summary className="flex items-center justify-between cursor-pointer p-5 font-semibold text-gray-900 dark:text-white list-none [&::-webkit-details-marker]:hidden">
+                {faq.question}
+                <span className="ml-4 shrink-0 text-gray-400 transition-transform duration-200 group-open:rotate-180">
+                  &#9662;
+                </span>
+              </summary>
+              <p className="px-5 pb-5 text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
                 {faq.answer}
-              </dd>
-            </div>
+              </p>
+            </details>
           ))}
-        </dl>
+        </div>
       </div>
     </section>
   );
