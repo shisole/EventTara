@@ -9,7 +9,7 @@ import OrganizersSection from "@/components/landing/OrganizersSection";
 import ParallaxMountain from "@/components/landing/ParallaxMountain";
 import TestimonialsSection from "@/components/landing/TestimonialsSection";
 import UpcomingEventsSection from "@/components/landing/UpcomingEventsSection";
-import { getCachedHeroCarousel } from "@/lib/payload/cached";
+import { getCachedHeroCarousel, getCachedSiteSettings } from "@/lib/payload/cached";
 
 export const metadata = {
   title: "EventTara — Outdoor Adventure Events in Panay Island",
@@ -160,7 +160,13 @@ function GamificationSkeleton() {
 }
 
 export default async function Home() {
-  const heroData = await getCachedHeroCarousel();
+  const [heroData, settings] = await Promise.all([
+    getCachedHeroCarousel(),
+    getCachedSiteSettings(),
+  ]);
+  const parallaxImageUrl =
+    (settings as any)?.parallaxImageUrl ||
+    "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80";
 
   return (
     <main>
@@ -195,7 +201,7 @@ export default async function Home() {
       </section>
 
       {/* Parallax mountain reveal — sticky scroll with text fade-in */}
-      <ParallaxMountain />
+      <ParallaxMountain imageUrl={parallaxImageUrl} />
 
       {/* Gamification Showcase — streams as Supabase data arrives */}
       <Suspense fallback={<GamificationSkeleton />}>

@@ -2,7 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 
-export default function ParallaxMountain() {
+interface ParallaxMountainProps {
+  imageUrl: string;
+}
+
+export default function ParallaxMountain({ imageUrl }: ParallaxMountainProps) {
   const sectionRef = useRef<HTMLDivElement>(null);
   const [progress, setProgress] = useState(0);
 
@@ -40,8 +44,7 @@ export default function ParallaxMountain() {
         <div
           className="absolute inset-0 bg-center bg-cover"
           style={{
-            backgroundImage:
-              "url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80')",
+            backgroundImage: `url('${imageUrl}')`,
           }}
         />
         <div className="absolute inset-0 bg-black/30" />
