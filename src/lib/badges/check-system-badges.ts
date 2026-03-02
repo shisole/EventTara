@@ -31,16 +31,22 @@ const CRITERIA_EVALUATORS: Record<
   events_10: (stats) => stats.totalCheckins >= 10,
   events_25: (stats) => stats.totalCheckins >= 25,
   events_50: (stats) => stats.totalCheckins >= 50,
+  distance_5k: (stats) => stats.maxDistanceKm >= 5,
+  distance_10k: (stats) => stats.maxDistanceKm >= 10,
+  distance_21k: (stats) => stats.maxDistanceKm >= 21,
+  distance_42k: (stats) => stats.maxDistanceKm >= 42,
+  distance_100k: (stats) => stats.maxDistanceKm >= 100,
   pioneer: (_stats, pioneerRank) => pioneerRank !== null && pioneerRank <= 100,
 };
 
 interface CheckinStats {
   totalCheckins: number;
   eventCountByType: Record<string, number>;
+  maxDistanceKm: number;
 }
 
 /**
- * Evaluates all 11 system badges for a user and awards any newly-earned ones.
+ * Evaluates all 16 system badges for a user and awards any newly-earned ones.
  * Called fire-and-forget from the check-in API route -- never throws.
  *
  * @returns Array of newly awarded badge details (for email notification)
@@ -50,8 +56,8 @@ export async function checkAndAwardSystemBadges(
   supabase: SupabaseClient<Database>,
 ): Promise<AwardedBadge[]> {
   try {
-    // 1. Parallel fetch: check-in stats, existing system badge criteria_keys, and system badge rows from DB
-    const [checkinsResult, existingResult, systemBadgesResult] = await Promise.all([
+    // 1. Parallel fetch: check-in stats, existing system badge criteria_keys, system badge rows, and distance data
+    const [checkinsResult, existingResult, systemBadgesResult, distanceResult] = await Promise.all([
       // User's check-ins joined to events for type
       supabase
         .from("event_checkins")
@@ -71,21 +77,41 @@ export async function checkAndAwardSystemBadges(
         .select("id, criteria_key")
         .eq("type", "system")
         .not("criteria_key", "is", null),
+
+      // User's bookings with distance info (for distance milestone badges)
+      supabase
+        .from("bookings")
+        .select("event_id, event_distance_id, event_distances:event_distance_id(distance_km)")
+        .eq("user_id", userId)
+        .not("event_distance_id", "is", null),
     ]);
 
     // Build check-in stats
     const checkins = checkinsResult.data ?? [];
+    const checkedInEventIds = new Set<string>();
     const eventCountByType: Record<string, number> = {};
     let totalCheckins = 0;
     for (const checkin of checkins) {
       totalCheckins++;
+      checkedInEventIds.add(checkin.event_id);
       const event = checkin.events as any;
       const eventType = event?.type as string | undefined;
       if (eventType) {
         eventCountByType[eventType] = (eventCountByType[eventType] ?? 0) + 1;
       }
     }
-    const stats: CheckinStats = { totalCheckins, eventCountByType };
+
+    // Find max distance from checked-in events only
+    let maxDistanceKm = 0;
+    for (const booking of distanceResult.data ?? []) {
+      if (!checkedInEventIds.has(booking.event_id)) continue;
+      const dist = (booking.event_distances as any)?.distance_km as number | undefined;
+      if (dist && dist > maxDistanceKm) {
+        maxDistanceKm = dist;
+      }
+    }
+
+    const stats: CheckinStats = { totalCheckins, eventCountByType, maxDistanceKm };
 
     // Build set of already-earned criteria keys
     const existingKeys = new Set<string>();

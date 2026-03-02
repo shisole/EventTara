@@ -10,7 +10,7 @@ export interface SystemBadge {
 }
 
 /**
- * All 11 system badges that are automatically awarded on check-in.
+ * All 16 system badges that are automatically awarded on check-in.
  * These are seeded into the `badges` table with `type = 'system'`
  * and evaluated by the badge engine after every check-in.
  */
@@ -98,6 +98,47 @@ export const SYSTEM_BADGES: SystemBadge[] = [
     rarity: "legendary",
     imageUrl: "👑",
   },
+  // Distance milestones
+  {
+    criteriaKey: "distance_5k",
+    title: "5K Finisher",
+    description: "Completed a 5km event",
+    category: "distance",
+    rarity: "common",
+    imageUrl: "🎯",
+  },
+  {
+    criteriaKey: "distance_10k",
+    title: "10K Finisher",
+    description: "Completed a 10km event",
+    category: "distance",
+    rarity: "common",
+    imageUrl: "🔥",
+  },
+  {
+    criteriaKey: "distance_21k",
+    title: "Half Marathoner",
+    description: "Completed a 21km (half marathon) event",
+    category: "distance",
+    rarity: "rare",
+    imageUrl: "🏃‍♂️",
+  },
+  {
+    criteriaKey: "distance_42k",
+    title: "Marathoner",
+    description: "Completed a full marathon (42km) event",
+    category: "distance",
+    rarity: "epic",
+    imageUrl: "🎖️",
+  },
+  {
+    criteriaKey: "distance_100k",
+    title: "Ultra Marathoner",
+    description: "Completed a 100km+ ultra event",
+    category: "distance",
+    rarity: "legendary",
+    imageUrl: "💀",
+  },
   // Pioneer
   {
     criteriaKey: "pioneer",
@@ -127,5 +168,10 @@ export const SYSTEM_BADGE_CRITERIA_HINTS: Record<string, string> = {
   events_10: "Check in to 10 events total",
   events_25: "Check in to 25 events total",
   events_50: "Check in to 50 events total",
+  distance_5k: "Complete a 5km event",
+  distance_10k: "Complete a 10km event",
+  distance_21k: "Complete a half marathon (21km) event",
+  distance_42k: "Complete a full marathon (42km) event",
+  distance_100k: "Complete a 100km+ ultra event",
   pioneer: "Be among the first 100 users to check in on EventTara",
 };
