@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -9,10 +10,12 @@ import DifficultyBadge from "@/components/events/DifficultyBadge";
 import { type ExistingEventMarker } from "@/components/maps/MapPicker";
 import { Button, Input } from "@/components/ui";
 import { type EventDateInfo } from "@/components/ui/DateRangePicker";
+import { COVER_TEMPLATES } from "@/lib/constants/cover-templates";
 import { findProvinceFromLocation } from "@/lib/constants/philippine-provinces";
 import { rangesOverlap, getEffectiveEnd } from "@/lib/events/overlap";
 import { createClient } from "@/lib/supabase/client";
 import { uploadImage } from "@/lib/upload";
+import { cn } from "@/lib/utils";
 
 import MountainCombobox, { type SelectedMountain } from "./MountainCombobox";
 import PhotoUploader from "./PhotoUploader";
@@ -954,6 +957,32 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
         }}
         label="Cover Image"
       />
+
+      {/* Template cover banners */}
+      <div className="space-y-2">
+        <p className="text-sm text-gray-500 dark:text-gray-400">Or choose a template</p>
+        <div className="flex gap-2 overflow-x-auto pb-2">
+          {COVER_TEMPLATES.map((tpl) => (
+            <button
+              key={tpl.url}
+              type="button"
+              aria-pressed={coverImage === tpl.url}
+              onClick={() => setCoverImage(tpl.url)}
+              className={cn(
+                "relative h-20 w-32 shrink-0 overflow-hidden rounded-lg border-2 transition-all focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2",
+                coverImage === tpl.url
+                  ? "border-teal-500 ring-2 ring-teal-500/30"
+                  : "border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600",
+              )}
+            >
+              <Image src={tpl.url} alt={tpl.label} fill sizes="128px" className="object-cover" />
+              <span className="absolute inset-x-0 bottom-0 bg-black/50 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                {tpl.label}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
 
       {type === "hiking" && (
         <>
