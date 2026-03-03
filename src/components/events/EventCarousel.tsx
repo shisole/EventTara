@@ -103,6 +103,9 @@ export default function EventCarousel({
   const infiniteRef = useRef<HTMLDivElement>(null);
   const velocity = useRef(1); // 1 = full speed, 0 = stopped
   const targetVelocity = useRef(1);
+  const offsetRef = useRef(0);
+  const touchStartX = useRef(0);
+  const touchOffsetStart = useRef(0);
 
   // Infinite auto-scroll with requestAnimationFrame + CSS transform (works on mobile)
   useEffect(() => {
@@ -111,7 +114,6 @@ export default function EventCarousel({
     if (!el) return;
 
     let raf: number;
-    let offset = 0;
     const pixelsPerFrame = speed / 60;
     const easeFactor = 0.03;
 
@@ -120,12 +122,12 @@ export default function EventCarousel({
       if (Math.abs(velocity.current) < 0.001) velocity.current = 0;
 
       if (velocity.current > 0) {
-        offset += pixelsPerFrame * velocity.current;
+        offsetRef.current += pixelsPerFrame * velocity.current;
         const halfWidth = el.scrollWidth / 2;
-        if (halfWidth > 0 && offset >= halfWidth) {
-          offset -= halfWidth;
+        if (halfWidth > 0 && offsetRef.current >= halfWidth) {
+          offsetRef.current -= halfWidth;
         }
-        el.style.transform = `translateX(-${offset}px)`;
+        el.style.transform = `translateX(-${offsetRef.current}px)`;
       }
       raf = requestAnimationFrame(step);
     };
@@ -134,6 +136,17 @@ export default function EventCarousel({
       cancelAnimationFrame(raf);
     };
   }, [infinite, speed]);
+
+  const applyOffset = useCallback((newOffset: number) => {
+    const el = infiniteRef.current;
+    if (!el) return;
+    const halfWidth = el.scrollWidth / 2;
+    if (halfWidth > 0) {
+      newOffset = ((newOffset % halfWidth) + halfWidth) % halfWidth;
+    }
+    offsetRef.current = newOffset;
+    el.style.transform = `translateX(-${newOffset}px)`;
+  }, []);
 
   if (infinite) {
     return (
@@ -148,8 +161,15 @@ export default function EventCarousel({
         onMouseLeave={() => {
           targetVelocity.current = 1;
         }}
-        onTouchStart={() => {
+        onTouchStart={(e) => {
           targetVelocity.current = 0;
+          velocity.current = 0;
+          touchStartX.current = e.touches[0].clientX;
+          touchOffsetStart.current = offsetRef.current;
+        }}
+        onTouchMove={(e) => {
+          const delta = touchStartX.current - e.touches[0].clientX;
+          applyOffset(touchOffsetStart.current + delta);
         }}
         onTouchEnd={() => {
           setTimeout(() => {
