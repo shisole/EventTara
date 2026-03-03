@@ -62,7 +62,7 @@ export const BREADCRUMB_ROUTES: BreadcrumbRoute[] = [
   {
     pattern: "/guides/:id",
     segments: [
-      { label: "Guides", href: "/guides" },
+      { label: "Guides" },
       { label: null },
     ],
     fallbackLabel: "Guide",
@@ -72,7 +72,7 @@ export const BREADCRUMB_ROUTES: BreadcrumbRoute[] = [
   {
     pattern: "/badges/:id",
     segments: [
-      { label: "Badges", href: "/badges" },
+      { label: "Badges" },
       { label: null },
     ],
     fallbackLabel: "Badge",
@@ -82,7 +82,7 @@ export const BREADCRUMB_ROUTES: BreadcrumbRoute[] = [
   {
     pattern: "/organizers/:id",
     segments: [
-      { label: "Organizers", href: "/organizers" },
+      { label: "Organizers" },
       { label: null },
     ],
     fallbackLabel: "Organizer",
