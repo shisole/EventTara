@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import EventsPageClient from "@/components/events/EventsPageClient";
+import { Breadcrumbs } from "@/components/ui";
 import { fetchEventEnrichments, mapEventToCard } from "@/lib/events/map-event-card";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
@@ -185,6 +186,7 @@ export default async function EventsPage({
       const guides = await fetchGuideOptions(supabase);
       return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <Breadcrumbs />
           <EventsPageClient
             initialEvents={[]}
             totalCount={0}
@@ -213,6 +215,7 @@ export default async function EventsPage({
       const guides = await fetchGuideOptions(supabase);
       return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <Breadcrumbs />
           <EventsPageClient
             initialEvents={[]}
             totalCount={0}
@@ -289,6 +292,7 @@ export default async function EventsPage({
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <Breadcrumbs />
       <EventsPageClient
         initialEvents={gridEvents}
         totalCount={totalCount}
