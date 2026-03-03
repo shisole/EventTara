@@ -20,12 +20,20 @@ class StravaApiClient {
   private refreshToken: string;
   private expiresAt: number; // Unix timestamp (seconds)
   private userId: string;
+  private stravaAthleteId: number;
 
-  constructor(accessToken: string, refreshToken: string, expiresAt: number, userId: string) {
+  constructor(
+    accessToken: string,
+    refreshToken: string,
+    expiresAt: number,
+    userId: string,
+    stravaAthleteId: number,
+  ) {
     this.accessToken = accessToken;
     this.refreshToken = refreshToken;
     this.expiresAt = expiresAt;
     this.userId = userId;
+    this.stravaAthleteId = stravaAthleteId;
   }
 
   // ---------------------------------------------------------------------------
@@ -150,10 +158,10 @@ class StravaApiClient {
   /** List the authenticated athlete's activities. */
   async getActivities(params: GetActivitiesParams = {}): Promise<StravaActivity[]> {
     const searchParams = new URLSearchParams();
-    if (params.before) searchParams.set("before", String(params.before));
-    if (params.after) searchParams.set("after", String(params.after));
-    if (params.page) searchParams.set("page", String(params.page));
-    if (params.per_page) searchParams.set("per_page", String(params.per_page));
+    if (params.before != null) searchParams.set("before", String(params.before));
+    if (params.after != null) searchParams.set("after", String(params.after));
+    if (params.page != null) searchParams.set("page", String(params.page));
+    if (params.per_page != null) searchParams.set("per_page", String(params.per_page));
 
     const query = searchParams.toString();
     return this.request<StravaActivity[]>(`/athlete/activities${query ? `?${query}` : ""}`);
@@ -184,32 +192,14 @@ class StravaApiClient {
 
   /** List the authenticated athlete's routes. */
   async getRoutes(params: { page?: number; per_page?: number } = {}): Promise<StravaRoute[]> {
-    const token = await this.ensureValidToken();
-    // First get athlete ID
-    const athlete = await this.getAthlete();
-
     const searchParams = new URLSearchParams();
-    if (params.page) searchParams.set("page", String(params.page));
-    if (params.per_page) searchParams.set("per_page", String(params.per_page));
+    if (params.page != null) searchParams.set("page", String(params.page));
+    if (params.per_page != null) searchParams.set("per_page", String(params.per_page));
 
     const query = searchParams.toString();
-    const url = `${STRAVA_API_BASE}/athletes/${String(athlete.id)}/routes${query ? `?${query}` : ""}`;
-
-    const response = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!response.ok) {
-      const errorBody = (await response.json().catch(() => null)) as StravaApiError | null;
-      throw new Error(
-        `[Strava] API error ${String(response.status)} on /athletes/${String(athlete.id)}/routes: ${errorBody?.message ?? response.statusText}`,
-      );
-    }
-
-    return response.json() as Promise<StravaRoute[]>;
+    return this.request<StravaRoute[]>(
+      `/athletes/${String(this.stravaAthleteId)}/routes${query ? `?${query}` : ""}`,
+    );
   }
 }
 
@@ -229,7 +219,7 @@ export async function getStravaClient(userId: string): Promise<StravaApiClient> 
 
   const { data, error } = await supabase
     .from("strava_connections")
-    .select("access_token, refresh_token, expires_at")
+    .select("access_token, refresh_token, expires_at, strava_athlete_id")
     .eq("user_id", userId)
     .single();
 
@@ -239,5 +229,11 @@ export async function getStravaClient(userId: string): Promise<StravaApiClient> 
 
   const expiresAtUnix = Math.floor(new Date(data.expires_at).getTime() / 1000);
 
-  return new StravaApiClient(data.access_token, data.refresh_token, expiresAtUnix, userId);
+  return new StravaApiClient(
+    data.access_token,
+    data.refresh_token,
+    expiresAtUnix,
+    userId,
+    data.strava_athlete_id,
+  );
 }
