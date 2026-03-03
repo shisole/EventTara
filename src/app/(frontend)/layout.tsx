@@ -146,7 +146,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           }}
         />
       </head>
-      <body className="font-sans min-h-screen flex flex-col">
+      <body className="font-sans min-h-dvh flex flex-col">
         <GoogleAnalytics />
         <ThemeProvider>
           <ClientShell initialNavLayout={navLayout} activityFeedEnabled={activityFeedEnabled}>

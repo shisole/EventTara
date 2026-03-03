@@ -213,7 +213,7 @@ export default function ClientShell({
     <>
       <OfflineIndicator />
       <div
-        className={`transition-all duration-300 origin-top min-h-screen flex flex-col ${
+        className={`transition-all duration-300 origin-top min-h-dvh flex flex-col ${
           drawerOpen ? "scale-[0.95] opacity-50 rounded-xl overflow-hidden pointer-events-none" : ""
         }`}
       >

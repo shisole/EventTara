@@ -23,7 +23,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <div className="flex">
       <DashboardSidebar />
-      <main className="flex-1 min-w-0 p-4 md:p-8 bg-gray-50 dark:bg-gray-950 min-h-[calc(100vh-4rem)]">
+      <main className="flex-1 min-w-0 p-4 md:p-8 bg-gray-50 dark:bg-gray-950 min-h-[calc(100dvh-4rem)]">
         {children}
       </main>
       <ScannerFAB />
