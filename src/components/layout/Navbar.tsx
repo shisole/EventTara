@@ -143,7 +143,6 @@ export default function Navbar({
               <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 animate-pulse" />
             ) : user ? (
               <div className="flex items-center gap-3">
-                <ThemeToggle />
                 <NotificationBell userId={user.id} />
                 <div className="relative" data-profile-dropdown>
                   <button
@@ -202,6 +201,12 @@ export default function Navbar({
                       >
                         Change Border
                       </button>
+                      <div className="border-t border-gray-100 dark:border-gray-700 my-1" />
+                      <div className="flex items-center justify-between px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
+                        <span>Theme</span>
+                        <ThemeToggle />
+                      </div>
+                      <div className="border-t border-gray-100 dark:border-gray-700 my-1" />
                       <button
                         onClick={onLogout}
                         className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
@@ -214,19 +219,13 @@ export default function Navbar({
               </div>
             ) : (
               <div className="flex items-center gap-3">
-                <ThemeToggle />
-                <Link href="/signup?role=organizer">
-                  <Button variant="ghost" size="sm">
-                    Host Your Event
-                  </Button>
-                </Link>
                 <Link href="/login">
                   <Button variant="ghost" size="sm">
                     Sign In
                   </Button>
                 </Link>
                 <Link href="/signup">
-                  <Button size="sm">Get Started</Button>
+                  <Button size="sm">Sign Up</Button>
                 </Link>
               </div>
             )}
