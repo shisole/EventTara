@@ -983,6 +983,172 @@ export interface Database {
         };
         Relationships: [];
       };
+      strava_connections: {
+        Row: {
+          id: string;
+          user_id: string;
+          strava_athlete_id: number;
+          access_token: string;
+          refresh_token: string;
+          expires_at: string;
+          scope: string | null;
+          athlete_data: Json | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          strava_athlete_id: number;
+          access_token: string;
+          refresh_token: string;
+          expires_at: string;
+          scope?: string | null;
+          athlete_data?: Json | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          strava_athlete_id?: number;
+          access_token?: string;
+          refresh_token?: string;
+          expires_at?: string;
+          scope?: string | null;
+          athlete_data?: Json | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      strava_activities: {
+        Row: {
+          id: string;
+          user_id: string;
+          strava_activity_id: number;
+          booking_id: string | null;
+          name: string;
+          type: string;
+          distance: number;
+          moving_time: number;
+          elapsed_time: number;
+          total_elevation_gain: number;
+          start_date: string;
+          summary_polyline: string | null;
+          matched_automatically: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          strava_activity_id: number;
+          booking_id?: string | null;
+          name: string;
+          type: string;
+          distance: number;
+          moving_time: number;
+          elapsed_time: number;
+          total_elevation_gain: number;
+          start_date: string;
+          summary_polyline?: string | null;
+          matched_automatically?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          strava_activity_id?: number;
+          booking_id?: string | null;
+          name?: string;
+          type?: string;
+          distance?: number;
+          moving_time?: number;
+          elapsed_time?: number;
+          total_elevation_gain?: number;
+          start_date?: string;
+          summary_polyline?: string | null;
+          matched_automatically?: boolean;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "strava_activities_booking_id_fkey";
+            columns: ["booking_id"];
+            isOneToOne: false;
+            referencedRelation: "bookings";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      event_routes: {
+        Row: {
+          id: string;
+          event_id: string;
+          strava_route_id: number | null;
+          gpx_url: string | null;
+          source: "strava" | "gpx";
+          name: string;
+          distance: number | null;
+          elevation_gain: number | null;
+          summary_polyline: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          event_id: string;
+          strava_route_id?: number | null;
+          gpx_url?: string | null;
+          source: "strava" | "gpx";
+          name: string;
+          distance?: number | null;
+          elevation_gain?: number | null;
+          summary_polyline?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          event_id?: string;
+          strava_route_id?: number | null;
+          gpx_url?: string | null;
+          source?: "strava" | "gpx";
+          name?: string;
+          distance?: number | null;
+          elevation_gain?: number | null;
+          summary_polyline?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "event_routes_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: true;
+            referencedRelation: "events";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      strava_webhook_subscriptions: {
+        Row: {
+          id: string;
+          subscription_id: number;
+          verify_token: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          subscription_id: number;
+          verify_token: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          subscription_id?: number;
+          verify_token?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<never, never>;
     Functions: {
