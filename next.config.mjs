@@ -61,12 +61,27 @@ const nextConfig = {
         destination: `${supabaseUrl}/storage/v1/object/public/:path*`,
       });
     }
+    if (r2PublicUrl) {
+      rules.push({
+        source: "/r2/:path*",
+        destination: `${r2PublicUrl}/:path*`,
+      });
+    }
     return rules;
   },
   async headers() {
     return [
       {
         source: "/storage/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      {
+        source: "/r2/:path*",
         headers: [
           {
             key: "Cache-Control",

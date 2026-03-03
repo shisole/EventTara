@@ -30,7 +30,10 @@ export async function uploadToR2(
 
   const res = await getR2Client().fetch(url, {
     method: "PUT",
-    headers: { "Content-Type": contentType },
+    headers: {
+      "Content-Type": contentType,
+      "Cache-Control": "public, max-age=31536000, immutable",
+    },
     body: new Uint8Array(body),
   });
 
