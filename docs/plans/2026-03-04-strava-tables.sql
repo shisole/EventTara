@@ -20,7 +20,7 @@ CREATE TABLE public.strava_connections (
 );
 
 -- Index for looking up connections by Strava athlete ID
-CREATE INDEX idx_strava_connections_athlete_id ON public.strava_connections(strava_athlete_id);
+CREATE UNIQUE INDEX idx_strava_connections_athlete_id ON public.strava_connections(strava_athlete_id);
 
 -- Auto-update updated_at on modification
 CREATE TRIGGER set_strava_connections_updated_at
@@ -38,7 +38,7 @@ CREATE TABLE public.strava_activities (
   strava_activity_id bigint NOT NULL,
   booking_id uuid REFERENCES public.bookings(id) ON DELETE SET NULL,
   name text NOT NULL,
-  type text NOT NULL,
+  type text NOT NULL, -- Strava activity types (Run, Ride, Hike, etc.) — unconstrained because the enum is large and evolves; validated at application layer
   distance numeric NOT NULL,
   moving_time integer NOT NULL,
   elapsed_time integer NOT NULL,
