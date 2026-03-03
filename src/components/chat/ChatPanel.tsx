@@ -182,7 +182,7 @@ export default function ChatPanel({ open, onClose, keyboard }: ChatPanelProps) {
         open
           ? "opacity-100 pointer-events-auto translate-y-0"
           : "opacity-0 pointer-events-none translate-y-2"
-      } right-4 w-[calc(100vw-2rem)] max-w-[400px] ${keyboardOpen ? "" : "bottom-[9.5rem] h-[min(460px,calc(100vh-12rem))]"} md:bottom-6 md:right-[5.25rem] md:w-[400px] md:h-[min(500px,calc(100vh-6rem))]`}
+      } right-4 w-[calc(100vw-2rem)] max-w-[400px] ${keyboardOpen ? "" : "bottom-[9.5rem] h-[min(460px,calc(100dvh-12rem))]"} md:bottom-6 md:right-[5.25rem] md:w-[400px] md:h-[min(500px,calc(100dvh-6rem))]`}
       style={keyboardStyle}
     >
       <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-900">
