@@ -66,12 +66,5 @@
       }
     }
   ],
-  "ignorePatterns": [
-    "node_modules",
-    ".next",
-    "out",
-    "scripts",
-    "supabase/functions",
-    "src/app/(payload)/admin/importMap.js"
-  ]
+  "ignorePatterns": ["node_modules", ".next", "out", "scripts", "supabase/functions"]
 }

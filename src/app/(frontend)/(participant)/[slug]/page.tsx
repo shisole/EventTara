@@ -1,8 +1,7 @@
-import { RichText } from "@payloadcms/richtext-lexical/react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { getPayloadClient } from "@/lib/payload/client";
+import { createClient } from "@/lib/supabase/server";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -12,14 +11,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
 
   try {
-    const payload = await getPayloadClient();
-    const result = await payload.find({
-      collection: "pages",
-      where: { slug: { equals: slug }, status: { equals: "published" } },
-      limit: 1,
-    });
+    const supabase = await createClient();
+    const { data: page } = await supabase
+      .from("cms_pages")
+      .select("title, description")
+      .eq("slug", slug)
+      .eq("status", "published")
+      .single();
 
-    const page = result.docs[0];
     if (!page) return {};
 
     return {
@@ -34,23 +33,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function CMSPage({ params }: Props) {
   const { slug } = await params;
 
-  let page;
-  try {
-    const payload = await getPayloadClient();
-    const result = await payload.find({
-      collection: "pages",
-      where: { slug: { equals: slug }, status: { equals: "published" } },
-      limit: 1,
-    });
-    page = result.docs[0];
-  } catch {
-    notFound();
-  }
+  const supabase = await createClient();
+  const { data: page } = await supabase
+    .from("cms_pages")
+    .select("*")
+    .eq("slug", slug)
+    .eq("status", "published")
+    .single();
 
   if (!page) notFound();
 
-  const lastUpdated = page.lastUpdatedLabel
-    ? new Date(page.lastUpdatedLabel).toLocaleDateString("en-US", {
+  const lastUpdated = page.last_updated_label
+    ? new Date(page.last_updated_label).toLocaleDateString("en-US", {
         year: "numeric",
         month: "long",
         day: "numeric",
@@ -58,17 +52,21 @@ export default async function CMSPage({ params }: Props) {
     : null;
 
   return (
-    <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="font-heading text-3xl font-bold text-gray-900 dark:text-white mb-2">
-        {page.title}
-      </h1>
-      {lastUpdated && (
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">Last updated: {lastUpdated}</p>
-      )}
-      {page.content && (
-        <div className="prose prose-gray dark:prose-invert max-w-none">
-          <RichText data={page.content} />
-        </div>
+    <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+      <header className="mb-10">
+        <h1 className="font-heading text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-3">
+          {page.title}
+        </h1>
+        {lastUpdated && (
+          <p className="text-sm text-gray-500 dark:text-gray-400">Last updated: {lastUpdated}</p>
+        )}
+        <div className="mt-6 h-px bg-gradient-to-r from-lime-500/40 via-teal-500/40 to-transparent" />
+      </header>
+      {page.content_html && (
+        <div
+          className="prose prose-gray dark:prose-invert max-w-none prose-headings:font-heading prose-h3:text-lg prose-h3:font-semibold prose-a:text-teal-600 dark:prose-a:text-teal-400 prose-a:underline-offset-2 prose-li:marker:text-lime-500 prose-strong:text-gray-900 dark:prose-strong:text-white"
+          dangerouslySetInnerHTML={{ __html: page.content_html }}
+        />
       )}
     </main>
   );

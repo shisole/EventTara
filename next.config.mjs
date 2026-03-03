@@ -1,7 +1,6 @@
 import { spawnSync } from "node:child_process";
 
 import withSerwistInit from "@serwist/next";
-import { withPayload } from "@payloadcms/next/withPayload";
 
 const revision =
   spawnSync("git", ["rev-parse", "HEAD"], { encoding: "utf-8" }).stdout?.trim() ??
@@ -21,7 +20,7 @@ const r2PublicUrl = process.env.R2_PUBLIC_URL || "";
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
-    // CI runs lint separately; skip during build to avoid Payload-generated file errors
+    // CI runs lint separately; skip during build
     ignoreDuringBuilds: true,
   },
   experimental: {
@@ -49,12 +48,7 @@ const nextConfig = {
   },
   async rewrites() {
     /** @type {import('next').Rewrite[]} */
-    const rules = [
-      {
-        source: "/api/media/file/:path*",
-        destination: "/media/:path*",
-      },
-    ];
+    const rules = [];
     if (supabaseUrl) {
       rules.push({
         source: "/storage/:path*",
@@ -115,4 +109,4 @@ const nextConfig = {
   },
 };
 
-export default withSerwist(withPayload(nextConfig));
+export default withSerwist(nextConfig);

@@ -3,10 +3,10 @@ import { notFound } from "next/navigation";
 
 import PostView from "@/components/feed/PostView";
 import { Breadcrumbs } from "@/components/ui";
-import type { BorderTier } from "@/lib/constants/avatar-borders";
-import type { BadgeCategory, BadgeRarity } from "@/lib/constants/badge-rarity";
-import type { ActivityType, FeedItem } from "@/lib/feed/types";
-import { isActivityFeedEnabled } from "@/lib/payload/cached";
+import { isActivityFeedEnabled } from "@/lib/cms/cached";
+import { type BorderTier } from "@/lib/constants/avatar-borders";
+import { type BadgeCategory, type BadgeRarity } from "@/lib/constants/badge-rarity";
+import { type ActivityType, type FeedItem } from "@/lib/feed/types";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {

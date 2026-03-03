@@ -9,7 +9,7 @@ import OrganizersSection from "@/components/landing/OrganizersSection";
 import ParallaxMountain from "@/components/landing/ParallaxMountain";
 import TestimonialsSection from "@/components/landing/TestimonialsSection";
 import UpcomingEventsSection from "@/components/landing/UpcomingEventsSection";
-import { getCachedHeroCarousel, getCachedSiteSettings } from "@/lib/payload/cached";
+import { getCachedHeroCarousel, getCachedSiteSettings, parseHeroSlides } from "@/lib/cms/cached";
 
 export const metadata = {
   title: "EventTara — Outdoor Adventure Events in Panay Island",
@@ -164,8 +164,13 @@ export default async function Home() {
     getCachedHeroCarousel(),
     getCachedSiteSettings(),
   ]);
+  const heroSlides = parseHeroSlides(heroData);
+  const transformedHeroData =
+    heroSlides.length > 0
+      ? { slides: heroSlides.map((s) => ({ image: { url: s.url, alt: s.alt } })) }
+      : null;
   const parallaxImageUrl =
-    (settings as any)?.parallaxImageUrl ||
+    settings?.parallax_image_url ||
     "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80";
 
   return (
@@ -173,7 +178,7 @@ export default async function Home() {
       <BetaNoticeModal />
 
       {/* Hero Section — renders immediately with pre-fetched data */}
-      <HeroSection heroData={heroData} />
+      <HeroSection heroData={transformedHeroData} />
 
       {/* Upcoming Events — streams as Supabase data arrives */}
       <Suspense fallback={<UpcomingEventsSkeleton />}>
