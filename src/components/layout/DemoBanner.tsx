@@ -123,7 +123,7 @@ function AccountDropdown({
         {label} ▾
       </button>
       {open && (
-        <div className="absolute left-0 top-full z-50 mt-1 w-56 rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+        <div className="absolute left-0 top-full z-[999] mt-1 w-56 rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
           {accounts.map((account) => (
             <button
               key={account.email}
