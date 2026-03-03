@@ -8,7 +8,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import MobileNav from "@/components/layout/MobileNav";
 import Navbar from "@/components/layout/Navbar";
 import OfflineIndicator from "@/components/pwa/OfflineIndicator";
+import { Breadcrumbs } from "@/components/ui";
 import type { BorderTier } from "@/lib/constants/avatar-borders";
+import { BreadcrumbProvider } from "@/lib/contexts/BreadcrumbContext";
 import { createClient } from "@/lib/supabase/client";
 
 const DemoBanner = dynamic(() => import("@/components/layout/DemoBanner"));
@@ -232,7 +234,12 @@ export default function ClientShell({
             setActiveBorder(borderId ? { id: borderId, tier, color } : null);
           }}
         />
-        <div className="flex-1 pb-16 md:pb-0">{children}</div>
+        <BreadcrumbProvider>
+          <div className="flex-1 pb-16 md:pb-0">
+            <Breadcrumbs />
+            {children}
+          </div>
+        </BreadcrumbProvider>
         <MobileNav user={user} role={role} activityFeedEnabled={activityFeedEnabled} />
       </div>
 
