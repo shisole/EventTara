@@ -17,10 +17,10 @@ export default async function SettingsPage() {
     .single();
 
   return (
-    <div className="max-w-2xl lg:max-w-5xl">
+    <div className="space-y-10 max-w-2xl mx-auto">
       <h1 className="text-2xl font-heading font-bold mb-6 dark:text-white">Settings</h1>
 
-      <div className="space-y-10 lg:grid lg:grid-cols-2 lg:gap-8 lg:space-y-0">
+      <div className="space-y-10">
         <section>
           <h2 className="text-xl font-heading font-bold mb-4 dark:text-white">Organizer Profile</h2>
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-6">

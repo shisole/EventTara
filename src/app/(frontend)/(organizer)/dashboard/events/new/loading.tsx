@@ -11,14 +11,14 @@ function FormFieldSkeleton() {
 
 export default function Loading() {
   return (
-    <div>
+    <div className="max-w-2xl mx-auto">
       {/* Back link */}
       <Skeleton className="h-5 w-32 mb-6" />
 
       {/* Page title: "Create New Event" */}
       <Skeleton className="h-8 w-48 mb-8" />
 
-      <div className="space-y-6 max-w-2xl">
+      <div className="space-y-6">
         <FormFieldSkeleton />
 
         <div className="space-y-1">
