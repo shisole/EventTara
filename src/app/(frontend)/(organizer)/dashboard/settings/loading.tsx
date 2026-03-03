@@ -11,7 +11,7 @@ function InputSkeleton() {
 
 export default function Loading() {
   return (
-    <div className="space-y-10 max-w-2xl">
+    <div className="space-y-10 max-w-2xl mx-auto">
       {/* Page title: "Settings" */}
       <Skeleton className="h-8 w-28" />
 

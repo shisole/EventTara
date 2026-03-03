@@ -1,7 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
-import { type ButtonHTMLAttributes, useState, useEffect, useMemo } from "react";
+import { type ButtonHTMLAttributes, useRef, useState, useEffect, useMemo } from "react";
 import { type CalendarDay, type DateRange, type Modifiers, DayPicker } from "react-day-picker";
 
 import { cn } from "@/lib/utils";
@@ -44,14 +44,19 @@ export default function DateRangePicker({
   onEndTimeChange,
   eventDates,
 }: DateRangePickerProps) {
-  const [isMobile, setIsMobile] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isCompact, setIsCompact] = useState(false);
 
   useEffect(() => {
-    const mql = globalThis.matchMedia("(max-width: 640px)");
-    setIsMobile(mql.matches);
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
-    mql.addEventListener("change", handler);
-    return () => mql.removeEventListener("change", handler);
+    const el = containerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setIsCompact(entry.contentRect.width < 600);
+      }
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
   }, []);
 
   // Compute blocked dates and a lookup map for tooltips
@@ -153,7 +158,7 @@ export default function DateRangePicker({
   }
 
   return (
-    <div className="space-y-1">
+    <div ref={containerRef} className="space-y-1">
       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
         Date & Time
       </label>
@@ -161,7 +166,7 @@ export default function DateRangePicker({
       <div className="rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-4 space-y-4">
         <DayPicker
           mode="range"
-          numberOfMonths={isMobile ? 1 : 2}
+          numberOfMonths={isCompact ? 1 : 2}
           selected={startDate ? { from: startDate, to: endDate ?? startDate } : undefined}
           onSelect={handleSelect}
           excludeDisabled
@@ -184,12 +189,12 @@ export default function DateRangePicker({
             weekdays: "flex",
             weekday: cn(
               "text-gray-500 dark:text-gray-400 rounded-md font-normal text-[0.8rem] uppercase",
-              isMobile ? "w-9" : "w-11",
+              isCompact ? "w-9" : "w-11",
             ),
             week: "flex w-full mt-2",
             day: cn(
               "text-center text-sm p-0 relative",
-              isMobile ? "h-9 w-9" : "h-11 w-11",
+              isCompact ? "h-9 w-9" : "h-11 w-11",
               "[&:has([aria-selected].range_start)]:rounded-l-md [&:has([aria-selected].range_end)]:rounded-r-md",
               "[&:has([aria-selected].range_middle)]:rounded-none",
               "first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md",
@@ -197,7 +202,7 @@ export default function DateRangePicker({
             ),
             day_button: cn(
               "p-0 font-normal aria-selected:opacity-100 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
-              isMobile ? "h-9 w-9" : "h-11 w-11",
+              isCompact ? "h-9 w-9" : "h-11 w-11",
             ),
             range_start:
               "bg-lime-500 text-white hover:bg-lime-600 dark:bg-lime-600 dark:hover:bg-lime-700",
