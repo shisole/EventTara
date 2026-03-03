@@ -1,3 +1,4 @@
+export { default as Breadcrumbs } from "./Breadcrumbs";
 export { default as Button } from "./Button";
 export { Card, CardHeader, CardContent } from "./Card";
 export { default as UIBadge } from "./Badge";

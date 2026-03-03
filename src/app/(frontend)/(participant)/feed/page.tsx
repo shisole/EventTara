@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import FeedList from "@/components/feed/FeedList";
+import { Breadcrumbs } from "@/components/ui";
 import { isActivityFeedEnabled } from "@/lib/cms/cached";
 import { createClient } from "@/lib/supabase/server";
 
@@ -22,6 +23,7 @@ export default async function FeedPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
+      <Breadcrumbs />
       <h1 className="text-2xl font-heading font-bold dark:text-white mb-6">Activity Feed</h1>
       <FeedList
         initialItems={[]}

@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 
+import { Breadcrumbs } from "@/components/ui";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 
@@ -42,6 +43,7 @@ export default function ContactPage() {
   return (
     <main className="py-20 bg-gray-50 dark:bg-slate-900 min-h-dvh">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+        <Breadcrumbs />
         <h1 className="text-4xl sm:text-5xl font-heading font-bold text-gray-900 dark:text-white mb-4">
           Contact Us
         </h1>

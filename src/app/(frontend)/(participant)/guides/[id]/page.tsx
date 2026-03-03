@@ -3,7 +3,8 @@ import { notFound } from "next/navigation";
 import EventCard from "@/components/events/EventCard";
 import ReviewList from "@/components/reviews/ReviewList";
 import StarRating from "@/components/reviews/StarRating";
-import { UserAvatar } from "@/components/ui";
+import { Breadcrumbs, UserAvatar } from "@/components/ui";
+import { BreadcrumbTitle } from "@/lib/contexts/BreadcrumbContext";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -165,6 +166,8 @@ export default async function GuideProfilePage({ params }: { params: Promise<{ i
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <Breadcrumbs />
+      <BreadcrumbTitle title={guide.full_name} />
       {/* Header */}
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-6 sm:p-8 mb-8">
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">

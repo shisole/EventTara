@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 
 import PastEvents from "@/components/participant/PastEvents";
 import UpcomingBookings from "@/components/participant/UpcomingBookings";
+import { Breadcrumbs } from "@/components/ui";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = { title: "My Events — EventTara" };
@@ -126,6 +127,7 @@ export default async function MyEventsPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-12 space-y-10">
+      <Breadcrumbs />
       <h1 className="text-2xl font-heading font-bold">My Events</h1>
 
       <section>

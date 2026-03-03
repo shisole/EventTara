@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import NotificationItem from "@/components/notifications/NotificationItem";
-import { Button } from "@/components/ui";
+import { Breadcrumbs, Button } from "@/components/ui";
 import { type Database } from "@/lib/supabase/types";
 
 const PushNotificationManager = dynamic(
@@ -123,6 +123,7 @@ export default function NotificationsPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
+      <Breadcrumbs />
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-heading font-bold text-gray-900 dark:text-white">
           Notifications
