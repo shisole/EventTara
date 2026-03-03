@@ -9,6 +9,7 @@ import PublishButton from "@/components/dashboard/PublishButton";
 import { ChevronLeftIcon } from "@/components/icons";
 import { Button, UIBadge } from "@/components/ui";
 import type { BorderTier } from "@/lib/constants/avatar-borders";
+import { BreadcrumbTitle } from "@/lib/contexts/BreadcrumbContext";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function ManageEventPage({ params }: { params: Promise<{ id: string }> }) {
@@ -143,6 +144,7 @@ export default async function ManageEventPage({ params }: { params: Promise<{ id
 
   return (
     <div className="space-y-8">
+      <BreadcrumbTitle title={event.title} />
       <Link
         href="/dashboard/events"
         className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
