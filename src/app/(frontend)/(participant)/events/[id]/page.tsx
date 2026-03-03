@@ -14,6 +14,7 @@ import ReviewForm from "@/components/reviews/ReviewForm";
 import ReviewList from "@/components/reviews/ReviewList";
 import { UIBadge } from "@/components/ui";
 import { resolvePresetImage } from "@/lib/constants/avatars";
+import { BreadcrumbTitle } from "@/lib/contexts/BreadcrumbContext";
 import { cdnUrl } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/server";
 import { formatEventDate } from "@/lib/utils/format-date";
@@ -384,6 +385,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <BreadcrumbTitle title={event.title} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(eventJsonLd) }}

@@ -10,6 +10,7 @@ import ProfileStats from "@/components/profile/ProfileStats";
 import { Button } from "@/components/ui";
 import { checkAndAwardBorders } from "@/lib/borders/check-borders";
 import type { BorderTier } from "@/lib/constants/avatar-borders";
+import { BreadcrumbTitle } from "@/lib/contexts/BreadcrumbContext";
 import { createClient } from "@/lib/supabase/server";
 
 export async function generateMetadata({ params }: { params: Promise<{ username: string }> }) {
@@ -238,6 +239,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-12 space-y-10">
+      <BreadcrumbTitle title={user.full_name} />
       <ProfileHeader
         fullName={user.full_name}
         username={user.username}

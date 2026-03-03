@@ -8,6 +8,7 @@ import OrganizerStats from "@/components/organizers/OrganizerStats";
 import StarRating from "@/components/reviews/StarRating";
 import { Button } from "@/components/ui";
 import type { BorderTier } from "@/lib/constants/avatar-borders";
+import { BreadcrumbTitle } from "@/lib/contexts/BreadcrumbContext";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -225,6 +226,7 @@ export default async function OrganizerProfilePage({
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-12 space-y-10">
+      <BreadcrumbTitle title={profile.org_name} />
       <OrganizerProfileHeader
         orgName={profile.org_name}
         logoUrl={profile.logo_url}
