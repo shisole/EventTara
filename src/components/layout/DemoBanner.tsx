@@ -1,29 +1,153 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { createClient } from "@/lib/supabase/client";
 
-const DEMO_ACCOUNTS = {
-  organizer: {
+interface DemoAccount {
+  email: string;
+  password: string;
+  name: string;
+  username: string;
+  redirect: string;
+}
+
+const ORGANIZERS: DemoAccount[] = [
+  {
     email: "organizer1@test.eventtara.com",
     password: "TestPass123!",
-    label: "Organizer",
+    name: "Marco Santos",
+    username: "marco_trails",
     redirect: "/dashboard",
   },
-  participant: {
+  {
+    email: "organizer2@test.eventtara.com",
+    password: "TestPass123!",
+    name: "Ana Reyes",
+    username: "ana_pedal",
+    redirect: "/dashboard",
+  },
+  {
+    email: "organizer3@test.eventtara.com",
+    password: "TestPass123!",
+    name: "Jay Tablatin",
+    username: "jtt_trails",
+    redirect: "/dashboard",
+  },
+  {
+    email: "organizer4@test.eventtara.com",
+    password: "TestPass123!",
+    name: "Teri Magbanua",
+    username: "ftt_treks",
+    redirect: "/dashboard",
+  },
+  {
+    email: "organizer5@test.eventtara.com",
+    password: "TestPass123!",
+    name: "Yen Casimiro",
+    username: "yenergy_out",
+    redirect: "/dashboard",
+  },
+  {
+    email: "organizer6@test.eventtara.com",
+    password: "TestPass123!",
+    name: "Ruben Torres",
+    username: "ruborubo",
+    redirect: "/dashboard",
+  },
+];
+
+const PARTICIPANTS: DemoAccount[] = [
+  {
     email: "participant1@test.eventtara.com",
     password: "TestPass123!",
-    label: "Participant",
+    name: "Jake Mendoza",
+    username: "jake_adventure",
     redirect: "/events",
   },
-};
+  {
+    email: "participant2@test.eventtara.com",
+    password: "TestPass123!",
+    name: "Maria Cruz",
+    username: "maria_explorer",
+    redirect: "/events",
+  },
+  {
+    email: "participant3@test.eventtara.com",
+    password: "TestPass123!",
+    name: "Carlos Rivera",
+    username: "carlos_hiker",
+    redirect: "/events",
+  },
+];
 
 const DISMISS_KEY = "demo-banner-dismissed";
 
 interface DemoBannerProps {
   isLoggedIn: boolean;
+}
+
+function AccountDropdown({
+  label,
+  accounts,
+  loading,
+  onLogin,
+}: {
+  label: string;
+  accounts: DemoAccount[];
+  loading: string | null;
+  onLogin: (account: DemoAccount) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target: Node | null = e.target instanceof Node ? e.target : null;
+      if (ref.current && target && !ref.current.contains(target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen((prev) => !prev)}
+        disabled={loading !== null}
+        className="rounded-full bg-white/20 px-3 py-0.5 text-sm font-medium transition-colors hover:bg-white/30 disabled:opacity-50"
+      >
+        {label} ▾
+      </button>
+      {open && (
+        <div className="absolute left-0 top-full z-50 mt-1 w-56 rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+          {accounts.map((account) => (
+            <button
+              key={account.email}
+              onClick={() => {
+                setOpen(false);
+                onLogin(account);
+              }}
+              disabled={loading !== null}
+              className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-gray-100 disabled:opacity-50 dark:text-gray-200 dark:hover:bg-gray-700"
+            >
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-medium">
+                  {loading === account.email ? "Signing in..." : account.name}
+                </p>
+                <p className="truncate text-xs text-gray-400 dark:text-gray-500">
+                  @{account.username}
+                </p>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function DemoBanner({ isLoggedIn }: DemoBannerProps) {
@@ -37,9 +161,8 @@ export default function DemoBanner({ isLoggedIn }: DemoBannerProps) {
 
   if (isLoggedIn || dismissed) return null;
 
-  const handleDemoLogin = async (role: "organizer" | "participant") => {
-    setLoading(role);
-    const account = DEMO_ACCOUNTS[role];
+  const handleDemoLogin = async (account: DemoAccount) => {
+    setLoading(account.email);
 
     const { error } = await supabase.auth.signInWithPassword({
       email: account.email,
@@ -69,21 +192,19 @@ export default function DemoBanner({ isLoggedIn }: DemoBannerProps) {
             <span className="hidden sm:inline text-white/60">|</span>
             <div className="flex items-center gap-2">
               <span className="text-white/80">Try as</span>
-              <button
-                onClick={() => void handleDemoLogin("organizer")}
-                disabled={loading !== null}
-                className="rounded-full bg-white/20 px-3 py-0.5 text-sm font-medium transition-colors hover:bg-white/30 disabled:opacity-50"
-              >
-                {loading === "organizer" ? "Signing in..." : "Organizer"}
-              </button>
+              <AccountDropdown
+                label="Organizer"
+                accounts={ORGANIZERS}
+                loading={loading}
+                onLogin={(account) => void handleDemoLogin(account)}
+              />
               <span className="text-white/60">or</span>
-              <button
-                onClick={() => void handleDemoLogin("participant")}
-                disabled={loading !== null}
-                className="rounded-full bg-white/20 px-3 py-0.5 text-sm font-medium transition-colors hover:bg-white/30 disabled:opacity-50"
-              >
-                {loading === "participant" ? "Signing in..." : "Participant"}
-              </button>
+              <AccountDropdown
+                label="Participant"
+                accounts={PARTICIPANTS}
+                loading={loading}
+                onLogin={(account) => void handleDemoLogin(account)}
+              />
             </div>
           </div>
           <button
