@@ -73,7 +73,7 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
   }
 
   return (
-    <div>
+    <div className="max-w-2xl mx-auto">
       <BreadcrumbTitle title={event.title} />
       <Link
         href={`/dashboard/events/${id}`}

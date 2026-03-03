@@ -632,7 +632,7 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <Input
         id="title"
         label="Event Title"
