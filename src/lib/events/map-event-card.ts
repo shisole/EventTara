@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { cdnUrl } from "@/lib/storage";
 import type { Database } from "@/lib/supabase/types";
 
 export interface EventCardData {
@@ -107,7 +108,7 @@ export function mapEventToCard(
     endDate: event.end_date,
     location: event.location,
     price: Number(event.price),
-    cover_image_url: event.cover_image_url,
+    cover_image_url: cdnUrl(event.cover_image_url) ?? event.cover_image_url,
     max_participants: event.max_participants,
     booking_count: event.bookings?.[0]?.count || 0,
     status: getEventStatus(event.date, today),

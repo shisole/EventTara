@@ -14,6 +14,7 @@ import ReviewForm from "@/components/reviews/ReviewForm";
 import ReviewList from "@/components/reviews/ReviewList";
 import { UIBadge } from "@/components/ui";
 import { resolvePresetImage } from "@/lib/constants/avatars";
+import { cdnUrl } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/server";
 import { formatEventDate } from "@/lib/utils/format-date";
 
@@ -416,7 +417,12 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
       {/* Hero Image */}
       <div className="relative h-64 md:h-96 rounded-2xl overflow-hidden bg-gradient-to-br from-lime-100 to-forest-100 dark:from-lime-900 dark:to-forest-900 mb-8">
         {event.cover_image_url && (
-          <Image src={event.cover_image_url} alt={event.title} fill className="object-cover" />
+          <Image
+            src={cdnUrl(event.cover_image_url) ?? event.cover_image_url}
+            alt={event.title}
+            fill
+            className="object-cover"
+          />
         )}
       </div>
 
@@ -446,7 +452,12 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
             </div>
           )}
 
-          <EventGallery photos={photos || []} />
+          <EventGallery
+            photos={(photos || []).map((p) => ({
+              ...p,
+              image_url: cdnUrl(p.image_url) ?? p.image_url,
+            }))}
+          />
 
           {event.coordinates &&
             typeof event.coordinates === "object" &&
