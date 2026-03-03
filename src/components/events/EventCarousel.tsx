@@ -101,13 +101,13 @@ export default function EventCarousel({
   };
 
   const infiniteRef = useRef<HTMLDivElement>(null);
-  const dragging = useRef(false);
-  const dragStartX = useRef(0);
-  const dragScrollLeft = useRef(0);
   const velocity = useRef(1); // 1 = full speed, 0 = stopped
   const targetVelocity = useRef(1);
+  const offsetRef = useRef(0);
+  const touchStartX = useRef(0);
+  const touchOffsetStart = useRef(0);
 
-  // Infinite auto-scroll with requestAnimationFrame + eased velocity
+  // Infinite auto-scroll with requestAnimationFrame + CSS transform (works on mobile)
   useEffect(() => {
     if (!infinite) return;
     const el = infiniteRef.current;
@@ -115,19 +115,19 @@ export default function EventCarousel({
 
     let raf: number;
     const pixelsPerFrame = speed / 60;
-    const easeFactor = 0.03; // lower = smoother deceleration
+    const easeFactor = 0.03;
 
     const step = () => {
-      // Ease velocity toward target
       velocity.current += (targetVelocity.current - velocity.current) * easeFactor;
       if (Math.abs(velocity.current) < 0.001) velocity.current = 0;
 
-      if (velocity.current > 0 && !dragging.current) {
-        el.scrollLeft += pixelsPerFrame * velocity.current;
-        const halfScroll = el.scrollWidth / 2;
-        if (el.scrollLeft >= halfScroll) {
-          el.scrollLeft -= halfScroll;
+      if (velocity.current > 0) {
+        offsetRef.current += pixelsPerFrame * velocity.current;
+        const halfWidth = el.scrollWidth / 2;
+        if (halfWidth > 0 && offsetRef.current >= halfWidth) {
+          offsetRef.current -= halfWidth;
         }
+        el.style.transform = `translateX(-${offsetRef.current}px)`;
       }
       raf = requestAnimationFrame(step);
     };
@@ -137,36 +137,21 @@ export default function EventCarousel({
     };
   }, [infinite, speed]);
 
-  // Mouse drag handlers for infinite carousel
-  const onDragStart = useCallback((e: React.MouseEvent) => {
+  const applyOffset = useCallback((newOffset: number) => {
     const el = infiniteRef.current;
     if (!el) return;
-    dragging.current = true;
-    dragStartX.current = e.pageX - el.offsetLeft;
-    dragScrollLeft.current = el.scrollLeft;
-    el.style.cursor = "grabbing";
-  }, []);
-
-  const onDragMove = useCallback((e: React.MouseEvent) => {
-    if (!dragging.current) return;
-    const el = infiniteRef.current;
-    if (!el) return;
-    e.preventDefault();
-    const x = e.pageX - el.offsetLeft;
-    el.scrollLeft = dragScrollLeft.current - (x - dragStartX.current);
-  }, []);
-
-  const onDragEnd = useCallback(() => {
-    dragging.current = false;
-    const el = infiniteRef.current;
-    if (el) el.style.cursor = "grab";
+    const halfWidth = el.scrollWidth / 2;
+    if (halfWidth > 0) {
+      newOffset = ((newOffset % halfWidth) + halfWidth) % halfWidth;
+    }
+    offsetRef.current = newOffset;
+    el.style.transform = `translateX(-${newOffset}px)`;
   }, []);
 
   if (infinite) {
     return (
       <div
-        ref={infiniteRef}
-        className="flex gap-6 overflow-x-auto scrollbar-hide cursor-grab select-none"
+        className="overflow-hidden"
         style={{
           maskImage: "linear-gradient(to right, transparent, black 5%, black 95%, transparent)",
         }}
@@ -175,13 +160,16 @@ export default function EventCarousel({
         }}
         onMouseLeave={() => {
           targetVelocity.current = 1;
-          onDragEnd();
         }}
-        onMouseDown={onDragStart}
-        onMouseMove={onDragMove}
-        onMouseUp={onDragEnd}
-        onTouchStart={() => {
+        onTouchStart={(e) => {
           targetVelocity.current = 0;
+          velocity.current = 0;
+          touchStartX.current = e.touches[0].clientX;
+          touchOffsetStart.current = offsetRef.current;
+        }}
+        onTouchMove={(e) => {
+          const delta = touchStartX.current - e.touches[0].clientX;
+          applyOffset(touchOffsetStart.current + delta);
         }}
         onTouchEnd={() => {
           setTimeout(() => {
@@ -189,8 +177,10 @@ export default function EventCarousel({
           }, 2000);
         }}
       >
-        {children}
-        {children}
+        <div ref={infiniteRef} className="flex gap-6 w-max">
+          {children}
+          {children}
+        </div>
       </div>
     );
   }
