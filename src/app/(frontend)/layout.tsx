@@ -6,7 +6,7 @@ import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import ClientShell from "@/components/layout/ClientShell";
 import Footer from "@/components/layout/Footer";
 import ThemeProvider from "@/components/layout/ThemeProvider";
-import { getCachedSiteSettings, isActivityFeedEnabled } from "@/lib/payload/cached";
+import { getCachedSiteSettings, isActivityFeedEnabled } from "@/lib/cms/cached";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -29,12 +29,12 @@ const dancingScript = Dancing_Script({
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getCachedSiteSettings();
 
-  const siteName = settings?.siteName || "EventTara";
+  const siteName = settings?.site_name || "EventTara";
   const tagline = settings?.tagline || "Tara na! Book Your Next Adventure";
   const siteDescription =
-    settings?.siteDescription ||
+    settings?.site_description ||
     "EventTara is an adventure event booking platform for hiking, mountain biking, road biking, running, and more. Tara na!";
-  const siteUrl = settings?.siteUrl || process.env.NEXT_PUBLIC_SITE_URL || "https://eventtara.com";
+  const siteUrl = settings?.site_url || process.env.NEXT_PUBLIC_SITE_URL || "https://eventtara.com";
   const defaultTitle = `${siteName} — ${tagline}`;
 
   return {
@@ -42,10 +42,10 @@ export async function generateMetadata(): Promise<Metadata> {
     other: { "fb:app_id": "2075920046597865" },
     title: {
       default: defaultTitle,
-      template: settings?.seo?.titleTemplate || "%s — EventTara",
+      template: settings?.seo_title_template || "%s — EventTara",
     },
     description: siteDescription,
-    keywords: settings?.seo?.keywords?.split(",").map((k: string) => k.trim()) || [
+    keywords: settings?.seo_keywords?.split(",").map((k) => k.trim()) || [
       "events",
       "adventure",
       "hiking",
@@ -64,7 +64,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: defaultTitle,
       description: siteDescription,
       url: siteUrl,
-      locale: settings?.seo?.ogLocale || "en_PH",
+      locale: settings?.seo_og_locale || "en_PH",
     },
     twitter: {
       card: "summary_large_image",
@@ -93,7 +93,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     getCachedSiteSettings(),
     isActivityFeedEnabled(),
   ]);
-  const navLayout = (settings?.navLayout as string) || "strip";
+  const navLayout = settings?.nav_layout || "strip";
 
   return (
     <html
@@ -114,29 +114,29 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               "@graph": [
                 {
                   "@type": "Organization",
-                  name: settings?.siteName || "EventTara",
+                  name: settings?.site_name || "EventTara",
                   url:
-                    settings?.siteUrl ||
+                    settings?.site_url ||
                     process.env.NEXT_PUBLIC_SITE_URL ||
                     "https://eventtara.com",
-                  logo: `${settings?.siteUrl || process.env.NEXT_PUBLIC_SITE_URL || "https://eventtara.com"}/favicon-512x512.png`,
+                  logo: `${settings?.site_url || process.env.NEXT_PUBLIC_SITE_URL || "https://eventtara.com"}/favicon-512x512.png`,
                   description:
-                    settings?.siteDescription ||
+                    settings?.site_description ||
                     "EventTara is an adventure event booking platform for hiking, mountain biking, road biking, running, and more.",
                   sameAs: [],
                 },
                 {
                   "@type": "WebSite",
-                  name: settings?.siteName || "EventTara",
+                  name: settings?.site_name || "EventTara",
                   url:
-                    settings?.siteUrl ||
+                    settings?.site_url ||
                     process.env.NEXT_PUBLIC_SITE_URL ||
                     "https://eventtara.com",
                   potentialAction: {
                     "@type": "SearchAction",
                     target: {
                       "@type": "EntryPoint",
-                      urlTemplate: `${settings?.siteUrl || process.env.NEXT_PUBLIC_SITE_URL || "https://eventtara.com"}/events?search={search_term_string}`,
+                      urlTemplate: `${settings?.site_url || process.env.NEXT_PUBLIC_SITE_URL || "https://eventtara.com"}/events?search={search_term_string}`,
                     },
                     "query-input": "required name=search_term_string",
                   },

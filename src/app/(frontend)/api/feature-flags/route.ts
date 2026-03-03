@@ -1,15 +1,15 @@
 import { NextResponse } from "next/server";
 
-import { getCachedFeatureFlags, isActivityFeedEnabled } from "@/lib/payload/cached";
+import { getCachedFeatureFlags, isActivityFeedEnabled } from "@/lib/cms/cached";
 
 export async function GET() {
-  let payloadResult: unknown = null;
-  let payloadError: string | null = null;
+  let cmsResult: unknown = null;
+  let cmsError: string | null = null;
 
   try {
-    payloadResult = await getCachedFeatureFlags();
+    cmsResult = await getCachedFeatureFlags();
   } catch (error) {
-    payloadError = error instanceof Error ? error.message : String(error);
+    cmsError = error instanceof Error ? error.message : String(error);
   }
 
   const enabled = await isActivityFeedEnabled();
@@ -17,7 +17,7 @@ export async function GET() {
   return NextResponse.json({
     activityFeedEnabled: enabled,
     envOverride: process.env.ACTIVITY_FEED_ENABLED ?? null,
-    payloadResult,
-    payloadError,
+    cmsResult,
+    cmsError,
   });
 }

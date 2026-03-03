@@ -851,6 +851,138 @@ export interface Database {
         };
         Relationships: [];
       };
+      cms_site_settings: {
+        Row: {
+          id: number;
+          site_name: string;
+          tagline: string;
+          site_description: string;
+          site_url: string | null;
+          contact_email: string | null;
+          copyright_text: string | null;
+          nav_layout: "strip" | "grid" | "list";
+          parallax_image_url: string | null;
+          seo_title_template: string | null;
+          seo_keywords: string | null;
+          seo_og_locale: string | null;
+        };
+        Insert: {
+          id?: number;
+          site_name: string;
+          tagline: string;
+          site_description: string;
+          site_url?: string | null;
+          contact_email?: string | null;
+          copyright_text?: string | null;
+          nav_layout?: "strip" | "grid" | "list";
+          parallax_image_url?: string | null;
+          seo_title_template?: string | null;
+          seo_keywords?: string | null;
+          seo_og_locale?: string | null;
+        };
+        Update: {
+          id?: number;
+          site_name?: string;
+          tagline?: string;
+          site_description?: string;
+          site_url?: string | null;
+          contact_email?: string | null;
+          copyright_text?: string | null;
+          nav_layout?: "strip" | "grid" | "list";
+          parallax_image_url?: string | null;
+          seo_title_template?: string | null;
+          seo_keywords?: string | null;
+          seo_og_locale?: string | null;
+        };
+        Relationships: [];
+      };
+      cms_navigation: {
+        Row: {
+          id: number;
+          header_links: Json;
+          footer_tagline: string | null;
+          footer_sections: Json;
+          footer_legal_links: Json;
+        };
+        Insert: {
+          id?: number;
+          header_links?: Json;
+          footer_tagline?: string | null;
+          footer_sections?: Json;
+          footer_legal_links?: Json;
+        };
+        Update: {
+          id?: number;
+          header_links?: Json;
+          footer_tagline?: string | null;
+          footer_sections?: Json;
+          footer_legal_links?: Json;
+        };
+        Relationships: [];
+      };
+      cms_hero_carousel: {
+        Row: {
+          id: number;
+          slides: Json;
+        };
+        Insert: {
+          id?: number;
+          slides?: Json;
+        };
+        Update: {
+          id?: number;
+          slides?: Json;
+        };
+        Relationships: [];
+      };
+      cms_feature_flags: {
+        Row: {
+          id: number;
+          activity_feed: boolean;
+        };
+        Insert: {
+          id?: number;
+          activity_feed?: boolean;
+        };
+        Update: {
+          id?: number;
+          activity_feed?: boolean;
+        };
+        Relationships: [];
+      };
+      cms_pages: {
+        Row: {
+          id: number;
+          title: string;
+          slug: string;
+          description: string | null;
+          content_html: string | null;
+          status: "draft" | "published";
+          last_updated_label: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          title: string;
+          slug: string;
+          description?: string | null;
+          content_html?: string | null;
+          status?: "draft" | "published";
+          last_updated_label?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: number;
+          title?: string;
+          slug?: string;
+          description?: string | null;
+          content_html?: string | null;
+          status?: "draft" | "published";
+          last_updated_label?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<never, never>;
     Functions: {

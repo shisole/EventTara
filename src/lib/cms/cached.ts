@@ -1,0 +1,141 @@
+import { unstable_cache } from "next/cache";
+
+import { createClient } from "@/lib/supabase/server";
+
+import type {
+  CmsFeatureFlags,
+  CmsFooterLegalLink,
+  CmsFooterSection,
+  CmsHeroCarousel,
+  CmsHeroSlide,
+  CmsNavigation,
+  CmsSiteSettings,
+} from "./types";
+
+/**
+ * Cached site-settings fetch. Revalidates every 60 seconds.
+ */
+export const getCachedSiteSettings = unstable_cache(
+  async (): Promise<CmsSiteSettings | null> => {
+    try {
+      const supabase = await createClient();
+      const { data, error } = await supabase
+        .from("cms_site_settings")
+        .select("*")
+        .eq("id", 1)
+        .single();
+      if (error) throw error;
+      return data as CmsSiteSettings;
+    } catch {
+      return null;
+    }
+  },
+  ["site-settings"],
+  { revalidate: 60 },
+);
+
+/**
+ * Cached feature-flags fetch. Revalidates every 30 seconds.
+ */
+export const getCachedFeatureFlags = unstable_cache(
+  async (): Promise<CmsFeatureFlags | null> => {
+    try {
+      const supabase = await createClient();
+      const { data, error } = await supabase
+        .from("cms_feature_flags")
+        .select("*")
+        .eq("id", 1)
+        .single();
+      if (error) throw error;
+      return data as CmsFeatureFlags;
+    } catch {
+      return null;
+    }
+  },
+  ["feature-flags"],
+  { revalidate: 30 },
+);
+
+/**
+ * Returns whether the activity feed feature flag is enabled.
+ * Checks env var override first, then falls back to the CMS table.
+ */
+export async function isActivityFeedEnabled(): Promise<boolean> {
+  if (process.env.ACTIVITY_FEED_ENABLED === "true") return true;
+  if (process.env.ACTIVITY_FEED_ENABLED === "false") return false;
+
+  try {
+    const flags = await getCachedFeatureFlags();
+    return flags?.activity_feed === true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Cached hero-carousel fetch. Revalidates every 300 seconds.
+ */
+export const getCachedHeroCarousel = unstable_cache(
+  async (): Promise<CmsHeroCarousel | null> => {
+    try {
+      const supabase = await createClient();
+      const { data, error } = await supabase
+        .from("cms_hero_carousel")
+        .select("*")
+        .eq("id", 1)
+        .single();
+      if (error) throw error;
+      return data as CmsHeroCarousel;
+    } catch {
+      return null;
+    }
+  },
+  ["hero-carousel"],
+  { revalidate: 300 },
+);
+
+/**
+ * Cached navigation fetch. Revalidates every 60 seconds.
+ */
+export const getCachedNavigation = unstable_cache(
+  async (): Promise<CmsNavigation | null> => {
+    try {
+      const supabase = await createClient();
+      const { data, error } = await supabase
+        .from("cms_navigation")
+        .select("*")
+        .eq("id", 1)
+        .single();
+      if (error) throw error;
+      return data as CmsNavigation;
+    } catch {
+      return null;
+    }
+  },
+  ["navigation"],
+  { revalidate: 60 },
+);
+
+/**
+ * Parse hero carousel slides from JSONB into typed array.
+ */
+export function parseHeroSlides(carousel: CmsHeroCarousel | null): CmsHeroSlide[] {
+  if (!carousel?.slides || !Array.isArray(carousel.slides)) return [];
+  return (carousel.slides as unknown as CmsHeroSlide[]).filter((s) => s.url && s.alt);
+}
+
+/**
+ * Parse footer sections from JSONB into typed array.
+ */
+export function parseFooterSections(nav: CmsNavigation | null): CmsFooterSection[] {
+  if (!nav?.footer_sections || !Array.isArray(nav.footer_sections)) return [];
+  return nav.footer_sections as unknown as CmsFooterSection[];
+}
+
+/**
+ * Parse footer legal links from JSONB into typed array.
+ */
+export function parseFooterLegalLinks(nav: CmsNavigation | null): CmsFooterLegalLink[] {
+  if (!nav?.footer_legal_links || !Array.isArray(nav.footer_legal_links)) return [];
+  return nav.footer_legal_links as unknown as CmsFooterLegalLink[];
+}

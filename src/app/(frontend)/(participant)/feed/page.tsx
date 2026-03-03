@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import FeedList from "@/components/feed/FeedList";
-import { isActivityFeedEnabled } from "@/lib/payload/cached";
+import { isActivityFeedEnabled } from "@/lib/cms/cached";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
