@@ -57,7 +57,7 @@ export default function Breadcrumbs() {
   }
 
   return (
-    <nav aria-label="Breadcrumb" className="mt-2 px-4 sm:px-6 lg:px-8">
+    <nav aria-label="Breadcrumb" className="mb-4">
       <ol className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
         {resolved.map((seg, i) => {
           const isLast = i === resolved.length - 1;

@@ -2,6 +2,7 @@ import { type Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import PostView from "@/components/feed/PostView";
+import { Breadcrumbs } from "@/components/ui";
 import type { BorderTier } from "@/lib/constants/avatar-borders";
 import type { BadgeCategory, BadgeRarity } from "@/lib/constants/badge-rarity";
 import type { ActivityType, FeedItem } from "@/lib/feed/types";
@@ -231,5 +232,12 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
     isReposted,
   };
 
-  return <PostView item={item} isAuthenticated={!!authUser} currentUserId={authUser?.id || null} />;
+  return (
+    <>
+      <div className="max-w-xl mx-auto px-4 pt-6">
+        <Breadcrumbs />
+      </div>
+      <PostView item={item} isAuthenticated={!!authUser} currentUserId={authUser?.id || null} />
+    </>
+  );
 }

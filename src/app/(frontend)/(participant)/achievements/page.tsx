@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { CheckCircleIcon, LockIcon } from "@/components/icons";
+import { Breadcrumbs } from "@/components/ui";
 import { resolvePresetImage } from "@/lib/constants/avatars";
 import { CATEGORY_STYLES, RARITY_STYLES } from "@/lib/constants/badge-rarity";
 import { SYSTEM_BADGE_CRITERIA_HINTS } from "@/lib/constants/system-badges";
@@ -45,6 +46,7 @@ export default async function AchievementsPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-12">
+      <Breadcrumbs />
       {/* Header */}
       <div className="text-center mb-10">
         <h1 className="text-3xl font-heading font-bold mb-2">Achievements</h1>

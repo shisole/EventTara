@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 
 import BookingPageClient from "@/components/booking/BookingPageClient";
+import { Breadcrumbs } from "@/components/ui";
 import { BreadcrumbTitle } from "@/lib/contexts/BreadcrumbContext";
 import { createClient } from "@/lib/supabase/server";
 
@@ -138,6 +139,7 @@ export default async function BookEventPage({
 
   return (
     <div className="max-w-lg mx-auto px-4 py-12">
+      <Breadcrumbs />
       <BreadcrumbTitle title={event.title} />
       <h1 className="text-2xl font-heading font-bold mb-8 text-center">
         {mode === "friend" ? "Book for a Friend" : "Book Your Spot"}

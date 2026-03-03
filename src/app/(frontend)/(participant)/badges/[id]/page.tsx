@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import ReviewForm from "@/components/reviews/ReviewForm";
-import { UserAvatar } from "@/components/ui";
+import { Breadcrumbs, UserAvatar } from "@/components/ui";
 import type { BorderTier } from "@/lib/constants/avatar-borders";
 import { resolvePresetImage } from "@/lib/constants/avatars";
 import { RARITY_STYLES, CATEGORY_STYLES } from "@/lib/constants/badge-rarity";
@@ -153,6 +153,7 @@ export default async function BadgeDetailPage({ params }: { params: Promise<{ id
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-12 space-y-8">
+      <Breadcrumbs />
       <BreadcrumbTitle title={badge.title} />
       {/* Badge Hero */}
       <div className="flex flex-col items-center text-center space-y-4">

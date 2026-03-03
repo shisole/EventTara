@@ -12,7 +12,7 @@ import { LocationPinIcon } from "@/components/icons";
 import EventLocationMap from "@/components/maps/EventLocationMap";
 import ReviewForm from "@/components/reviews/ReviewForm";
 import ReviewList from "@/components/reviews/ReviewList";
-import { UIBadge } from "@/components/ui";
+import { Breadcrumbs, UIBadge } from "@/components/ui";
 import { resolvePresetImage } from "@/lib/constants/avatars";
 import { BreadcrumbTitle } from "@/lib/contexts/BreadcrumbContext";
 import { cdnUrl } from "@/lib/storage";
@@ -395,26 +395,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
-      {/* Breadcrumb navigation */}
-      <nav aria-label="Breadcrumb" className="mb-4 text-sm text-gray-500 dark:text-gray-400">
-        <ol className="flex items-center gap-1.5">
-          <li>
-            <Link href="/" className="hover:text-gray-700 dark:hover:text-gray-300">
-              Home
-            </Link>
-          </li>
-          <li aria-hidden="true">/</li>
-          <li>
-            <Link href="/events" className="hover:text-gray-700 dark:hover:text-gray-300">
-              Events
-            </Link>
-          </li>
-          <li aria-hidden="true">/</li>
-          <li className="text-gray-900 dark:text-white font-medium truncate max-w-[200px]">
-            {event.title}
-          </li>
-        </ol>
-      </nav>
+      <Breadcrumbs />
 
       {/* Hero Image */}
       <div className="relative h-64 md:h-96 rounded-2xl overflow-hidden bg-gradient-to-br from-lime-100 to-forest-100 dark:from-lime-900 dark:to-forest-900 mb-8">
