@@ -634,7 +634,7 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
   return (
     <form onSubmit={handleSubmit} className="max-w-2xl lg:max-w-5xl">
       <div className="lg:grid lg:grid-cols-2 lg:gap-x-10">
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           <Input
             id="title"
             label="Event Title"
@@ -760,7 +760,7 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
           </div>
         </div>
 
-        <div className="space-y-6 mt-6 lg:mt-0">
+        <div className="min-w-0 space-y-6 mt-6 lg:mt-0">
           {/* Distance Categories (running, trail_run, road_bike only) */}
           {supportsDistances && (
             <div className="space-y-4">
