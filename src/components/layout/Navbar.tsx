@@ -113,7 +113,7 @@ export default function Navbar({
                 onClick={() => {
                   setExploreOpen(!exploreOpen);
                 }}
-                className="flex items-center gap-1 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium"
+                className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 hover:bg-gray-100 dark:hover:text-white dark:hover:bg-gray-800 font-medium transition-colors"
               >
                 Explore Events
                 <ChevronDownIcon
