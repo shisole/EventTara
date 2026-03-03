@@ -132,6 +132,19 @@ CREATE POLICY "Users can delete own strava activities"
   ON public.strava_activities FOR DELETE
   USING (auth.uid() = user_id);
 
+CREATE POLICY "Booking participants can view event activities"
+  ON public.strava_activities FOR SELECT
+  USING (
+    booking_id IS NOT NULL
+    AND EXISTS (
+      SELECT 1 FROM public.bookings b1
+      JOIN public.bookings b2 ON b1.event_id = b2.event_id
+      WHERE b1.id = strava_activities.booking_id
+      AND b2.user_id = auth.uid()
+      AND b2.status = 'confirmed'
+    )
+  );
+
 -- event_routes: anyone can read (public event data), organizers can write
 CREATE POLICY "Anyone can view event routes"
   ON public.event_routes FOR SELECT
