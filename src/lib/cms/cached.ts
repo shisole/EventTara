@@ -1,6 +1,7 @@
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { unstable_cache } from "next/cache";
 
-import { createClient } from "@/lib/supabase/server";
+import { type Database } from "@/lib/supabase/types";
 
 import type {
   CmsFeatureFlags,
@@ -13,12 +14,23 @@ import type {
 } from "./types";
 
 /**
+ * Plain anon client for public CMS reads inside unstable_cache.
+ * Does NOT use cookies() — safe to call during build / ISR / cache revalidation.
+ */
+function createAnonClient() {
+  return createSupabaseClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  );
+}
+
+/**
  * Cached site-settings fetch. Revalidates every 60 seconds.
  */
 export const getCachedSiteSettings = unstable_cache(
   async (): Promise<CmsSiteSettings | null> => {
     try {
-      const supabase = await createClient();
+      const supabase = createAnonClient();
       const { data, error } = await supabase
         .from("cms_site_settings")
         .select("*")
@@ -26,7 +38,8 @@ export const getCachedSiteSettings = unstable_cache(
         .single();
       if (error) throw error;
       return data as CmsSiteSettings;
-    } catch {
+    } catch (error) {
+      console.error("[CMS] Failed to fetch site settings:", error);
       return null;
     }
   },
@@ -40,7 +53,7 @@ export const getCachedSiteSettings = unstable_cache(
 export const getCachedFeatureFlags = unstable_cache(
   async (): Promise<CmsFeatureFlags | null> => {
     try {
-      const supabase = await createClient();
+      const supabase = createAnonClient();
       const { data, error } = await supabase
         .from("cms_feature_flags")
         .select("*")
@@ -48,7 +61,8 @@ export const getCachedFeatureFlags = unstable_cache(
         .single();
       if (error) throw error;
       return data as CmsFeatureFlags;
-    } catch {
+    } catch (error) {
+      console.error("[CMS] Failed to fetch feature flags:", error);
       return null;
     }
   },
@@ -78,7 +92,7 @@ export async function isActivityFeedEnabled(): Promise<boolean> {
 export const getCachedHeroCarousel = unstable_cache(
   async (): Promise<CmsHeroCarousel | null> => {
     try {
-      const supabase = await createClient();
+      const supabase = createAnonClient();
       const { data, error } = await supabase
         .from("cms_hero_carousel")
         .select("*")
@@ -86,7 +100,8 @@ export const getCachedHeroCarousel = unstable_cache(
         .single();
       if (error) throw error;
       return data as CmsHeroCarousel;
-    } catch {
+    } catch (error) {
+      console.error("[CMS] Failed to fetch hero carousel:", error);
       return null;
     }
   },
@@ -100,7 +115,7 @@ export const getCachedHeroCarousel = unstable_cache(
 export const getCachedNavigation = unstable_cache(
   async (): Promise<CmsNavigation | null> => {
     try {
-      const supabase = await createClient();
+      const supabase = createAnonClient();
       const { data, error } = await supabase
         .from("cms_navigation")
         .select("*")
@@ -108,7 +123,8 @@ export const getCachedNavigation = unstable_cache(
         .single();
       if (error) throw error;
       return data as CmsNavigation;
-    } catch {
+    } catch (error) {
+      console.error("[CMS] Failed to fetch navigation:", error);
       return null;
     }
   },
