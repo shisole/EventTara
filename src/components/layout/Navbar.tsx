@@ -108,7 +108,12 @@ export default function Navbar({
 
           {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-6">
-            <div className="relative" data-explore-dropdown>
+            <div
+              className="relative pb-2 -mb-2"
+              data-explore-dropdown
+              onMouseEnter={() => setExploreOpen(true)}
+              onMouseLeave={() => setExploreOpen(false)}
+            >
               <button
                 onClick={() => {
                   setExploreOpen(!exploreOpen);
