@@ -7,13 +7,12 @@ import FeedShowcaseSection from "@/components/landing/FeedShowcaseSection";
 import GamificationSection from "@/components/landing/GamificationSection";
 import HeroSection from "@/components/landing/HeroSection";
 import OrganizersSection from "@/components/landing/OrganizersSection";
-import OrganizerWaitlistSection from "@/components/landing/OrganizerWaitlistSection";
+import OrganizerWaitlistModal from "@/components/landing/OrganizerWaitlistModal";
 import ParallaxMountain from "@/components/landing/ParallaxMountain";
 import StravaShowcaseSection from "@/components/landing/StravaShowcaseSection";
 import TestimonialsSection from "@/components/landing/TestimonialsSection";
 import UpcomingEventsSection from "@/components/landing/UpcomingEventsSection";
 import { getCachedHeroCarousel, getCachedSiteSettings, parseHeroSlides } from "@/lib/cms/cached";
-import { createClient } from "@/lib/supabase/server";
 
 export const metadata = {
   title: "EventTara — Outdoor Adventure Events in Panay Island",
@@ -164,13 +163,10 @@ function GamificationSkeleton() {
 }
 
 export default async function Home() {
-  const supabase = await createClient();
-  const [heroData, settings, waitlistResult] = await Promise.all([
+  const [heroData, settings] = await Promise.all([
     getCachedHeroCarousel(),
     getCachedSiteSettings(),
-    supabase.from("organizer_waitlist").select("*", { count: "exact", head: true }),
   ]);
-  const waitlistCount = waitlistResult.count ?? 0;
   const heroSlides = parseHeroSlides(heroData);
   const transformedHeroData =
     heroSlides.length > 0
@@ -282,8 +278,8 @@ export default async function Home() {
         <TestimonialsSection />
       </Suspense>
 
-      {/* Organizer Waitlist */}
-      <OrganizerWaitlistSection initialCount={waitlistCount} />
+      {/* Organizer Waitlist Modal */}
+      <OrganizerWaitlistModal />
 
       {/* FAQ Section — static with JSON-LD */}
       <FAQSection />
