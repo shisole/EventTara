@@ -29,6 +29,7 @@ interface EventCardProps {
   review_count?: number;
   difficulty_level?: number | null;
   race_distances?: number[];
+  hasRoute?: boolean;
 }
 
 const typeLabels: Record<string, string> = {
@@ -58,6 +59,7 @@ export default function EventCard({
   review_count,
   difficulty_level,
   race_distances,
+  hasRoute,
 }: EventCardProps) {
   const spotsLeft = max_participants - booking_count;
   const formattedDate = formatEventDate(date, endDate, { short: true });
@@ -129,6 +131,22 @@ export default function EventCard({
                   {km} km
                 </span>
               ))}
+            {hasRoute && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-[#FC4C02] dark:bg-orange-900/40 dark:text-orange-300">
+                <svg
+                  className="h-3 w-3"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M3 17l4-4 4 4 4-4 4 4M3 7l4-4 4 4 4-4 4 4" />
+                </svg>
+                Route
+              </span>
+            )}
           </div>
           <h3 className="font-heading font-bold text-lg line-clamp-1">{title}</h3>
           {organizer_name && organizer_id ? (
