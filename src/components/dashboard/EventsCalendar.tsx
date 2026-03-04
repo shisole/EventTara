@@ -54,9 +54,17 @@ const typeChipText: Record<EventType, string> = {
 
 interface EventsCalendarProps {
   events: CalendarEvent[];
+  linkPrefix?: string;
+  className?: string;
+  compact?: boolean;
 }
 
-export default function EventsCalendar({ events }: EventsCalendarProps) {
+export default function EventsCalendar({
+  events,
+  linkPrefix = "/dashboard/events",
+  className,
+  compact = false,
+}: EventsCalendarProps) {
   const router = useRouter();
   const today = new Date();
   const [month, setMonth] = useState(today);
@@ -96,7 +104,7 @@ export default function EventsCalendar({ events }: EventsCalendarProps) {
     }
     if (dayEvents.length === 1) {
       setPopover(null);
-      router.push(`/dashboard/events/${dayEvents[0].id}`);
+      router.push(`${linkPrefix}/${dayEvents[0].id}`);
       return;
     }
     // Multiple events — show popover
@@ -144,6 +152,39 @@ export default function EventsCalendar({ events }: EventsCalendarProps) {
     selected: "",
   };
 
+  // Compact desktop: full-width grid with shorter cells and dots (no event chips)
+  const compactDesktopClassNames = {
+    root: "text-gray-900 dark:text-gray-100 w-full",
+    months: "relative w-full",
+    month: "w-full",
+    month_caption: "hidden",
+    nav: "hidden",
+    button_previous: "hidden",
+    button_next: "hidden",
+    month_grid: "w-full border-collapse table-fixed",
+    weekdays: "flex w-full",
+    weekday: cn(
+      "flex-1 text-gray-500 dark:text-gray-400 font-medium text-sm uppercase",
+      "text-center py-2 border-b border-gray-200 dark:border-gray-700",
+    ),
+    week: "flex w-full",
+    day: cn(
+      "flex-1 h-11 text-sm p-0 relative",
+      "border-b border-r border-gray-100 dark:border-gray-800",
+      "last:border-r-0",
+      "focus-within:relative focus-within:z-20",
+    ),
+    day_button: cn(
+      "w-full h-full p-0 font-normal rounded-none",
+      "hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors",
+      "flex items-center justify-center",
+    ),
+    today: "bg-gray-50 dark:bg-gray-800/30",
+    outside: "text-gray-400 dark:text-gray-600 opacity-50",
+    hidden: "invisible",
+    selected: "",
+  };
+
   // Mobile: compact cells with dots
   const mobileClassNames = {
     root: "text-gray-900 dark:text-gray-100",
@@ -169,7 +210,10 @@ export default function EventsCalendar({ events }: EventsCalendarProps) {
   return (
     <div
       ref={containerRef}
-      className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-4 md:p-6"
+      className={cn(
+        "relative bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-4 md:p-6",
+        className,
+      )}
     >
       <h2 className="text-lg font-heading font-bold dark:text-white mb-3">Event Calendar</h2>
       <div className="flex flex-col items-center gap-1 mb-5">
@@ -228,14 +272,16 @@ export default function EventsCalendar({ events }: EventsCalendarProps) {
         mode="single"
         month={month}
         onMonthChange={setMonth}
-        classNames={isDesktop ? desktopClassNames : mobileClassNames}
+        classNames={
+          isDesktop ? (compact ? compactDesktopClassNames : desktopClassNames) : mobileClassNames
+        }
         components={{
           DayButton: ({ day, ...props }) => {
             const dayEvents = eventsForDay(day.date);
             const hasEvents = dayEvents.length > 0;
             const uniqueTypes = [...new Set(dayEvents.map((ev) => ev.type))];
 
-            if (isDesktop) {
+            if (isDesktop && !compact) {
               // Desktop: tall cell with date number + event name chips
               return (
                 <button
@@ -273,6 +319,33 @@ export default function EventsCalendar({ events }: EventsCalendarProps) {
                         </div>
                       )}
                     </div>
+                  )}
+                </button>
+              );
+            }
+
+            if (isDesktop && compact) {
+              // Compact desktop: full-width grid with dots
+              return (
+                <button
+                  {...props}
+                  onClick={(e) => {
+                    handleDayClick(day.date, e.currentTarget);
+                  }}
+                  className={cn(props.className, hasEvents && "bg-teal-50/50 dark:bg-teal-900/10")}
+                >
+                  <span className={cn(hasEvents && "text-teal-700 dark:text-teal-300 font-medium")}>
+                    {day.date.getDate()}
+                  </span>
+                  {hasEvents && (
+                    <span className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-0.5">
+                      {uniqueTypes.slice(0, 3).map((type) => (
+                        <span
+                          key={type}
+                          className={cn("block h-1.5 w-1.5 rounded-full", typeDotColors[type])}
+                        />
+                      ))}
+                    </span>
                   )}
                 </button>
               );
@@ -342,7 +415,7 @@ export default function EventsCalendar({ events }: EventsCalendarProps) {
                 key={evt.id}
                 onClick={() => {
                   setPopover(null);
-                  router.push(`/dashboard/events/${evt.id}`);
+                  router.push(`${linkPrefix}/${evt.id}`);
                 }}
                 className={cn(
                   "w-full text-left px-3 py-2 rounded-lg text-sm transition-colors",

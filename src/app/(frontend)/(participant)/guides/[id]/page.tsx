@@ -1,11 +1,15 @@
+import nextDynamic from "next/dynamic";
 import { notFound } from "next/navigation";
 
+import { type CalendarEvent } from "@/components/dashboard/EventsCalendar";
 import EventCard from "@/components/events/EventCard";
 import ReviewList from "@/components/reviews/ReviewList";
 import StarRating from "@/components/reviews/StarRating";
 import { Breadcrumbs, UserAvatar } from "@/components/ui";
 import { BreadcrumbTitle } from "@/lib/contexts/BreadcrumbContext";
 import { createClient } from "@/lib/supabase/server";
+
+const EventsCalendar = nextDynamic(() => import("@/components/dashboard/EventsCalendar"));
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +18,7 @@ interface GuideEvent {
   title: string;
   type: string;
   date: string;
+  end_date: string | null;
   location: string;
   price: number;
   cover_image_url: string | null;
@@ -105,6 +110,7 @@ export default async function GuideProfilePage({ params }: { params: Promise<{ i
       title: event.title,
       type: event.type,
       date: event.date,
+      end_date: event.end_date ?? null,
       location: event.location,
       price: event.price,
       cover_image_url: event.cover_image_url,
@@ -119,6 +125,20 @@ export default async function GuideProfilePage({ params }: { params: Promise<{ i
     );
     pastEvents = allEvents.filter((e) => e.status === "past");
   }
+
+  const calendarEvents: CalendarEvent[] = [...upcomingEvents, ...pastEvents].map((e) => ({
+    id: e.id,
+    title: e.title,
+    date: e.date,
+    end_date: e.end_date,
+    type: e.type as CalendarEvent["type"],
+    status:
+      e.status === "happening_now"
+        ? "published"
+        : e.status === "upcoming"
+          ? "published"
+          : "completed",
+  }));
 
   // Fetch reviews with user info
   const { data: reviews } = await supabase
@@ -252,6 +272,18 @@ export default async function GuideProfilePage({ params }: { params: Promise<{ i
         <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm dark:shadow-gray-950/20 p-8 text-center mb-8">
           <p className="text-gray-500 dark:text-gray-400">No events yet for this guide.</p>
         </div>
+      )}
+
+      {/* Event Calendar */}
+      {calendarEvents.length > 0 && (
+        <section className="mb-8">
+          <EventsCalendar
+            events={calendarEvents}
+            linkPrefix="/events"
+            compact
+            className="border border-gray-100 dark:border-gray-800"
+          />
+        </section>
       )}
 
       {/* Reviews */}
