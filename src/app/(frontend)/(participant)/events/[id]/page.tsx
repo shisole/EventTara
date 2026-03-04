@@ -12,6 +12,7 @@ import { LocationPinIcon } from "@/components/icons";
 import EventLocationMap from "@/components/maps/EventLocationMap";
 import ReviewForm from "@/components/reviews/ReviewForm";
 import ReviewList from "@/components/reviews/ReviewList";
+import EventRouteSection from "@/components/strava/EventRouteSection";
 import { Breadcrumbs, UIBadge } from "@/components/ui";
 import { resolvePresetImage } from "@/lib/constants/avatars";
 import { BreadcrumbTitle } from "@/lib/contexts/BreadcrumbContext";
@@ -279,6 +280,13 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
     }
   }
 
+  // Fetch event route (if attached)
+  const { data: eventRoute } = await supabase
+    .from("event_routes")
+    .select("name, summary_polyline, distance, elevation_gain, source")
+    .eq("event_id", id)
+    .single();
+
   // Check if current user can review (checked in + hasn't reviewed)
   let canReview = false;
   if (authUser && event.status === "completed") {
@@ -451,6 +459,16 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
                 label={event.location}
               />
             )}
+          {eventRoute?.summary_polyline && (
+            <EventRouteSection
+              name={eventRoute.name}
+              polyline={eventRoute.summary_polyline}
+              distance={eventRoute.distance}
+              elevationGain={eventRoute.elevation_gain}
+              source={eventRoute.source}
+            />
+          )}
+
           {/* Reviews Section */}
           {(eventReviews.length > 0 || canReview) && (
             <div>
