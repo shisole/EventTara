@@ -3,6 +3,7 @@ import { ImageResponse } from "next/og";
 import { loadCursiveFont, loadFaviconDataUri, loadSansFont } from "@/lib/og/brand-assets";
 
 export const runtime = "nodejs";
+export const revalidate = false;
 export const alt = "EventTara — Tara na! Book Your Next Adventure";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
