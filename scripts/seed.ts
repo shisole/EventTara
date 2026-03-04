@@ -246,6 +246,9 @@ const PANAY_MOUNTAINS = [
   { name: "Mt. Inaman", province: "Iloilo", difficulty_level: 5, elevation_masl: 1396 },
   { name: "Mt. Igdalig", province: "Iloilo", difficulty_level: 5, elevation_masl: 1377 },
   { name: "Mt. Napulak", province: "Iloilo", difficulty_level: 4, elevation_masl: 1239 },
+  { name: "Mt. Opao", province: "Iloilo", difficulty_level: 4, elevation_masl: 600 },
+  { name: "Mt. Lingguhob", province: "Iloilo", difficulty_level: 5, elevation_masl: 700 },
+  { name: "Mt. Igatmon", province: "Antique", difficulty_level: 6, elevation_masl: 900 },
 ];
 
 /** Map of hiking event title -> mountain names to link */
@@ -261,6 +264,15 @@ const HIKING_EVENT_MOUNTAINS: Record<string, string[]> = {
   "Nadsadan Falls Day Hike": ["Mt. Napulak"],
   "Hamtic River Gorge Trek": ["Mt. Balabag", "Mt. Agbalanti"],
   "Sibalom Natural Park Wander": ["Mt. Agbalanti"],
+  "Mt. Opao Day Hike": ["Mt. Opao"],
+  "Mt. Opao Sunrise Trek": ["Mt. Opao"],
+  "Mt. Opao Trail Run 8K": ["Mt. Opao"],
+  "Mt. Lingguhob Summit Hike": ["Mt. Lingguhob"],
+  "Mt. Lingguhob Ridge Trail": ["Mt. Lingguhob"],
+  "Mt. Lingguhob Night Hike": ["Mt. Lingguhob"],
+  "Mt. Igatmon Expedition": ["Mt. Igatmon"],
+  "Mt. Igatmon Summit Day Hike": ["Mt. Igatmon"],
+  "Mt. Igatmon Traverse": ["Mt. Igatmon"],
 };
 
 interface TestEvent {
@@ -1144,6 +1156,135 @@ const TEST_EVENTS: TestEvent[] = [
     status: "published",
     cover_image_url: COVER_IMAGES.hiking_alt2,
   },
+  // ---- Mt. Opao events ----
+  {
+    orgProfileName: "Iloilo Pedal Club",
+    title: "Mt. Opao Day Hike",
+    description:
+      "A scenic day hike up Mt. Opao in Igbaras, Iloilo. Enjoy lush tropical forest, river crossings, and panoramic views of the Iloilo coastline from the summit. Beginner-friendly with local guide included.",
+    type: "hiking",
+    date: daysFromNow(12),
+    location: "Igbaras, Iloilo",
+    coordinates: { lat: 10.68, lng: 122.27 },
+    max_participants: 30,
+    price: 350,
+    status: "published",
+    cover_image_url: COVER_IMAGES.hiking,
+  },
+  {
+    orgProfileName: "Yenergy Outdoors",
+    title: "Mt. Opao Sunrise Trek",
+    description:
+      "Start before dawn and catch the sunrise from the Mt. Opao summit. The pre-dawn trail through fog-covered forest adds a magical atmosphere. Headlamp required — hot coffee at the top!",
+    type: "hiking",
+    date: daysFromNow(20),
+    location: "Miag-ao, Iloilo",
+    coordinates: { lat: 10.67, lng: 122.25 },
+    max_participants: 25,
+    price: 400,
+    status: "published",
+    cover_image_url: COVER_IMAGES.hiking_alt,
+  },
+  {
+    orgProfileName: "Panay Trail Collective",
+    title: "Mt. Opao Trail Run 8K",
+    description:
+      "A fast 8K trail run from the Igbaras trailhead up Mt. Opao and back. Technical single-track, roots, rocks, and a 400m elevation gain make this a challenging but rewarding race.",
+    type: "hiking",
+    date: daysFromNow(-20),
+    location: "Igbaras, Iloilo",
+    coordinates: { lat: 10.68, lng: 122.27 },
+    max_participants: 40,
+    price: 300,
+    status: "completed",
+    cover_image_url: COVER_IMAGES.trail_run,
+  },
+  // ---- Mt. Lingguhob events ----
+  {
+    orgProfileName: "JTT (Journey Through Trails)",
+    title: "Mt. Lingguhob Summit Hike",
+    description:
+      "Tackle Mt. Lingguhob in Leon, one of Iloilo's most rewarding mid-altitude hikes. Dense forest gives way to exposed ridgelines with sweeping views of the Panay highlands. Moderate difficulty.",
+    type: "hiking",
+    date: daysFromNow(18),
+    location: "Leon, Iloilo",
+    coordinates: { lat: 10.78, lng: 122.35 },
+    max_participants: 20,
+    price: 500,
+    status: "published",
+    cover_image_url: COVER_IMAGES.hiking_alt2,
+  },
+  {
+    orgProfileName: "Five Tersty Trekkers",
+    title: "Mt. Lingguhob Ridge Trail",
+    description:
+      "A ridge-to-ridge traverse of Mt. Lingguhob's dramatic ridgeline. Exposed sections with 360-degree views, bamboo forest, and a lunch stop at a local spring. For experienced hikers.",
+    type: "hiking",
+    date: daysFromNow(30),
+    location: "Tubungan, Iloilo",
+    coordinates: { lat: 10.77, lng: 122.34 },
+    max_participants: 15,
+    price: 600,
+    status: "published",
+    cover_image_url: COVER_IMAGES.hiking,
+  },
+  {
+    orgProfileName: "Rubo-rubo Lang",
+    title: "Mt. Lingguhob Night Hike",
+    description:
+      "An after-dark ascent of Mt. Lingguhob under the stars. Headlamps light the trail as you climb through the quiet forest. Summit arrival timed for moonrise — a unique mountain experience.",
+    type: "hiking",
+    date: daysFromNow(-40),
+    location: "Leon, Iloilo",
+    coordinates: { lat: 10.78, lng: 122.35 },
+    max_participants: 20,
+    price: 450,
+    status: "completed",
+    cover_image_url: COVER_IMAGES.hiking_alt,
+  },
+  // ---- Mt. Igatmon events ----
+  {
+    orgProfileName: "Panay Trail Collective",
+    title: "Mt. Igatmon Expedition",
+    description:
+      "A challenging expedition to Mt. Igatmon in Barbaza, Antique. Remote trails through old-growth forest, river valley crossings, and a demanding final push to the 900m summit. Two-day itinerary with overnight camp.",
+    type: "hiking",
+    date: daysFromNow(25),
+    location: "Barbaza, Antique",
+    coordinates: { lat: 11.2, lng: 122.05 },
+    max_participants: 15,
+    price: 1800,
+    status: "published",
+    cover_image_url: COVER_IMAGES.hiking_alt2,
+  },
+  {
+    orgProfileName: "JTT (Journey Through Trails)",
+    title: "Mt. Igatmon Summit Day Hike",
+    description:
+      "A single-day push to the summit of Mt. Igatmon for fit hikers. Early start, fast pace, and a stunning payoff — views stretching from Antique's coast to the Panay central range.",
+    type: "hiking",
+    date: daysFromNow(40),
+    location: "Barbaza, Antique",
+    coordinates: { lat: 11.2, lng: 122.05 },
+    max_participants: 12,
+    price: 1200,
+    status: "published",
+    cover_image_url: COVER_IMAGES.hiking,
+  },
+  {
+    orgProfileName: "Five Tersty Trekkers",
+    title: "Mt. Igatmon Traverse",
+    description:
+      "A point-to-point traverse of Mt. Igatmon, descending via the lesser-known eastern trail into the Barbaza river valley. Technical terrain, river crossings, and jungle bushwhacking.",
+    type: "hiking",
+    date: daysFromNow(-55),
+    location: "Barbaza, Antique",
+    coordinates: { lat: 11.2, lng: 122.05 },
+    max_participants: 10,
+    price: 2000,
+    status: "completed",
+    cover_image_url: COVER_IMAGES.hiking_alt,
+  },
   // ---- Free events ----
   {
     orgProfileName: "Panay Trail Collective",
@@ -1294,6 +1435,93 @@ const EVENT_ROUTE_DEFS: EventRouteDef[] = [
     waypoints: [
       [10.583, 122.585],
       [10.583, 122.585],
+    ],
+  },
+
+  // 6. Mt. Opao Trail — day hike through tropical forest near Igbaras (~6km, 400m gain)
+  {
+    eventTitle: "Mt. Opao Day Hike",
+    name: "Mt. Opao Trail",
+    distanceKm: 6,
+    elevationGain: 400,
+    waypoints: [
+      [10.685, 122.275], // Start: Igbaras jump-off
+      [10.683, 122.273], // Trail enters forest
+      [10.681, 122.27], // River crossing
+      [10.679, 122.267], // Climbing through canopy
+      [10.677, 122.264], // Steep ascent
+      [10.675, 122.261], // Ridge approach
+      [10.673, 122.258], // Exposed ridge
+      [10.671, 122.256], // Near summit
+      [10.67, 122.254], // Mt. Opao summit — turnaround
+      [10.671, 122.256], // Return: descending ridge
+      [10.673, 122.258], // Along ridge
+      [10.675, 122.261], // Steep descent
+      [10.677, 122.264], // Through forest
+      [10.679, 122.267], // Lower forest
+      [10.681, 122.27], // River crossing
+      [10.683, 122.273], // Exiting forest
+      [10.685, 122.275], // Back to jump-off
+    ],
+  },
+
+  // 7. Mt. Lingguhob Trail — ridge hike in Leon/Tubungan (~8km, 500m gain)
+  {
+    eventTitle: "Mt. Lingguhob Summit Hike",
+    name: "Mt. Lingguhob Trail",
+    distanceKm: 8,
+    elevationGain: 500,
+    waypoints: [
+      [10.785, 122.355], // Start: Leon trailhead
+      [10.783, 122.352], // Through farmland
+      [10.781, 122.349], // Entering bamboo forest
+      [10.779, 122.346], // Climbing through forest
+      [10.777, 122.343], // Steep section
+      [10.775, 122.34], // Ridge start
+      [10.773, 122.337], // Along ridgeline
+      [10.771, 122.334], // Exposed ridge with views
+      [10.769, 122.331], // Final push
+      [10.768, 122.329], // Mt. Lingguhob summit — turnaround
+      [10.769, 122.331], // Return: descending
+      [10.771, 122.334], // Along ridge
+      [10.773, 122.337], // Ridge descent
+      [10.775, 122.34], // Through forest
+      [10.777, 122.343], // Lower forest
+      [10.779, 122.346], // Farmland
+      [10.781, 122.349], // Exiting trail
+      [10.783, 122.352], // Final stretch
+      [10.785, 122.355], // Back to trailhead
+    ],
+  },
+
+  // 8. Mt. Igatmon Trail — expedition route in Barbaza, Antique (~10km, 650m gain)
+  {
+    eventTitle: "Mt. Igatmon Expedition",
+    name: "Mt. Igatmon Trail",
+    distanceKm: 10,
+    elevationGain: 650,
+    waypoints: [
+      [11.205, 122.055], // Start: Barbaza jump-off
+      [11.203, 122.052], // Trail enters river valley
+      [11.201, 122.049], // River crossing
+      [11.199, 122.046], // Through old-growth forest
+      [11.197, 122.043], // Climbing steeply
+      [11.195, 122.04], // Rocky section
+      [11.193, 122.037], // Forest canopy thickens
+      [11.191, 122.034], // Ridge approach
+      [11.189, 122.031], // Exposed ridge
+      [11.187, 122.028], // Final ascent
+      [11.186, 122.026], // Mt. Igatmon summit — turnaround
+      [11.187, 122.028], // Return: descending
+      [11.189, 122.031], // Along ridge
+      [11.191, 122.034], // Back into forest
+      [11.193, 122.037], // Rocky descent
+      [11.195, 122.04], // Through forest
+      [11.197, 122.043], // Lower canopy
+      [11.199, 122.046], // River valley
+      [11.201, 122.049], // River crossing
+      [11.203, 122.052], // Final stretch
+      [11.205, 122.055], // Back to jump-off
     ],
   },
 ];
