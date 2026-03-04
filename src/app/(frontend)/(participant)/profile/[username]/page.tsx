@@ -7,9 +7,12 @@ import UpcomingBookings from "@/components/participant/UpcomingBookings";
 import FollowButton from "@/components/profile/FollowButton";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import ProfileStats from "@/components/profile/ProfileStats";
+import StravaActivityFeed from "@/components/strava/StravaActivityFeed";
+import StravaConnectButton from "@/components/strava/StravaConnectButton";
+import StravaStatsBar from "@/components/strava/StravaStatsBar";
 import { Breadcrumbs, Button } from "@/components/ui";
 import { checkAndAwardBorders } from "@/lib/borders/check-borders";
-import type { BorderTier } from "@/lib/constants/avatar-borders";
+import { type BorderTier } from "@/lib/constants/avatar-borders";
 import { BreadcrumbTitle } from "@/lib/contexts/BreadcrumbContext";
 import { createClient } from "@/lib/supabase/server";
 
@@ -226,6 +229,20 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
     if (type) typeBreakdown[type] = (typeBreakdown[type] || 0) + 1;
   }
 
+  // Fetch Strava connection (only public-safe fields — never expose tokens)
+  const { data: stravaConnection } = await supabase
+    .from("strava_connections")
+    .select("strava_athlete_id, athlete_data")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  const hasStrava = !!stravaConnection;
+  const stravaAthleteData: Record<string, unknown> | null =
+    stravaConnection?.athlete_data && typeof stravaConnection.athlete_data === "object"
+      ? (stravaConnection.athlete_data as Record<string, unknown>)
+      : null;
+  const stravaAthleteId: number | null = stravaConnection?.strava_athlete_id ?? null;
+
   // Format badges for BadgeGrid
   const badges = (userBadges || []).map((ub: any) => ({
     id: ub.badge_id,
@@ -264,6 +281,21 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
         typeBreakdown={typeBreakdown}
       />
 
+      {/* Strava stats — shown to everyone if connected */}
+      {hasStrava && (
+        <StravaStatsBar athleteData={stravaAthleteData} stravaAthleteId={stravaAthleteId} />
+      )}
+
+      {/* Strava connect prompt — only shown on own profile when not connected */}
+      {isOwnProfile && !hasStrava && !isGuest && (
+        <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-5 text-center space-y-3">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Connect your Strava account to display your activity stats on your profile.
+          </p>
+          <StravaConnectButton />
+        </div>
+      )}
+
       {isOwnProfile && isGuest && (
         <div className="bg-golden-50 border border-golden-200 rounded-2xl p-5 text-center">
           <p className="font-medium mb-2">Create an account to keep your badges forever!</p>
@@ -284,6 +316,14 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
         <section>
           <h2 className="text-xl font-heading font-bold mb-4">Past Adventures</h2>
           <PastEvents events={past} />
+        </section>
+      )}
+
+      {/* Strava activity feed — only on own profile when connected */}
+      {isOwnProfile && hasStrava && (
+        <section>
+          <h2 className="text-xl font-heading font-bold mb-4">Recent Strava Activities</h2>
+          <StravaActivityFeed userId={user.id} />
         </section>
       )}
 
