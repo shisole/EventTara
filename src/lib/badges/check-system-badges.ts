@@ -36,6 +36,7 @@ const CRITERIA_EVALUATORS: Record<
   distance_21k: (stats) => stats.maxDistanceKm >= 21,
   distance_42k: (stats) => stats.maxDistanceKm >= 42,
   distance_100k: (stats) => stats.maxDistanceKm >= 100,
+  strava_connected: (stats) => stats.hasStravaConnection,
   pioneer: (_stats, pioneerRank) => pioneerRank !== null && pioneerRank <= 100,
 };
 
@@ -43,6 +44,7 @@ interface CheckinStats {
   totalCheckins: number;
   eventCountByType: Record<string, number>;
   maxDistanceKm: number;
+  hasStravaConnection: boolean;
 }
 
 /**
@@ -56,35 +58,39 @@ export async function checkAndAwardSystemBadges(
   supabase: SupabaseClient<Database>,
 ): Promise<AwardedBadge[]> {
   try {
-    // 1. Parallel fetch: check-in stats, existing system badge criteria_keys, system badge rows, and distance data
-    const [checkinsResult, existingResult, systemBadgesResult, distanceResult] = await Promise.all([
-      // User's check-ins joined to events for type and status
-      supabase
-        .from("event_checkins")
-        .select("event_id, events:event_id(type, status)")
-        .eq("user_id", userId),
+    // 1. Parallel fetch: check-in stats, existing system badge criteria_keys, system badge rows, distance data, and Strava connection
+    const [checkinsResult, existingResult, systemBadgesResult, distanceResult, stravaResult] =
+      await Promise.all([
+        // User's check-ins joined to events for type and status
+        supabase
+          .from("event_checkins")
+          .select("event_id, events:event_id(type, status)")
+          .eq("user_id", userId),
 
-      // User's existing system badges only (via inner join to badges table)
-      supabase
-        .from("user_badges")
-        .select("badge_id, badges:badge_id!inner(criteria_key)")
-        .eq("user_id", userId)
-        .eq("badges.type" as any, "system"),
+        // User's existing system badges only (via inner join to badges table)
+        supabase
+          .from("user_badges")
+          .select("badge_id, badges:badge_id!inner(criteria_key)")
+          .eq("user_id", userId)
+          .eq("badges.type" as any, "system"),
 
-      // All system badge rows from DB (need their IDs for insert)
-      supabase
-        .from("badges")
-        .select("id, criteria_key")
-        .eq("type", "system")
-        .not("criteria_key", "is", null),
+        // All system badge rows from DB (need their IDs for insert)
+        supabase
+          .from("badges")
+          .select("id, criteria_key")
+          .eq("type", "system")
+          .not("criteria_key", "is", null),
 
-      // User's bookings with distance info (for distance milestone badges)
-      supabase
-        .from("bookings")
-        .select("event_id, event_distance_id, event_distances:event_distance_id(distance_km)")
-        .eq("user_id", userId)
-        .not("event_distance_id", "is", null),
-    ]);
+        // User's bookings with distance info (for distance milestone badges)
+        supabase
+          .from("bookings")
+          .select("event_id, event_distance_id, event_distances:event_distance_id(distance_km)")
+          .eq("user_id", userId)
+          .not("event_distance_id", "is", null),
+
+        // Strava connection check
+        supabase.from("strava_connections").select("user_id").eq("user_id", userId).limit(1),
+      ]);
 
     // Build check-in stats
     const checkins = checkinsResult.data ?? [];
@@ -115,7 +121,13 @@ export async function checkAndAwardSystemBadges(
       }
     }
 
-    const stats: CheckinStats = { totalCheckins, eventCountByType, maxDistanceKm };
+    const hasStravaConnection = (stravaResult.data?.length ?? 0) > 0;
+    const stats: CheckinStats = {
+      totalCheckins,
+      eventCountByType,
+      maxDistanceKm,
+      hasStravaConnection,
+    };
 
     // Build set of already-earned criteria keys
     const existingKeys = new Set<string>();

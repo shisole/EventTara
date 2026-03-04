@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { checkAndAwardSystemBadges } from "@/lib/badges/check-system-badges";
 import { STRAVA_TOKEN_URL } from "@/lib/strava/constants";
 import { type StravaTokenResponse } from "@/lib/strava/types";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
@@ -127,6 +128,9 @@ export async function GET(request: Request) {
       },
       { onConflict: "user_id" },
     );
+
+    // Award "Connected Athlete" badge (fire-and-forget)
+    void checkAndAwardSystemBadges(currentUser.id, serviceClient);
 
     const returnUrl = state.returnUrl || "/profile/" + currentUser.id;
     return NextResponse.redirect(`${origin}${returnUrl}?strava=connected`);
@@ -289,6 +293,9 @@ export async function GET(request: Request) {
     scope: "read,activity:read_all,activity:write",
     athlete_data: athlete as unknown as Json,
   });
+
+  // Award "Connected Athlete" badge (fire-and-forget)
+  void checkAndAwardSystemBadges(newUserId, serviceClient);
 
   // Sign the new user in by generating a magic link and verifying it
   const { data: linkData, error: linkError } = await serviceClient.auth.admin.generateLink({
