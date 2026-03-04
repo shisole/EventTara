@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { Fragment, useCallback, useState } from "react";
 
-import { TrashIcon } from "@/components/icons";
+import { HeartIcon, TrashIcon } from "@/components/icons";
 import { UserAvatar } from "@/components/ui";
 import type { FeedComment } from "@/lib/feed/types";
 import { cn } from "@/lib/utils";
@@ -15,8 +15,35 @@ interface CommentItemProps {
   onDelete: (commentId: string) => void;
 }
 
+/**
+ * Render comment text with @mentions as profile links.
+ * Splits text on `@username` patterns and wraps matches in Link components.
+ */
+function renderTextWithMentions(text: string) {
+  const parts = text.split(/(@\w+)/g);
+
+  return parts.map((part, i) => {
+    if (part.startsWith("@") && part.length > 1) {
+      const username = part.slice(1);
+      return (
+        <Link
+          key={i}
+          href={`/profile/${username}`}
+          className="font-semibold text-teal-600 dark:text-teal-400 hover:underline"
+        >
+          {part}
+        </Link>
+      );
+    }
+    return <Fragment key={i}>{part}</Fragment>;
+  });
+}
+
 export default function CommentItem({ comment, currentUserId, onDelete }: CommentItemProps) {
   const [deleting, setDeleting] = useState(false);
+  const [liked, setLiked] = useState(comment.isLiked);
+  const [likeCount, setLikeCount] = useState(comment.likeCount);
+  const [likeLoading, setLikeLoading] = useState(false);
 
   const isOwn = currentUserId === comment.userId;
 
@@ -35,6 +62,42 @@ export default function CommentItem({ comment, currentUserId, onDelete }: Commen
       setDeleting(false);
     }
   };
+
+  const handleLike = useCallback(async () => {
+    if (likeLoading || !currentUserId || comment.pending || comment.failed) return;
+
+    if (!currentUserId) {
+      globalThis.location.href = "/login";
+      return;
+    }
+
+    setLikeLoading(true);
+    const wasLiked = liked;
+
+    // Optimistic update
+    setLiked(!wasLiked);
+    setLikeCount((prev) => prev + (wasLiked ? -1 : 1));
+
+    try {
+      const res = await fetch("/api/feed/comments/like", {
+        method: wasLiked ? "DELETE" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ commentId: comment.id }),
+      });
+
+      if (!res.ok) {
+        // Rollback
+        setLiked(wasLiked);
+        setLikeCount((prev) => prev + (wasLiked ? 1 : -1));
+      }
+    } catch {
+      // Rollback
+      setLiked(wasLiked);
+      setLikeCount((prev) => prev + (wasLiked ? 1 : -1));
+    } finally {
+      setLikeLoading(false);
+    }
+  }, [liked, likeLoading, currentUserId, comment.id, comment.pending, comment.failed]);
 
   return (
     <div className={cn("flex gap-2 group", comment.pending && "opacity-50")}>
@@ -60,7 +123,10 @@ export default function CommentItem({ comment, currentUserId, onDelete }: Commen
             {comment.pending ? "Sending..." : formatRelativeTime(comment.createdAt)}
           </span>
         </div>
-        <p className="text-sm text-gray-700 dark:text-gray-300 break-words">{comment.text}</p>
+        <p className="text-sm text-gray-700 dark:text-gray-300 break-words">
+          {renderTextWithMentions(comment.text)}
+        </p>
+
         {comment.failed && (
           <span className="text-[10px] text-red-500 dark:text-red-400">
             Failed to send. Please try again.
@@ -68,16 +134,37 @@ export default function CommentItem({ comment, currentUserId, onDelete }: Commen
         )}
       </div>
 
-      {isOwn && !comment.pending && !comment.failed && (
-        <button
-          type="button"
-          onClick={handleDelete}
-          disabled={deleting}
-          className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 mt-0.5"
-          aria-label="Delete comment"
-        >
-          <TrashIcon className="w-3.5 h-3.5" />
-        </button>
+      {/* Right-side actions */}
+      {!comment.pending && !comment.failed && (
+        <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
+          <button
+            type="button"
+            onClick={handleLike}
+            disabled={likeLoading}
+            className={cn(
+              "inline-flex items-center gap-0.5 text-[11px] transition-colors",
+              liked
+                ? "text-lime-600 dark:text-lime-400"
+                : "text-gray-400 dark:text-gray-500 hover:text-lime-600 dark:hover:text-lime-400",
+            )}
+            aria-label={liked ? "Unlike comment" : "Like comment"}
+          >
+            <HeartIcon className="w-3 h-3" variant={liked ? "filled" : "outline"} />
+            {likeCount > 0 && <span>{likeCount}</span>}
+          </button>
+
+          {isOwn && (
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={deleting}
+              className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400"
+              aria-label="Delete comment"
+            >
+              <TrashIcon className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
       )}
 
       {comment.failed && (

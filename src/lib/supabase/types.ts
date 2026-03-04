@@ -716,6 +716,27 @@ export interface Database {
         };
         Relationships: [];
       };
+      feed_comment_likes: {
+        Row: {
+          id: string;
+          user_id: string;
+          comment_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          comment_id: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          comment_id?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       feed_reactions: {
         Row: {
           id: string;
@@ -804,7 +825,9 @@ export interface Database {
             | "badge_earned"
             | "border_earned"
             | "feed_like"
-            | "feed_repost";
+            | "feed_repost"
+            | "feed_comment_like"
+            | "feed_mention";
           title: string;
           body: string;
           href: string | null;
@@ -822,7 +845,9 @@ export interface Database {
             | "badge_earned"
             | "border_earned"
             | "feed_like"
-            | "feed_repost";
+            | "feed_repost"
+            | "feed_comment_like"
+            | "feed_mention";
           title: string;
           body: string;
           href?: string | null;
@@ -840,7 +865,9 @@ export interface Database {
             | "badge_earned"
             | "border_earned"
             | "feed_like"
-            | "feed_repost";
+            | "feed_repost"
+            | "feed_comment_like"
+            | "feed_mention";
           title?: string;
           body?: string;
           href?: string | null;
