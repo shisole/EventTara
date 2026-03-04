@@ -233,20 +233,22 @@ export async function GET(request: Request) {
     .eq("id", newUserId)
     .single();
 
-  await (existingPublicUser ? serviceClient
-      .from("users")
-      .update({
+  await (existingPublicUser
+    ? serviceClient
+        .from("users")
+        .update({
+          full_name: fullName,
+          avatar_url: athlete.profile || athlete.profile_medium || null,
+          email: generatedEmail,
+        })
+        .eq("id", newUserId)
+    : serviceClient.from("users").insert({
+        id: newUserId,
         full_name: fullName,
         avatar_url: athlete.profile || athlete.profile_medium || null,
         email: generatedEmail,
-      })
-      .eq("id", newUserId) : serviceClient.from("users").insert({
-      id: newUserId,
-      full_name: fullName,
-      avatar_url: athlete.profile || athlete.profile_medium || null,
-      email: generatedEmail,
-      role: "participant",
-    }));
+        role: "participant",
+      }));
 
   // Generate username from Strava username or name
   const baseUsername =
