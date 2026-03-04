@@ -55,11 +55,13 @@ const typeChipText: Record<EventType, string> = {
 interface EventsCalendarProps {
   events: CalendarEvent[];
   linkPrefix?: string;
+  className?: string;
 }
 
 export default function EventsCalendar({
   events,
   linkPrefix = "/dashboard/events",
+  className,
 }: EventsCalendarProps) {
   const router = useRouter();
   const today = new Date();
@@ -173,7 +175,10 @@ export default function EventsCalendar({
   return (
     <div
       ref={containerRef}
-      className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-4 md:p-6"
+      className={cn(
+        "relative bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-4 md:p-6",
+        className,
+      )}
     >
       <h2 className="text-lg font-heading font-bold dark:text-white mb-3">Event Calendar</h2>
       <div className="flex flex-col items-center gap-1 mb-5">

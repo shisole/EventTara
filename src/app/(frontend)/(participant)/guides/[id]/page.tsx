@@ -246,7 +246,11 @@ export default async function GuideProfilePage({ params }: { params: Promise<{ i
       {/* Event Calendar */}
       {calendarEvents.length > 0 && (
         <section className="mb-8">
-          <EventsCalendar events={calendarEvents} linkPrefix="/events" />
+          <EventsCalendar
+            events={calendarEvents}
+            linkPrefix="/events"
+            className="border border-gray-100 dark:border-gray-800"
+          />
         </section>
       )}
 
