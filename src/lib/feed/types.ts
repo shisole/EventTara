@@ -46,6 +46,8 @@ export interface FeedComment {
   borderColor: string | null;
   text: string;
   createdAt: string;
+  likeCount: number;
+  isLiked: boolean;
   pending?: boolean;
   failed?: boolean;
 }

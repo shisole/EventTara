@@ -5,7 +5,7 @@
   "packageManager": "pnpm@9.5.0",
   "scripts": {
     "preinstall": "node scripts/check-pnpm.cjs",
-    "dev": "node scripts/check-pnpm.cjs && next dev --port 3001",
+    "dev": "node scripts/check-pnpm.cjs && next dev --port ${PORT:-3001}",
     "build": "node scripts/check-pnpm.cjs && next build",
     "start": "node scripts/check-pnpm.cjs && next start",
     "lint": "node scripts/check-pnpm.cjs && eslint --ext .ts,.tsx src/",
