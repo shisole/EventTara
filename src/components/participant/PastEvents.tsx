@@ -1,9 +1,13 @@
 import Link from "next/link";
 
+import StravaActivitySection, {
+  type LinkedStravaActivity,
+} from "@/components/strava/StravaActivitySection";
 import { Card, UIBadge } from "@/components/ui";
 import { formatEventDate } from "@/lib/utils/format-date";
 
 interface PastEvent {
+  bookingId: string;
   eventId: string;
   eventTitle: string;
   eventType: string;
@@ -13,6 +17,8 @@ interface PastEvent {
   badgeTitle: string | null;
   badgeImageUrl: string | null;
   checkedIn: boolean;
+  linkedActivity: LinkedStravaActivity | null;
+  hasStravaConnected: boolean;
 }
 
 const typeLabels: Record<string, string> = {
@@ -67,6 +73,12 @@ export default function PastEvents({ events }: { events: PastEvent[] }) {
               )}
             </div>
           </div>
+          <StravaActivitySection
+            bookingId={e.bookingId}
+            linkedActivity={e.linkedActivity}
+            hasStravaConnected={e.hasStravaConnected}
+            checkedIn={e.checkedIn}
+          />
         </Card>
       ))}
     </div>
