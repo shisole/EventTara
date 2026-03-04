@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import BetaNoticeModal from "@/components/landing/BetaNoticeModal";
+import FeedShowcaseSection from "@/components/landing/FeedShowcaseSection";
 import GamificationSection from "@/components/landing/GamificationSection";
 import HeroSection from "@/components/landing/HeroSection";
 import OrganizersSection from "@/components/landing/OrganizersSection";
@@ -222,8 +223,10 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Parallax mountain reveal — sticky scroll with text fade-in */}
-      <ParallaxMountain imageUrl={parallaxImageUrl} />
+      {/* Parallax mountain reveal — with feed showcase revealed on scroll */}
+      <Suspense fallback={<ParallaxMountain imageUrl={parallaxImageUrl} />}>
+        <FeedShowcaseSection imageUrl={parallaxImageUrl} />
+      </Suspense>
 
       {/* Gamification Showcase — streams as Supabase data arrives */}
       <Suspense fallback={<GamificationSkeleton />}>
