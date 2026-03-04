@@ -40,6 +40,11 @@ const nextConfig = {
         protocol: "https",
         hostname: "images.unsplash.com",
       },
+      // Strava CDN (athlete profile photos)
+      {
+        protocol: "https",
+        hostname: "dgalywyr863hv.cloudfront.net",
+      },
       // Cloudflare R2 public bucket
       ...(r2PublicUrl
         ? [{ protocol: "https", hostname: new URL(r2PublicUrl).hostname }]
