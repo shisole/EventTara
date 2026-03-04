@@ -1,24 +1,19 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import type { MentionableUser } from "@/components/feed/CommentSection";
 import { SendIcon } from "@/components/icons";
 import type { ActivityType, FeedComment } from "@/lib/feed/types";
 import { cn } from "@/lib/utils";
 
 const MAX_LENGTH = 300;
 
-interface MentionSuggestion {
-  id: string;
-  username: string;
-  full_name: string;
-  avatar_url: string | null;
-}
-
 interface CommentFormProps {
   activityType: ActivityType;
   activityId: string;
   isAuthenticated: boolean;
+  mentionableUsers: MentionableUser[];
   onSubmit: (comment: FeedComment) => void;
   onConfirmed: (tempId: string, comment: FeedComment) => void;
   onFailed: (tempId: string) => void;
@@ -28,6 +23,7 @@ export default function CommentForm({
   activityType,
   activityId,
   isAuthenticated,
+  mentionableUsers,
   onSubmit,
   onConfirmed,
   onFailed,
@@ -37,43 +33,28 @@ export default function CommentForm({
   const inputRef = useRef<HTMLInputElement>(null);
 
   // @mention autocomplete state
-  const [suggestions, setSuggestions] = useState<MentionSuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedIdx, setSelectedIdx] = useState(0);
-  const mentionQueryRef = useRef("");
+  const [mentionQuery, setMentionQuery] = useState("");
   const suggestionsRef = useRef<HTMLDivElement>(null);
-  const fetchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const trimmed = text.trim();
   const canSubmit = trimmed.length > 0 && trimmed.length <= MAX_LENGTH && !submitting;
+
+  // Filter mentionable users client-side based on the current @query
+  const suggestions = useMemo(() => {
+    if (mentionQuery.length === 0) return mentionableUsers.slice(0, 5);
+    const q = mentionQuery.toLowerCase();
+    return mentionableUsers
+      .filter((u) => u.username.toLowerCase().includes(q) || u.full_name.toLowerCase().includes(q))
+      .slice(0, 5);
+  }, [mentionableUsers, mentionQuery]);
 
   // Extract current @mention query from cursor position
   const detectMentionQuery = useCallback((value: string, cursorPos: number) => {
     const beforeCursor = value.slice(0, cursorPos);
     const match = /@(\w*)$/.exec(beforeCursor);
     return match ? match[1] : null;
-  }, []);
-
-  // Fetch user suggestions
-  const fetchSuggestions = useCallback(async (query: string) => {
-    if (query.length === 0) {
-      setSuggestions([]);
-      setShowSuggestions(false);
-      return;
-    }
-
-    try {
-      const res = await fetch(`/api/users/search?q=${encodeURIComponent(query)}&limit=5`);
-      if (res.ok) {
-        const data: { users: MentionSuggestion[] } = await res.json();
-        setSuggestions(data.users);
-        setShowSuggestions(data.users.length > 0);
-        setSelectedIdx(0);
-      }
-    } catch {
-      setSuggestions([]);
-      setShowSuggestions(false);
-    }
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,14 +66,11 @@ export default function CommentForm({
 
     if (query === null) {
       setShowSuggestions(false);
-      mentionQueryRef.current = "";
+      setMentionQuery("");
     } else {
-      mentionQueryRef.current = query;
-      // Debounce the fetch
-      if (fetchTimerRef.current) clearTimeout(fetchTimerRef.current);
-      fetchTimerRef.current = setTimeout(() => {
-        void fetchSuggestions(query);
-      }, 200);
+      setMentionQuery(query);
+      setShowSuggestions(true);
+      setSelectedIdx(0);
     }
   };
 
@@ -112,8 +90,7 @@ export default function CommentForm({
 
       setText(newText);
       setShowSuggestions(false);
-      setSuggestions([]);
-      mentionQueryRef.current = "";
+      setMentionQuery("");
 
       // Focus and set cursor after the inserted mention
       requestAnimationFrame(() => {
@@ -135,7 +112,6 @@ export default function CommentForm({
 
     const tempId = `temp-${Date.now()}`;
 
-    // Optimistic: show the comment immediately
     const optimistic: FeedComment = {
       id: tempId,
       userId: "",
@@ -219,13 +195,6 @@ export default function CommentForm({
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  // Cleanup debounce timer
-  useEffect(() => {
-    return () => {
-      if (fetchTimerRef.current) clearTimeout(fetchTimerRef.current);
-    };
   }, []);
 
   return (

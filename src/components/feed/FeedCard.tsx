@@ -137,6 +137,12 @@ export default function FeedCard({ item, isAuthenticated, currentUserId }: FeedC
         commentCount={item.commentCount}
         isAuthenticated={isAuthenticated}
         currentUserId={currentUserId}
+        postAuthor={{
+          userId: item.userId,
+          userName: item.userName,
+          userUsername: item.userUsername,
+          userAvatarUrl: item.userAvatarUrl,
+        }}
       />
     </div>
   );

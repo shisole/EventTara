@@ -1,11 +1,18 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import CommentForm from "@/components/feed/CommentForm";
 import CommentItem from "@/components/feed/CommentItem";
 import { ChatIcon } from "@/components/icons";
 import type { ActivityType, FeedComment } from "@/lib/feed/types";
+
+export interface MentionableUser {
+  id: string;
+  username: string;
+  full_name: string;
+  avatar_url: string | null;
+}
 
 interface CommentSectionProps {
   activityType: ActivityType;
@@ -13,6 +20,12 @@ interface CommentSectionProps {
   commentCount: number;
   isAuthenticated: boolean;
   currentUserId: string | null;
+  postAuthor: {
+    userId: string;
+    userName: string;
+    userUsername: string | null;
+    userAvatarUrl: string | null;
+  };
 }
 
 export default function CommentSection({
@@ -21,12 +34,72 @@ export default function CommentSection({
   commentCount: initialCount,
   isAuthenticated,
   currentUserId,
+  postAuthor,
 }: CommentSectionProps) {
   const [expanded, setExpanded] = useState(false);
   const [comments, setComments] = useState<FeedComment[]>([]);
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [count, setCount] = useState(initialCount);
+  const [followedUsers, setFollowedUsers] = useState<MentionableUser[]>([]);
+
+  // Fetch followed users once (for @mention pool)
+  useEffect(() => {
+    if (!isAuthenticated || !currentUserId) return;
+
+    void (async () => {
+      try {
+        const res = await fetch("/api/follows/mentionable");
+        if (res.ok) {
+          const data: { users: MentionableUser[] } = await res.json();
+          setFollowedUsers(data.users);
+        }
+      } catch {
+        // Ignore — mentions will still work with post author + commenters
+      }
+    })();
+  }, [isAuthenticated, currentUserId]);
+
+  // Build mentionable users: post author + commenters + followed (deduplicated, exclude self)
+  const mentionableUsers = useMemo(() => {
+    const seen = new Set<string>();
+    const result: MentionableUser[] = [];
+
+    const add = (user: MentionableUser) => {
+      if (seen.has(user.id) || user.id === currentUserId) return;
+      seen.add(user.id);
+      result.push(user);
+    };
+
+    // Post author first
+    if (postAuthor.userUsername) {
+      add({
+        id: postAuthor.userId,
+        username: postAuthor.userUsername,
+        full_name: postAuthor.userName,
+        avatar_url: postAuthor.userAvatarUrl,
+      });
+    }
+
+    // Commenters
+    for (const c of comments) {
+      if (c.userUsername) {
+        add({
+          id: c.userId,
+          username: c.userUsername,
+          full_name: c.userName,
+          avatar_url: c.userAvatarUrl,
+        });
+      }
+    }
+
+    // Followed users
+    for (const u of followedUsers) {
+      add(u);
+    }
+
+    return result;
+  }, [postAuthor, comments, followedUsers, currentUserId]);
 
   const fetchComments = useCallback(async () => {
     if (loaded || loading) return;
@@ -56,10 +129,8 @@ export default function CommentSection({
   };
 
   const handleNewComment = (comment: FeedComment) => {
-    // Optimistic comment — add it and bump count
     setComments((prev) => [...prev, comment]);
     setCount((prev) => prev + 1);
-    // Auto-expand so user sees their comment
     if (!expanded) setExpanded(true);
   };
 
@@ -80,7 +151,6 @@ export default function CommentSection({
 
   return (
     <div className="space-y-2">
-      {/* View comments toggle — only shown when there are comments */}
       {count > 0 && (
         <button
           type="button"
@@ -94,10 +164,8 @@ export default function CommentSection({
         </button>
       )}
 
-      {/* Expanded comments list */}
       {expanded && (
         <div className="space-y-2 pl-1">
-          {/* Loading skeleton */}
           {loading && (
             <div className="space-y-2">
               {Array.from({ length: Math.min(count || 1, 3) }).map((_, i) => (
@@ -112,7 +180,6 @@ export default function CommentSection({
             </div>
           )}
 
-          {/* Comments list */}
           {!loading && comments.length > 0 && (
             <div className="space-y-2">
               {comments.map((comment) => (
@@ -128,11 +195,11 @@ export default function CommentSection({
         </div>
       )}
 
-      {/* Comment input — always visible */}
       <CommentForm
         activityType={activityType}
         activityId={activityId}
         isAuthenticated={isAuthenticated}
+        mentionableUsers={mentionableUsers}
         onSubmit={handleNewComment}
         onConfirmed={handleConfirmed}
         onFailed={handleFailed}
