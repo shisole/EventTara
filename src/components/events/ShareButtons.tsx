@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { CheckIcon, FacebookIcon, LinkIcon, ShareIcon, XTwitterIcon } from "@/components/icons";
 
@@ -11,6 +11,11 @@ interface ShareButtonsProps {
 
 export default function ShareButtons({ title, eventId }: ShareButtonsProps) {
   const [copied, setCopied] = useState(false);
+  const [canNativeShare, setCanNativeShare] = useState(false);
+
+  useEffect(() => {
+    setCanNativeShare(typeof navigator !== "undefined" && "share" in navigator);
+  }, []);
 
   const getUrl = useCallback(() => {
     return `${globalThis.location.origin}/events/${eventId}`;
@@ -89,7 +94,7 @@ export default function ShareButtons({ title, eventId }: ShareButtonsProps) {
       </button>
 
       {/* Native share (mobile) */}
-      {typeof navigator !== "undefined" && "share" in navigator && (
+      {canNativeShare && (
         <button onClick={nativeShare} className={btnClass} title="Share">
           <ShareIcon className="w-5 h-5" />
         </button>
