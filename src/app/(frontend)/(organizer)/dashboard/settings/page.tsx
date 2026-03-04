@@ -1,5 +1,6 @@
 import OrganizerProfileForm from "@/components/dashboard/OrganizerProfileForm";
 import PaymentSettingsForm from "@/components/dashboard/PaymentSettingsForm";
+import StravaConnectionCard from "@/components/strava/StravaConnectionCard";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = { title: "Settings — EventTara" };
@@ -52,6 +53,15 @@ export default async function SettingsPage() {
             </div>
           </section>
         )}
+
+        <section>
+          <h2 className="text-xl font-heading font-bold mb-4 dark:text-white">
+            Strava Integration
+          </h2>
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-6">
+            <StravaConnectionCard />
+          </div>
+        </section>
       </div>
     </div>
   );
