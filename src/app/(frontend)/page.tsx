@@ -181,6 +181,11 @@ export default async function Home() {
       {/* Hero Section — renders immediately with pre-fetched data */}
       <HeroSection heroData={transformedHeroData} />
 
+      {/* Upcoming Events — streams as Supabase data arrives */}
+      <Suspense fallback={<UpcomingEventsSkeleton />}>
+        <UpcomingEventsSection />
+      </Suspense>
+
       {/* Strava Showcase — feature-flagged sub-sections */}
       <Suspense
         fallback={
@@ -195,11 +200,6 @@ export default async function Home() {
         }
       >
         <StravaShowcaseSection />
-      </Suspense>
-
-      {/* Upcoming Events — streams as Supabase data arrives */}
-      <Suspense fallback={<UpcomingEventsSkeleton />}>
-        <UpcomingEventsSection />
       </Suspense>
 
       {/* How It Works — static, renders immediately */}
