@@ -14,6 +14,7 @@ import { fileURLToPath } from "url";
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 loadEnvConfig(projectRoot);
 
+import polyline from "@mapbox/polyline";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 // ---------------------------------------------------------------------------
@@ -1175,6 +1176,182 @@ const TEST_EVENTS: TestEvent[] = [
 ];
 
 // ---------------------------------------------------------------------------
+// Event Route Definitions — real routes based on famous Iloilo/Panay routes
+// Waypoints follow actual roads and trails for realistic map display.
+// ---------------------------------------------------------------------------
+
+interface EventRouteDef {
+  eventTitle: string;
+  name: string;
+  distanceKm: number;
+  elevationGain: number; // meters
+  waypoints: [number, number][]; // [lat, lng] tuples following actual geography
+}
+
+const EVENT_ROUTE_DEFS: EventRouteDef[] = [
+  // 1. Iloilo Esplanade Loop — the iconic riverside boardwalk + city loop (~11km)
+  //    Famous running route along the Iloilo River Esplanade through Molo and Mandurriao
+  {
+    eventTitle: "Iloilo Esplanade Night Run 10K",
+    name: "Iloilo Esplanade Loop",
+    distanceKm: 11,
+    elevationGain: 25,
+    waypoints: [
+      [10.6925, 122.569], // Start: Esplanade 1 near Carpenter Bridge
+      [10.694, 122.568], // Along the river boardwalk
+      [10.696, 122.5668], // Esplanade northward
+      [10.698, 122.5655], // Past Smallville complex
+      [10.701, 122.565], // Atria Park District area
+      [10.705, 122.563], // Mandurriao proper
+      [10.709, 122.558], // Toward Benigno Aquino Ave
+      [10.713, 122.552], // SM City Iloilo area
+      [10.712, 122.547], // West through Mandurriao
+      [10.708, 122.544], // Turning south
+      [10.703, 122.545], // Through Molo-Mandurriao boundary
+      [10.698, 122.547], // Heading to Molo
+      [10.693, 122.548], // Molo Church area
+      [10.69, 122.551], // Molo plaza
+      [10.688, 122.555], // Through Molo toward Villa
+      [10.687, 122.559], // Villa Arevalo
+      [10.688, 122.563], // Turning east along coast
+      [10.69, 122.566], // Heading back to Esplanade
+      [10.6925, 122.569], // Back to start
+    ],
+  },
+
+  // 2. Iloilo–Miag-ao Coastal Road — the most popular cycling route in Iloilo (~55km one way)
+  //    Follows the national highway along the scenic southern Iloilo coast
+  {
+    eventTitle: "Iloilo-Antique Coastal Road Ride",
+    name: "Iloilo–Miag-ao Coastal Road",
+    distanceKm: 110,
+    elevationGain: 650,
+    waypoints: [
+      [10.697, 122.564], // Start: Iloilo City (near Villa Arevalo)
+      [10.695, 122.553], // Heading west along coast
+      [10.694, 122.54], // Toward Oton
+      [10.693, 122.52], // Oton approach
+      [10.693, 122.498], // Oton center
+      [10.693, 122.481], // Past Oton, heading to Tigbauan
+      [10.688, 122.46], // Between Oton and Tigbauan
+      [10.682, 122.44], // Coastal road curves
+      [10.676, 122.42], // Tigbauan approach
+      [10.674, 122.383], // Tigbauan town
+      [10.668, 122.36], // Past Tigbauan
+      [10.664, 122.34], // Heading to Guimbal
+      [10.661, 122.325], // Guimbal approach
+      [10.659, 122.319], // Guimbal center (church)
+      [10.655, 122.3], // Past Guimbal
+      [10.65, 122.275], // Toward Miag-ao
+      [10.647, 122.255], // Miag-ao approach
+      [10.644, 122.234], // Miag-ao Church (UNESCO) — turnaround
+      [10.647, 122.255], // Return: past Miag-ao
+      [10.65, 122.275], // Heading back northeast
+      [10.655, 122.3], // Near Guimbal
+      [10.659, 122.319], // Guimbal
+      [10.664, 122.34], // Past Guimbal
+      [10.674, 122.383], // Tigbauan
+      [10.682, 122.44], // Past Tigbauan
+      [10.693, 122.481], // Oton
+      [10.694, 122.54], // Past Oton
+      [10.697, 122.564], // Back to Iloilo City
+    ],
+  },
+
+  // 3. Bucari Pine Forest Trail — highland trail in Leon at ~900m elevation (~12km)
+  //    Famous trail running route through Benguet pine forests, cool climate
+  {
+    eventTitle: "Bucari Pine Forest Trail Run",
+    name: "Bucari Pine Forest Trail",
+    distanceKm: 12,
+    elevationGain: 450,
+    waypoints: [
+      [10.783, 122.367], // Start: Bucari tourism area
+      [10.786, 122.365], // Trail heads north
+      [10.789, 122.362], // Into pine forest
+      [10.792, 122.358], // Climbing through pines
+      [10.795, 122.354], // Ridge section
+      [10.798, 122.351], // Highland viewpoint
+      [10.8, 122.347], // North end of pine forest
+      [10.802, 122.344], // Turning east along ridge
+      [10.8, 122.34], // Eastern ridge
+      [10.797, 122.338], // Descending
+      [10.794, 122.34], // Through farmland
+      [10.791, 122.343], // Cutting south
+      [10.788, 122.346], // Through lower pine area
+      [10.785, 122.35], // Trail curves back west
+      [10.783, 122.354], // Crossing stream
+      [10.781, 122.358], // South section
+      [10.78, 122.362], // Heading back to start
+      [10.781, 122.365], // Final approach
+      [10.783, 122.367], // Back to Bucari
+    ],
+  },
+
+  // 4. Mt. Napulak Trail via Igbaras — famous day hike, "hiking capital of Iloilo" (~9km)
+  //    Out-and-back trail to Mt. Napulak summit (1,200m) through tropical forest
+  {
+    eventTitle: "Igbaras Mountain Day Hike",
+    name: "Mt. Napulak Trail via Igbaras",
+    distanceKm: 9,
+    elevationGain: 750,
+    waypoints: [
+      [10.72, 122.27], // Start: Igbaras trailhead
+      [10.718, 122.268], // Initial trail through barangay
+      [10.716, 122.265], // Entering forest
+      [10.714, 122.262], // Climbing through canopy
+      [10.712, 122.258], // Steep section
+      [10.71, 122.255], // Ridge approach
+      [10.708, 122.252], // Along ridge
+      [10.706, 122.25], // Near summit area
+      [10.705, 122.248], // Summit viewpoint — turnaround
+      [10.706, 122.25], // Return: descending ridge
+      [10.708, 122.252], // Along ridge
+      [10.71, 122.255], // Steep descent
+      [10.712, 122.258], // Through forest
+      [10.714, 122.262], // Lower forest
+      [10.716, 122.265], // Exiting forest
+      [10.718, 122.268], // Through barangay
+      [10.72, 122.27], // Back to trailhead
+    ],
+  },
+
+  // 5. Guimaras Island Loop — popular weekend cycling loop across the strait (~40km)
+  //    Riders take the pump boat from Iloilo to Jordan wharf, then loop the island
+  {
+    eventTitle: "Guimaras Island MTB Adventure",
+    name: "Guimaras Island Loop",
+    distanceKm: 40,
+    elevationGain: 380,
+    waypoints: [
+      [10.583, 122.585], // Start: Jordan wharf
+      [10.588, 122.592], // Heading east from Jordan
+      [10.593, 122.6], // Coastal road east
+      [10.597, 122.61], // Toward San Miguel
+      [10.602, 122.618], // San Miguel area
+      [10.607, 122.625], // Northeast coast
+      [10.612, 122.63], // Heading to Buenavista
+      [10.618, 122.633], // Buenavista approach
+      [10.622, 122.63], // Buenavista town center
+      [10.62, 122.622], // Turning south along west coast
+      [10.615, 122.615], // West coast road
+      [10.608, 122.608], // Heading south
+      [10.6, 122.6], // Mid-island
+      [10.59, 122.59], // Toward Nueva Valencia
+      [10.578, 122.58], // Nueva Valencia area
+      [10.565, 122.572], // Southwest coast
+      [10.555, 122.565], // Southernmost point
+      [10.56, 122.558], // Turning north on west side
+      [10.568, 122.555], // West coast heading north
+      [10.575, 122.56], // Through farmland
+      [10.58, 122.57], // Approaching Jordan from south
+      [10.583, 122.578], // Jordan south
+      [10.583, 122.585], // Back to Jordan wharf
+    ],
+  },
+];
+
+// ---------------------------------------------------------------------------
 // Test Guides
 // ---------------------------------------------------------------------------
 
@@ -1430,7 +1607,8 @@ async function cleanExistingTestData() {
   // Because events FK to organizer_profiles (which FK to public.users),
   // deleting public.users cascades everything.
 
-  // Clean event_mountains (before events, due to FK)
+  // Clean event_routes and event_mountains (before events, due to FK)
+  await supabase.from("event_routes").delete().neq("id", "00000000-0000-0000-0000-000000000000");
   await supabase.from("event_mountains").delete().neq("id", "00000000-0000-0000-0000-000000000000");
 
   // Clean mountains
@@ -1599,6 +1777,40 @@ async function createEvents(orgMap: Map<string, string>): Promise<Map<string, st
   }
 
   return eventMap;
+}
+
+/** Seed event routes using pre-defined waypoints for real Iloilo/Panay routes. */
+async function seedEventRoutes(eventMap: Map<string, string>) {
+  log("🗺️", "Creating event routes...");
+
+  let created = 0;
+  for (const def of EVENT_ROUTE_DEFS) {
+    const eventId = eventMap.get(def.eventTitle);
+    if (!eventId) {
+      console.error(`  Event not found for route: "${def.eventTitle}"`);
+      continue;
+    }
+
+    const encoded = polyline.encode(def.waypoints);
+
+    const { error } = await supabase.from("event_routes").insert({
+      event_id: eventId,
+      source: "gpx" as const,
+      name: def.name,
+      distance: def.distanceKm * 1000,
+      elevation_gain: def.elevationGain,
+      summary_polyline: encoded,
+    });
+
+    if (error) {
+      console.error(`  Failed to create route for "${def.eventTitle}": ${error.message}`);
+    } else {
+      log("  ✅", `${def.name} (${def.distanceKm}km, ${def.elevationGain}m gain)`);
+      created++;
+    }
+  }
+
+  log("✅", `Created ${created} event routes.`);
 }
 
 /** Create bookings with QR codes. Returns map of "userEmail:eventTitle" -> bookingId. */
@@ -3081,6 +3293,10 @@ async function main() {
 
     // Step 4: Create events
     const eventMap = await createEvents(orgMap);
+    console.log();
+
+    // Step 4a: Seed event routes (map polylines)
+    await seedEventRoutes(eventMap);
     console.log();
 
     // Step 4b: Create guides
