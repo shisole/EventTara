@@ -4,10 +4,11 @@ import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import DifficultyBadge from "@/components/events/DifficultyBadge";
 import { type ExistingEventMarker } from "@/components/maps/MapPicker";
+import RouteAttachmentForm from "@/components/strava/RouteAttachmentForm";
 import { Button, Input } from "@/components/ui";
 import { type EventDateInfo } from "@/components/ui/DateRangePicker";
 import { COVER_TEMPLATES } from "@/lib/constants/cover-templates";
@@ -20,6 +21,7 @@ import { cn } from "@/lib/utils";
 import MountainCombobox, { type SelectedMountain } from "./MountainCombobox";
 import PhotoUploader from "./PhotoUploader";
 
+const EventRouteSection = dynamic(() => import("@/components/strava/EventRouteSection"));
 const MapPicker = dynamic(() => import("@/components/maps/MapPicker"), { ssr: false });
 const DateRangePicker = dynamic(() => import("@/components/ui/DateRangePicker"));
 
@@ -464,6 +466,49 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
     );
     setDifficultyLevel(maxDifficulty);
   }, [selectedMountains]);
+
+  // Route attachment state (edit mode only)
+  interface RouteData {
+    name: string;
+    summary_polyline: string | null;
+    distance: number | null;
+    elevation_gain: number | null;
+    source: "strava" | "gpx";
+  }
+  const [routeData, setRouteData] = useState<RouteData | null>(null);
+  const [routeLoading, setRouteLoading] = useState(false);
+  const [deletingRoute, setDeletingRoute] = useState(false);
+
+  const fetchRouteData = useCallback(async () => {
+    if (mode !== "edit" || !initialData?.id) return;
+    setRouteLoading(true);
+    try {
+      const res = await fetch(`/api/events/${initialData.id}/route-data`);
+      if (res.ok) {
+        const data: { route: RouteData | null } = await res.json();
+        setRouteData(data.route);
+      }
+    } finally {
+      setRouteLoading(false);
+    }
+  }, [mode, initialData?.id]);
+
+  useEffect(() => {
+    void fetchRouteData();
+  }, [fetchRouteData]);
+
+  const handleDeleteRoute = async () => {
+    if (!initialData?.id) return;
+    setDeletingRoute(true);
+    try {
+      const res = await fetch(`/api/events/${initialData.id}/route-data`, { method: "DELETE" });
+      if (res.ok) {
+        setRouteData(null);
+      }
+    } finally {
+      setDeletingRoute(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1024,6 +1069,47 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
           loading={loadingGuides}
         />
       )}
+
+      {/* Event Route section */}
+      <div className="space-y-3">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          Event Route{" "}
+          <span className="text-gray-400 dark:text-gray-500 font-normal">(optional)</span>
+        </label>
+
+        {mode === "create" ? (
+          <p className="text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/50 rounded-xl px-4 py-3">
+            Save the event first, then attach a route via Strava URL or GPX file in edit mode.
+          </p>
+        ) : routeLoading ? (
+          <div className="animate-pulse rounded-xl bg-gray-100 dark:bg-gray-800 h-12" />
+        ) : routeData?.summary_polyline ? (
+          <div className="space-y-3">
+            <EventRouteSection
+              name={routeData.name}
+              polyline={routeData.summary_polyline}
+              distance={routeData.distance}
+              elevationGain={routeData.elevation_gain}
+              source={routeData.source}
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              disabled={deletingRoute}
+              onClick={() => void handleDeleteRoute()}
+              className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+            >
+              {deletingRoute ? "Removing..." : "Remove Route"}
+            </Button>
+          </div>
+        ) : initialData?.id ? (
+          <RouteAttachmentForm
+            eventId={initialData.id}
+            onRouteAttached={() => void fetchRouteData()}
+          />
+        ) : null}
+      </div>
 
       {error && <p className="text-sm text-red-500">{error}</p>}
 

@@ -86,9 +86,11 @@ export default async function MyEventsPage() {
   );
 
   const pastEventIds = pastBookings.map((b: any) => b.events.id);
+  const pastBookingIds = pastBookings.map((b: any) => b.id);
 
   let checkins: any[] = [];
   let pastBadges: any[] = [];
+  let stravaActivities: any[] = [];
 
   if (pastEventIds.length > 0) {
     const { data: c } = await supabase
@@ -105,6 +107,26 @@ export default async function MyEventsPage() {
     pastBadges = ub || [];
   }
 
+  // Fetch Strava activities linked to user's past bookings
+  if (pastBookingIds.length > 0) {
+    const { data: sa } = await supabase
+      .from("strava_activities")
+      .select(
+        "id, booking_id, name, distance, moving_time, total_elevation_gain, matched_automatically",
+      )
+      .eq("user_id", user.id)
+      .in("booking_id", pastBookingIds);
+    stravaActivities = sa || [];
+  }
+
+  // Check if user has Strava connected
+  const { data: stravaConnection } = await supabase
+    .from("strava_connections")
+    .select("id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  const hasStravaConnected = !!stravaConnection;
+
   const checkinSet = new Set(checkins.map((c: any) => c.event_id));
   const badgeMap = new Map(
     pastBadges.map((ub: any) => [
@@ -113,7 +135,23 @@ export default async function MyEventsPage() {
     ]),
   );
 
+  // Build a map of booking_id -> linked strava activity
+  const stravaByBooking = new Map(
+    stravaActivities.map((sa: any) => [
+      sa.booking_id,
+      {
+        id: sa.id as string,
+        name: sa.name as string,
+        distance: sa.distance as number,
+        movingTime: sa.moving_time as number,
+        totalElevationGain: sa.total_elevation_gain as number,
+        matchedAutomatically: sa.matched_automatically as boolean,
+      },
+    ]),
+  );
+
   const past = pastBookings.map((b: any) => ({
+    bookingId: b.id as string,
     eventId: b.events.id,
     eventTitle: b.events.title,
     eventType: b.events.type,
@@ -123,6 +161,8 @@ export default async function MyEventsPage() {
     badgeTitle: badgeMap.get(b.events.id)?.title || null,
     badgeImageUrl: badgeMap.get(b.events.id)?.imageUrl || null,
     checkedIn: checkinSet.has(b.events.id),
+    linkedActivity: stravaByBooking.get(b.id) || null,
+    hasStravaConnected,
   }));
 
   return (

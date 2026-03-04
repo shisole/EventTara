@@ -4,8 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import { CheckCircleIcon } from "@/components/icons";
+import { CheckCircleIcon, StravaIcon } from "@/components/icons";
 import { Button, Input, OtpCodeInput } from "@/components/ui";
+import { STRAVA_AUTH_URL, STRAVA_SCOPES } from "@/lib/strava/constants";
 import { createClient } from "@/lib/supabase/client";
 import { generateUsername } from "@/lib/utils/generate-username";
 
@@ -195,6 +196,25 @@ export default function LoginPage() {
     if (error) setError(error.message);
   };
 
+  const handleStravaLogin = () => {
+    const clientId = process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID;
+    if (!clientId) {
+      setError("Strava login is not configured.");
+      return;
+    }
+
+    const params = new URLSearchParams({
+      client_id: clientId,
+      response_type: "code",
+      redirect_uri: `${globalThis.location.origin}/auth/strava/callback`,
+      scope: STRAVA_SCOPES.join(","),
+      state: JSON.stringify({ flow: "login" }),
+      approval_prompt: "auto",
+    });
+
+    globalThis.location.href = `${STRAVA_AUTH_URL}?${params.toString()}`;
+  };
+
   const handleGuestContinue = async () => {
     const { error } = await supabase.auth.signInAnonymously();
     if (error) {
@@ -255,6 +275,15 @@ export default function LoginPage() {
         size="lg"
       >
         Continue with Facebook
+      </Button>
+
+      <Button
+        onClick={handleStravaLogin}
+        className="w-full bg-[#FC4C02] hover:bg-[#E34402]"
+        size="lg"
+      >
+        <StravaIcon className="w-5 h-5 mr-2" />
+        Continue with Strava
       </Button>
 
       <div className="relative">

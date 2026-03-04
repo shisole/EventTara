@@ -48,6 +48,8 @@ Copy `.env.local.example` to `.env.local` and fill in:
 - `RESEND_API_KEY` — for email sending (optional; emails are skipped with a warning if absent)
 - `SUPABASE_SERVICE_ROLE_KEY` — only needed for `seed`/`unseed` scripts
 - `ANTHROPIC_API_KEY` — for AI features
+- `STRAVA_CLIENT_ID`, `STRAVA_CLIENT_SECRET`, `NEXT_PUBLIC_STRAVA_CLIENT_ID` — for Strava integration
+- `STRAVA_WEBHOOK_VERIFY_TOKEN` — random string for Strava webhook validation
 - Confluence vars — only needed for `docs:sync`
 
 ## Architecture
@@ -96,6 +98,27 @@ Thin wrappers in `src/app/api/` that authenticate via `createClient()` server-si
 - `POST /api/checkins` — record a check-in (QR or manual)
 - `GET/POST /api/badges` — badge management
 - `POST /api/badges/award` — award badge to participants (triggers email via Resend)
+- `GET /api/strava/status` — check Strava connection status
+- `DELETE /api/strava/disconnect` — remove Strava connection
+- `GET /api/strava/activities` — fetch recent Strava activities
+- `POST /api/strava/activities/link` — link Strava activity to booking
+- `DELETE /api/strava/activities/[id]/unlink` — unlink activity
+- `GET/POST/DELETE /api/events/[id]/route-data` — event route management (Strava URL or GPX)
+- `GET/POST /api/webhooks/strava` — Strava webhook (validation + activity events)
+
+### Strava Integration
+
+Full Strava integration for activity tracking, verification, and route sharing:
+
+- **OAuth login:** "Continue with Strava" on login/signup, custom OAuth flow via `/auth/strava/callback`
+- **Account linking:** Existing users connect Strava from profile/settings via `StravaConnectButton`
+- **Activity verification:** Manual linking via `LinkActivityModal` + auto-matching via Strava webhook
+- **Profile enrichment:** `StravaStatsBar` (distance, activities, elevation) + `StravaActivityFeed` on profile page
+- **Route sharing:** Organizers attach routes via Strava URL or GPX upload, displayed with `RouteMap` (Leaflet)
+- **Client helper:** `src/lib/strava/client.ts` provides `getStravaClient(userId)` with automatic token refresh
+- **Constants/types:** `src/lib/strava/constants.ts` (URLs, scopes, type mapping), `src/lib/strava/types.ts`
+- **Database tables:** `strava_connections`, `strava_activities`, `event_routes`, `strava_webhook_subscriptions`
+- **Env vars:** `STRAVA_CLIENT_ID`, `STRAVA_CLIENT_SECRET`, `NEXT_PUBLIC_STRAVA_CLIENT_ID`, `STRAVA_WEBHOOK_VERIFY_TOKEN`
 
 ### State Management
 

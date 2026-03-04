@@ -1,0 +1,238 @@
+import { encode } from "@mapbox/polyline";
+import { type NextRequest, NextResponse } from "next/server";
+
+import { getStravaClient } from "@/lib/strava/client";
+import { parseGPX } from "@/lib/strava/gpx";
+import { createClient } from "@/lib/supabase/server";
+
+// ---------------------------------------------------------------------------
+// GET /api/events/[id]/route-data — public, returns route data for an event
+// ---------------------------------------------------------------------------
+
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id: eventId } = await params;
+  const supabase = await createClient();
+
+  const { data: route, error } = await supabase
+    .from("event_routes")
+    .select("*")
+    .eq("event_id", eventId)
+    .maybeSingle();
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ route });
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/events/[id]/route-data — organizer only
+// Accepts:
+//   { source: "strava", strava_route_url: string }
+//   { source: "gpx", gpx_data: string }
+// ---------------------------------------------------------------------------
+
+interface StravaBody {
+  source: "strava";
+  strava_route_url: string;
+}
+
+interface GpxBody {
+  source: "gpx";
+  gpx_data: string;
+}
+
+type PostBody = StravaBody | GpxBody;
+
+/** Extract a numeric route ID from a Strava route URL. */
+function extractStravaRouteId(url: string): number | null {
+  // Supports: https://www.strava.com/routes/12345 or strava.com/routes/12345
+  const match = /strava\.com\/routes\/(\d+)/i.exec(url);
+  if (!match) return null;
+  return Number.parseInt(match[1], 10);
+}
+
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id: eventId } = await params;
+  const supabase = await createClient();
+
+  // Auth check
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Verify user is the event organizer
+  const { data: event, error: eventError } = await supabase
+    .from("events")
+    .select("organizer_id")
+    .eq("id", eventId)
+    .single();
+
+  if (eventError || !event) {
+    return NextResponse.json({ error: "Event not found" }, { status: 404 });
+  }
+
+  if (event.organizer_id !== user.id) {
+    return NextResponse.json(
+      { error: "Only the event organizer can manage routes" },
+      { status: 403 },
+    );
+  }
+
+  const body = (await request.json()) as PostBody;
+
+  // -------------------------------------------------------------------------
+  // Strava source
+  // -------------------------------------------------------------------------
+  if (body.source === "strava") {
+    if (!body.strava_route_url) {
+      return NextResponse.json({ error: "strava_route_url is required" }, { status: 400 });
+    }
+
+    const routeId = extractStravaRouteId(body.strava_route_url);
+    if (!routeId) {
+      return NextResponse.json(
+        {
+          error:
+            "Invalid Strava route URL. Expected format: https://www.strava.com/routes/ROUTE_ID",
+        },
+        { status: 400 },
+      );
+    }
+
+    // Fetch route data from Strava API
+    let stravaRoute;
+    try {
+      const client = await getStravaClient(user.id);
+      stravaRoute = await client.getRoute(routeId);
+    } catch (error_) {
+      const message = error_ instanceof Error ? error_.message : "Failed to fetch Strava route";
+      return NextResponse.json({ error: message }, { status: 502 });
+    }
+
+    // Pick the best polyline available
+    const summaryPolyline = stravaRoute.map.polyline ?? stravaRoute.map.summary_polyline ?? null;
+
+    // Delete any existing route for this event, then insert the new one
+    await supabase.from("event_routes").delete().eq("event_id", eventId);
+
+    const { data: route, error: insertError } = await supabase
+      .from("event_routes")
+      .insert({
+        event_id: eventId,
+        source: "strava" as const,
+        strava_route_id: routeId,
+        name: stravaRoute.name,
+        distance: stravaRoute.distance,
+        elevation_gain: stravaRoute.elevation_gain,
+        summary_polyline: summaryPolyline,
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      return NextResponse.json({ error: insertError.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ route }, { status: 201 });
+  }
+
+  // -------------------------------------------------------------------------
+  // GPX source
+  // -------------------------------------------------------------------------
+  if (body.source === "gpx") {
+    if (!body.gpx_data) {
+      return NextResponse.json({ error: "gpx_data is required" }, { status: 400 });
+    }
+
+    let parsed;
+    try {
+      parsed = parseGPX(body.gpx_data);
+    } catch (error_) {
+      const message = error_ instanceof Error ? error_.message : "Failed to parse GPX data";
+      return NextResponse.json({ error: message }, { status: 400 });
+    }
+
+    // Encode coordinates to a polyline string
+    const encodedPolyline = encode(parsed.coordinates);
+
+    // Delete any existing route for this event, then insert the new one
+    await supabase.from("event_routes").delete().eq("event_id", eventId);
+
+    const { data: route, error: insertError } = await supabase
+      .from("event_routes")
+      .insert({
+        event_id: eventId,
+        source: "gpx" as const,
+        name: "GPX Route",
+        distance: parsed.distance,
+        elevation_gain: parsed.elevationGain,
+        summary_polyline: encodedPolyline,
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      return NextResponse.json({ error: insertError.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ route }, { status: 201 });
+  }
+
+  return NextResponse.json(
+    { error: "Invalid source — must be 'strava' or 'gpx'" },
+    { status: 400 },
+  );
+}
+
+// ---------------------------------------------------------------------------
+// DELETE /api/events/[id]/route-data — organizer only
+// ---------------------------------------------------------------------------
+
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id: eventId } = await params;
+  const supabase = await createClient();
+
+  // Auth check
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Verify user is the event organizer
+  const { data: event, error: eventError } = await supabase
+    .from("events")
+    .select("organizer_id")
+    .eq("id", eventId)
+    .single();
+
+  if (eventError || !event) {
+    return NextResponse.json({ error: "Event not found" }, { status: 404 });
+  }
+
+  if (event.organizer_id !== user.id) {
+    return NextResponse.json(
+      { error: "Only the event organizer can manage routes" },
+      { status: 403 },
+    );
+  }
+
+  const { error } = await supabase.from("event_routes").delete().eq("event_id", eventId);
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true });
+}
