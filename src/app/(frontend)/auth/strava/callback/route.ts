@@ -80,6 +80,12 @@ export async function GET(request: Request) {
   }
 
   const { athlete, access_token, refresh_token, expires_at } = tokenData;
+
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    console.error("[Strava Callback] Missing SUPABASE_SERVICE_ROLE_KEY");
+    return NextResponse.redirect(`${origin}/login?error=strava_config`);
+  }
+
   const serviceClient = createServiceClient();
 
   // -------------------------------------------------------------------------
