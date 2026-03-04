@@ -22,11 +22,13 @@ export interface EventCardData {
   review_count?: number;
   difficulty_level?: number | null;
   race_distances: number[];
+  hasRoute?: boolean;
 }
 
 export interface EventEnrichments {
   raceDistances: Record<string, number[]>;
   reviewStats: Record<string, { avg: number; count: number }>;
+  routeEventIds: Set<string>;
 }
 
 export function getEventStatus(
@@ -48,13 +50,13 @@ export async function fetchEventEnrichments(
   const eventIds = events.map((e) => e.id);
 
   if (eventIds.length === 0) {
-    return { raceDistances: {}, reviewStats: {} };
+    return { raceDistances: {}, reviewStats: {}, routeEventIds: new Set() };
   }
 
-  // Fetch race distances and review stats in parallel
+  // Fetch race distances, review stats, and route existence in parallel
   const completedIds = events.filter((e) => e.status === "completed").map((e) => e.id);
 
-  const [distResult, reviewResult] = await Promise.all([
+  const [distResult, reviewResult, routeResult] = await Promise.all([
     supabase
       .from("event_distances")
       .select("event_id, distance_km")
@@ -63,6 +65,7 @@ export async function fetchEventEnrichments(
     completedIds.length > 0
       ? supabase.from("event_reviews").select("rating, event_id").in("event_id", completedIds)
       : Promise.resolve({ data: null }),
+    supabase.from("event_routes").select("event_id").in("event_id", eventIds),
   ]);
 
   // Build race distance map
@@ -88,7 +91,15 @@ export async function fetchEventEnrichments(
     }
   }
 
-  return { raceDistances, reviewStats };
+  // Build route existence set
+  const routeEventIds = new Set<string>();
+  if (routeResult.data) {
+    for (const r of routeResult.data) {
+      routeEventIds.add(r.event_id);
+    }
+  }
+
+  return { raceDistances, reviewStats, routeEventIds };
 }
 
 /**
@@ -119,5 +130,6 @@ export function mapEventToCard(
     review_count: stats?.count,
     difficulty_level: event.difficulty_level,
     race_distances: enrichments.raceDistances[event.id] ?? [],
+    hasRoute: enrichments.routeEventIds.has(event.id),
   };
 }

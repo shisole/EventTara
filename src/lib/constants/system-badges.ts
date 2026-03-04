@@ -139,6 +139,15 @@ export const SYSTEM_BADGES: SystemBadge[] = [
     rarity: "legendary",
     imageUrl: "💀",
   },
+  // Strava connection
+  {
+    criteriaKey: "strava_connected",
+    title: "Connected Athlete",
+    description: "Linked your Strava account to EventTara",
+    category: "special",
+    rarity: "rare",
+    imageUrl: "🔗",
+  },
   // Pioneer
   {
     criteriaKey: "pioneer",
@@ -173,5 +182,6 @@ export const SYSTEM_BADGE_CRITERIA_HINTS: Record<string, string> = {
   distance_21k: "Complete a half marathon (21km) event",
   distance_42k: "Complete a full marathon (42km) event",
   distance_100k: "Complete a 100km+ ultra event",
+  strava_connected: "Connect your Strava account",
   pioneer: "Be among the first 100 users to check in on EventTara",
 };

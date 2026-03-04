@@ -61,6 +61,9 @@ export interface CmsHeroCarousel {
 export interface CmsFeatureFlags {
   id: number;
   activity_feed: boolean;
+  strava_showcase_features: boolean;
+  strava_showcase_stats: boolean;
+  strava_showcase_route_map: boolean;
 }
 
 /** cms_pages — multi-row */

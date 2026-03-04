@@ -24,6 +24,7 @@ interface EventData {
   review_count?: number;
   difficulty_level?: number | null;
   race_distances?: number[];
+  hasRoute?: boolean;
 }
 
 export interface NearbyState {
@@ -88,6 +89,7 @@ export default function EventsGrid({ events, nearbyState }: EventsGridProps) {
             review_count={event.review_count}
             difficulty_level={event.difficulty_level}
             race_distances={event.race_distances}
+            hasRoute={event.hasRoute}
           />
         </div>
       ))}

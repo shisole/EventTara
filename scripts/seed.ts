@@ -1185,76 +1185,41 @@ interface EventRouteDef {
   name: string;
   distanceKm: number;
   elevationGain: number; // meters
-  waypoints: [number, number][]; // [lat, lng] tuples following actual geography
+  /** Pre-computed polyline from OSRM routing (road routes). Takes priority over waypoints. */
+  osrmPolyline?: string;
+  waypoints: [number, number][]; // [lat, lng] tuples — fallback for trail routes
 }
 
 const EVENT_ROUTE_DEFS: EventRouteDef[] = [
   // 1. Iloilo Esplanade Loop — the iconic riverside boardwalk + city loop (~11km)
   //    Famous running route along the Iloilo River Esplanade through Molo and Mandurriao
+  //    OSRM polyline follows actual road network
   {
     eventTitle: "Iloilo Esplanade Night Run 10K",
     name: "Iloilo Esplanade Loop",
     distanceKm: 11,
     elevationGain: 25,
+    osrmPolyline:
+      "ckg`AogbkVgAAa@@aB?[A@JNbFY?}@?AM?OA}@@lA@LkA@{A@yB@]?wA@K?KA[@y@?@L?@L|@^bB@@@?bA@R@@?`@jBY?qA?eHEY??F?DJdBDn@Fp@G?m@?aG@nHAF?@DHlABVQ?a@?}GCkAAkA?mCAU?Y@C[AIGy@AOF?DAPADBBHB^BBD@jCQDr@@J@PmCAU?Y@I@K@D^B`@Fx@Fz@@BF`A?LFdADh@VpCFp@Dd@?@JhAcALc@FgHjAA@k@XQWQUmAkBu@sASYs@o@UWy@q@aBmAGEICA?iA]i@U}BqAkAq@y@|Ag@t@WPq@b@kCtAkFnCL^L\\[SGAE?ABKRKRKRKVKHKDa@JqBf@MFULQJEBMDMF_BjAUZOXWZWT[TQDMXMVe@x@OXGZKf@G\\Kf@GVMZUZQLIBq@y@p@s@PUZ_@[^QTq@r@p@x@QDO?y@@u@@k@?KBWBQDSHe@Vk@d@BBBBf@j@FD|@x@NPXZv@r@JNNZDLLb@n@JfBX`@oBb@sCf@sCDQ\\qB^wBDQDIFAXK^\\d@TJBJ?N?H?H@l@n@JBJAr@]??s@\\K@KCm@o@IAI?O?K?KCe@U_@]YJG@EHEP_@vB]pBEPg@rCc@rCa@nBGb@WtAMr@UtAc@~BE@C?YF[GeAMEZUhAIh@I`@CNERiBWkBWyAMsAGq@AK?i@@e@@{@@K?YB@ZZCH?\\AnA?tAA@?lAFB@z@Dd@DnBZxATn@JtAV`C`@LBlAR~AXr@JjANVBBR@JC`@Gb@GJa@v@KXGROhA?J@NBJDL^~@HTd@lAXl@Zh@`@h@DFiCvBMRiAtAc@d@}@~@YLXM`BeBhAuALShCwBVZ^`@TPJFNFPDRDR@L?LAVKl@[p@a@xAw@xAy@FHJDJ@JAJCHEVVXVTT`@\\vAlA`@^HNr@rAj@x@b@n@Z`@LPDFNRNRV^FHv@dARVNRBBV^^f@r@z@jBvBBF?FAB[Re@TWNk@V_Ad@kBr@e@Ps@VIDI@_BXYDaAPg@JI@QDGGCCUMk@[k@WuAg@aAYIC_@I_@IAS?KAKMg@Oi@SYOMWIe@Ii@M{Bs@eBk@MGHK^c@FExAh@jGzBvEbBt@VRFPFNDL@`B@PB\\Ln@TTJh@v@DJFRHAHEr@Wd@QjBs@~@e@j@WVOd@UZS@C?GCGFK^{@b@w@^u@LU~A~@RN`@Ba@CSOYQeAm@MT_@t@c@v@_@z@GJBF?FXDN@F@VBTBPBv@Nd@HfBf@|@Xn@ZHDPHXNHDB@FDv@b@BBTLLFLJJJHLJJJFHBF@tERR?NALCRMHEzDkAtCwATMNIXQVOJIh@YBEJG`@Uh@]TQTWJM{@yAe@eAAEg@eAO]s@}Ay@gBIQKSSg@O[]q@cAn@??bAo@CGy@aBIOaBeDo@kAGKEKQe@GQr@i@|Aw@zAs@nB{@z@i@rAq@rAi@DdADh@Bd@?L@JRvEVjFbA@HAZa@^w@l@SHAPBNEvAm@t@dAf@n@d@^l@l@TT`@^p@p@b@b@LM\\e@b@s@Zy@JUVw@DMBM?Q?OC_@Kk@bAE`@?RBHBjAXj@NlFpAzA_C`@k@@E?EAEGEi@_@s@e@??r@d@h@^FD@D?DADa@j@{A~BmFqAk@OkAYICSCa@?cADEWYeBIg@Gi@Au@?kDAk@AWCo@OeFCmACu@GcBE_@Ia@AE]qAO]EGKSGKJErCmAd@SDCd@URK\\MFAj@AP?jB?FAFADCN?Z?B?hAAd@?AvA@jA?f@BNLDzB?LApAC??qABAO@}BCy@CGKGKCOA@k@?OBaG\\c@f@AXoD@a@??CYGIIGSCG?oB?sA@}@CO@?|AAxA?V@vA?r@?jD?|AC?[?O?ECE?IA_CAo@?E?G@[L]N_@P{DbBKD}AoBYa@QQESAI@MTkAL}@??XoBBYHq@Fk@@OBSDSDS@UFWrBuN@MDWHg@b@iCPyAjBRvALVaCl@oF{@IAAC?qBSDU@W?MCs@?QAc@J?L?LAPIFAXET@l@D??m@EUAYDG@QHM@M?K?I}A?YASGaBEiAG_B?IKsDAMCMCM@A@C@A?C?CAA?CCAAAC?C?C?A@A?AB_@Lg@?",
     waypoints: [
-      [10.6925, 122.569], // Start: Esplanade 1 near Carpenter Bridge
-      [10.694, 122.568], // Along the river boardwalk
-      [10.696, 122.5668], // Esplanade northward
-      [10.698, 122.5655], // Past Smallville complex
-      [10.701, 122.565], // Atria Park District area
-      [10.705, 122.563], // Mandurriao proper
-      [10.709, 122.558], // Toward Benigno Aquino Ave
-      [10.713, 122.552], // SM City Iloilo area
-      [10.712, 122.547], // West through Mandurriao
-      [10.708, 122.544], // Turning south
-      [10.703, 122.545], // Through Molo-Mandurriao boundary
-      [10.698, 122.547], // Heading to Molo
-      [10.693, 122.548], // Molo Church area
-      [10.69, 122.551], // Molo plaza
-      [10.688, 122.555], // Through Molo toward Villa
-      [10.687, 122.559], // Villa Arevalo
-      [10.688, 122.563], // Turning east along coast
-      [10.69, 122.566], // Heading back to Esplanade
-      [10.6925, 122.569], // Back to start
+      [10.6925, 122.569],
+      [10.6925, 122.569],
     ],
   },
 
   // 2. Iloilo–Miag-ao Coastal Road — the most popular cycling route in Iloilo (~55km one way)
   //    Follows the national highway along the scenic southern Iloilo coast
+  //    OSRM polyline follows actual road network (one-way, displayed as 110km out-and-back)
   {
     eventTitle: "Iloilo-Antique Coastal Road Ride",
     name: "Iloilo–Miag-ao Coastal Road",
     distanceKm: 110,
     elevationGain: 650,
+    osrmPolyline:
+      "ggh`AqiakVuB?H|A@B?HHfA@P@FHbA@J@LVbDBb@@\\Db@XhEB\\FbBFpAD~@@\\@H@n@FdA@`@Bf@@L?@T`F@LFpA@J?PHtA?P@L@RDjA@RM@aERG?kEXU@IBSD]Jk@NYHSD[DI@G@SBB\\?HDn@J|A@JBZFz@Db@@DBFB^@VHfADz@@J@VF|@L`C@FTbDDz@BP?R@P^~DBPBXHt@DZDf@@P@BFn@Hx@DT@DLz@VbBBL\\fAj@zA^z@d@hAFJ\\t@R`@N\\JTHRRb@FRBDFLDLHPj@tAZj@NXFLbAjBd@z@^r@~AfD~AzCbA~ApDhG`@r@r@jAh@|@v@rAWNSRqBhAOFUJQHaAjAc@Vn@dAHPDHDDFBBH?H@JBVBNFNDHHLDJMXGPEd@@LBJ@HF@JFp@r@oB|AA@?B?Bj@bA^x@??DBB?B?hCqB{@_Au@w@q@s@KGGAAICKAMDe@FQLYEKIMEIGOCOCWAK?ICIGCEEEIIQo@eAb@W`AkAPITKNGpBiAVKXOJPPXT\\\\h@v@nAr@xAdA`Cz@pB`AjD\\hAl@nBNb@J`@v@pBTl@DH@BFPh@rAZt@L`@JVn@pBHXJb@Nx@D\\TpBF~@?FATAHEf@LBPLv@dGDt@PnAt@hFBPh@bEJxAB`@Bd@?@Fx@XdFDj@Fx@Bn@@VB^`@`HPtDLFbGo@l@EtCMh@CF?dAEdBIdDOb@Cj@Ad@CH?xCS~@E`BI|@E@`@DlC@l@?Z@rD@p@@rAHjFJzE?zA@tC?TDdBB`AHrBHfEBrA@f@@jA?\\?LBfCDfC?z@@jBAfAAPCjAARI`CAJEd@Kz@MpAI`AKfAMpAE`@W~BO~@YdC?F_@jBK`@GRUn@Up@O^i@rA_@~@Ul@_ArB]x@S`@_@z@w@pBGRe@tAu@tBUh@}@vBYr@ADuAnDaA|BOGeFyAi@SeA_@_Cy@KG_@]}AkAgBzD}AjFn@\\h@X`@Tj@\\_AdBi@~@k@[c@WYOIGDI~A}Co@]iBfGOd@Kb@CFW|@]dAcBzFW|@a@xAoB|FeB`GaE~NSp@Qh@IVyAtEfAd@hAf@HH?XOv@Mj@IXCNARDDJFJFTHh@R~Al@\\LTFNHFL@N?XAn@AHE`AAZIfFChAA\\GlBCnF?~@?VB`CAnA?x@BdA?B@\\@z@Bn@@JD`A@\\Bf@@ZBfBB^@PBv@HhAHbDBf@DjBB^@`@Br@FhADf@?VBfAHnA?fABj@PrH@l@FxE@Z?~A@r@CdBAVCv@AhA?h@?\\D\\BRL|@DXN`Ab@tDVnC^zEFXFVFXFLnAfEFTZ`B@LBN@\\FlBDpBDr@LbATdAb@bBFR@DLf@R`AJv@ZtCt@Kz@QnA]PCr@Cp@C??q@Bs@BQBoA\\{@Pu@JD\\DXr@vGPnAZvAJl@b@lCXzA|@xEZnBj@hD`@xBNf@XdA^rA~DvNV`ARr@tBvHT`AJ~@BfA@vD?vB?~@@^@jB@rB?p@BhADz@PbA`BbHTx@Vz@`CpIFPDPFh@@R?`@AfI?tA@`H?f@AhDAx@@|JJxAbBbOh@rED`@T~AZjAHTf@xAlA~BdCtEdA`Cl@bB@BZbBRbAt@pEPdAd@lBh@bBx@dBbApBJRjBtDrBsBhEqC??iEpCsBrBt@vAj@dAZj@rB~DXj@hBlDhA~BZh@h@vAnA|Cp@fBZfAv@bDNz@Hb@l@hD|@fGD^P|BDt@DnAFrAHzBDv@@b@LbC@~@@P?F@fD?^?fA@l@@dABbA?PAdEA|CAdCGlBIfAEtAAZA^?LA\\GlAC`@Ip@AJm@jGaAbKKhA]~CIh@ABMt@{@`Fk@bDj@p@tA`BjBpBXZDD|@Id@Cb@@L@bAHTBz@FP@T?VCzAYrASDd@Fb@AF??CD]PIF}CvC]_@g@k@IH{@x@cAaAmC{CEEY[eEjE|@~@b@h@JLHPFPDTBRLdAFbAJbCDhB@fHBrAAV@P@PBNDNDNFRTh@|AhE^|@^|@LXFRd@zAZ`A@BTp@bAvDH\\DRLl@Hh@Jh@t@dHLlA?@Dd@B`@B\\?l@AnAk@`LU~FAj@@b@@f@@v@@VFt@HlADx@@N@FDr@Bd@@x@?R?^CdAIpBALYzFq@rPE`@G^G^wA~Ek@jBM`@GVCNCXAd@CfBGfAGvACpB@n@?D?n@RlLFtDB`@B^F`@H^H`@l@zB@Hj@rBFVDHL^L`@L\\L^|ArFdArEF\\H\\HZFZJ\\HZLZLXNVLVNVV`@~DpGP\\PXRVpCtD|@jALRTZJRJTFRDRBHFZD\\@Nj@lF?^RbBNfAVpA\\|APx@n@xCLr@FRRj@NTpC`CvAjAf@`@JJtApAtBhBdA|@v@l@f@d@~@fAZ\\DHBHNJPNz@jAlCnDBD@?b@p@r@hAz@[nDoAl@UtAi@fEaBHCt@YxB}@jAc@Qk@EO??DNPj@kAb@yB|@u@XIBgE`BuAh@m@ToDnA{@ZeD~@aFrAe@LSFODFTjGtPVd@R`@TT@DTl@HPN`@Jd@Bf@Ch@G`@IRCHUZMJqC|Au@d@cC|AUXKXA^BPDRj@rBDT^vAFTHPJRNNLPNNjHlH`A`A@BJH|@`AJJhAlA|DtERTNTNVLVJXJVJXHXHZF\\FZDZDXBXD\\B`@Bd@Bd@@f@@~@CpA]`GGf@Gf@If@g@pDgA~HE^E\\E^AZAZCv@InAC`@C`@u@zJC`@A`@C`@?^??Ad@Ab@AjAGhCCb@Eb@Ed@?@E`@Gd@CLCTuA`L?JAJCVATCREd@CNEb@Eb@APCb@?\\G~AAd@AZOfCCvB?BCp@AZ?\\AZFtF?`@?`@A`@?`@?`@?^?^?\\@Z@ZBPTtD?n@Id@Kf@eAzEEPMj@Ox@Cl@BnA?v@@nC@j@Ej@[~B_@fCSv@CTCV?Z?`@?^BLH`@hA|CL^L`@N\\Nd@Tp@Xz@^fANd@Tr@Vt@HTHRDRFZBZ@d@@PBXBVD\\FXHVFRJRNZNXV`@V`@RTLPVVXTXRdDdC`@VPRh@n@Rj@Tr@VhBV|BNhBV`BvAfHNl@Ld@Ld@Lb@JZP`@PZP^PXHTj@hAx@rAt@rA|BjEL^JVFPDNL^bA|C~@nCNb@NXT^PXRVTZVX^XZXRPZTVRXPVNd@Pd@NpEbAZFd@LnCl@v@RRF\\Jl@T|DtAh@Tf@Pb@PZLTLXPRLTRPXNXN`@NVNXP\\PZNZNVRPTPTLPHNFHBJDP@ZBXDLBH?XBTBVBXDPFNDB@TJPLRPNNLXHPHJDRHTFLFPLZJZL\\RbA\\fDF^D\\FXFZFVDXD`@BXB^?\\E`@C\\CHANEPGXGRGRKTKTOTQXSZyAxBcA~Ao@`Ay@nAoAnBg@Ga@MWEWBSH_@RWNSFWAWGoA]sBs@EAo@Sa@U[SWWmBwBoAwAZe@zA{Ah@i@l@m@t@y@j@s@j@e@^?RNx@?jAIb@Ix@Ub@eC[aA^gBo@eDPBLIH]Pk@NUd@q@Z_@NMP?LF\\Rf@ZDDJLQ`@[^YX??XYZ_@Pa@KMEEg@[]SMGQ?OL[^e@p@OTQj@I\\MHQCn@dD_@fBZ`Ac@dCy@Tc@HkAHy@?SO_@?k@d@k@r@u@x@m@l@i@h@{AzA[d@nAvAlBvBVVZR`@Tn@RD@rBr@nA\\VFV@RGVO^SRIVCVD`@LT^OT}@vAOVq@~@o@bA[f@QZORORMRENIREPCNEVANTA^@R@XDVHXFTBFLXNV\\h@xBdDBNp@hAr@fAjAhBv@lAhAhB|@vAz@pAFRV\\v@dAJPJLRVHLJPFTDJ?J@`@@l@Bj@LxDBj@BT@PJp@D^ZzAV`AiAXc@LYFa@H_@Hu@NUBW?_@?_@CK?[A_@@g@Fo@JWD_B\\OB",
     waypoints: [
-      [10.697, 122.564], // Start: Iloilo City (near Villa Arevalo)
-      [10.695, 122.553], // Heading west along coast
-      [10.694, 122.54], // Toward Oton
-      [10.693, 122.52], // Oton approach
-      [10.693, 122.498], // Oton center
-      [10.693, 122.481], // Past Oton, heading to Tigbauan
-      [10.688, 122.46], // Between Oton and Tigbauan
-      [10.682, 122.44], // Coastal road curves
-      [10.676, 122.42], // Tigbauan approach
-      [10.674, 122.383], // Tigbauan town
-      [10.668, 122.36], // Past Tigbauan
-      [10.664, 122.34], // Heading to Guimbal
-      [10.661, 122.325], // Guimbal approach
-      [10.659, 122.319], // Guimbal center (church)
-      [10.655, 122.3], // Past Guimbal
-      [10.65, 122.275], // Toward Miag-ao
-      [10.647, 122.255], // Miag-ao approach
-      [10.644, 122.234], // Miag-ao Church (UNESCO) — turnaround
-      [10.647, 122.255], // Return: past Miag-ao
-      [10.65, 122.275], // Heading back northeast
-      [10.655, 122.3], // Near Guimbal
-      [10.659, 122.319], // Guimbal
-      [10.664, 122.34], // Past Guimbal
-      [10.674, 122.383], // Tigbauan
-      [10.682, 122.44], // Past Tigbauan
-      [10.693, 122.481], // Oton
-      [10.694, 122.54], // Past Oton
-      [10.697, 122.564], // Back to Iloilo City
+      [10.697, 122.564],
+      [10.644, 122.234],
     ],
   },
 
@@ -1318,35 +1283,17 @@ const EVENT_ROUTE_DEFS: EventRouteDef[] = [
 
   // 5. Guimaras Island Loop — popular weekend cycling loop across the strait (~40km)
   //    Riders take the pump boat from Iloilo to Jordan wharf, then loop the island
+  //    OSRM polyline follows actual road network
   {
     eventTitle: "Guimaras Island MTB Adventure",
     name: "Guimaras Island Loop",
     distanceKm: 40,
     elevationGain: 380,
+    osrmPolyline:
+      "k_r_A}kekVq@l@O@q@Ww@Ya@BqB_AOIs@VkAj@_@Zc@`Am@[oA|B_EnHu@qA}@{AKKQSQOiDuAe@SgDaB_@WyFmCwE{BmAe@wAi@mDqAm@Uo@UuCgAy@Ua@I?C?CCACAJo@`@oAr@w@LO`@c@n@e@|CwBrDgCjBsAlA{@JIfBsAtBmB|@{@~@nAjBfCv@dAtDiD??uDhDw@eAkBgC_AoAwBoCg@OkC?XqAdBsEpAgDT}AZ{EAi@ASUm@oDiE_@wAq@qDiJcB_KiDM[CYCkBBjBBXLZ~JhDrGjAtAVm@kDwBsJy@sCyCsG{@wCg@sCMs@Q]k@[iAq@sAsBi@{@CQ@_@JYw@cBAK@ENCOB??AD@Jv@bBKXA^eAt@cA\\c@@s@Ii@U[g@g@_@qAsAq@w@m@So@MY?q@NY?YIiAc@eA{@cCeByAeAES@UFc@RmAZgBF}@Aw@Yy@]qACKQq@M_@IKMGcA_@]YGWGgB@qABa@PQDIDUBW?]?S@YL]DQFYAc@Lc@VYVw@Ng@BWHkB?YAm@@sA[k@]SWKs@w@r@v@VJ\\RZj@ArA@fAIjBCVOf@Wv@WXMb@@b@GXEPM\\AX?R?\\CVETEHQPC`@ApAFfBFV\\XbA^LFHJL^Pp@BJ\\pAXx@@v@G|@[fBSlAGb@ATDRxAdAbCdBdAz@hAb@XHX?p@OX?n@Ll@Rp@v@pArAf@^Zf@h@Tr@Hb@AbA]dAu@@_@JYl@kBTq@JkAFSHMjAu@d@Un@IXQPc@VyAXwBBi@Qo@sCqDeCqCSiAU}BFYPWn@q@\\s@Be@C_@S]KM]GYG]EaAGe@W_@m@?e@Ha@t@cBX}@Fk@DkBNg@NMpAW`Be@|AgAZ]vB{Dn@}A?k@@m@@aOC_DMi@YaA]W{AeCm@q@{@_@wA[cAOuAG_BK}@QSCUDg@`@[Du@IiBc@ICQ@kAX}Ad@U@w@OiAQeCOaBOIAwAi@{CkBaDuBiAu@kBgA_@UkE{CuAeAa@u@Wo@o@}Ao@mAYe@OKi@I_@U{@a@_@GWI_AiA[a@{@NaAPkAPg@NUb@S`@c@d@q@h@k@h@[Zc@h@[h@]l@e@b@ODQTK^Ed@I~@Mr@Dn@Fv@Gr@?`@HXPZNd@?b@Ij@?`@?`@CTOBM?_@GKFEPDZJR\\XRVBN]Z]`@[NU\\Qp@?f@Wb@]`@EHc@KCICE_@k@c@c@_@[c@w@[Wa@U]a@m@]c@Ua@W_@YSe@Yc@QYEYDUFUAO@NGTETDXPXXb@Rd@^X`@Vb@Tl@\\\\`@`@TZVb@v@^Zb@b@^j@BDBHb@JDI\\a@Vc@?g@Pq@T]ZO\\a@\\[COSW]YKSE[DQJG^FL?NCBU?a@?a@Hk@?c@Oe@Q[IY?a@Fs@Gw@Eo@Ls@H{@?CDe@J_@PUNEd@c@\\m@Zi@b@i@Z[j@i@p@i@b@e@Ra@Tc@f@OjAQ`AQz@Oe@o@c@g@k@c@c@Oo@Ho@Jm@Ho@HIP]d@]d@e@d@]b@_@d@]`@]b@c@l@W\\EJQXKPMJUFWBYJq@Ve@Na@Lc@H[H]NYPu@Du@Dg@Bc@Cg@Oq@Wg@O]G_@Em@Es@As@De@De@DOH??MHQZKZEd@Af@?ZETWRUNMLGDa@XQDOLETA`@EZ?XJf@^f@^r@HLSZk@Fi@YMSiADk@PSLUP]l@@jANdAQV}@HiBD{@BQm@Ok@i@y@]c@Ws@gBqAgBs@mAWo@Mg@My@_@wA_@iBGWHm@n@c@t@s@hAo@nAg@\\qAVeALu@b@sB|@s@HeAfDgCvDkDdGeEhC}BF{@B}IhA_Dl@_D~Ai@`@[p@Wf@[r@o@l@yCtBcB~BkCoBmBiAlBhAjCnBbB_CxCuBn@m@Zs@Vg@Zq@h@a@~C_B~Cm@|IiAz@C|BGdEiCjDeGfCwDdAgDr@IrB}@t@c@dAMpAWf@]n@oAr@iAb@u@l@o@VIhBFvA^??x@^f@Ln@LlAVfBr@fBpAVr@\\b@h@x@Nj@Pl@Dd@?p@Af@y@TWpAMdCAr@Ev@@h@`@pBLx@Lj@Bv@Ap@On@EPKj@g@lBW|@YjA?h@AJCn@UfA[r@YdAUt@G\\U`AY`AQd@]x@K^Kf@Id@K\\MZMXiAzBKPcAnBqExIoA|BOz@E~@Il@Od@Wf@i@p@]b@m@rAM`@Un@[l@GN{@fAqAxAmAx@aAR]b@a@xA[fBe@rA[l@g@v@UbAQ^_@h@c@z@W\\Q~FF~@lD~GPx@B`MF`@b@x@tLdLv@ThHxBjDpBdCxAhB}En@c@~BgB`BmArAgALi@TmC~@}C|@gCH_@?SQa@Eq@n@kDvAwDxAsBzAqB`Am@`@]^]pAuA^SNGbAc@r@IbACpAM`@Of@q@Tw@LaAHk@Zo@xAcBRg@Lq@EeA@s@NYZa@vAgB~BeDT}@r@oE\\oB?q@Ms@F_A@u@?i@Fo@XaBDg@GWUQk@IIK??JIf@MXEZDf@RVDd@KRWj@oA^_ABw@@_@Fc@AgA@m@Jc@BM~AcDPULEL@JF`@`@zKtFrHbOBh@nDfC|@i@jFc@VMRQ^c@TMVCh@H\\XbA^LFHJL^Pp@BJ\\pAXx@@v@G|@[fBSlAGb@ATDRxAdAbCdBdAz@hAb@XHX?p@OX?n@Ll@Rp@v@pArAf@^Zf@h@Tr@Hb@AbA]dAu@BPh@z@rArBhAp@j@ZP\\Lr@f@rCz@vCxCrGx@rCvBrJl@jDp@pD^vAnDhETl@@R@h@[zEU|AqAfDeBrEYpA@~AL|HKHmAz@kBrAsDfC}CvBo@d@a@b@MNs@v@a@nAKn@C?A@cCOQ?uAEwBCm@?_@Ao@AwCEcCCkDCyC?iFMm@DcBAmAAm@C{@C]Aw@Ce@CqMa@eBM}BUyA_@iDeBiCqA{A{@{BoAmCuAqCoAjCqKbAuDd@}@NeAF]J[`@y@\\e@\\o@To@FcAEsALeBFW?c@AWGQwAoBWWg@_AGSAOB{@GSc@[UW]Y]G_AIMGUSK[E]Oe@CO@S^yAh@uAZoA\\s@RCNOHo@X{@DaAFi@n@{AJi@D_AHe@R]nCiCl@aA??m@`AoChCS\\Id@E~@Kh@o@zAGh@E`AYz@In@ONSB]r@[nAi@tA_@xAARBNNd@D\\JZTRLF~@H\\F\\XTVb@ZFRCz@@NFRf@~@VVvAnBFP@V?b@GVMdBDrAGbAUn@]n@]d@a@x@KZG\\OdAe@|@cAtDkCpKpCnAlCtAzBnAzAz@hCpAhDdBxA^|BTdBLpM`@d@Bv@B\\@z@Bl@BlA@bB@r@FjBHfBDN?vCB~B@j@@n@@fA@lABtABlABn@?|A?pBBv@@xAD@BBBB?B?@A@C?C?CCACAJo@`@oAr@w@LO`@c@n@e@|CwBrDgCjBsAlA{@JIM}HA_BXqAdBsEpAgDT}AZ{EAi@ASUm@oDiE_@wAq@qDiJcB_KiDM[kBSKD[jAKNyFo@sB[??GIB]C\\FHrBZxFn@JOZkAJEjBRLZ~JhDhJbBp@pD^vAnDhETl@@R@h@[zEU|AqAfDeBrEYpA@~AxBENF`BxBvF|Hx@bA_A|@}@v@yAxASS_DbCq@EcAhCaAzCgAfDlAd@vEzBxFlC^VfD`Bd@RhDtAPNPRJJ|@zAt@pAzDnHR^|B`EnA|Bf@|@|@z@`Af@hD~@nAXj@LfDt@~BPl@Bb@wARkAViBLgAEu@L{@bAs@jAWnAeA`Ag@p@e@bBPjAL??PgAn@a@~@j@tB|@z@`@Jp@\\r@dAxDeAyD]s@Kq@{@a@uB}@_Ak@o@`@QfAkAMcBQq@d@aAf@oAdAkAVcAr@Mz@Dt@MfAWhBSjAc@vAtG`@RDnCb@tKdDl@P`@PxD|AlMzF|Ar@bAb@hBv@p@XZ@`@Ev@IxB_@~HyAhKSt@Dv@PrCnA`Ad@x@j@b@v@j@pFv@tHl@pDnEpQd@lBXt@`AdAdBzArAn@v@PlCVjAJzAb@lGhEdCrA`A`@JDvQvHZm@|BwBt@q@^oA|AiDd@}@XwALs@d@gCVkBh@cAz@kATm@aAoA{@y@z@x@`AnAUl@{@jAi@bAWjBe@fCg@jCe@|@}AhD_@nAu@p@}BvB[l@wQwHKEmApEwAnCeGvJm@t@Sj@YpB?@Ox@S\\OROV?XFRPXXHRAj@MR@NZHfAEfA?r@Er@Lh@Zj@ThAHxAb@bCMr@If@[r@[X_@XMVEVRf@XfA@z@R\\VF\\Kl@M^@PLHP@XAz@h@v@V\\h@f@r@f@Xx@^\\yA?sBYoA@gDo@oGRoAMuAf@iBi@cDiBQi@[q@u@qAQk@cBgC_@cA}AeAyAi@u@q@kByBmBSsD[gAw@]Y{@u@xAnAfAv@rDZlBRjBxBt@p@xAh@|AdA^bAbBfCPj@t@pAZp@Ph@bDhBhBh@tAg@nALnGSfDn@nAArBXxA?n@f@Zv@d@RpD|@Vx@P|AHd@n@`D`@jDJ`BAjBG`BGd@KJqAJ_ADWCq@]g@]}@IiAo@a@_@aAUq@CcB@YHeAf@m@b@Ob@QrAYV]?cAIy@C{AJoBVg@N_@^eAjAw@r@c@NmBAcCHiBEu@Pa@TYh@o@pB_@b@}AgAkDkBqDcB}@m@y@i@kBm@yCu@_Dq@mDwA{EoAyEwAmFeB}DeBsAq@k@i@k@}@g@o@m@g@g@a@cB{@aAo@aA}@gAcB_@{@s@}BO_@KU}BmCyB{BwAgCu@yAq@}Ba@sAcAwA}AaBVIz@Mn@]j@]\\Cj@Hb@T~@PzAJ|@Et@WZ_@Km@AUPWPLn@l@f@MRSd@y@HaA?a@@Y@yAHc@Vk@hAGdAAf@]Lk@Dc@?c@?aAKe@Y_@We@KUOc@I[?KAm@Ag@@YE_@OOGIxBH`@Jl@b@LRBHN~@Nl@^hA\\pAB\\CtAGfA?`@Fn@fAjBr@l@VZFNTbARh@JNLFMGKOSi@UcAGOW[s@m@gAkBGo@?a@FgABuAC]]qACI[_AOm@O_ACIMSm@c@a@KyBIGIoAm@m@_@Qa@ESQ}@Q[KIu@_@_@Ss@e@YM{@cBGe@ZiBNqCxAgEMmB`@oA|Ai@d@e@|@{AQ{@Dy@??\\S`@VPz@rAr@~@p@`AAv@Sb@[Dg@Y{@]mA?cA|AgEbAsArAoAr@cA`DcGdCsF~CyF}As@mM{FyD}Aa@Qm@QuKeDoCc@SEuGa@m@C_CQgDu@AHKZ?HMFSBOECMVu@oAYiD_AaAg@}@{@g@}@oA}B}BaES_@{DoH~DoHnA}B`CkEnBdANHpB~@`@Cv@Xp@VNAp@m@",
     waypoints: [
-      [10.583, 122.585], // Start: Jordan wharf
-      [10.588, 122.592], // Heading east from Jordan
-      [10.593, 122.6], // Coastal road east
-      [10.597, 122.61], // Toward San Miguel
-      [10.602, 122.618], // San Miguel area
-      [10.607, 122.625], // Northeast coast
-      [10.612, 122.63], // Heading to Buenavista
-      [10.618, 122.633], // Buenavista approach
-      [10.622, 122.63], // Buenavista town center
-      [10.62, 122.622], // Turning south along west coast
-      [10.615, 122.615], // West coast road
-      [10.608, 122.608], // Heading south
-      [10.6, 122.6], // Mid-island
-      [10.59, 122.59], // Toward Nueva Valencia
-      [10.578, 122.58], // Nueva Valencia area
-      [10.565, 122.572], // Southwest coast
-      [10.555, 122.565], // Southernmost point
-      [10.56, 122.558], // Turning north on west side
-      [10.568, 122.555], // West coast heading north
-      [10.575, 122.56], // Through farmland
-      [10.58, 122.57], // Approaching Jordan from south
-      [10.583, 122.578], // Jordan south
-      [10.583, 122.585], // Back to Jordan wharf
+      [10.583, 122.585],
+      [10.583, 122.585],
     ],
   },
 ];
@@ -1791,7 +1738,7 @@ async function seedEventRoutes(eventMap: Map<string, string>) {
       continue;
     }
 
-    const encoded = polyline.encode(def.waypoints);
+    const encoded = def.osrmPolyline ?? polyline.encode(def.waypoints);
 
     const { error } = await supabase.from("event_routes").insert({
       event_id: eventId,

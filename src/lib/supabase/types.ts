@@ -939,14 +939,23 @@ export interface Database {
         Row: {
           id: number;
           activity_feed: boolean;
+          strava_showcase_features: boolean;
+          strava_showcase_stats: boolean;
+          strava_showcase_route_map: boolean;
         };
         Insert: {
           id?: number;
           activity_feed?: boolean;
+          strava_showcase_features?: boolean;
+          strava_showcase_stats?: boolean;
+          strava_showcase_route_map?: boolean;
         };
         Update: {
           id?: number;
           activity_feed?: boolean;
+          strava_showcase_features?: boolean;
+          strava_showcase_stats?: boolean;
+          strava_showcase_route_map?: boolean;
         };
         Relationships: [];
       };

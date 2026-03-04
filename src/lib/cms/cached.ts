@@ -87,6 +87,26 @@ export async function isActivityFeedEnabled(): Promise<boolean> {
 }
 
 /**
+ * Returns which Strava showcase sub-sections are enabled.
+ */
+export async function getStravaShowcaseFlags(): Promise<{
+  features: boolean;
+  stats: boolean;
+  routeMap: boolean;
+}> {
+  try {
+    const flags = await getCachedFeatureFlags();
+    return {
+      features: flags?.strava_showcase_features === true,
+      stats: flags?.strava_showcase_stats === true,
+      routeMap: flags?.strava_showcase_route_map === true,
+    };
+  } catch {
+    return { features: false, stats: false, routeMap: false };
+  }
+}
+
+/**
  * Cached hero-carousel fetch. Revalidates every 300 seconds.
  */
 export const getCachedHeroCarousel = unstable_cache(
