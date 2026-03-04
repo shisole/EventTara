@@ -7,6 +7,7 @@ import FeedShowcaseSection from "@/components/landing/FeedShowcaseSection";
 import GamificationSection from "@/components/landing/GamificationSection";
 import HeroSection from "@/components/landing/HeroSection";
 import OrganizersSection from "@/components/landing/OrganizersSection";
+import OrganizerWaitlistModal from "@/components/landing/OrganizerWaitlistModal";
 import ParallaxMountain from "@/components/landing/ParallaxMountain";
 import StravaShowcaseSection from "@/components/landing/StravaShowcaseSection";
 import TestimonialsSection from "@/components/landing/TestimonialsSection";
@@ -277,24 +278,8 @@ export default async function Home() {
         <TestimonialsSection />
       </Suspense>
 
-      {/* Organizer CTA — static */}
-      <section className="py-12 bg-lime-400 dark:bg-lime-500">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl sm:text-4xl font-heading font-bold text-slate-900 mb-4">
-            Run Adventure Events?
-          </h2>
-          <p className="text-lg text-slate-700 dark:text-gray-800 mb-8">
-            List them on EventTara and reach thousands of adventure seekers. Manage registrations,
-            check-ins, and more — all in one place.
-          </p>
-          <Link
-            href="/signup"
-            className="inline-flex items-center justify-center font-semibold rounded-xl text-lg py-4 px-8 bg-slate-900 text-lime-400 hover:bg-slate-800 transition-colors"
-          >
-            Get Started Free
-          </Link>
-        </div>
-      </section>
+      {/* Organizer Waitlist Modal */}
+      <OrganizerWaitlistModal />
 
       {/* FAQ Section — static with JSON-LD */}
       <FAQSection />

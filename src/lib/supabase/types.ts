@@ -1185,6 +1185,27 @@ export interface Database {
         };
         Relationships: [];
       };
+      organizer_waitlist: {
+        Row: {
+          id: string;
+          email: string;
+          org_name: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          email: string;
+          org_name: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          email?: string;
+          org_name?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<never, never>;
     Functions: {
