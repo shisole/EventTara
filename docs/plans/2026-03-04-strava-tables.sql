@@ -2,6 +2,17 @@
 -- Run this in the Supabase SQL Editor
 
 -- =============================================================================
+-- handle_updated_at function
+-- =============================================================================
+CREATE OR REPLACE FUNCTION public.handle_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- =============================================================================
 -- 1. strava_connections
 -- Stores OAuth tokens and athlete data for users who connect their Strava account
 -- =============================================================================
@@ -189,16 +200,3 @@ CREATE POLICY "Organizers can delete event routes"
 
 -- strava_webhook_subscriptions: only service role (no user access needed)
 -- No RLS policies = no access via anon/authenticated; only service_role bypasses RLS
-
--- =============================================================================
--- handle_updated_at function (if not already present)
--- =============================================================================
--- Uncomment below if the function doesn't already exist in your database:
---
--- CREATE OR REPLACE FUNCTION public.handle_updated_at()
--- RETURNS TRIGGER AS $$
--- BEGIN
---   NEW.updated_at = now();
---   RETURN NEW;
--- END;
--- $$ LANGUAGE plpgsql;
