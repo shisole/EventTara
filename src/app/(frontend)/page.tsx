@@ -7,6 +7,7 @@ import GamificationSection from "@/components/landing/GamificationSection";
 import HeroSection from "@/components/landing/HeroSection";
 import OrganizersSection from "@/components/landing/OrganizersSection";
 import ParallaxMountain from "@/components/landing/ParallaxMountain";
+import StravaShowcaseSection from "@/components/landing/StravaShowcaseSection";
 import TestimonialsSection from "@/components/landing/TestimonialsSection";
 import UpcomingEventsSection from "@/components/landing/UpcomingEventsSection";
 import { getCachedHeroCarousel, getCachedSiteSettings, parseHeroSlides } from "@/lib/cms/cached";
@@ -179,6 +180,22 @@ export default async function Home() {
 
       {/* Hero Section — renders immediately with pre-fetched data */}
       <HeroSection heroData={transformedHeroData} />
+
+      {/* Strava Showcase — feature-flagged sub-sections */}
+      <Suspense
+        fallback={
+          <div className="bg-gradient-to-b from-orange-50/60 to-white py-16 dark:from-orange-950/20 dark:to-gray-950 sm:py-20">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+              <div className="mb-12 text-center">
+                <div className="mx-auto h-8 w-48 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700" />
+                <div className="mx-auto mt-4 h-10 w-96 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+              </div>
+            </div>
+          </div>
+        }
+      >
+        <StravaShowcaseSection />
+      </Suspense>
 
       {/* Upcoming Events — streams as Supabase data arrives */}
       <Suspense fallback={<UpcomingEventsSkeleton />}>
