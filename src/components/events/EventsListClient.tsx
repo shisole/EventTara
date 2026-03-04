@@ -30,6 +30,7 @@ export interface EventData {
   review_count?: number;
   difficulty_level?: number | null;
   race_distances?: number[];
+  hasRoute?: boolean;
 }
 
 export interface UserResult {
