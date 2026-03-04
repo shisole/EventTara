@@ -54,9 +54,13 @@ const typeChipText: Record<EventType, string> = {
 
 interface EventsCalendarProps {
   events: CalendarEvent[];
+  linkPrefix?: string;
 }
 
-export default function EventsCalendar({ events }: EventsCalendarProps) {
+export default function EventsCalendar({
+  events,
+  linkPrefix = "/dashboard/events",
+}: EventsCalendarProps) {
   const router = useRouter();
   const today = new Date();
   const [month, setMonth] = useState(today);
@@ -96,7 +100,7 @@ export default function EventsCalendar({ events }: EventsCalendarProps) {
     }
     if (dayEvents.length === 1) {
       setPopover(null);
-      router.push(`/dashboard/events/${dayEvents[0].id}`);
+      router.push(`${linkPrefix}/${dayEvents[0].id}`);
       return;
     }
     // Multiple events — show popover
@@ -342,7 +346,7 @@ export default function EventsCalendar({ events }: EventsCalendarProps) {
                 key={evt.id}
                 onClick={() => {
                   setPopover(null);
-                  router.push(`/dashboard/events/${evt.id}`);
+                  router.push(`${linkPrefix}/${evt.id}`);
                 }}
                 className={cn(
                   "w-full text-left px-3 py-2 rounded-lg text-sm transition-colors",
