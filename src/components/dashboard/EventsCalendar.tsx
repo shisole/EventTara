@@ -56,12 +56,14 @@ interface EventsCalendarProps {
   events: CalendarEvent[];
   linkPrefix?: string;
   className?: string;
+  compact?: boolean;
 }
 
 export default function EventsCalendar({
   events,
   linkPrefix = "/dashboard/events",
   className,
+  compact = false,
 }: EventsCalendarProps) {
   const router = useRouter();
   const today = new Date();
@@ -237,14 +239,14 @@ export default function EventsCalendar({
         mode="single"
         month={month}
         onMonthChange={setMonth}
-        classNames={isDesktop ? desktopClassNames : mobileClassNames}
+        classNames={isDesktop && !compact ? desktopClassNames : mobileClassNames}
         components={{
           DayButton: ({ day, ...props }) => {
             const dayEvents = eventsForDay(day.date);
             const hasEvents = dayEvents.length > 0;
             const uniqueTypes = [...new Set(dayEvents.map((ev) => ev.type))];
 
-            if (isDesktop) {
+            if (isDesktop && !compact) {
               // Desktop: tall cell with date number + event name chips
               return (
                 <button

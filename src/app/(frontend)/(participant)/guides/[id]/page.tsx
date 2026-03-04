@@ -243,17 +243,6 @@ export default async function GuideProfilePage({ params }: { params: Promise<{ i
         </div>
       </div>
 
-      {/* Event Calendar */}
-      {calendarEvents.length > 0 && (
-        <section className="mb-8">
-          <EventsCalendar
-            events={calendarEvents}
-            linkPrefix="/events"
-            className="border border-gray-100 dark:border-gray-800"
-          />
-        </section>
-      )}
-
       {/* Upcoming Events */}
       {upcomingEvents.length > 0 && (
         <section className="mb-8">
@@ -283,6 +272,18 @@ export default async function GuideProfilePage({ params }: { params: Promise<{ i
         <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm dark:shadow-gray-950/20 p-8 text-center mb-8">
           <p className="text-gray-500 dark:text-gray-400">No events yet for this guide.</p>
         </div>
+      )}
+
+      {/* Event Calendar */}
+      {calendarEvents.length > 0 && (
+        <section className="mb-8">
+          <EventsCalendar
+            events={calendarEvents}
+            linkPrefix="/events"
+            compact
+            className="border border-gray-100 dark:border-gray-800"
+          />
+        </section>
       )}
 
       {/* Reviews */}
