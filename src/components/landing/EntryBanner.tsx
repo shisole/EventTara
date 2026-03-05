@@ -55,11 +55,11 @@ export default function EntryBanner() {
 
   return (
     <div
-      className={`fixed inset-x-0 bottom-0 z-[60] transition-transform duration-300 ease-out ${
+      className={`fixed inset-x-0 bottom-0 z-[60] bg-slate-900/95 backdrop-blur-md transition-transform duration-300 ease-out dark:bg-slate-800/95 md:bg-transparent md:backdrop-blur-none md:dark:bg-transparent ${
         isVisible ? "translate-y-0" : "translate-y-full"
       }`}
     >
-      <div className="mx-auto max-w-3xl px-4 pb-20 md:pb-4">
+      <div className="safe-area-bottom mx-auto max-w-3xl px-4 pb-4 pt-4">
         <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900 p-5 shadow-2xl dark:bg-slate-800 sm:p-6">
           {/* Close button */}
           <button
