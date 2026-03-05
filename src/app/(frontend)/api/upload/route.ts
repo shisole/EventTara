@@ -5,7 +5,12 @@ import { createClient } from "@/lib/supabase/server";
 
 const MAX_SIZE = 2 * 1024 * 1024; // 2 MB
 
-const ALLOWED_FOLDERS = new Set(["events/covers", "badges/images", "organizers/logos"]);
+const ALLOWED_FOLDERS = new Set([
+  "events/covers",
+  "badges/images",
+  "organizers/logos",
+  "reviews/photos",
+]);
 
 export async function POST(request: Request) {
   const supabase = await createClient();
