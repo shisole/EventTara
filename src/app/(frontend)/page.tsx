@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 
-import BetaNoticeModal from "@/components/landing/BetaNoticeModal";
+import EntryBanner from "@/components/landing/EntryBanner";
 import FeedShowcaseSection from "@/components/landing/FeedShowcaseSection";
 import GamificationSection from "@/components/landing/GamificationSection";
 import HeroSection from "@/components/landing/HeroSection";
@@ -178,7 +178,7 @@ export default async function Home() {
 
   return (
     <main>
-      <BetaNoticeModal />
+      <EntryBanner />
 
       {/* Hero Section — renders immediately with pre-fetched data */}
       <HeroSection heroData={transformedHeroData} />
