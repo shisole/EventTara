@@ -114,11 +114,9 @@ function BentoSkeleton() {
 
 function MobileSkeleton() {
   return (
-    <div className="flex gap-4 overflow-hidden pb-4">
-      {Array.from({ length: 3 }, (_, i) => (
-        <div key={i} className="shrink-0 w-[280px]">
-          <SkeletonCard />
-        </div>
+    <div className="flex flex-col gap-4">
+      {Array.from({ length: 4 }, (_, i) => (
+        <SkeletonCard key={i} />
       ))}
     </div>
   );
@@ -145,10 +143,9 @@ export default function BentoEventsClient({ initialEvents, initialTab }: BentoEv
   const pages = totalPages(events);
   const pageEvents = getPageEvents(events, currentPage);
 
-  // Mobile swipe refs
+  // Touch swipe refs (desktop bento)
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
-  const mobileScrollRef = useRef<HTMLDivElement>(null);
 
   // -------------------------------------------------------------------------
   // Shared slide helper: exit left → swap content → enter from right
@@ -450,24 +447,25 @@ export default function BentoEventsClient({ initialEvents, initialTab }: BentoEv
         </div>
       )}
 
-      {/* Mobile: horizontal scroll carousel */}
+      {/* Mobile: vertical stack of 4 + view more */}
       {!loading && events.length > 0 && (
-        <div className="md:hidden">
-          <div
-            ref={mobileScrollRef}
-            className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-4 -mx-4 px-4"
-            style={{ scrollSnapType: "x mandatory" }}
-          >
-            {events.map((event) => (
-              <div
-                key={event.id}
-                className="shrink-0 w-[280px]"
-                style={{ scrollSnapAlign: "start" }}
-              >
-                <BentoEventCard event={event} variant="small" />
-              </div>
-            ))}
-          </div>
+        <div className="flex flex-col gap-4 md:hidden">
+          {events.slice(0, 4).map((event) => (
+            <BentoEventCard key={event.id} event={event} variant="small" />
+          ))}
+          {events.length > 4 && (
+            <Link
+              href="/events"
+              className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 dark:border-slate-600 hover:border-lime-500 dark:hover:border-lime-500 transition-colors min-h-[120px]"
+            >
+              <span className="text-2xl font-heading font-bold text-lime-600 dark:text-lime-400">
+                +{events.length - 4}
+              </span>
+              <span className="text-gray-500 dark:text-gray-400 mt-1 text-sm font-medium">
+                more events
+              </span>
+            </Link>
+          )}
         </div>
       )}
     </div>
