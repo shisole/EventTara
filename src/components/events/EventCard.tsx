@@ -105,10 +105,40 @@ export default function EventCard({
             </div>
           )}
 
-          {/* Type + Difficulty pills — bottom left */}
-          <div className="absolute bottom-3 left-3 flex items-center gap-1.5">
-            <UIBadge variant={type}>{typeLabels[type] || type}</UIBadge>
-            {difficulty_level != null && <DifficultyBadge level={difficulty_level} />}
+          {/* Pills — bottom left */}
+          <div className="absolute bottom-3 left-3 right-3 flex items-center gap-1.5 flex-wrap">
+            <UIBadge variant={type} className="px-2 py-0.5 text-xs shadow-sm">
+              {typeLabels[type] || type}
+            </UIBadge>
+            {difficulty_level != null && (
+              <DifficultyBadge level={difficulty_level} className="px-2 py-0.5 text-xs shadow-sm" />
+            )}
+            {race_distances &&
+              race_distances.length > 0 &&
+              race_distances.map((km) => (
+                <span
+                  key={km}
+                  className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500 text-white shadow-sm"
+                >
+                  {km} km
+                </span>
+              ))}
+            {hasRoute && (
+              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#FC4C02] text-white shadow-sm">
+                <svg
+                  className="h-2.5 w-2.5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M3 17l4-4 4 4 4-4 4 4M3 7l4-4 4 4 4-4 4 4" />
+                </svg>
+                Route
+              </span>
+            )}
           </div>
         </div>
 
@@ -195,34 +225,6 @@ export default function EventCard({
               >
                 {spotsLeft <= 0 ? "Fully Booked" : `${spotsLeft} spots left`}
               </span>
-            </div>
-            <div className="flex items-center gap-1.5 flex-wrap">
-              {race_distances &&
-                race_distances.length > 0 &&
-                race_distances.map((km) => (
-                  <span
-                    key={km}
-                    className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300"
-                  >
-                    {km} km
-                  </span>
-                ))}
-              {hasRoute && (
-                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-orange-100 text-[#FC4C02] dark:bg-orange-900/40 dark:text-orange-300">
-                  <svg
-                    className="h-2.5 w-2.5"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M3 17l4-4 4 4 4-4 4 4M3 7l4-4 4 4 4-4 4 4" />
-                  </svg>
-                  Route
-                </span>
-              )}
             </div>
           </div>
         </div>
