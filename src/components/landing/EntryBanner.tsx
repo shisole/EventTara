@@ -55,7 +55,7 @@ export default function EntryBanner() {
 
   return (
     <div
-      className={`fixed inset-x-0 bottom-0 z-[60] bg-slate-900/95 backdrop-blur-md transition-transform duration-300 ease-out dark:bg-slate-800/95 md:bg-transparent md:backdrop-blur-none md:dark:bg-transparent ${
+      className={`fixed inset-x-0 bottom-0 z-[70] bg-slate-900/95 backdrop-blur-md transition-transform duration-300 ease-out dark:bg-slate-800/95 md:bg-transparent md:backdrop-blur-none md:dark:bg-transparent ${
         isVisible ? "translate-y-0" : "translate-y-full"
       }`}
     >
