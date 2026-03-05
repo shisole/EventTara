@@ -273,8 +273,8 @@ export default function BentoEventsClient({ initialEvents, initialTab }: BentoEv
 
   return (
     <div className="overflow-hidden">
-      {/* Tab bar + arrows row */}
-      <div className="flex items-center justify-between gap-4 mb-6">
+      {/* Tab bar + arrows row (desktop only) */}
+      <div className="hidden md:flex items-center justify-between gap-4 mb-6">
         {/* Tabs */}
         <div className="flex-1 overflow-x-auto scrollbar-hide">
           <div className="flex gap-1 min-w-max">
@@ -447,25 +447,23 @@ export default function BentoEventsClient({ initialEvents, initialTab }: BentoEv
         </div>
       )}
 
-      {/* Mobile: vertical stack of 4 + view more */}
-      {!loading && events.length > 0 && (
+      {/* Mobile: static vertical stack of 3 upcoming + view all link */}
+      {initialEvents.length > 0 && (
         <div className="flex flex-col gap-4 md:hidden">
-          {events.slice(0, 4).map((event) => (
+          {initialEvents.slice(0, 3).map((event) => (
             <BentoEventCard key={event.id} event={event} variant="small" />
           ))}
-          {events.length > 4 && (
-            <Link
-              href="/events"
-              className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 dark:border-slate-600 hover:border-lime-500 dark:hover:border-lime-500 transition-colors min-h-[120px]"
-            >
-              <span className="text-2xl font-heading font-bold text-lime-600 dark:text-lime-400">
-                +{events.length - 4}
-              </span>
-              <span className="text-gray-500 dark:text-gray-400 mt-1 text-sm font-medium">
-                more events
-              </span>
-            </Link>
-          )}
+          <Link
+            href="/events?when=upcoming"
+            className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 dark:border-slate-600 hover:border-lime-500 dark:hover:border-lime-500 transition-colors min-h-[120px]"
+          >
+            <span className="text-gray-600 dark:text-gray-300 font-heading font-bold">
+              View all upcoming
+            </span>
+            <span className="text-lime-600 dark:text-lime-400 mt-1 text-sm font-medium">
+              events &rarr;
+            </span>
+          </Link>
         </div>
       )}
     </div>
