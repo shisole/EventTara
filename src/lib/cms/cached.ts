@@ -109,6 +109,18 @@ export async function getStravaShowcaseFlags(): Promise<{
 }
 
 /**
+ * Returns whether the events two-column mobile grid is enabled.
+ */
+export async function isEventsTwoColMobileEnabled(): Promise<boolean> {
+  try {
+    const flags = await getCachedFeatureFlags();
+    return flags?.events_two_col_mobile === true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Cached hero-carousel fetch. Revalidates every 300 seconds.
  */
 export const getCachedHeroCarousel = unstable_cache(

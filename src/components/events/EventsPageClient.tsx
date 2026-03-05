@@ -21,6 +21,7 @@ interface EventsPageClientProps {
   organizers: FilterOption[];
   guides: FilterOption[];
   initialUsers?: UserResult[];
+  twoColMobile?: boolean;
 }
 
 export default function EventsPageClient({
@@ -29,6 +30,7 @@ export default function EventsPageClient({
   organizers,
   guides,
   initialUsers = [],
+  twoColMobile,
 }: EventsPageClientProps) {
   const [isFiltering, setIsFiltering] = useState(false);
   const [nearbyState, setNearbyState] = useState<NearbyState | null>(null);
@@ -67,6 +69,7 @@ export default function EventsPageClient({
         isFiltering={isFiltering}
         initialUsers={initialUsers}
         nearbyState={nearbyState}
+        twoColMobile={twoColMobile}
       />
     </>
   );

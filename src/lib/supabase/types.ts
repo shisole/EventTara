@@ -972,6 +972,7 @@ export interface Database {
           strava_showcase_features: boolean;
           strava_showcase_stats: boolean;
           strava_showcase_route_map: boolean;
+          events_two_col_mobile: boolean;
         };
         Insert: {
           id?: number;
@@ -979,6 +980,7 @@ export interface Database {
           strava_showcase_features?: boolean;
           strava_showcase_stats?: boolean;
           strava_showcase_route_map?: boolean;
+          events_two_col_mobile?: boolean;
         };
         Update: {
           id?: number;
@@ -986,6 +988,7 @@ export interface Database {
           strava_showcase_features?: boolean;
           strava_showcase_stats?: boolean;
           strava_showcase_route_map?: boolean;
+          events_two_col_mobile?: boolean;
         };
         Relationships: [];
       };
