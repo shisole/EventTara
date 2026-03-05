@@ -35,6 +35,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "File too large (max 10 MB)" }, { status: 400 });
   }
 
+  if (!process.env.R2_ACCOUNT_ID || !process.env.R2_ACCESS_KEY_ID || !process.env.R2_PUBLIC_URL) {
+    return NextResponse.json({ error: "R2 storage is not configured" }, { status: 500 });
+  }
+
   try {
     const buffer = Buffer.from(await file.arrayBuffer());
     const timestamp = Date.now();
@@ -58,7 +62,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ url, mobileUrl });
   } catch (error) {
-    console.error("[admin/upload] Processing error:", error);
-    return NextResponse.json({ error: "Upload failed" }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Unknown error";
+    console.error("[admin/upload] Processing error:", message);
+    return NextResponse.json({ error: `Upload failed: ${message}` }, { status: 500 });
   }
 }
