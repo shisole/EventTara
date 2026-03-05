@@ -1,13 +1,96 @@
 "use client";
 
+import {
+  closestCenter,
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 
+import { DragHandle } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
 interface Slide {
   url: string;
   alt: string;
+}
+
+interface SortableSlideProps {
+  slide: Slide;
+  onRemove: (index: number) => void;
+  index: number;
+  disabled: boolean;
+}
+
+function SortableSlide({ slide, onRemove, index, disabled }: SortableSlideProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: slide.url,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        "flex items-center gap-4 rounded-xl border border-gray-200 bg-white px-4 py-3 dark:border-gray-800 dark:bg-gray-900 transition-all duration-200",
+        isDragging && "opacity-50 scale-105 shadow-lg z-50",
+        disabled && "pointer-events-none opacity-60",
+      )}
+    >
+      <button
+        type="button"
+        {...attributes}
+        {...listeners}
+        className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1 shrink-0"
+        aria-label="Drag to reorder"
+      >
+        <DragHandle className="h-4 w-4" />
+      </button>
+
+      <div className="relative h-16 w-28 shrink-0 overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800">
+        <Image src={slide.url} alt={slide.alt} fill className="object-cover" sizes="112px" />
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-medium text-gray-900 dark:text-white">{slide.alt}</p>
+        <p className="truncate text-xs text-gray-400 dark:text-gray-500">{slide.url}</p>
+      </div>
+
+      <button
+        type="button"
+        onClick={() => onRemove(index)}
+        className="shrink-0 rounded-lg p-2 text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-400"
+        title="Remove slide"
+      >
+        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
+    </div>
+  );
 }
 
 export default function HeroBannerManager() {
@@ -71,16 +154,26 @@ export default function HeroBannerManager() {
     [slides, save],
   );
 
-  const moveSlide = useCallback(
-    (index: number, direction: "up" | "down") => {
-      const newIndex = direction === "up" ? index - 1 : index + 1;
-      if (newIndex < 0 || newIndex >= slides.length) return;
-      const updated = [...slides];
-      [updated[index], updated[newIndex]] = [updated[newIndex], updated[index]];
-      setSlides(updated);
-      void save(updated);
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) return;
+
+      const oldIndex = slides.findIndex((s) => s.url === active.id);
+      const newIndex = slides.findIndex((s) => s.url === over.id);
+
+      const reordered = arrayMove(slides, oldIndex, newIndex);
+      setSlides(reordered);
+      void save(reordered);
     },
     [slides, save],
+  );
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
   );
 
   if (loading) {
@@ -101,104 +194,50 @@ export default function HeroBannerManager() {
         </div>
       )}
 
-      <div className={cn("space-y-3", saving && "opacity-60 pointer-events-none")}>
-        {slides.map((slide, index) => (
-          <div
-            key={`${slide.url}-${index}`}
-            className="flex items-center gap-4 rounded-xl border border-gray-200 bg-white px-4 py-3 dark:border-gray-800 dark:bg-gray-900"
-          >
-            <div className="relative h-16 w-28 shrink-0 overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800">
-              <Image src={slide.url} alt={slide.alt} fill className="object-cover" sizes="112px" />
-            </div>
-
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                {slide.alt}
-              </p>
-              <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{slide.url}</p>
-            </div>
-
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => moveSlide(index, "up")}
-                disabled={index === 0}
-                className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed dark:hover:bg-gray-800 dark:hover:text-gray-300"
-                title="Move up"
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 15l7-7 7 7"
-                  />
-                </svg>
-              </button>
-              <button
-                type="button"
-                onClick={() => moveSlide(index, "down")}
-                disabled={index === slides.length - 1}
-                className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed dark:hover:bg-gray-800 dark:hover:text-gray-300"
-                title="Move down"
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </button>
-              <button
-                type="button"
-                onClick={() => removeSlide(index)}
-                className="rounded-lg p-1.5 text-red-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30"
-                title="Remove"
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                  />
-                </svg>
-              </button>
-            </div>
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={slides.map((s) => s.url)} strategy={verticalListSortingStrategy}>
+          <div className="space-y-3">
+            {slides.map((slide, index) => (
+              <SortableSlide
+                key={slide.url}
+                slide={slide}
+                index={index}
+                onRemove={removeSlide}
+                disabled={saving}
+              />
+            ))}
           </div>
-        ))}
+        </SortableContext>
+      </DndContext>
 
-        {slides.length === 0 && (
-          <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-8">
-            No slides yet. Add one below.
-          </p>
-        )}
-      </div>
+      {slides.length === 0 && (
+        <p className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+          No slides yet. Add one below.
+        </p>
+      )}
 
       <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900/50">
-        <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Add new slide</p>
-        <div className="flex flex-col sm:flex-row gap-3">
+        <p className="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">Add new slide</p>
+        <div className="flex flex-col gap-3 sm:flex-row">
           <input
             type="url"
             placeholder="Image URL"
             value={newUrl}
             onChange={(e) => setNewUrl(e.target.value)}
-            className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white placeholder:text-gray-400"
+            className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           />
           <input
             type="text"
             placeholder="Alt text"
             value={newAlt}
             onChange={(e) => setNewAlt(e.target.value)}
-            className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white placeholder:text-gray-400"
+            className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           />
           <button
             type="button"
             onClick={addSlide}
             disabled={!newUrl.trim() || !newAlt.trim() || saving}
-            className="rounded-lg bg-lime-500 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-lime-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="rounded-lg bg-lime-500 px-4 py-2 text-sm font-semibold text-slate-900 transition-colors hover:bg-lime-400 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Add
           </button>
