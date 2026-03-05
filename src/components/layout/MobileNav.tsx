@@ -1,7 +1,6 @@
 "use client";
 
 import type { User } from "@supabase/supabase-js";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import {
@@ -14,6 +13,7 @@ import {
   LoginIcon,
   ProfileIcon,
 } from "@/components/icons";
+import { NavLink } from "@/components/navigation/NavigationContext";
 import { useKeyboardHeight } from "@/lib/hooks/useKeyboardHeight";
 import { cn } from "@/lib/utils";
 
@@ -146,7 +146,7 @@ export default function MobileNav({ user, role, activityFeedEnabled = false }: M
           const active = item.isActive(pathname);
           const Icon = item.icon;
           return (
-            <Link
+            <NavLink
               key={item.href}
               href={item.href}
               className={cn(
@@ -158,7 +158,7 @@ export default function MobileNav({ user, role, activityFeedEnabled = false }: M
               <span className={cn("text-[11px]", active ? "font-semibold" : "font-medium")}>
                 {item.label}
               </span>
-            </Link>
+            </NavLink>
           );
         })}
       </div>

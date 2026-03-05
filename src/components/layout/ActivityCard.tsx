@@ -1,8 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 
+import { NavLink } from "@/components/navigation/NavigationContext";
 import { cn } from "@/lib/utils";
 
 interface ActivityCardProps {
@@ -15,7 +15,7 @@ interface ActivityCardProps {
 
 export default function ActivityCard({ slug, label, icon, image, className }: ActivityCardProps) {
   return (
-    <Link
+    <NavLink
       href={`/events?type=${slug}`}
       className={cn("group relative overflow-hidden rounded-xl block", className)}
     >
@@ -33,6 +33,6 @@ export default function ActivityCard({ slug, label, icon, image, className }: Ac
         <span className="text-lg">{icon}</span>
         <span className="text-white font-semibold text-sm drop-shadow-md">{label}</span>
       </div>
-    </Link>
+    </NavLink>
   );
 }

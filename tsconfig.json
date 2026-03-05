@@ -21,7 +21,7 @@
       "@/*": ["./src/*"]
     },
     "target": "ES2017",
-    "types": ["@serwist/next/typings"]
+    "types": ["@serwist/next/typings", "vitest/globals"]
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules", "scripts", "public/sw.js", "supabase/functions"]
