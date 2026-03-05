@@ -29,6 +29,13 @@ export default async function Footer() {
         { label: "Contact Us", url: "/contact" },
       ],
     },
+    {
+      title: "About",
+      links: [
+        { label: "Our Story", url: "/about" },
+        { label: "Contact", url: "/contact" },
+      ],
+    },
   ];
 
   const defaultLegalLinks = [
