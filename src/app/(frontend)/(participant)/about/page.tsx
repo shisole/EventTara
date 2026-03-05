@@ -1,5 +1,6 @@
 import { type Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "About EventTara - Built by a Hiker in Iloilo | Stephen Hisole",
@@ -274,15 +275,15 @@ export default function AboutPage() {
             {/* Photo 2 */}
             <div className="relative group">
               <Image
-                src="/images/about/mt-igatmon.jpg"
-                alt="Mt. Igatmon summit"
+                src="/images/about/gallery-napulak.jpg"
+                alt="Summit of Mt. Napulak"
                 width={600}
                 height={400}
                 className="rounded-2xl shadow-lg w-full h-64 object-cover"
               />
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 rounded-b-2xl">
                 <p className="text-white font-medium">
-                  Mt. Igatmon - where the hiking journey started
+                  Mt. Napulak - chasing new summits every weekend
                 </p>
               </div>
             </div>
@@ -304,15 +305,15 @@ export default function AboutPage() {
             {/* Photo 4 */}
             <div className="relative group">
               <Image
-                src="/images/about/marathon-stats.jpg"
-                alt="42km Dinagyang Marathon stats"
+                src="/images/about/gallery-taripis.jpg"
+                alt="Hiking Mt. Taripis trail"
                 width={600}
                 height={400}
                 className="rounded-2xl shadow-lg w-full h-64 object-cover"
               />
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 rounded-b-2xl">
                 <p className="text-white font-medium">
-                  42km Dinagyang Marathon - a tribute to my grandfather
+                  Mt. Taripis - exploring Panay&apos;s hidden trails
                 </p>
               </div>
             </div>
@@ -344,6 +345,33 @@ export default function AboutPage() {
                 <p className="text-white font-medium">With the Iloilo outdoor community</p>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-16 bg-lime-500">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl sm:text-4xl font-heading font-bold text-gray-900 mb-4">
+            Join me on this journey
+          </h2>
+          <p className="text-lg text-gray-800 mb-8 max-w-2xl mx-auto">
+            Whether you&apos;re in Iloilo or anywhere in the Philippines, let&apos;s make finding
+            your next adventure easier. Tara na!
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              href="/events"
+              className="inline-flex items-center justify-center rounded-xl bg-gray-900 px-8 py-3 text-base font-semibold text-white shadow-lg hover:bg-gray-800 transition-colors"
+            >
+              Browse Events
+            </Link>
+            <Link
+              href="/contact"
+              className="inline-flex items-center justify-center rounded-xl bg-white px-8 py-3 text-base font-semibold text-gray-900 shadow-lg hover:bg-gray-100 transition-colors"
+            >
+              Get in Touch
+            </Link>
           </div>
         </div>
       </section>
