@@ -340,8 +340,8 @@ export default function BentoEventsClient({ initialEvents, initialTab }: BentoEv
       {!loading && events.length > 0 && (
         <div
           className="hidden md:block overflow-hidden"
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
+          onTouchStart={pages > 1 ? handleTouchStart : undefined}
+          onTouchEnd={pages > 1 ? handleTouchEnd : undefined}
         >
           <div
             className={cn(
