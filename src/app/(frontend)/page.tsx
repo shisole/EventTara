@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 
+import BentoEventsSection from "@/components/landing/BentoEventsSection";
 import CategoriesSection from "@/components/landing/CategoriesSection";
 import ContactCTASection from "@/components/landing/ContactCTASection";
 import EntryBanner from "@/components/landing/EntryBanner";
@@ -13,7 +14,6 @@ import OrganizerWaitlistModal from "@/components/landing/OrganizerWaitlistModal"
 import ParallaxMountain from "@/components/landing/ParallaxMountain";
 import StravaShowcaseSection from "@/components/landing/StravaShowcaseSection";
 import TestimonialsSection from "@/components/landing/TestimonialsSection";
-import UpcomingEventsSection from "@/components/landing/UpcomingEventsSection";
 import {
   getCachedHeroCarousel,
   getCachedHomepageSections,
@@ -51,19 +51,33 @@ const DEFAULT_SECTIONS: CmsHomepageSection[] = [
   { key: "contact_cta", label: "Contact CTA", enabled: true, order: 10 },
 ];
 
-function UpcomingEventsSkeleton() {
+function BentoEventsSkeleton() {
   return (
-    <section className="py-12 bg-white dark:bg-slate-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between mb-10">
-          <div className="h-9 w-56 bg-gray-200 dark:bg-slate-700 rounded-lg animate-pulse" />
-          <div className="h-5 w-16 bg-gray-200 dark:bg-slate-700 rounded animate-pulse" />
+    <section className="bg-white py-12 dark:bg-slate-800">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mb-6 flex items-center justify-between">
+          <div className="h-9 w-56 animate-pulse rounded-lg bg-gray-200 dark:bg-slate-700" />
+          <div className="h-5 w-16 animate-pulse rounded bg-gray-200 dark:bg-slate-700" />
         </div>
-        <div className="flex gap-4 overflow-hidden">
+        <div className="mb-6 flex gap-2">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div
+              key={i}
+              className="h-9 w-24 animate-pulse rounded-full bg-gray-200 dark:bg-slate-700"
+            />
+          ))}
+        </div>
+        <div className="hidden gap-4 md:grid md:grid-cols-3 md:grid-rows-2" style={{ height: 480 }}>
+          <div className="col-span-1 row-span-2 animate-pulse rounded-2xl bg-gray-100 dark:bg-slate-700" />
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="animate-pulse rounded-2xl bg-gray-100 dark:bg-slate-700" />
+          ))}
+        </div>
+        <div className="flex gap-4 overflow-hidden md:hidden">
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="min-w-[320px] h-[340px] bg-gray-100 dark:bg-slate-700 rounded-2xl animate-pulse flex-shrink-0"
+              className="h-[280px] min-w-[280px] flex-shrink-0 animate-pulse rounded-2xl bg-gray-100 dark:bg-slate-700"
             />
           ))}
         </div>
@@ -159,8 +173,8 @@ function renderSection(key: string, parallaxImageUrl: string, heroData: HeroData
     }
     case "upcoming_events": {
       return (
-        <Suspense fallback={<UpcomingEventsSkeleton />}>
-          <UpcomingEventsSection />
+        <Suspense fallback={<BentoEventsSkeleton />}>
+          <BentoEventsSection />
         </Suspense>
       );
     }

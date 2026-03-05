@@ -85,6 +85,7 @@ export interface Database {
           status: "draft" | "published" | "completed" | "cancelled";
           cover_image_url: string | null;
           difficulty_level: number | null;
+          is_featured: boolean;
           created_at: string;
         };
         Insert: {
@@ -102,6 +103,7 @@ export interface Database {
           status?: "draft" | "published" | "completed" | "cancelled";
           cover_image_url?: string | null;
           difficulty_level?: number | null;
+          is_featured?: boolean;
           created_at?: string;
         };
         Update: {
@@ -119,6 +121,7 @@ export interface Database {
           status?: "draft" | "published" | "completed" | "cancelled";
           cover_image_url?: string | null;
           difficulty_level?: number | null;
+          is_featured?: boolean;
           created_at?: string;
         };
         Relationships: [];

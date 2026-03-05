@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
   const guide = searchParams.get("guide") || "";
   const distance = searchParams.get("distance") || "";
   const difficulty = searchParams.get("difficulty") || "";
+  const featured = searchParams.get("featured") || "";
   const from = searchParams.get("from") || "";
   const to = searchParams.get("to") || "";
 
@@ -69,6 +70,11 @@ export async function GET(request: NextRequest) {
       countQuery = countQuery.in("type", types);
       dataQuery = dataQuery.in("type", types);
     }
+  }
+
+  if (featured === "true") {
+    countQuery = countQuery.eq("is_featured", true);
+    dataQuery = dataQuery.eq("is_featured", true);
   }
 
   if (search) {
