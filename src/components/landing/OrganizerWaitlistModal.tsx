@@ -194,7 +194,7 @@ export default function OrganizerWaitlistModal() {
           id="waitlist-modal-title"
           className="mb-2 text-center font-heading text-2xl font-bold text-gray-900 dark:text-white"
         >
-          Run Adventure Events?
+          Host Adventure Events?
         </h2>
 
         {/* Description */}

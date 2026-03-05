@@ -33,6 +33,10 @@ const FLAG_META: Record<string, { label: string; description: string }> = {
     label: "Organizer Reviews",
     description: "Allow users to leave reviews directly on organizer profiles.",
   },
+  events_two_col_mobile: {
+    label: "Events — 2-Column Mobile Grid",
+    description: "Show event cards in a 2-column grid on mobile instead of single column.",
+  },
 };
 
 export default function FeatureFlagsForm() {

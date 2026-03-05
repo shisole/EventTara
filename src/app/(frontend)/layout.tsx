@@ -94,6 +94,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     isActivityFeedEnabled(),
   ]);
   const navLayout = settings?.nav_layout || "strip";
+  const adminUserIds = (process.env.ADMIN_USER_IDS ?? "")
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean);
 
   return (
     <html
@@ -149,7 +153,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className="font-sans min-h-dvh flex flex-col">
         <GoogleAnalytics />
         <ThemeProvider>
-          <ClientShell initialNavLayout={navLayout} activityFeedEnabled={activityFeedEnabled}>
+          <ClientShell
+            initialNavLayout={navLayout}
+            activityFeedEnabled={activityFeedEnabled}
+            adminUserIds={adminUserIds}
+          >
             {children}
           </ClientShell>
           <Footer />

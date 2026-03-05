@@ -37,6 +37,7 @@ interface NavbarProps {
   navLayout: string;
   activeBorder?: ActiveBorderData | null;
   activityFeedEnabled?: boolean;
+  isAdmin?: boolean;
   onLogout: () => void;
   onMenuOpen: () => void;
   onBorderChange?: (borderId: string | null, tier: BorderTier | null, color: string | null) => void;
@@ -50,6 +51,7 @@ export default function Navbar({
   navLayout,
   activeBorder,
   activityFeedEnabled = false,
+  isAdmin = false,
   onLogout,
   onMenuOpen,
   onBorderChange,
@@ -172,6 +174,14 @@ export default function Navbar({
                           {user.email}
                         </p>
                       </div>
+                      {isAdmin && (
+                        <NavLink
+                          href="/admin"
+                          className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                        >
+                          Admin Panel
+                        </NavLink>
+                      )}
                       {role === "organizer" && (
                         <NavLink
                           href="/dashboard"

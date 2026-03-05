@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import EventsPageClient from "@/components/events/EventsPageClient";
 import { Breadcrumbs } from "@/components/ui";
+import { isEventsTwoColMobileEnabled } from "@/lib/cms/cached";
 import { fetchEventEnrichments, mapEventToCard } from "@/lib/events/map-event-card";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
@@ -284,10 +285,11 @@ export default async function EventsPage({
     matchingUsers = (users ?? []).filter((u): u is typeof u & { username: string } => !!u.username);
   }
 
-  // Fetch filter dropdown options in parallel
-  const [organizers, guides] = await Promise.all([
+  // Fetch filter dropdown options + feature flags in parallel
+  const [organizers, guides, twoColMobile] = await Promise.all([
     fetchOrganizerOptions(supabase),
     fetchGuideOptions(supabase),
+    isEventsTwoColMobileEnabled(),
   ]);
 
   return (
@@ -299,6 +301,7 @@ export default async function EventsPage({
         organizers={organizers}
         guides={guides}
         initialUsers={matchingUsers}
+        twoColMobile={twoColMobile}
       />
     </div>
   );

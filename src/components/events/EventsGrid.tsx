@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 
+import { cn } from "@/lib/utils";
 import { haversineDistance } from "@/lib/utils/geo";
 
 import EventCard from "./EventCard";
@@ -36,9 +37,10 @@ export interface NearbyState {
 interface EventsGridProps {
   events: EventData[];
   nearbyState?: NearbyState | null;
+  twoColMobile?: boolean;
 }
 
-export default function EventsGrid({ events, nearbyState }: EventsGridProps) {
+export default function EventsGrid({ events, nearbyState, twoColMobile }: EventsGridProps) {
   const eventsWithDistance = useMemo(() => {
     if (!nearbyState) {
       const distance: number | undefined = undefined;
@@ -64,7 +66,12 @@ export default function EventsGrid({ events, nearbyState }: EventsGridProps) {
   }, [events, nearbyState]);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+    <div
+      className={cn(
+        "grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6",
+        twoColMobile ? "grid-cols-2" : "grid-cols-1",
+      )}
+    >
       {eventsWithDistance.map((event, i) => (
         <div
           key={event.id}
@@ -90,6 +97,7 @@ export default function EventsGrid({ events, nearbyState }: EventsGridProps) {
             difficulty_level={event.difficulty_level}
             race_distances={event.race_distances}
             hasRoute={event.hasRoute}
+            compact={twoColMobile}
           />
         </div>
       ))}

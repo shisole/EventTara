@@ -29,6 +29,7 @@ interface EventCardProps {
   difficulty_level?: number | null;
   race_distances?: number[];
   hasRoute?: boolean;
+  compact?: boolean;
 }
 
 const typeLabels: Record<string, string> = {
@@ -73,6 +74,7 @@ export default function EventCard({
   difficulty_level,
   race_distances,
   hasRoute,
+  compact,
 }: EventCardProps) {
   const spotsLeft = max_participants - booking_count;
   const formattedDate = formatEventDate(date, endDate, { short: true });
@@ -86,14 +88,23 @@ export default function EventCard({
           status === "past" && "opacity-60",
         )}
       >
-        {/* Image section (~65% of card) */}
-        <div className="relative h-52 sm:h-56 bg-gradient-to-br from-lime-100 to-forest-100 dark:from-lime-900 dark:to-forest-900">
+        {/* Image section */}
+        <div
+          className={cn(
+            "relative bg-gradient-to-br from-lime-100 to-forest-100 dark:from-lime-900 dark:to-forest-900",
+            compact ? "h-32 sm:h-56" : "h-52 sm:h-56",
+          )}
+        >
           {cover_image_url && (
             <Image
               src={cover_image_url}
               alt={title}
               fill
-              sizes="(max-width: 640px) 92vw, (max-width: 1024px) 45vw, 300px"
+              sizes={
+                compact
+                  ? "(max-width: 640px) 46vw, (max-width: 1024px) 45vw, 300px"
+                  : "(max-width: 640px) 92vw, (max-width: 1024px) 45vw, 300px"
+              }
               className="object-cover"
             />
           )}
@@ -168,11 +179,23 @@ export default function EventCard({
         </div>
 
         {/* Content section */}
-        <div className="p-3 sm:p-4 space-y-2">
+        <div className={cn("space-y-1.5", compact ? "p-2.5 sm:p-4" : "p-3 sm:p-4 space-y-2")}>
           {/* Title + Price */}
-          <div className="flex items-center justify-between gap-2">
-            <h3 className="font-heading font-bold text-base truncate">{title}</h3>
-            <span className="shrink-0 text-sm font-bold text-lime-600 dark:text-lime-400">
+          <div className="flex items-center justify-between gap-1">
+            <h3
+              className={cn(
+                "font-heading font-bold truncate",
+                compact ? "text-sm sm:text-base" : "text-base",
+              )}
+            >
+              {title}
+            </h3>
+            <span
+              className={cn(
+                "shrink-0 font-bold text-lime-600 dark:text-lime-400",
+                compact ? "text-xs sm:text-sm" : "text-sm",
+              )}
+            >
               {formattedPrice}
             </span>
           </div>
@@ -184,8 +207,49 @@ export default function EventCard({
             <p className="text-xs text-gray-400 dark:text-gray-500">by {organizer_name}</p>
           ) : null}
 
-          {/* 2-column info grid */}
-          <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
+          {/* Info — stacked when compact, 2-col grid otherwise */}
+          {compact ? (
+            <div className="space-y-1 text-xs sm:hidden">
+              <div className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 min-w-0">
+                <svg
+                  className="h-3 w-3 shrink-0"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M5.75 2a.75.75 0 01.75.75V4h7V2.75a.75.75 0 011.5 0V4h.25A2.75 2.75 0 0118 6.75v8.5A2.75 2.75 0 0115.25 18H4.75A2.75 2.75 0 012 15.25v-8.5A2.75 2.75 0 014.75 4H5V2.75A.75.75 0 015.75 2z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span className="truncate">{formattedDate}</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 min-w-0">
+                <svg
+                  className="h-3 w-3 shrink-0"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M9.69 18.933l.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 00.281-.14c.186-.096.446-.24.757-.433.62-.384 1.445-.966 2.274-1.765C15.302 14.988 17 12.493 17 9A7 7 0 103 9c0 3.492 1.698 5.988 3.355 7.584a13.731 13.731 0 002.273 1.765 11.842 11.842 0 00.976.544l.062.029.018.008.006.003zM10 11.25a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span className="truncate">{location}</span>
+              </div>
+            </div>
+          ) : null}
+
+          {/* 2-column info grid (hidden on mobile when compact, always shown on sm+) */}
+          <div
+            className={cn(
+              "grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm",
+              compact && "hidden sm:grid",
+            )}
+          >
             {/* Row 1: Date | Location */}
             <div className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 min-w-0">
               <svg

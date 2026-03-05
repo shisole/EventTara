@@ -20,6 +20,7 @@ interface MobileDrawerProps {
   activities: Activity[];
   user: User | null;
   role: string | null;
+  isAdmin?: boolean;
   onLogout: () => void;
 }
 
@@ -29,6 +30,7 @@ export default function MobileDrawer({
   activities,
   user,
   role,
+  isAdmin = false,
   onLogout,
 }: MobileDrawerProps) {
   const drawerRef = useRef<HTMLDivElement>(null);
@@ -108,6 +110,15 @@ export default function MobileDrawer({
           {/* Navigation links */}
           {user ? (
             <div className="space-y-1">
+              {isAdmin && (
+                <NavLink
+                  href="/admin"
+                  onClick={onClose}
+                  className="block px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium"
+                >
+                  Admin Panel
+                </NavLink>
+              )}
               {role === "organizer" && (
                 <NavLink
                   href="/dashboard"
