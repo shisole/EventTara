@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import BookingButton from "@/components/events/BookingButton";
 import DifficultyBadge from "@/components/events/DifficultyBadge";
 import EventGallery from "@/components/events/EventGallery";
+import LiveBookingCount from "@/components/events/LiveBookingCount";
 import OrganizerCard from "@/components/events/OrganizerCard";
 import ShareButtons from "@/components/events/ShareButtons";
 import GuideCard from "@/components/guides/GuideCard";
@@ -521,14 +522,11 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
               </div>
             )}
 
-            <div className="text-center text-sm text-gray-500 dark:text-gray-400">
-              <span className="font-medium text-gray-700 dark:text-gray-300">{bookingCount}</span>{" "}
-              adventurer{bookingCount === 1 ? "" : "s"} joined
-              {" \u00B7 "}
-              <span className={spotsLeft <= 5 ? "text-red-500 font-medium" : ""}>
-                {spotsLeft <= 0 ? "Fully booked" : `${spotsLeft} spots left`}
-              </span>
-            </div>
+            <LiveBookingCount
+              eventId={id}
+              maxParticipants={event.max_participants}
+              initialCount={bookingCount}
+            />
 
             {avgRating > 0 && (
               <div className="text-center text-sm">
