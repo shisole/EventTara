@@ -45,22 +45,22 @@ export default function JourneyStepGallery({
   }
 
   return (
-    <div className="group relative">
+    <div className={`group relative ${aspectRatio} w-full overflow-hidden rounded-2xl shadow-lg`}>
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className={`flex ${aspectRatio} w-full snap-x snap-mandatory overflow-x-auto rounded-2xl shadow-lg scrollbar-hide`}
+        className="absolute inset-0 flex snap-x snap-mandatory overflow-x-auto"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
         {images.map((image, i) => (
-          <div key={i} className="relative min-w-full snap-start">
+          <div key={i} className="relative h-full w-full flex-none snap-start">
             <Image src={image.src} alt={image.alt} fill className="object-cover" />
           </div>
         ))}
       </div>
 
       {/* Dot indicators */}
-      <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5">
+      <div className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 gap-1.5">
         {images.map((_, i) => (
           <button
             key={i}
@@ -78,7 +78,7 @@ export default function JourneyStepGallery({
         <button
           onClick={() => scrollTo(activeIndex - 1)}
           aria-label="Previous image"
-          className="absolute left-2 top-1/2 hidden -translate-y-1/2 rounded-full bg-black/40 p-1.5 text-white opacity-0 transition-opacity hover:bg-black/60 group-hover:opacity-100 md:flex"
+          className="absolute left-2 top-1/2 z-10 hidden -translate-y-1/2 rounded-full bg-black/40 p-1.5 text-white opacity-0 transition-opacity hover:bg-black/60 group-hover:opacity-100 md:flex"
         >
           <ChevronLeftIcon className="h-5 w-5" />
         </button>
@@ -87,7 +87,7 @@ export default function JourneyStepGallery({
         <button
           onClick={() => scrollTo(activeIndex + 1)}
           aria-label="Next image"
-          className="absolute right-2 top-1/2 hidden -translate-y-1/2 rounded-full bg-black/40 p-1.5 text-white opacity-0 transition-opacity hover:bg-black/60 group-hover:opacity-100 md:flex"
+          className="absolute right-2 top-1/2 z-10 hidden -translate-y-1/2 rounded-full bg-black/40 p-1.5 text-white opacity-0 transition-opacity hover:bg-black/60 group-hover:opacity-100 md:flex"
         >
           <ChevronRightIcon className="h-5 w-5" />
         </button>
