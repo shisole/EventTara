@@ -44,7 +44,7 @@ const solidTypeBadge: Record<string, string> = {
   mtb: "bg-amber-500 text-white",
   road_bike: "bg-blue-500 text-white",
   running: "bg-orange-500 text-white",
-  trail_run: "bg-teal-600 text-white",
+  trail_run: "bg-yellow-800 text-white",
 };
 
 function solidDifficultyBadge(level: number): string {
