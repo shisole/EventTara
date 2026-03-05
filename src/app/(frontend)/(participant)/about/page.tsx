@@ -246,10 +246,10 @@ export default function AboutPage() {
             The Solution
           </h2>
           <p className="text-lg text-gray-600 dark:text-gray-400 leading-relaxed">
-            EventTara started as a weekend project in my apartment in Iloilo. A simple platform to
-            find and book outdoor events—built by someone who lives this life, for others like me.
-            No corporate backing, no big team. Just a hiker who codes and wanted to solve a problem
-            I faced every week.
+            EventTara started as a weekend project in my room in Iloilo. A simple platform to find
+            and book outdoor events—built by someone who lives this life, for others like me. No
+            corporate backing, no big team. Just a hiker who codes and wanted to solve a problem I
+            faced every week.
           </p>
         </div>
       </section>
