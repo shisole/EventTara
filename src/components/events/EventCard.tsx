@@ -111,6 +111,12 @@ export default function EventCard({
               {formattedPrice}
             </span>
           </div>
+
+          {/* Type + Difficulty pills — bottom left */}
+          <div className="absolute bottom-3 left-3 flex items-center gap-1.5">
+            <UIBadge variant={type}>{typeLabels[type] || type}</UIBadge>
+            {difficulty_level != null && <DifficultyBadge level={difficulty_level} />}
+          </div>
         </div>
 
         {/* Content section */}
@@ -164,11 +170,7 @@ export default function EventCard({
               )}
             </div>
 
-            {/* Row 2: Type + Difficulty | Rating */}
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <UIBadge variant={type}>{typeLabels[type] || type}</UIBadge>
-              {difficulty_level != null && <DifficultyBadge level={difficulty_level} />}
-            </div>
+            {/* Row 2: Rating | Spots */}
             <div className="flex items-center gap-1 min-w-0">
               {avg_rating != null && avg_rating > 0 && review_count != null && review_count > 0 ? (
                 <>
@@ -182,8 +184,6 @@ export default function EventCard({
                 <span className="text-xs text-gray-400 dark:text-gray-500">No reviews</span>
               )}
             </div>
-
-            {/* Row 3: Spots | Route + Distance badges */}
             <div className="flex items-center">
               <span
                 className={cn(
