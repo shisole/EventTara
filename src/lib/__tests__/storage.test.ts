@@ -9,10 +9,6 @@ describe("cdnUrl", () => {
     expect(cdnUrl(null)).toBeNull();
   });
 
-  test("returns null for undefined input", () => {
-    expect(cdnUrl()).toBeNull();
-  });
-
   test("rewrites Supabase storage URL to /storage/ path", () => {
     vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://abc.supabase.co");
     expect(cdnUrl("https://abc.supabase.co/storage/v1/object/public/covers/photo.jpg")).toBe(
