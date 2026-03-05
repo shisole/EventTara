@@ -21,7 +21,7 @@ export default async function OrganizersSection() {
   const { data: organizers } = await supabase
     .from("organizer_profiles")
     .select("id, org_name, logo_url, events!inner(id)")
-    .eq("events.status", "published")
+    .in("events.status", ["published", "completed"])
     .limit(12);
 
   // Dedupe (inner join can return multiples) and sort by event count
