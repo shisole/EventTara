@@ -63,6 +63,11 @@ export default function HeroSection({ heroData }: HeroSectionProps) {
           Tara na!
         </h1>
         <p
+          className={`text-lg sm:text-xl mb-6 font-medium ${heroSlides.length > 0 ? "text-lime-300" : "text-lime-600 dark:text-lime-400"}`}
+        >
+          Built by a hiker in Iloilo for adventurers across the Philippines
+        </p>
+        <p
           className={`text-xl sm:text-2xl mb-10 max-w-2xl mx-auto ${heroSlides.length > 0 ? "text-gray-200" : "text-gray-600 dark:text-gray-400"}`}
         >
           Book Your Next Adventure. Discover hiking, biking, running events and more across the
