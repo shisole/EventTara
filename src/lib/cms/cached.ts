@@ -208,6 +208,18 @@ export function parseHomepageSections(data: CmsHomepageSections | null): CmsHome
 }
 
 /**
+ * Returns whether the organizer reviews feature flag is enabled.
+ */
+export async function isOrganizerReviewsEnabled(): Promise<boolean> {
+  try {
+    const flags = await getCachedFeatureFlags();
+    return flags?.organizer_reviews === true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Parse footer sections from JSONB into typed array.
  */
 export function parseFooterSections(nav: CmsNavigation | null): CmsFooterSection[] {

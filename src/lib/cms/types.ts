@@ -65,6 +65,7 @@ export interface CmsFeatureFlags {
   strava_showcase_features: boolean;
   strava_showcase_stats: boolean;
   strava_showcase_route_map: boolean;
+  organizer_reviews: boolean;
   events_two_col_mobile: boolean;
 }
 

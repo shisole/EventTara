@@ -29,6 +29,10 @@ const FLAG_META: Record<string, { label: string; description: string }> = {
     label: "Strava Showcase — Route Map",
     description: "Show the interactive route map preview on the homepage.",
   },
+  organizer_reviews: {
+    label: "Organizer Reviews",
+    description: "Allow users to leave reviews directly on organizer profiles.",
+  },
   events_two_col_mobile: {
     label: "Events — 2-Column Mobile Grid",
     description: "Show event cards in a 2-column grid on mobile instead of single column.",
