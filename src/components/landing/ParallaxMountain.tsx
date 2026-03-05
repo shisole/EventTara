@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 
@@ -65,11 +66,13 @@ export default function ParallaxMountain({ imageUrl, children }: ParallaxMountai
   return (
     <section ref={sectionRef} className={`relative ${hasChildren ? "h-[300vh]" : "h-[200vh]"}`}>
       <div className="sticky top-0 h-screen overflow-hidden">
-        <div
-          className="absolute inset-0 bg-center bg-cover"
-          style={{
-            backgroundImage: `url('${imageUrl}')`,
-          }}
+        <Image
+          src={imageUrl}
+          alt="Mountain landscape"
+          fill
+          sizes="100vw"
+          priority
+          className="object-cover"
         />
         <div className="absolute inset-0 bg-black/30" />
 

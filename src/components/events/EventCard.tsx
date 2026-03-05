@@ -78,7 +78,7 @@ export default function EventCard({
               src={cover_image_url}
               alt={title}
               fill
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 350px"
+              sizes="(max-width: 640px) 92vw, (max-width: 1024px) 45vw, 300px"
               className="object-cover"
             />
           )}
