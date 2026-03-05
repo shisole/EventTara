@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 
 import { CheckCircleIcon, StravaIcon } from "@/components/icons";
 import { Button, Input, OtpCodeInput } from "@/components/ui";
-import { STRAVA_AUTH_URL, STRAVA_SCOPES } from "@/lib/strava/constants";
 import { createClient } from "@/lib/supabase/client";
 import { generateUsername } from "@/lib/utils/generate-username";
 
@@ -186,35 +185,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleFacebookLogin = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "facebook",
-      options: {
-        redirectTo: `${globalThis.location.origin}/auth/callback`,
-      },
-    });
-    if (error) setError(error.message);
-  };
-
-  const handleStravaLogin = () => {
-    const clientId = process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID;
-    if (!clientId) {
-      setError("Strava login is not configured.");
-      return;
-    }
-
-    const params = new URLSearchParams({
-      client_id: clientId,
-      response_type: "code",
-      redirect_uri: `${globalThis.location.origin}/auth/strava/callback`,
-      scope: STRAVA_SCOPES.join(","),
-      state: JSON.stringify({ flow: "login" }),
-      approval_prompt: "auto",
-    });
-
-    globalThis.location.href = `${STRAVA_AUTH_URL}?${params.toString()}`;
-  };
-
   const handleGuestContinue = async () => {
     const { error } = await supabase.auth.signInAnonymously();
     if (error) {
@@ -269,21 +239,19 @@ export default function LoginPage() {
     <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md p-8 space-y-6">
       <h2 className="text-2xl font-heading font-bold text-center">Welcome Back!</h2>
 
-      <Button
-        onClick={handleFacebookLogin}
-        className="w-full bg-[#1877F2] hover:bg-[#166FE5]"
-        size="lg"
-      >
+      <Button disabled className="w-full bg-[#1877F2]/60 cursor-not-allowed" size="lg">
         Continue with Facebook
+        <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium">
+          Coming Soon
+        </span>
       </Button>
 
-      <Button
-        onClick={handleStravaLogin}
-        className="w-full bg-[#FC4C02] hover:bg-[#E34402]"
-        size="lg"
-      >
+      <Button disabled className="w-full bg-[#FC4C02]/60 cursor-not-allowed" size="lg">
         <StravaIcon className="w-5 h-5 mr-2" />
         Continue with Strava
+        <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium">
+          Coming Soon
+        </span>
       </Button>
 
       <div className="relative">
