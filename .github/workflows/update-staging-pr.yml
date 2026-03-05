@@ -1,0 +1,72 @@
+name: Update Staging PR Description
+
+on:
+  pull_request:
+    branches: [staging]
+    types: [closed]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  update-description:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Update staging → main PR description
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const merged = context.payload.pull_request;
+            const newEntry = `- #${merged.number} — ${merged.title}`;
+
+            // Find open staging → main PR
+            const { data: prs } = await github.rest.pulls.list({
+              owner,
+              repo,
+              head: `${owner}:staging`,
+              base: 'main',
+              state: 'open',
+            });
+
+            if (prs.length === 0) {
+              // Create the staging → main PR
+              const { data: created } = await github.rest.pulls.create({
+                owner,
+                repo,
+                head: 'staging',
+                base: 'main',
+                title: 'Staging → Main',
+                body: `## Changes\n${newEntry}\n`,
+              });
+              core.info(`Created staging PR #${created.number}`);
+              return;
+            }
+
+            const pr = prs[0];
+            const body = pr.body || '';
+
+            // Avoid duplicate entries
+            if (body.includes(`#${merged.number}`)) {
+              core.info(`PR #${merged.number} already listed — skipping`);
+              return;
+            }
+
+            // Append under ## Changes heading
+            let newBody;
+            if (body.includes('## Changes')) {
+              newBody = body.replace('## Changes\n', `## Changes\n${newEntry}\n`);
+            } else {
+              newBody = `## Changes\n${newEntry}\n${body ? '\n' + body : ''}`;
+            }
+
+            await github.rest.pulls.update({
+              owner,
+              repo,
+              pull_number: pr.number,
+              body: newBody,
+            });
+
+            core.info(`Updated PR #${pr.number} with entry for #${merged.number}`);

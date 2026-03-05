@@ -28,13 +28,15 @@ export async function uploadToR2(
   const endpoint = `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`;
   const url = `${endpoint}/${bucket}/${key}`;
 
+  const bytes = new Uint8Array(body);
   const res = await getR2Client().fetch(url, {
     method: "PUT",
     headers: {
       "Content-Type": contentType,
+      "Content-Length": bytes.byteLength.toString(),
       "Cache-Control": "public, max-age=31536000, immutable",
     },
-    body: new Uint8Array(body),
+    body: bytes,
   });
 
   if (!res.ok) {

@@ -18,13 +18,14 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import Image from "next/image";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { DragHandle } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
 interface Slide {
   url: string;
+  mobileUrl?: string;
   alt: string;
 }
 
@@ -98,8 +99,12 @@ export default function HeroBannerManager() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [newUrl, setNewUrl] = useState("");
   const [newAlt, setNewAlt] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  const [stagedFile, setStagedFile] = useState<File | null>(null);
+  const [stagedPreview, setStagedPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     async function load() {
@@ -136,14 +141,70 @@ export default function HeroBannerManager() {
     }
   }, []);
 
-  const addSlide = useCallback(() => {
-    if (!newUrl.trim() || !newAlt.trim()) return;
-    const updated = [...slides, { url: newUrl.trim(), alt: newAlt.trim() }];
-    setSlides(updated);
-    setNewUrl("");
+  const stageFile = useCallback(
+    (file: File) => {
+      if (stagedPreview) URL.revokeObjectURL(stagedPreview);
+      setStagedFile(file);
+      setStagedPreview(URL.createObjectURL(file));
+      setError(null);
+    },
+    [stagedPreview],
+  );
+
+  const clearStaged = useCallback(() => {
+    if (stagedPreview) URL.revokeObjectURL(stagedPreview);
+    setStagedFile(null);
+    setStagedPreview(null);
     setNewAlt("");
-    void save(updated);
-  }, [slides, newUrl, newAlt, save]);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }, [stagedPreview]);
+
+  const uploadAndAdd = useCallback(async () => {
+    if (!stagedFile || !newAlt.trim()) return;
+    setUploading(true);
+    setError(null);
+    try {
+      const formData = new FormData();
+      formData.append("file", stagedFile);
+      formData.append("folder", "hero");
+      const res = await fetch("/api/admin/upload", { method: "POST", body: formData });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Upload failed");
+      }
+      const { url, mobileUrl } = await res.json();
+      const updated = [...slides, { url, mobileUrl, alt: newAlt.trim() }];
+      setSlides(updated);
+      clearStaged();
+      void save(updated);
+    } catch (error_) {
+      setError(error_ instanceof Error ? error_.message : "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  }, [stagedFile, slides, newAlt, save, clearStaged]);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setDragOver(false);
+      const file = e.dataTransfer.files[0];
+      if (file?.type.startsWith("image/")) {
+        stageFile(file);
+      }
+    },
+    [stageFile],
+  );
+
+  const handleFileChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        stageFile(file);
+      }
+    },
+    [stageFile],
+  );
 
   const removeSlide = useCallback(
     (index: number) => {
@@ -216,32 +277,117 @@ export default function HeroBannerManager() {
         </p>
       )}
 
-      <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900/50">
-        <p className="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">Add new slide</p>
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <input
-            type="url"
-            placeholder="Image URL"
-            value={newUrl}
-            onChange={(e) => setNewUrl(e.target.value)}
-            className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-          />
-          <input
-            type="text"
-            placeholder="Alt text"
-            value={newAlt}
-            onChange={(e) => setNewAlt(e.target.value)}
-            className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-          />
-          <button
-            type="button"
-            onClick={addSlide}
-            disabled={!newUrl.trim() || !newAlt.trim() || saving}
-            className="rounded-lg bg-lime-500 px-4 py-2 text-sm font-semibold text-slate-900 transition-colors hover:bg-lime-400 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Add
-          </button>
-        </div>
+      <div
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragOver(true);
+        }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={handleDrop}
+        className={cn(
+          "rounded-xl border-2 border-dashed p-6 text-center transition-colors",
+          dragOver
+            ? "border-lime-500 bg-lime-50 dark:border-lime-400 dark:bg-lime-950/20"
+            : "border-gray-300 bg-gray-50 dark:border-gray-700 dark:bg-gray-900/50",
+        )}
+      >
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          className="hidden"
+        />
+
+        {stagedPreview ? (
+          <div className="space-y-4">
+            <div className="relative mx-auto h-40 w-72 overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={stagedPreview} alt="Preview" className="h-full w-full object-cover" />
+              <button
+                type="button"
+                onClick={clearStaged}
+                className="absolute right-2 top-2 rounded-full bg-black/60 p-1 text-white hover:bg-black/80"
+                title="Remove"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <div className="mx-auto flex max-w-md items-center gap-3">
+              <input
+                type="text"
+                placeholder="Alt text (required)"
+                value={newAlt}
+                onChange={(e) => setNewAlt(e.target.value)}
+                className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              />
+              <button
+                type="button"
+                onClick={() => void uploadAndAdd()}
+                disabled={!newAlt.trim() || uploading}
+                className="rounded-lg bg-lime-500 px-4 py-2 text-sm font-semibold text-slate-900 transition-colors hover:bg-lime-400 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {uploading ? "Uploading..." : "Add slide"}
+              </button>
+            </div>
+
+            {uploading && (
+              <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+                <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                  />
+                </svg>
+                Processing and uploading to R2...
+              </div>
+            )}
+          </div>
+        ) : (
+          <div>
+            <svg
+              className="mx-auto h-10 w-10 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M12 16v-8m0 0l-3 3m3-3l3 3M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1"
+              />
+            </svg>
+            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+              Drag and drop an image, or{" "}
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="font-medium text-lime-600 hover:text-lime-500 dark:text-lime-400"
+              >
+                browse
+              </button>
+            </p>
+            <p className="mt-1 text-xs text-gray-400">Max 10 MB. Will be converted to WebP.</p>
+          </div>
+        )}
       </div>
     </div>
   );

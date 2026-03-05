@@ -232,7 +232,7 @@ function renderSection(key: string, parallaxImageUrl: string, heroData: HeroData
 }
 
 interface HeroData {
-  slides: { image: { url: string; alt: string } }[];
+  slides: { image: { url: string; mobileUrl?: string; alt: string } }[];
 }
 
 export default async function Home() {
@@ -245,7 +245,11 @@ export default async function Home() {
   const heroSlides = parseHeroSlides(heroData);
   const transformedHeroData: HeroData | null =
     heroSlides.length > 0
-      ? { slides: heroSlides.map((s) => ({ image: { url: s.url, alt: s.alt } })) }
+      ? {
+          slides: heroSlides.map((s) => ({
+            image: { url: s.url, mobileUrl: s.mobileUrl, alt: s.alt },
+          })),
+        }
       : null;
   const parallaxImageUrl =
     settings?.parallax_image_url ??

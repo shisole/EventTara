@@ -16,7 +16,7 @@ test.describe("Navigation", () => {
     await page.goto("/");
 
     // Navigate to events
-    const exploreLink = page.getByRole("link", { name: /explore events/i });
+    const exploreLink = page.getByRole("link", { name: /explore events/i }).first();
     await expect(exploreLink).toBeVisible();
     await exploreLink.click({ force: true });
 
