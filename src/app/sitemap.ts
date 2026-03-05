@@ -96,5 +96,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  return [...staticPages, ...eventPages, ...profilePages, ...guidePages, ...organizerPages];
+  const organizerReviewPages: MetadataRoute.Sitemap = (organizers || []).map((org) => ({
+    url: `${siteUrl}/organizers/${org.id}/reviews`,
+    lastModified: new Date(org.created_at),
+    changeFrequency: "weekly" as const,
+    priority: 0.6,
+  }));
+
+  return [
+    ...staticPages,
+    ...eventPages,
+    ...profilePages,
+    ...guidePages,
+    ...organizerPages,
+    ...organizerReviewPages,
+  ];
 }

@@ -11,44 +11,11 @@ import { Breadcrumbs, Button } from "@/components/ui";
 import { isOrganizerReviewsEnabled } from "@/lib/cms/cached";
 import type { BorderTier } from "@/lib/constants/avatar-borders";
 import { BreadcrumbTitle } from "@/lib/contexts/BreadcrumbContext";
+import { resolveOrganizerProfile } from "@/lib/organizers/resolve-profile";
 import { createClient } from "@/lib/supabase/server";
 import type { OrganizerReviewsResponse } from "@/lib/types/organizer-reviews";
 
 export const dynamic = "force-dynamic";
-
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-async function resolveOrganizerProfile(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  idOrUsername: string,
-) {
-  // Try UUID lookup first
-  if (UUID_REGEX.test(idOrUsername)) {
-    const { data } = await supabase
-      .from("organizer_profiles")
-      .select("id")
-      .eq("id", idOrUsername)
-      .single();
-    if (data) return data.id;
-  }
-
-  // Fall back to username lookup via users table
-  const { data: user } = await supabase
-    .from("users")
-    .select("id")
-    .eq("username", idOrUsername)
-    .single();
-
-  if (!user) return null;
-
-  const { data: orgProfile } = await supabase
-    .from("organizer_profiles")
-    .select("id")
-    .eq("user_id", user.id)
-    .single();
-
-  return orgProfile?.id ?? null;
-}
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id: idOrUsername } = await params;
@@ -415,6 +382,7 @@ export default async function OrganizerProfilePage({
           currentUser={currentUserInfo}
           isOwnProfile={isOwnProfile}
           existingReviewId={existingOrgReviewId}
+          reviewsPageUrl={`/organizers/${idOrUsername}/reviews`}
         />
       )}
 

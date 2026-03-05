@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useState } from "react";
 
 import type { OrganizerReviewsResponse } from "@/lib/types/organizer-reviews";
@@ -16,6 +17,8 @@ interface OrganizerReviewSectionProps {
   isOwnProfile: boolean;
   /** ID of the review owned by current user, if any */
   existingReviewId: string | null;
+  /** Optional URL to the dedicated reviews page */
+  reviewsPageUrl?: string;
 }
 
 export default function OrganizerReviewSection({
@@ -24,6 +27,7 @@ export default function OrganizerReviewSection({
   currentUser,
   isOwnProfile,
   existingReviewId,
+  reviewsPageUrl,
 }: OrganizerReviewSectionProps) {
   const [data, setData] = useState<OrganizerReviewsResponse>(initialData);
   const [showForm, setShowForm] = useState(false);
@@ -63,7 +67,17 @@ export default function OrganizerReviewSection({
 
   return (
     <div>
-      <h2 className="text-xl font-heading font-bold mb-4 text-center">Organizer Reviews</h2>
+      <div className="mb-4 flex items-center justify-center gap-3">
+        <h2 className="text-xl font-heading font-bold text-center">Organizer Reviews</h2>
+        {reviewsPageUrl && (
+          <Link
+            href={reviewsPageUrl}
+            className="text-sm font-medium text-teal-600 hover:text-teal-700 dark:text-teal-400 dark:hover:text-teal-300"
+          >
+            See all &rarr;
+          </Link>
+        )}
+      </div>
 
       {/* Write / Edit review */}
       {canReview && (
