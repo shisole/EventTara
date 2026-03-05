@@ -16,8 +16,7 @@ We use a **staging branch** to batch changes before production deploys:
 1. **Feature branches** → PRs target **`staging`** (not `main`)
 2. CI runs on PRs to both `staging` and `main`
 3. Test on `staging` (Vercel preview deploy)
-4. When ready → merge `staging` into `main` (single production deploy)
-5. After merge, reset staging: `git checkout staging && git reset --hard main && git push --force`
+4. When ready → run the **"Promote Staging to Main"** workflow (Actions tab → manual trigger). It verifies CI + Vercel deployment passed on staging before merging to `main` and resetting staging.
 
 Before making any code changes, check the current branch. If on `main` or `staging`, create a new descriptive branch:
 
