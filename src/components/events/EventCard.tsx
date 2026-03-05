@@ -105,13 +105,6 @@ export default function EventCard({
             </div>
           )}
 
-          {/* Price badge — top right */}
-          <div className="absolute top-3 right-3">
-            <span className="inline-block rounded-lg bg-white/20 px-2.5 py-1 text-xs font-bold text-white backdrop-blur-sm shadow-sm">
-              {formattedPrice}
-            </span>
-          </div>
-
           {/* Type + Difficulty pills — bottom left */}
           <div className="absolute bottom-3 left-3 flex items-center gap-1.5">
             <UIBadge variant={type}>{typeLabels[type] || type}</UIBadge>
@@ -121,8 +114,13 @@ export default function EventCard({
 
         {/* Content section */}
         <div className="p-3 sm:p-4 space-y-2">
-          {/* Title */}
-          <h3 className="font-heading font-bold text-base line-clamp-1">{title}</h3>
+          {/* Title + Price */}
+          <div className="flex items-center justify-between gap-2">
+            <h3 className="font-heading font-bold text-base truncate">{title}</h3>
+            <span className="shrink-0 text-sm font-bold text-lime-600 dark:text-lime-400">
+              {formattedPrice}
+            </span>
+          </div>
 
           {/* Organizer */}
           {organizer_name && organizer_id ? (
