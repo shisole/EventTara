@@ -193,12 +193,18 @@ export default function BentoEventsClient({ initialEvents, initialTab }: BentoEv
       const needsFetch = !cache.current[tabKey];
 
       if (needsFetch) {
-        // Slide out, then show skeleton while fetching, then slide in results
-        slideTransition(() => {
+        // Slide out current content, then show skeleton in place (no slide),
+        // then just swap skeleton for cards when ready (no slide)
+        setAnimating(true);
+        setSlide("exit");
+
+        setTimeout(() => {
           setActiveTab(tabKey);
           setCurrentPage(0);
           setLoading(true);
-        });
+          setSlide(null);
+          setAnimating(false);
+        }, 300);
 
         const tab = TABS.find((t) => t.key === tabKey);
         if (tab) {
@@ -216,15 +222,8 @@ export default function BentoEventsClient({ initialEvents, initialTab }: BentoEv
               cache.current[tabKey] = [];
             })
             .finally(() => {
-              // Slide in the fetched content
+              // Just reveal the cards — no slide animation
               setLoading(false);
-              setSlide("enter");
-              requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                  setSlide(null);
-                  setTimeout(() => setAnimating(false), 300);
-                });
-              });
             });
         }
       } else {
@@ -350,24 +349,16 @@ export default function BentoEventsClient({ initialEvents, initialTab }: BentoEv
         )}
       </div>
 
-      {/* Loading state */}
+      {/* Loading state — no slide, just appears in place */}
       {loading && (
-        <div
-          className={cn(
-            slide === "enter"
-              ? "translate-x-[105%]"
-              : slide === "exit"
-                ? "-translate-x-[105%] transition-transform duration-300 ease-in-out"
-                : "translate-x-0 transition-transform duration-300 ease-in-out",
-          )}
-        >
+        <>
           <div className="hidden md:block">
             <BentoSkeleton />
           </div>
           <div className="md:hidden">
             <MobileSkeleton />
           </div>
-        </div>
+        </>
       )}
 
       {/* Empty state */}
