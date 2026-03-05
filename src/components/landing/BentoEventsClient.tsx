@@ -23,6 +23,7 @@ const TABS = [
 ] as const;
 
 const CARDS_PER_PAGE = 5;
+const MAX_PAGES = 2;
 
 // ---------------------------------------------------------------------------
 // Props
@@ -67,7 +68,7 @@ function mapApiEventToCard(e: any): EventCardData {
 }
 
 function totalPages(events: EventCardData[]): number {
-  return Math.max(1, Math.ceil(events.length / CARDS_PER_PAGE));
+  return Math.min(MAX_PAGES, Math.max(1, Math.ceil(events.length / CARDS_PER_PAGE)));
 }
 
 function getPageEvents(events: EventCardData[], page: number): EventCardData[] {
@@ -79,17 +80,33 @@ function getPageEvents(events: EventCardData[], page: number): EventCardData[] {
 // Skeleton
 // ---------------------------------------------------------------------------
 
+function SkeletonCard({ large }: { large?: boolean }) {
+  return (
+    <div
+      className={cn(
+        "animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800 overflow-hidden",
+        large ? "h-full min-h-[380px]" : "aspect-[16/10]",
+      )}
+    >
+      <div className={cn("bg-gray-200 dark:bg-gray-700", large ? "h-2/3" : "h-3/5")} />
+      <div className="p-3 space-y-2">
+        <div className="h-3 w-16 rounded-full bg-gray-200 dark:bg-gray-700" />
+        <div className="h-4 w-3/4 rounded bg-gray-200 dark:bg-gray-700" />
+        <div className="h-3 w-1/2 rounded bg-gray-200 dark:bg-gray-700" />
+        {large && <div className="h-3 w-1/3 rounded bg-gray-200 dark:bg-gray-700" />}
+      </div>
+    </div>
+  );
+}
+
 function BentoSkeleton() {
   return (
-    <div className="grid grid-cols-3 grid-rows-2 gap-4">
-      {/* Large card skeleton */}
-      <div className="col-span-1 row-span-2 animate-pulse rounded-2xl bg-gray-200 dark:bg-gray-700 min-h-[380px]" />
-      {/* 4 small card skeletons */}
+    <div className="grid grid-cols-3 grid-rows-2 gap-4 min-h-[380px]">
+      <div className="col-span-1 row-span-2">
+        <SkeletonCard large />
+      </div>
       {Array.from({ length: 4 }, (_, i) => (
-        <div
-          key={i}
-          className="animate-pulse rounded-2xl bg-gray-200 dark:bg-gray-700 aspect-[16/10]"
-        />
+        <SkeletonCard key={i} />
       ))}
     </div>
   );
@@ -99,10 +116,9 @@ function MobileSkeleton() {
   return (
     <div className="flex gap-4 overflow-hidden pb-4">
       {Array.from({ length: 3 }, (_, i) => (
-        <div
-          key={i}
-          className="shrink-0 w-[280px] animate-pulse rounded-2xl bg-gray-200 dark:bg-gray-700 aspect-[16/10]"
-        />
+        <div key={i} className="shrink-0 w-[280px]">
+          <SkeletonCard />
+        </div>
       ))}
     </div>
   );
@@ -177,14 +193,16 @@ export default function BentoEventsClient({ initialEvents, initialTab }: BentoEv
 
   const goToPage = useCallback(
     (direction: "prev" | "next") => {
-      if (animating) return;
-      const nextPage = direction === "next" ? currentPage + 1 : currentPage - 1;
-      if (nextPage < 0 || nextPage >= pages) return;
+      if (animating || pages <= 1) return;
+
+      // Wrap around: next from last page → page 0, prev from page 0 → last page
+      const nextPage =
+        direction === "next" ? (currentPage + 1) % pages : (currentPage - 1 + pages) % pages;
 
       setSlideDirection(direction === "next" ? "left" : "right");
       setAnimating(true);
 
-      // After transition completes, update the page
+      // After slide-out completes, swap page and slide-in
       setTimeout(() => {
         setCurrentPage(nextPage);
         setSlideDirection(null);
@@ -255,13 +273,7 @@ export default function BentoEventsClient({ initialEvents, initialTab }: BentoEv
           <div className="hidden md:flex items-center gap-2 shrink-0">
             <button
               onClick={() => goToPage("prev")}
-              disabled={currentPage === 0}
-              className={cn(
-                "w-9 h-9 rounded-full border flex items-center justify-center transition-colors",
-                currentPage === 0
-                  ? "border-gray-200 dark:border-gray-700 text-gray-300 dark:text-gray-600 cursor-not-allowed"
-                  : "border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700",
-              )}
+              className="w-9 h-9 rounded-full border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center transition-colors"
               aria-label="Previous page"
             >
               <svg
@@ -281,13 +293,7 @@ export default function BentoEventsClient({ initialEvents, initialTab }: BentoEv
             </button>
             <button
               onClick={() => goToPage("next")}
-              disabled={currentPage >= pages - 1}
-              className={cn(
-                "w-9 h-9 rounded-full border flex items-center justify-center transition-colors",
-                currentPage >= pages - 1
-                  ? "border-gray-200 dark:border-gray-700 text-gray-300 dark:text-gray-600 cursor-not-allowed"
-                  : "border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700",
-              )}
+              className="w-9 h-9 rounded-full border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center transition-colors"
               aria-label="Next page"
             >
               <svg
@@ -333,16 +339,16 @@ export default function BentoEventsClient({ initialEvents, initialTab }: BentoEv
       {/* Desktop: Bento grid */}
       {!loading && events.length > 0 && (
         <div
-          className="hidden md:block"
+          className="hidden md:block overflow-hidden"
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
           <div
             className={cn(
-              "transition-all duration-300 ease-in-out",
-              slideDirection === "left" && "opacity-0 -translate-x-4",
-              slideDirection === "right" && "opacity-0 translate-x-4",
-              !slideDirection && "opacity-100 translate-x-0",
+              "transition-transform duration-300 ease-in-out",
+              slideDirection === "left" && "-translate-x-[105%]",
+              slideDirection === "right" && "translate-x-[105%]",
+              !slideDirection && "translate-x-0",
             )}
           >
             {pageEvents.length > 0 && (
