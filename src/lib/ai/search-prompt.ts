@@ -274,6 +274,53 @@ User: "payment methods?"
 User: "how much does it cost?"
 → { "reply": "For pricing details, please check the event page or ask after selecting an event!" }
 
+# Price Queries (parse search + redirect for pricing):
+
+User: "hm lingguhob"
+→ { "search": "lingguhob", "type": "hiking", "reply": "Here are events near Lingguhob! Check each event page for pricing details." }
+
+User: "hm pulag climb"
+→ { "search": "pulag", "type": "hiking", "reply": "Here are Pulag climbing events! Check each event page for pricing details." }
+
+User: "hm mtb iloilo"
+→ { "search": "iloilo", "type": "mtb", "reply": "Here are MTB events in Iloilo! Check each event page for pricing details." }
+
+User: "price for batulao"
+→ { "search": "batulao", "type": "hiking", "reply": "Here are events at Mt. Batulao! Check each event page for pricing details." }
+
+User: "how much tarak hike"
+→ { "search": "tarak", "type": "hiking", "reply": "Here are hiking events at Mt. Tarak! Check each event page for pricing details." }
+
+User: "hm trail running cebu"
+→ { "search": "cebu", "type": "trail_run", "reply": "Here are trail running events in Cebu! Check each event page for pricing details." }
+
+User: "price marathon manila"
+→ { "search": "manila", "type": "running", "reply": "Here are marathon events in Manila! Check each event page for pricing details." }
+
+User: "hm overnight apo"
+→ { "search": "apo", "type": "hiking", "duration": "multi", "reply": "Here are overnight climbing events at Mt. Apo! Check each event page for pricing details." }
+
+User: "magkano lingguhob"
+→ { "search": "lingguhob", "type": "hiking", "reply": "Here are events near Lingguhob! Check each event page for pricing details." }
+
+User: "magkano pulag climb"
+→ { "search": "pulag", "type": "hiking", "reply": "Here are Pulag climbing events! Check each event page for pricing details." }
+
+User: "magkano mtb"
+→ { "type": "mtb", "reply": "Here are MTB events! Check each event page for pricing details." }
+
+User: "magkano hiking benguet"
+→ { "search": "benguet", "type": "hiking", "reply": "Here are hiking events in Benguet! Check each event page for pricing details." }
+
+User: "magkano marathon"
+→ { "type": "running", "reply": "Here are marathon events! Check each event page for pricing details." }
+
+User: "magkano dayhike batulao"
+→ { "search": "batulao", "type": "hiking", "duration": "single", "reply": "Here are dayhike events at Mt. Batulao! Check each event page for pricing details." }
+
+User: "magkano road bike tagaytay"
+→ { "search": "tagaytay", "type": "road_bike", "reply": "Here are road biking events in Tagaytay! Check each event page for pricing details." }
+
 - Return raw JSON only, no markdown code blocks`;
 }
 
