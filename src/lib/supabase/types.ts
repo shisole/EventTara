@@ -972,6 +972,7 @@ export interface Database {
           strava_showcase_features: boolean;
           strava_showcase_stats: boolean;
           strava_showcase_route_map: boolean;
+          organizer_reviews: boolean;
         };
         Insert: {
           id?: number;
@@ -979,6 +980,7 @@ export interface Database {
           strava_showcase_features?: boolean;
           strava_showcase_stats?: boolean;
           strava_showcase_route_map?: boolean;
+          organizer_reviews?: boolean;
         };
         Update: {
           id?: number;
@@ -986,6 +988,7 @@ export interface Database {
           strava_showcase_features?: boolean;
           strava_showcase_stats?: boolean;
           strava_showcase_route_map?: boolean;
+          organizer_reviews?: boolean;
         };
         Relationships: [];
       };
@@ -1220,6 +1223,66 @@ export interface Database {
           id?: string;
           email?: string;
           org_name?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      organizer_reviews: {
+        Row: {
+          id: string;
+          organizer_id: string;
+          user_id: string;
+          rating: number;
+          text: string | null;
+          is_anonymous: boolean;
+          tags: string[];
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          organizer_id: string;
+          user_id: string;
+          rating: number;
+          text?: string | null;
+          is_anonymous?: boolean;
+          tags?: string[];
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          organizer_id?: string;
+          user_id?: string;
+          rating?: number;
+          text?: string | null;
+          is_anonymous?: boolean;
+          tags?: string[];
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      organizer_review_photos: {
+        Row: {
+          id: string;
+          review_id: string;
+          image_url: string;
+          sort_order: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          review_id: string;
+          image_url: string;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          review_id?: string;
+          image_url?: string;
+          sort_order?: number;
           created_at?: string;
         };
         Relationships: [];

@@ -48,6 +48,7 @@ export interface CmsNavigation {
 /** A single hero slide inside cms_hero_carousel.slides JSONB */
 export interface CmsHeroSlide {
   url: string;
+  mobileUrl?: string;
   alt: string;
 }
 
@@ -64,6 +65,7 @@ export interface CmsFeatureFlags {
   strava_showcase_features: boolean;
   strava_showcase_stats: boolean;
   strava_showcase_route_map: boolean;
+  organizer_reviews: boolean;
 }
 
 /** A single homepage section entry inside cms_homepage_sections.sections JSONB */

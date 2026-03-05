@@ -29,6 +29,10 @@ const FLAG_META: Record<string, { label: string; description: string }> = {
     label: "Strava Showcase — Route Map",
     description: "Show the interactive route map preview on the homepage.",
   },
+  organizer_reviews: {
+    label: "Organizer Reviews",
+    description: "Allow users to leave reviews directly on organizer profiles.",
+  },
 };
 
 export default function FeatureFlagsForm() {
