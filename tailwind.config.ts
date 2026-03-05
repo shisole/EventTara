@@ -63,6 +63,14 @@ const config: Config = {
           "0%": { opacity: "0", transform: "translateY(10px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
+        fadeIn: {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+        logoPulse: {
+          "0%, 100%": { opacity: "1", transform: "scale(1)" },
+          "50%": { opacity: "0.6", transform: "scale(0.95)" },
+        },
         shimmer: {
           "0%": { backgroundPosition: "-200% 0" },
           "100%": { backgroundPosition: "200% 0" },
@@ -74,6 +82,8 @@ const config: Config = {
       },
       animation: {
         "fade-up": "fadeUp 0.4s ease-out forwards",
+        "fade-in": "fadeIn 0.2s ease-out forwards",
+        "logo-pulse": "logoPulse 1.2s ease-in-out infinite",
         shimmer: "shimmer 3s linear infinite",
         "border-pulse": "borderPulse 2s ease-in-out infinite",
       },

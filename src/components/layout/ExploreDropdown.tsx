@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
 import ActivityCard from "@/components/layout/ActivityCard";
+import { NavLink } from "@/components/navigation/NavigationContext";
 
 interface Activity {
   slug: string;
@@ -22,9 +22,9 @@ interface ExploreDropdownProps extends LayoutProps {
 
 function AllEventsLink({ className }: { className?: string }) {
   return (
-    <Link href="/events" className={className}>
+    <NavLink href="/events" className={className}>
       All Events
-    </Link>
+    </NavLink>
   );
 }
 
