@@ -87,6 +87,131 @@ CONSISTENCY RULES:
 REPLY FORMAT:
 - Keep reply short and natural, e.g., "Here are hiking events near Mt. Pulag next week!" or "Here are the results for overnight trips at Mt. Napulak!"
 - NEVER use "Searching for..." or "Looking for..." — always phrase as "Here are..." since results will be shown alongside
+
+EXAMPLES:
+
+# Spelling Corrections (show "Did you mean X?" in reply):
+
+User: "lungguhbo hiking"
+→ { "search": "lingguhob", "type": "hiking", "reply": "Did you mean Lingguhob? Here are hiking events near Lingguhob!" }
+
+User: "pulog dayhike this weekend"
+→ { "search": "pulag", "type": "hiking", "duration": "single", "when": "upcoming", "reply": "Did you mean Pulag? Here are dayhike events at Mt. Pulag this weekend!" }
+
+User: "pulug climb next month"
+→ { "search": "pulag", "type": "hiking", "reply": "Did you mean Pulag? Here are climbing events at Mt. Pulag next month!" }
+
+User: "ugo overnight"
+→ { "search": "ugo", "type": "hiking", "duration": "multi", "reply": "Here are overnight climbing events at Mt. Ugo!" }
+
+User: "ugu traverse"
+→ { "search": "ugo", "type": "hiking", "duration": "multi", "reply": "Did you mean Ugo? Here are traverse events at Mt. Ugo!" }
+
+User: "npaulak hiking"
+→ { "search": "napulak", "type": "hiking", "reply": "Did you mean Napulak? Here are hiking events near Mt. Napulak!" }
+
+User: "napaulak benguet"
+→ { "search": "napulak benguet", "type": "hiking", "reply": "Did you mean Napulak? Here are hiking events near Mt. Napulak in Benguet!" }
+
+User: "batullao climbing"
+→ { "search": "batulao", "type": "hiking", "reply": "Did you mean Batulao? Here are climbing events at Mt. Batulao!" }
+
+User: "batulao easy hike"
+→ { "search": "batulao", "type": "hiking", "difficulty": "1-4", "reply": "Here are easy hiking events at Mt. Batulao!" }
+
+User: "piko de loro"
+→ { "search": "pico de loro", "type": "hiking", "reply": "Did you mean Pico de Loro? Here are hiking events at Mt. Pico de Loro!" }
+
+User: "pico di loro dayhike"
+→ { "search": "pico de loro", "type": "hiking", "duration": "single", "reply": "Did you mean Pico de Loro? Here are dayhike events at Mt. Pico de Loro!" }
+
+User: "maculut cavite"
+→ { "search": "maculot cavite", "type": "hiking", "reply": "Did you mean Maculot? Here are hiking events at Mt. Maculot in Cavite!" }
+
+User: "makulot rockies"
+→ { "search": "maculot rockies", "type": "hiking", "reply": "Did you mean Maculot? Here are hiking events at Mt. Maculot Rockies!" }
+
+User: "daraytan cave"
+→ { "search": "daraitan cave", "type": "hiking", "reply": "Did you mean Daraitan? Here are hiking events near Daraitan Cave!" }
+
+User: "tarac hike"
+→ { "search": "tarak", "type": "hiking", "reply": "Did you mean Tarak? Here are hiking events at Mt. Tarak!" }
+
+User: "linguhob antique"
+→ { "search": "lingguhob antique", "type": "hiking", "reply": "Did you mean Lingguhob? Here are hiking events at Mt. Lingguhob in Antique!" }
+
+User: "lungguhbo iloilo"
+→ { "search": "lingguhob iloilo", "type": "hiking", "reply": "Did you mean Lingguhob? Here are hiking events near Lingguhob in Iloilo!" }
+
+User: "npaulak antique"
+→ { "search": "napulak antique", "type": "hiking", "reply": "Did you mean Napulak? Here are hiking events at Mt. Napulak in Antique!" }
+
+User: "kanlaon climb"
+→ { "search": "kanlaon", "type": "hiking", "reply": "Here are climbing events at Mt. Kanlaon!" }
+
+User: "kanlauon negros"
+→ { "search": "kanlaon negros", "type": "hiking", "reply": "Did you mean Kanlaon? Here are hiking events at Mt. Kanlaon in Negros!" }
+
+User: "manungal cebu"
+→ { "search": "manunggal cebu", "type": "hiking", "reply": "Did you mean Manunggal? Here are hiking events at Mt. Manunggal in Cebu!" }
+
+User: "manunggal historical hike"
+→ { "search": "manunggal", "type": "hiking", "reply": "Here are hiking events at Mt. Manunggal!" }
+
+User: "osmena peak"
+→ { "search": "osmena peak", "type": "hiking", "reply": "Here are hiking events at Osmena Peak!" }
+
+User: "osmeña cebu"
+→ { "search": "osmena cebu", "type": "hiking", "reply": "Here are hiking events at Osmena Peak in Cebu!" }
+
+User: "osmina peak hike"
+→ { "search": "osmena peak", "type": "hiking", "reply": "Did you mean Osmena? Here are hiking events at Osmena Peak!" }
+
+User: "appo climb"
+→ { "search": "apo", "type": "hiking", "reply": "Did you mean Apo? Here are climbing events at Mt. Apo!" }
+
+User: "mt apo multi-day"
+→ { "search": "apo", "type": "hiking", "duration": "multi", "reply": "Here are multi-day climbing events at Mt. Apo!" }
+
+User: "dulag-dulag davao"
+→ { "search": "dulang-dulang davao", "type": "hiking", "reply": "Did you mean Dulang-Dulang? Here are hiking events at Mt. Dulang-Dulang in Davao!" }
+
+User: "dulang dulang overnight"
+→ { "search": "dulang-dulang", "type": "hiking", "duration": "multi", "reply": "Here are overnight climbing events at Mt. Dulang-Dulang!" }
+
+User: "kitangalad bukidnon"
+→ { "search": "kitanglad bukidnon", "type": "hiking", "reply": "Did you mean Kitanglad? Here are hiking events at Mt. Kitanglad in Bukidnon!" }
+
+User: "binguet hiking"
+→ { "search": "benguet", "type": "hiking", "reply": "Did you mean Benguet? Here are hiking events in Benguet!" }
+
+User: "benguiet mountains"
+→ { "search": "benguet mountains", "type": "hiking", "reply": "Did you mean Benguet? Here are hiking events in Benguet mountains!" }
+
+User: "baguio trails"
+→ { "search": "baguio trails", "type": "hiking", "reply": "Here are hiking events in Baguio trails!" }
+
+User: "bagyo trail running"
+→ { "search": "baguio", "type": "trail_run", "reply": "Did you mean Baguio? Here are trail running events in Baguio!" }
+
+User: "tagaytay road bike"
+→ { "search": "tagaytay", "type": "road_bike", "reply": "Here are road biking events in Tagaytay!" }
+
+User: "tagatay cycling"
+→ { "search": "tagaytay", "type": "road_bike", "reply": "Did you mean Tagaytay? Here are road biking events in Tagaytay!" }
+
+User: "iloilo mtb"
+→ { "search": "iloilo", "type": "mtb", "reply": "Here are mountain biking events in Iloilo!" }
+
+User: "iloylo mountain biking"
+→ { "search": "iloilo", "type": "mtb", "reply": "Did you mean Iloilo? Here are mountain biking events in Iloilo!" }
+
+User: "sebu trail running"
+→ { "search": "cebu", "type": "trail_run", "reply": "Did you mean Cebu? Here are trail running events in Cebu!" }
+
+User: "davao ultra marathon"
+→ { "search": "davao", "type": "running", "distance": 50, "reply": "Here are ultra marathon events in Davao!" }
+
 - Return raw JSON only, no markdown code blocks`;
 }
 
