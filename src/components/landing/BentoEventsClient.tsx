@@ -32,6 +32,7 @@ const MAX_PAGES = 2;
 interface BentoEventsClientProps {
   initialEvents: EventCardData[];
   initialTab: string;
+  totalUpcoming: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -126,7 +127,11 @@ function MobileSkeleton() {
 // Component
 // ---------------------------------------------------------------------------
 
-export default function BentoEventsClient({ initialEvents, initialTab }: BentoEventsClientProps) {
+export default function BentoEventsClient({
+  initialEvents,
+  initialTab,
+  totalUpcoming,
+}: BentoEventsClientProps) {
   const [activeTab, setActiveTab] = useState(initialTab);
   const [currentPage, setCurrentPage] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -447,23 +452,23 @@ export default function BentoEventsClient({ initialEvents, initialTab }: BentoEv
         </div>
       )}
 
-      {/* Mobile: static vertical stack of 3 upcoming + view all link */}
+      {/* Mobile: static vertical stack of 3 upcoming + "+N more" link */}
       {initialEvents.length > 0 && (
         <div className="flex flex-col gap-4 md:hidden">
           {initialEvents.slice(0, 3).map((event) => (
             <BentoEventCard key={event.id} event={event} variant="small" />
           ))}
-          <Link
-            href="/events?when=upcoming"
-            className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 dark:border-slate-600 hover:border-lime-500 dark:hover:border-lime-500 transition-colors min-h-[120px]"
-          >
-            <span className="text-gray-600 dark:text-gray-300 font-heading font-bold">
-              View all upcoming
-            </span>
-            <span className="text-lime-600 dark:text-lime-400 mt-1 text-sm font-medium">
-              events &rarr;
-            </span>
-          </Link>
+          {totalUpcoming > 3 && (
+            <Link
+              href="/events?when=upcoming"
+              className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 dark:border-slate-600 hover:border-lime-500 dark:hover:border-lime-500 transition-colors min-h-[120px]"
+            >
+              <span className="text-3xl font-heading font-bold text-lime-600 dark:text-lime-400">
+                +{totalUpcoming - 3}
+              </span>
+              <span className="text-gray-500 dark:text-gray-400 mt-1 font-medium">more events</span>
+            </Link>
+          )}
         </div>
       )}
     </div>

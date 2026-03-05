@@ -38,6 +38,13 @@ export default async function BentoEventsSection() {
 
   if (!events || events.length === 0) return null;
 
+  // Count total upcoming for mobile "+N more" card
+  const { count: totalUpcoming } = await supabase
+    .from("events")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "published")
+    .gte("date", now);
+
   const enrichments = await fetchEventEnrichments(supabase, events);
   const cards = events.map((event: any) => mapEventToCard(event, today, enrichments));
 
@@ -55,7 +62,11 @@ export default async function BentoEventsSection() {
             View all
           </Link>
         </div>
-        <BentoEventsClient initialEvents={cards} initialTab={initialTab} />
+        <BentoEventsClient
+          initialEvents={cards}
+          initialTab={initialTab}
+          totalUpcoming={totalUpcoming ?? 0}
+        />
       </div>
     </section>
   );
