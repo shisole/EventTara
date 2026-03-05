@@ -9,6 +9,8 @@ import type {
   CmsFooterSection,
   CmsHeroCarousel,
   CmsHeroSlide,
+  CmsHomepageSection,
+  CmsHomepageSections,
   CmsNavigation,
   CmsSiteSettings,
 } from "./types";
@@ -44,7 +46,7 @@ export const getCachedSiteSettings = unstable_cache(
     }
   },
   ["site-settings"],
-  { revalidate: 60 },
+  { revalidate: 60, tags: ["site-settings"] },
 );
 
 /**
@@ -67,7 +69,7 @@ export const getCachedFeatureFlags = unstable_cache(
     }
   },
   ["feature-flags"],
-  { revalidate: 30 },
+  { revalidate: 30, tags: ["feature-flags"] },
 );
 
 /**
@@ -126,7 +128,7 @@ export const getCachedHeroCarousel = unstable_cache(
     }
   },
   ["hero-carousel"],
-  { revalidate: 300 },
+  { revalidate: 300, tags: ["hero-carousel"] },
 );
 
 /**
@@ -149,7 +151,30 @@ export const getCachedNavigation = unstable_cache(
     }
   },
   ["navigation"],
-  { revalidate: 60 },
+  { revalidate: 60, tags: ["navigation"] },
+);
+
+/**
+ * Cached homepage-sections fetch. Revalidates every 60 seconds.
+ */
+export const getCachedHomepageSections = unstable_cache(
+  async (): Promise<CmsHomepageSections | null> => {
+    try {
+      const supabase = createAnonClient();
+      const { data, error } = await supabase
+        .from("cms_homepage_sections")
+        .select("*")
+        .eq("id", 1)
+        .single();
+      if (error) throw error;
+      return data as CmsHomepageSections;
+    } catch (error) {
+      console.error("[CMS] Failed to fetch homepage sections:", error);
+      return null;
+    }
+  },
+  ["homepage-sections"],
+  { revalidate: 60, tags: ["homepage-sections"] },
 );
 
 /**
@@ -158,6 +183,16 @@ export const getCachedNavigation = unstable_cache(
 export function parseHeroSlides(carousel: CmsHeroCarousel | null): CmsHeroSlide[] {
   if (!carousel?.slides || !Array.isArray(carousel.slides)) return [];
   return (carousel.slides as unknown as CmsHeroSlide[]).filter((s) => s.url && s.alt);
+}
+
+/**
+ * Parse homepage sections from JSONB into typed array, sorted by order.
+ */
+export function parseHomepageSections(data: CmsHomepageSections | null): CmsHomepageSection[] {
+  if (!data?.sections || !Array.isArray(data.sections)) return [];
+  return (data.sections as unknown as CmsHomepageSection[])
+    .filter((s) => s.key && s.label != null)
+    .sort((a, b) => a.order - b.order);
 }
 
 /**

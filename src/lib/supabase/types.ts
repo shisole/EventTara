@@ -1185,6 +1185,21 @@ export interface Database {
         };
         Relationships: [];
       };
+      cms_homepage_sections: {
+        Row: {
+          id: number;
+          sections: Json;
+        };
+        Insert: {
+          id?: number;
+          sections?: Json;
+        };
+        Update: {
+          id?: number;
+          sections?: Json;
+        };
+        Relationships: [];
+      };
       organizer_waitlist: {
         Row: {
           id: string;
