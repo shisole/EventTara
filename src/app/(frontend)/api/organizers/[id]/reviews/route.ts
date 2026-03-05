@@ -197,7 +197,7 @@ export async function POST(request: Request, { params }: RouteCtx) {
 
   if (existing) {
     return NextResponse.json(
-      { error: "You have already reviewed this organizer. Use PATCH to edit." },
+      { error: "You have already reviewed this organizer. Edit your existing review instead." },
       { status: 409 },
     );
   }

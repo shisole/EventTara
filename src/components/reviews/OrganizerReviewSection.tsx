@@ -28,10 +28,9 @@ export default function OrganizerReviewSection({
   const [data, setData] = useState<OrganizerReviewsResponse>(initialData);
   const [showForm, setShowForm] = useState(false);
   const [formKey, setFormKey] = useState(0);
+  const [myReviewId, setMyReviewId] = useState<string | null>(existingReviewId);
 
-  const existingReview = existingReviewId
-    ? data.reviews.find((r) => r.id === existingReviewId)
-    : null;
+  const existingReview = myReviewId ? data.reviews.find((r) => r.id === myReviewId) : null;
 
   const refresh = useCallback(async () => {
     try {
@@ -39,11 +38,16 @@ export default function OrganizerReviewSection({
       if (res.ok) {
         const fresh: OrganizerReviewsResponse = await res.json();
         setData(fresh);
+        // Find the current user's review in the refreshed data
+        if (currentUser) {
+          const mine = fresh.reviews.find((r) => r.user_id === currentUser.id);
+          if (mine) setMyReviewId(mine.id);
+        }
       }
     } catch {
       // Silently fail
     }
-  }, [organizerId]);
+  }, [organizerId, currentUser]);
 
   const handleSuccess = useCallback(() => {
     setShowForm(false);
@@ -52,7 +56,7 @@ export default function OrganizerReviewSection({
   }, [refresh]);
 
   const canReview = !!currentUser && !isOwnProfile;
-  const hasReviewed = !!existingReviewId;
+  const hasReviewed = !!myReviewId;
 
   return (
     <div>
