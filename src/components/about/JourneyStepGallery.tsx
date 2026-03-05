@@ -1,10 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import ChevronLeftIcon from "@/components/icons/ChevronLeftIcon";
 import ChevronRightIcon from "@/components/icons/ChevronRightIcon";
+import CloseIcon from "@/components/icons/CloseIcon";
 
 interface JourneyImage {
   src: string;
@@ -20,6 +21,173 @@ const SIDE_ROTATION = 3;
 const SIDE_SCALE = 0.9;
 const SWIPE_THRESHOLD = 0.2; // 20% of container width
 
+// ── Lightbox ────────────────────────────────────────────────────
+function Lightbox({
+  images,
+  initialIndex,
+  onClose,
+}: {
+  images: JourneyImage[];
+  initialIndex: number;
+  onClose: () => void;
+}) {
+  const [index, setIndex] = useState(initialIndex);
+  const [lightboxDragX, setLightboxDragX] = useState(0);
+  const [isLightboxDragging, setIsLightboxDragging] = useState(false);
+  const lightboxTouchRef = useRef({ startX: 0, startTime: 0 });
+
+  const goPrev = useCallback(() => setIndex((i) => Math.max(0, i - 1)), []);
+  const goNext = useCallback(
+    () => setIndex((i) => Math.min(images.length - 1, i + 1)),
+    [images.length],
+  );
+
+  // Keyboard navigation
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      switch (e.key) {
+      case "Escape": {
+      onClose();
+      break;
+      }
+      case "ArrowLeft": {
+      goPrev();
+      break;
+      }
+      case "ArrowRight": { {
+      goNext();
+      // No default
+      }
+      break;
+      }
+      }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose, goPrev, goNext]);
+
+  // Lock body scroll
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, []);
+
+  const handleLightboxTouchStart = useCallback((e: React.TouchEvent) => {
+    setIsLightboxDragging(true);
+    lightboxTouchRef.current = { startX: e.touches[0].clientX, startTime: Date.now() };
+  }, []);
+
+  const handleLightboxTouchMove = useCallback((e: React.TouchEvent) => {
+    setLightboxDragX(e.touches[0].clientX - lightboxTouchRef.current.startX);
+  }, []);
+
+  const handleLightboxTouchEnd = useCallback(() => {
+    setIsLightboxDragging(false);
+    const velocity = Math.abs(lightboxDragX) / (Date.now() - lightboxTouchRef.current.startTime);
+    const shouldSwipe = Math.abs(lightboxDragX) > 60 || velocity > 0.5;
+
+    if (shouldSwipe && lightboxDragX < 0) goNext();
+    else if (shouldSwipe && lightboxDragX > 0) goPrev();
+    setLightboxDragX(0);
+  }, [lightboxDragX, goPrev, goNext]);
+
+  const hasPrev = index > 0;
+  const hasNext = index < images.length - 1;
+
+  const dragTranslate = isLightboxDragging ? lightboxDragX : 0;
+  const imgTransition = isLightboxDragging ? "none" : "transform 300ms ease";
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
+      onClick={onClose}
+    >
+      {/* Close button */}
+      <button
+        onClick={onClose}
+        className="absolute right-4 top-4 z-10 rounded-full bg-black/50 p-2 text-white transition-colors hover:bg-black/70"
+        aria-label="Close lightbox"
+      >
+        <CloseIcon className="h-6 w-6" />
+      </button>
+
+      {/* Counter */}
+      {images.length > 1 && (
+        <div className="absolute left-4 top-4 z-10 rounded-full bg-black/50 px-3 py-1.5 text-sm font-medium text-white">
+          {index + 1} / {images.length}
+        </div>
+      )}
+
+      {/* Image */}
+      <div
+        className="relative h-full w-full"
+        onClick={(e) => e.stopPropagation()}
+        onTouchStart={handleLightboxTouchStart}
+        onTouchMove={handleLightboxTouchMove}
+        onTouchEnd={handleLightboxTouchEnd}
+        style={{ transform: `translateX(${dragTranslate}px)`, transition: imgTransition }}
+      >
+        <Image
+          src={images[index].src}
+          alt={images[index].alt}
+          fill
+          className="object-contain p-4 sm:p-12"
+          sizes="100vw"
+          priority
+        />
+      </div>
+
+      {/* Prev / Next */}
+      {hasPrev && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            goPrev();
+          }}
+          className="absolute left-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/50 p-2.5 text-white transition-colors hover:bg-black/70"
+          aria-label="Previous image"
+        >
+          <ChevronLeftIcon className="h-6 w-6" />
+        </button>
+      )}
+      {hasNext && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            goNext();
+          }}
+          className="absolute right-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/50 p-2.5 text-white transition-colors hover:bg-black/70"
+          aria-label="Next image"
+        >
+          <ChevronRightIcon className="h-6 w-6" />
+        </button>
+      )}
+
+      {/* Dot indicators */}
+      {images.length > 1 && (
+        <div className="absolute bottom-6 left-1/2 z-10 flex -translate-x-1/2 gap-1.5">
+          {images.map((_, i) => (
+            <button
+              key={i}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIndex(i);
+              }}
+              aria-label={`Go to image ${i + 1}`}
+              className={`h-2 rounded-full transition-all ${
+                i === index ? "w-4 bg-white" : "w-2 bg-white/40"
+              }`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Gallery ─────────────────────────────────────────────────────
 export default function JourneyStepGallery({
   images,
   aspectRatio = "aspect-[4/3]",
@@ -27,6 +195,7 @@ export default function JourneyStepGallery({
   const [activeIndex, setActiveIndex] = useState(0);
   const [dragX, setDragX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const touchRef = useRef({ startX: 0, startTime: 0 });
 
@@ -61,9 +230,22 @@ export default function JourneyStepGallery({
 
   if (images.length === 1) {
     return (
-      <div className={`relative ${aspectRatio} w-full overflow-hidden rounded-2xl shadow-lg`}>
-        <Image src={images[0].src} alt={images[0].alt} fill className="object-cover" />
-      </div>
+      <>
+        <button
+          onClick={() => setLightboxIndex(0)}
+          className={`relative ${aspectRatio} w-full overflow-hidden rounded-2xl shadow-lg cursor-zoom-in`}
+          aria-label={`View ${images[0].alt}`}
+        >
+          <Image src={images[0].src} alt={images[0].alt} fill className="object-cover" />
+        </button>
+        {lightboxIndex !== null && (
+          <Lightbox
+            images={images}
+            initialIndex={lightboxIndex}
+            onClose={() => setLightboxIndex(null)}
+          />
+        )}
+      </>
     );
   }
 
@@ -157,15 +339,19 @@ export default function JourneyStepGallery({
         )}
 
         {/* Center card */}
-        <div
+        <button
+          onClick={() => {
+            if (Math.abs(dragX) < 5) setLightboxIndex(activeIndex);
+          }}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
-          className="relative z-10 h-full w-full overflow-hidden rounded-2xl shadow-xl"
+          className="relative z-10 h-full w-full cursor-zoom-in overflow-hidden rounded-2xl shadow-xl"
           style={{
             transform: `translateX(${centerTranslateX}%)`,
             transition,
           }}
+          aria-label={`View ${images[activeIndex].alt}`}
         >
           <Image
             src={images[activeIndex].src}
@@ -173,7 +359,7 @@ export default function JourneyStepGallery({
             fill
             className="object-cover"
           />
-        </div>
+        </button>
       </div>
 
       {/* Dot indicators */}
@@ -210,6 +396,14 @@ export default function JourneyStepGallery({
         >
           <ChevronRightIcon className="h-5 w-5" />
         </button>
+      )}
+
+      {lightboxIndex !== null && (
+        <Lightbox
+          images={images}
+          initialIndex={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+        />
       )}
     </div>
   );
