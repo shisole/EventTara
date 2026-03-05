@@ -33,12 +33,13 @@ pnpm format:check    # Prettier — check formatting (CI enforces this)
 pnpm seed            # Seed DB with test accounts, events, guides (requires SUPABASE_SERVICE_ROLE_KEY)
 pnpm unseed          # Remove seeded data
 pnpm seed:cms        # Seed CMS tables in Supabase (requires SUPABASE_SERVICE_ROLE_KEY)
+pnpm test            # Run Vitest unit tests
 pnpm test:e2e        # Run Playwright E2E tests (e2e/ dir, chromium only)
 ```
 
 **Package manager is strictly pnpm.** Every script runs a pre-check that exits with an error if invoked via `npm` or `yarn`.
 
-CI pipeline order: `format:check` → `lint` → `typecheck` → `build`.
+CI pipeline order: `format:check` → `lint` → `typecheck` → `test` → `build`. E2E runs only on push to main.
 
 ## Environment Setup
 
@@ -62,7 +63,7 @@ The app uses Next.js route groups with a nested structure:
 
 - `(frontend)` — parent route group containing all user-facing pages:
   - `(auth)` — `/login`, `/signup`, `/guest-setup` with a shared centered layout
-  - `(participant)` — `/events`, `/events/[id]`, `/events/[id]/book`, `/my-events`, `/profile/[username]`, `/guides/[id]`
+  - `(participant)` — `/events`, `/events/[id]`, `/events/[id]/book`, `/my-events`, `/profile/[username]`, `/guides/[id]`, `/about`
   - `(organizer)` — `/dashboard` and nested pages (`/events`, `/events/new`, `/events/[id]`, `/events/[id]/edit`, `/events/[id]/checkin`, `/settings`)
 
 SEO files (`robots.ts`, `sitemap.ts`, `opengraph-image.tsx`) remain at the `src/app/` root level.
@@ -105,6 +106,12 @@ Thin wrappers in `src/app/api/` that authenticate via `createClient()` server-si
 - `DELETE /api/strava/activities/[id]/unlink` — unlink activity
 - `GET/POST/DELETE /api/events/[id]/route-data` — event route management (Strava URL or GPX)
 - `GET/POST /api/webhooks/strava` — Strava webhook (validation + activity events)
+- `POST /api/chat` — AI chat assistant (Coco) powered by Anthropic Claude
+- `GET /api/feed` — activity feed with comments, @mentions, likes
+- `GET/POST /api/waitlist` — organizer waitlist signup + count
+- `GET/POST /api/notifications` — user notifications
+- `GET/POST /api/reactions` — comment reactions/likes
+- `POST /api/follows` — follow/unfollow users
 
 ### Strava Integration
 
@@ -119,6 +126,16 @@ Full Strava integration for activity tracking, verification, and route sharing:
 - **Constants/types:** `src/lib/strava/constants.ts` (URLs, scopes, type mapping), `src/lib/strava/types.ts`
 - **Database tables:** `strava_connections`, `strava_activities`, `event_routes`, `strava_webhook_subscriptions`
 - **Env vars:** `STRAVA_CLIENT_ID`, `STRAVA_CLIENT_SECRET`, `NEXT_PUBLIC_STRAVA_CLIENT_ID`, `STRAVA_WEBHOOK_VERIFY_TOKEN`
+
+### AI Chat Assistant (Coco)
+
+Floating chat bubble on every page (`src/components/chat/`). Powered by Anthropic Claude via `POST /api/chat`. Search prompt in `src/lib/ai/search-prompt.ts`. The chat panel slides up from the bottom with `z-999` overlay.
+
+### Testing
+
+- **Unit tests** (Vitest 4): `src/lib/**/__tests__/*.test.ts`. Config at `vitest.config.mts`. Globals enabled (`describe`, `test`, `expect`, `vi` available without import).
+- **E2E tests** (Playwright): `e2e/*.spec.ts`. Config at `playwright.config.ts`. Uses chromium only, port 3001.
+- **CI**: GitHub Actions (`.github/workflows/ci.yml`). Unit tests on every PR + push. E2E only on push to main with Supabase secrets.
 
 ### State Management
 
@@ -154,6 +171,10 @@ Tailwind CSS with a custom theme (`tailwind.config.ts`):
 - Dark mode supported via `class` strategy
 
 Use the `cn()` helper from `@/lib/utils` (combines `clsx` + `tailwind-merge`) for conditional class merging.
+
+### Z-Index Stack
+
+`Navbar/MobileNav (50)` < `ChatBubble (60)` < `EntryBanner (70)` < `WaitlistModal (80)` < `ChatPanel (999)` < `SplashScreen (100)`
 
 ### Email
 
