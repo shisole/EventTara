@@ -126,7 +126,7 @@ BEGIN
   WHERE bc.booking_id = b.id
     AND b.status = 'pending'
     AND b.payment_verified_at IS NULL
-    AND b.created_at < now() - interval '48 hours'
+    AND b.booked_at < now() - interval '48 hours'
     AND bc.status != 'cancelled';
 
   -- Cancel stale bookings
