@@ -198,6 +198,53 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
+
+      {/* The Problem Section */}
+      <section className="py-16 bg-gray-50 dark:bg-slate-800">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl sm:text-4xl font-heading font-bold text-gray-900 dark:text-white mb-8 text-center">
+            The Problem
+          </h2>
+          <p className="text-lg text-gray-600 dark:text-gray-400 leading-relaxed">
+            Every weekend, I&apos;d scroll through dozens of Facebook groups trying to find hiking
+            events. I&apos;d DM organizers to check availability, compare prices manually, and hope
+            I didn&apos;t miss registration deadlines. There was no central place to see what&apos;s
+            happening in Panay Island. As both a participant and someone who wanted to support local
+            organizers, I knew there had to be a better way.
+          </p>
+        </div>
+      </section>
+
+      {/* The Solution Section */}
+      <section className="py-16 bg-white dark:bg-slate-900">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl sm:text-4xl font-heading font-bold text-gray-900 dark:text-white mb-8 text-center">
+            The Solution
+          </h2>
+          <p className="text-lg text-gray-600 dark:text-gray-400 leading-relaxed">
+            EventTara started as a weekend project in my apartment in Iloilo. A simple platform to
+            find and book outdoor events—built by someone who lives this life, for others like me.
+            No corporate backing, no big team. Just a hiker who codes and wanted to solve a problem
+            I faced every week.
+          </p>
+        </div>
+      </section>
+
+      {/* The Vision Section */}
+      <section className="py-16 bg-gray-50 dark:bg-slate-800">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl sm:text-4xl font-heading font-bold text-gray-900 dark:text-white mb-8 text-center">
+            The Vision
+          </h2>
+          <p className="text-lg text-gray-600 dark:text-gray-400 leading-relaxed">
+            We&apos;re starting here in Panay Island—my home trails, my community. Every mountain
+            I&apos;ve climbed, every organizer I&apos;ve met, every group I&apos;ve joined. Once we
+            prove it works here, we&apos;ll grow across Visayas and eventually the entire
+            Philippines. But we&apos;ll always remember: we&apos;re built <em>by</em> the outdoor
+            community, <em>for</em> the outdoor community.
+          </p>
+        </div>
+      </section>
     </main>
   );
 }
