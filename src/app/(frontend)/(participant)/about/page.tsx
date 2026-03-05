@@ -2,6 +2,8 @@ import { type Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
+import JourneyStepGallery from "@/components/about/JourneyStepGallery";
+
 export const metadata: Metadata = {
   title: "About EventTara - Built by a Hiker in Iloilo | Stephen Hisole",
   description:
@@ -63,12 +65,14 @@ export default function AboutPage() {
                 </p>
               </div>
               <div className="md:w-1/2">
-                <Image
-                  src="/images/about/mtb-trail.jpg"
-                  alt="Mountain biking on Panay trails"
-                  width={800}
-                  height={600}
-                  className="rounded-2xl shadow-lg"
+                <JourneyStepGallery
+                  images={[
+                    { src: "/images/about/mtb-trail.jpg", alt: "Mountain biking on Panay trails" },
+                    {
+                      src: "/images/about/gallery-roadbike.jpg",
+                      alt: "Road cycling along Iloilo coast",
+                    },
+                  ]}
                 />
               </div>
             </div>
@@ -93,12 +97,14 @@ export default function AboutPage() {
                 </p>
               </div>
               <div className="md:w-1/2">
-                <Image
-                  src="/images/about/imperial-run.jpg"
-                  alt="Finishing The Imperial Run"
-                  width={800}
-                  height={600}
-                  className="rounded-2xl shadow-lg"
+                <JourneyStepGallery
+                  images={[
+                    { src: "/images/about/imperial-run.jpg", alt: "Finishing The Imperial Run" },
+                    {
+                      src: "/images/about/gallery-bucari.jpg",
+                      alt: "Bucari Extreme 27km trail run",
+                    },
+                  ]}
                 />
               </div>
             </div>
@@ -124,12 +130,15 @@ export default function AboutPage() {
                 </p>
               </div>
               <div className="md:w-1/2">
-                <Image
-                  src="/images/about/mt-igatmon.jpg"
-                  alt="Summit of Mt. Igatmon, Igbaras"
-                  width={800}
-                  height={600}
-                  className="rounded-2xl shadow-lg"
+                <JourneyStepGallery
+                  images={[
+                    { src: "/images/about/mt-igatmon.jpg", alt: "Summit of Mt. Igatmon, Igbaras" },
+                    { src: "/images/about/gallery-napulak.jpg", alt: "Summit of Mt. Napulak" },
+                    {
+                      src: "/images/about/gallery-taripis.jpg",
+                      alt: "Hiking Mt. Taripis trail",
+                    },
+                  ]}
                 />
               </div>
             </div>
@@ -157,12 +166,13 @@ export default function AboutPage() {
                 </p>
               </div>
               <div className="md:w-1/2">
-                <Image
-                  src="/images/about/marathon-stats.jpg"
-                  alt="42km Dinagyang Marathon finish certificate"
-                  width={800}
-                  height={600}
-                  className="rounded-2xl shadow-lg"
+                <JourneyStepGallery
+                  images={[
+                    {
+                      src: "/images/about/marathon-stats.jpg",
+                      alt: "42km Dinagyang Marathon finish certificate",
+                    },
+                  ]}
                 />
               </div>
             </div>
@@ -187,12 +197,10 @@ export default function AboutPage() {
                 </p>
               </div>
               <div className="md:w-1/2">
-                <Image
-                  src="/images/about/recent-hike.jpg"
-                  alt="Recent hiking adventure"
-                  width={800}
-                  height={600}
-                  className="rounded-2xl shadow-lg"
+                <JourneyStepGallery
+                  images={[
+                    { src: "/images/about/recent-hike.jpg", alt: "Recent hiking adventure" },
+                  ]}
                 />
               </div>
             </div>
