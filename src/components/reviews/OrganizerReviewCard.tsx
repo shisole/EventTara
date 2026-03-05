@@ -2,11 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 
 import { UserAvatar } from "@/components/ui";
 import { REVIEW_TAGS } from "@/lib/constants/review-tags";
 import type { OrganizerReviewWithUser } from "@/lib/types/organizer-reviews";
 import { cn } from "@/lib/utils";
+
+import ReviewPhotoLightbox from "./ReviewPhotoLightbox";
 
 interface OrganizerReviewCardProps {
   review: OrganizerReviewWithUser;
@@ -16,6 +19,7 @@ const TAG_MAP = new Map(REVIEW_TAGS.map((t) => [t.key, t]));
 
 export default function OrganizerReviewCard({ review }: OrganizerReviewCardProps) {
   const displayName = review.is_anonymous ? "Anonymous" : (review.user?.full_name ?? "User");
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   return (
     <div className="rounded-xl bg-white p-4 shadow-sm dark:bg-gray-900 dark:shadow-gray-950/20">
@@ -114,12 +118,11 @@ export default function OrganizerReviewCard({ review }: OrganizerReviewCardProps
       {/* Photos */}
       {review.photos.length > 0 && (
         <div className="flex gap-2 overflow-x-auto pb-1">
-          {review.photos.map((photo) => (
-            <a
+          {review.photos.map((photo, i) => (
+            <button
               key={photo.id}
-              href={photo.image_url}
-              target="_blank"
-              rel="noopener noreferrer"
+              type="button"
+              onClick={() => setLightboxIndex(i)}
               className="shrink-0"
             >
               <Image
@@ -129,9 +132,18 @@ export default function OrganizerReviewCard({ review }: OrganizerReviewCardProps
                 height={96}
                 className="h-24 w-24 rounded-lg object-cover hover:opacity-80 transition-opacity"
               />
-            </a>
+            </button>
           ))}
         </div>
+      )}
+
+      {/* Photo lightbox */}
+      {lightboxIndex !== null && (
+        <ReviewPhotoLightbox
+          photos={review.photos.map((p) => p.image_url)}
+          initialIndex={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+        />
       )}
     </div>
   );

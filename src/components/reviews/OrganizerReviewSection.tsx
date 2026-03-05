@@ -39,15 +39,18 @@ export default function OrganizerReviewSection({
         const fresh: OrganizerReviewsResponse = await res.json();
         setData(fresh);
         // Find the current user's review in the refreshed data
+        // Try by user_id first (non-anonymous), then fall back to existing myReviewId
         if (currentUser) {
-          const mine = fresh.reviews.find((r) => r.user_id === currentUser.id);
+          const mine =
+            fresh.reviews.find((r) => r.user_id === currentUser.id) ??
+            fresh.reviews.find((r) => r.id === myReviewId);
           if (mine) setMyReviewId(mine.id);
         }
       }
     } catch {
       // Silently fail
     }
-  }, [organizerId, currentUser]);
+  }, [organizerId, currentUser, myReviewId]);
 
   const handleSuccess = useCallback(() => {
     setShowForm(false);
