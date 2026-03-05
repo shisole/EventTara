@@ -134,3 +134,25 @@ jobs:
           git checkout staging
           git reset --hard main
           git push --force origin staging
+
+      - name: Close staging → main PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const { data: prs } = await github.rest.pulls.list({
+              owner,
+              repo,
+              head: `${owner}:staging`,
+              base: 'main',
+              state: 'open',
+            });
+            for (const pr of prs) {
+              await github.rest.pulls.update({
+                owner,
+                repo,
+                pull_number: pr.number,
+                state: 'closed',
+              });
+              core.info(`Closed staging PR #${pr.number}`);
+            }
