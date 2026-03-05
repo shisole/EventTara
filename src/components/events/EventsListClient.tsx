@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { useState, useEffect, useRef, useCallback } from "react";
 
 import { SkeletonEventCard } from "@/components/ui";
+import { cn } from "@/lib/utils";
 
 import EventsGrid, { type NearbyState } from "./EventsGrid";
 
@@ -52,6 +53,7 @@ interface EventsListClientProps {
   isFiltering?: boolean;
   initialUsers?: UserResult[];
   nearbyState?: NearbyState | null;
+  twoColMobile?: boolean;
 }
 
 export default function EventsListClient({
@@ -60,6 +62,7 @@ export default function EventsListClient({
   isFiltering,
   initialUsers = [],
   nearbyState,
+  twoColMobile,
 }: EventsListClientProps) {
   const searchParams = useSearchParams();
   const [currentPage, setCurrentPage] = useState(1);
@@ -190,7 +193,12 @@ export default function EventsListClient({
 
   if (isFiltering) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div
+        className={cn(
+          "grid sm:grid-cols-2 lg:grid-cols-3 gap-6",
+          twoColMobile ? "grid-cols-2" : "grid-cols-1",
+        )}
+      >
         {Array.from({ length: 6 }).map((_, i) => (
           <SkeletonEventCard key={i} />
         ))}
@@ -251,7 +259,7 @@ export default function EventsListClient({
         </div>
       )}
 
-      <EventsGrid events={events} nearbyState={nearbyState} />
+      <EventsGrid events={events} nearbyState={nearbyState} twoColMobile={twoColMobile} />
 
       {/* Infinite scroll sentinel */}
       {hasMore && (
