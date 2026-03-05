@@ -3,6 +3,8 @@ import Image from "next/image";
 import Link from "next/link";
 
 import JourneyStepGallery from "@/components/about/JourneyStepGallery";
+import { Breadcrumbs } from "@/components/ui";
+import PageShareButtons from "@/components/ui/PageShareButtons";
 
 export const metadata: Metadata = {
   title: "About EventTara - Built by a Hiker in Iloilo | Stephen Hisole",
@@ -37,6 +39,12 @@ export default function AboutPage() {
           </p>
         </div>
       </section>
+
+      {/* Breadcrumbs & Share */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+        <Breadcrumbs />
+        <PageShareButtons title="About EventTara - Built by a Hiker in Iloilo" path="/about" />
+      </div>
 
       {/* The Journey Section */}
       <section className="py-16 bg-white dark:bg-slate-900">

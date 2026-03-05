@@ -122,6 +122,10 @@ export const BREADCRUMB_ROUTES: BreadcrumbRoute[] = [
     segments: [{ label: "Notifications" }],
   },
   {
+    pattern: "/about",
+    segments: [{ label: "About" }],
+  },
+  {
     pattern: "/contact",
     segments: [{ label: "Contact" }],
   },

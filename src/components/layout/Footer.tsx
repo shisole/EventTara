@@ -43,7 +43,14 @@ export default async function Footer() {
     { label: "Data Deletion", url: "/data-deletion" },
   ];
 
-  const displaySections = sections.length > 0 ? sections : defaultSections;
+  // If CMS provides sections but none titled "About", append the default About section
+  const hasAboutSection = sections.some((s) => s.title.toLowerCase() === "about");
+  const displaySections =
+    sections.length > 0
+      ? hasAboutSection
+        ? sections
+        : [...sections, defaultSections.find((s) => s.title === "About")!]
+      : defaultSections;
   const displayLegalLinks = legalLinks.length > 0 ? legalLinks : defaultLegalLinks;
 
   return (
