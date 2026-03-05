@@ -16,33 +16,48 @@ interface JourneyStepGalleryProps {
   aspectRatio?: string;
 }
 
+const SIDE_ROTATION = 3;
+const SIDE_SCALE = 0.9;
+const SWIPE_THRESHOLD = 0.2; // 20% of container width
+
 export default function JourneyStepGallery({
   images,
   aspectRatio = "aspect-[4/3]",
 }: JourneyStepGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
-  const touchStartX = useRef(0);
+  const [dragX, setDragX] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const touchRef = useRef({ startX: 0, startTime: 0 });
 
   const goTo = useCallback(
     (index: number) => {
       setActiveIndex(Math.max(0, Math.min(index, images.length - 1)));
+      setDragX(0);
     },
     [images.length],
   );
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
+    setIsDragging(true);
+    touchRef.current = { startX: e.touches[0].clientX, startTime: Date.now() };
   }, []);
 
-  const handleTouchEnd = useCallback(
-    (e: React.TouchEvent) => {
-      const delta = touchStartX.current - e.changedTouches[0].clientX;
-      const SWIPE_THRESHOLD = 50;
-      if (delta > SWIPE_THRESHOLD) goTo(activeIndex + 1);
-      else if (delta < -SWIPE_THRESHOLD) goTo(activeIndex - 1);
-    },
-    [activeIndex, goTo],
-  );
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    const delta = e.touches[0].clientX - touchRef.current.startX;
+    setDragX(delta);
+  }, []);
+
+  const handleTouchEnd = useCallback(() => {
+    setIsDragging(false);
+    const width = containerRef.current?.clientWidth ?? 300;
+    const velocity = Math.abs(dragX) / (Date.now() - touchRef.current.startTime);
+    const shouldSwipe = Math.abs(dragX) > width * SWIPE_THRESHOLD || velocity > 0.5;
+
+    if (shouldSwipe && dragX < 0) goTo(activeIndex + 1);
+    else if (shouldSwipe && dragX > 0) goTo(activeIndex - 1);
+    else setDragX(0);
+  }, [dragX, activeIndex, goTo]);
 
   if (images.length === 1) {
     return (
@@ -55,16 +70,46 @@ export default function JourneyStepGallery({
   const prevIndex = activeIndex > 0 ? activeIndex - 1 : null;
   const nextIndex = activeIndex < images.length - 1 ? activeIndex + 1 : null;
 
+  // Normalize drag to -1..1 range based on container width
+  const width = containerRef.current?.clientWidth ?? 300;
+  const dragProgress = Math.max(-1, Math.min(1, dragX / width));
+
+  // Clamp drag at edges (no prev = can't drag right, no next = can't drag left)
+  const clampedProgress =
+    prevIndex === null && dragProgress > 0
+      ? dragProgress * 0.2
+      : nextIndex === null && dragProgress < 0
+        ? dragProgress * 0.2
+        : dragProgress;
+
+  // Center card follows finger
+  const centerTranslateX = clampedProgress * 100;
+
+  // Side cards: interpolate from resting position toward center as you drag toward them
+  const leftProgress = Math.max(0, clampedProgress); // 0 at rest, 1 when fully dragged right
+  const rightProgress = Math.max(0, -clampedProgress); // 0 at rest, 1 when fully dragged left
+
+  const leftRotation = -SIDE_ROTATION * (1 - leftProgress);
+  const leftScale = SIDE_SCALE + (1 - SIDE_SCALE) * leftProgress;
+
+  const rightRotation = SIDE_ROTATION * (1 - rightProgress);
+  const rightScale = SIDE_SCALE + (1 - SIDE_SCALE) * rightProgress;
+
+  const transition = isDragging ? "none" : "transform 400ms cubic-bezier(0.16, 1, 0.3, 1)";
+
   return (
     <div className="group relative">
-      {/* Card stack — px-4 gives room for side cards to peek without protruding */}
-      <div className={`relative ${aspectRatio} w-full px-4`}>
-        {/* Left card (behind, rotated) */}
+      <div ref={containerRef} className={`relative ${aspectRatio} w-full px-4`}>
+        {/* Left card */}
         {prevIndex !== null && (
           <button
             onClick={() => goTo(prevIndex)}
-            className="absolute inset-y-0 left-0 z-0 w-[80%] cursor-pointer overflow-hidden rounded-2xl shadow-md transition-all duration-500 ease-out"
-            style={{ transform: "rotate(-3deg) scale(0.9)", transformOrigin: "bottom left" }}
+            className="absolute inset-y-0 left-0 z-0 w-[80%] cursor-pointer overflow-hidden rounded-2xl shadow-md"
+            style={{
+              transform: `rotate(${leftRotation}deg) scale(${leftScale})`,
+              transformOrigin: "bottom left",
+              transition,
+            }}
             aria-label={`View ${images[prevIndex].alt}`}
           >
             <Image
@@ -73,16 +118,26 @@ export default function JourneyStepGallery({
               fill
               className="object-cover"
             />
-            <div className="absolute inset-0 bg-black/20" />
+            <div
+              className="absolute inset-0 bg-black/20"
+              style={{
+                opacity: 1 - leftProgress,
+                transition: isDragging ? "none" : "opacity 400ms cubic-bezier(0.16, 1, 0.3, 1)",
+              }}
+            />
           </button>
         )}
 
-        {/* Right card (behind, rotated) */}
+        {/* Right card */}
         {nextIndex !== null && (
           <button
             onClick={() => goTo(nextIndex)}
-            className="absolute inset-y-0 right-0 z-0 w-[80%] cursor-pointer overflow-hidden rounded-2xl shadow-md transition-all duration-500 ease-out"
-            style={{ transform: "rotate(3deg) scale(0.9)", transformOrigin: "bottom right" }}
+            className="absolute inset-y-0 right-0 z-0 w-[80%] cursor-pointer overflow-hidden rounded-2xl shadow-md"
+            style={{
+              transform: `rotate(${rightRotation}deg) scale(${rightScale})`,
+              transformOrigin: "bottom right",
+              transition,
+            }}
             aria-label={`View ${images[nextIndex].alt}`}
           >
             <Image
@@ -91,15 +146,26 @@ export default function JourneyStepGallery({
               fill
               className="object-cover"
             />
-            <div className="absolute inset-0 bg-black/20" />
+            <div
+              className="absolute inset-0 bg-black/20"
+              style={{
+                opacity: 1 - rightProgress,
+                transition: isDragging ? "none" : "opacity 400ms cubic-bezier(0.16, 1, 0.3, 1)",
+              }}
+            />
           </button>
         )}
 
-        {/* Center card (on top) */}
+        {/* Center card */}
         <div
           onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
-          className="relative z-10 h-full w-full overflow-hidden rounded-2xl shadow-xl transition-all duration-500 ease-out"
+          className="relative z-10 h-full w-full overflow-hidden rounded-2xl shadow-xl"
+          style={{
+            transform: `translateX(${centerTranslateX}%)`,
+            transition,
+          }}
         >
           <Image
             src={images[activeIndex].src}
