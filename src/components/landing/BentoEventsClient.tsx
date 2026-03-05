@@ -133,7 +133,7 @@ export default function BentoEventsClient({ initialEvents, initialTab }: BentoEv
   const [currentPage, setCurrentPage] = useState(0);
   const [loading, setLoading] = useState(false);
   const [animating, setAnimating] = useState(false);
-  const [slideDirection, setSlideDirection] = useState<"left" | "right" | null>(null);
+  const [slideDirection, setSlideDirection] = useState<"left" | null>(null);
 
   // Cache: keyed by tab key, stores fetched events
   const cache = useRef<Record<string, EventCardData[]>>({ [initialTab]: initialEvents });
@@ -154,37 +154,47 @@ export default function BentoEventsClient({ initialEvents, initialTab }: BentoEv
 
   const handleTabClick = useCallback(
     async (tabKey: string) => {
-      if (tabKey === activeTab) return;
+      if (tabKey === activeTab || animating) return;
+
+      // Slide out current content to the left
+      setSlideDirection("left");
+      setAnimating(true);
+
+      // Wait for slide-out to finish, then swap tab
+      await new Promise((r) => setTimeout(r, 300));
 
       setActiveTab(tabKey);
       setCurrentPage(0);
-      setSlideDirection(null);
 
-      // Already cached
-      if (cache.current[tabKey]) return;
-
-      const tab = TABS.find((t) => t.key === tabKey);
-      if (!tab) return;
-
-      setLoading(true);
-      try {
-        const res = await fetch(`/api/events?${tab.param}&limit=10`);
-        if (!res.ok) throw new Error("Failed to fetch");
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const data: any = await res.json();
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const rawEvents: any[] = Array.isArray(data.events) ? data.events : [];
-        const cards: EventCardData[] = rawEvents.map((e) => mapApiEventToCard(e));
-
-        cache.current[tabKey] = cards;
-      } catch {
-        cache.current[tabKey] = [];
-      } finally {
-        setLoading(false);
+      // If not cached, fetch
+      if (!cache.current[tabKey]) {
+        const tab = TABS.find((t) => t.key === tabKey);
+        if (tab) {
+          setLoading(true);
+          setSlideDirection(null);
+          setAnimating(false);
+          try {
+            const res = await fetch(`/api/events?${tab.param}&limit=10`);
+            if (!res.ok) throw new Error("Failed to fetch");
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const data: any = await res.json();
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const rawEvents: any[] = Array.isArray(data.events) ? data.events : [];
+            cache.current[tabKey] = rawEvents.map((e) => mapApiEventToCard(e));
+          } catch {
+            cache.current[tabKey] = [];
+          } finally {
+            setLoading(false);
+          }
+        }
+        return;
       }
+
+      // Cached: slide in from right
+      setSlideDirection(null);
+      setAnimating(false);
     },
-    [activeTab],
+    [activeTab, animating],
   );
 
   // -------------------------------------------------------------------------
@@ -199,10 +209,10 @@ export default function BentoEventsClient({ initialEvents, initialTab }: BentoEv
       const nextPage =
         direction === "next" ? (currentPage + 1) % pages : (currentPage - 1 + pages) % pages;
 
-      setSlideDirection(direction === "next" ? "left" : "right");
+      // Always slide left (right-to-left)
+      setSlideDirection("left");
       setAnimating(true);
 
-      // After slide-out completes, swap page and slide-in
       setTimeout(() => {
         setCurrentPage(nextPage);
         setSlideDirection(null);
@@ -347,7 +357,6 @@ export default function BentoEventsClient({ initialEvents, initialTab }: BentoEv
             className={cn(
               "transition-transform duration-300 ease-in-out",
               slideDirection === "left" && "-translate-x-[105%]",
-              slideDirection === "right" && "translate-x-[105%]",
               !slideDirection && "translate-x-0",
             )}
           >
@@ -384,8 +393,8 @@ export default function BentoEventsClient({ initialEvents, initialTab }: BentoEv
                 <button
                   key={i}
                   onClick={() => {
-                    if (i !== currentPage) {
-                      setSlideDirection(i > currentPage ? "left" : "right");
+                    if (i !== currentPage && !animating) {
+                      setSlideDirection("left");
                       setAnimating(true);
                       setTimeout(() => {
                         setCurrentPage(i);
