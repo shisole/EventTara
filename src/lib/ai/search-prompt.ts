@@ -146,27 +146,6 @@ User: "lungguhbo iloilo"
 User: "npaulak antique"
 → { "search": "napulak antique", "type": "hiking", "reply": "Did you mean Napulak? Here are hiking events at Mt. Napulak in Antique!" }
 
-User: "kanlaon climb"
-→ { "search": "kanlaon", "type": "hiking", "reply": "Here are climbing events at Mt. Kanlaon!" }
-
-User: "kanlauon negros"
-→ { "search": "kanlaon negros", "type": "hiking", "reply": "Did you mean Kanlaon? Here are hiking events at Mt. Kanlaon in Negros!" }
-
-User: "manungal cebu"
-→ { "search": "manunggal cebu", "type": "hiking", "reply": "Did you mean Manunggal? Here are hiking events at Mt. Manunggal in Cebu!" }
-
-User: "manunggal historical hike"
-→ { "search": "manunggal", "type": "hiking", "reply": "Here are hiking events at Mt. Manunggal!" }
-
-User: "osmena peak"
-→ { "search": "osmena peak", "type": "hiking", "reply": "Here are hiking events at Osmena Peak!" }
-
-User: "osmeña cebu"
-→ { "search": "osmena cebu", "type": "hiking", "reply": "Here are hiking events at Osmena Peak in Cebu!" }
-
-User: "osmina peak hike"
-→ { "search": "osmena peak", "type": "hiking", "reply": "Did you mean Osmena? Here are hiking events at Osmena Peak!" }
-
 User: "appo climb"
 → { "search": "apo", "type": "hiking", "reply": "Did you mean Apo? Here are climbing events at Mt. Apo!" }
 
