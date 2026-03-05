@@ -56,12 +56,14 @@ interface ClientShellProps {
   children: React.ReactNode;
   initialNavLayout?: string;
   activityFeedEnabled?: boolean;
+  adminUserIds?: string[];
 }
 
 export default function ClientShell({
   children,
   initialNavLayout = "strip",
   activityFeedEnabled = false,
+  adminUserIds = [],
 }: ClientShellProps) {
   const pathname = usePathname();
   const isLighthouse = useMemo(
@@ -230,6 +232,7 @@ export default function ClientShell({
           navLayout={navLayout}
           activeBorder={activeBorder}
           activityFeedEnabled={activityFeedEnabled}
+          isAdmin={!!user && adminUserIds.includes(user.id)}
           onLogout={() => void handleLogout()}
           onMenuOpen={handleMenuOpen}
           onBorderChange={(borderId, tier, color) => {
@@ -248,6 +251,7 @@ export default function ClientShell({
         activities={activities}
         user={user}
         role={role}
+        isAdmin={!!user && adminUserIds.includes(user.id)}
         onLogout={() => void handleLogout()}
       />
 
