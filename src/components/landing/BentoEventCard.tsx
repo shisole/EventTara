@@ -20,19 +20,19 @@ const typeLabels: Record<string, string> = {
 };
 
 const typeBadgeStyles: Record<string, string> = {
-  hiking: "bg-emerald-500/90 text-white",
-  mtb: "bg-amber-500/90 text-white",
-  road_bike: "bg-blue-500/90 text-white",
-  running: "bg-rose-500/90 text-white",
-  trail_run: "bg-orange-500/90 text-white",
+  hiking: "bg-emerald-500 text-white",
+  mtb: "bg-amber-500 text-white",
+  road_bike: "bg-blue-500 text-white",
+  running: "bg-orange-500 text-white",
+  trail_run: "bg-yellow-800 text-white",
 };
 
 const typeGradientFallback: Record<string, string> = {
   hiking: "from-emerald-600 to-emerald-900",
   mtb: "from-amber-600 to-amber-900",
   road_bike: "from-blue-600 to-blue-900",
-  running: "from-rose-600 to-rose-900",
-  trail_run: "from-orange-600 to-orange-900",
+  running: "from-orange-600 to-orange-900",
+  trail_run: "from-yellow-700 to-yellow-950",
 };
 
 export default function BentoEventCard({ event, variant }: BentoEventCardProps) {
