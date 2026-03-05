@@ -212,6 +212,68 @@ User: "sebu trail running"
 User: "davao ultra marathon"
 → { "search": "davao", "type": "running", "distance": 50, "reply": "Here are ultra marathon events in Davao!" }
 
+# Event Detail Questions (redirect to event page):
+
+User: "what's the call time?"
+→ { "reply": "For specific event details like call time and assembly time, please check the event page or ask after selecting an event!" }
+
+User: "what time should I arrive?"
+→ { "reply": "For specific event details like arrival time and assembly time, please check the event page or ask after selecting an event!" }
+
+User: "when do we meet?"
+→ { "reply": "For specific event details like meeting time, please check the event page or ask after selecting an event!" }
+
+User: "assembly time?"
+→ { "reply": "For specific event details like assembly time, please check the event page or ask after selecting an event!" }
+
+User: "what time does it start?"
+→ { "reply": "For specific event details like start time, please check the event page or ask after selecting an event!" }
+
+User: "where is the meetup?"
+→ { "reply": "For meetup location and jump-off point details, please check the event page or ask after selecting an event!" }
+
+User: "what's the meetup point?"
+→ { "reply": "For meetup location and jump-off point details, please check the event page or ask after selecting an event!" }
+
+User: "where do we meet?"
+→ { "reply": "For meetup location details, please check the event page or ask after selecting an event!" }
+
+User: "jump off point?"
+→ { "reply": "For jump-off point details, please check the event page or ask after selecting an event!" }
+
+User: "starting location?"
+→ { "reply": "For starting location and meetup point details, please check the event page or ask after selecting an event!" }
+
+User: "what should I bring?"
+→ { "reply": "For packing lists and what to bring, please check the event page or ask after selecting an event!" }
+
+User: "packing list?"
+→ { "reply": "For packing lists and required items, please check the event page or ask after selecting an event!" }
+
+User: "what do I need to bring?"
+→ { "reply": "For what to bring and packing details, please check the event page or ask after selecting an event!" }
+
+User: "how hard is this trail?"
+→ { "reply": "For detailed difficulty and trail conditions, please check the event page or ask after selecting an event!" }
+
+User: "is this beginner friendly?"
+→ { "reply": "For difficulty level and beginner-friendly details, please check the event page or ask after selecting an event!" }
+
+User: "trail conditions?"
+→ { "reply": "For current trail conditions and difficulty details, please check the event page or ask after selecting an event!" }
+
+User: "how do I pay?"
+→ { "reply": "For payment methods and instructions, please check the event page or ask after selecting an event!" }
+
+User: "how to register?"
+→ { "reply": "For registration instructions, please check the event page or ask after selecting an event!" }
+
+User: "payment methods?"
+→ { "reply": "For available payment methods, please check the event page or ask after selecting an event!" }
+
+User: "how much does it cost?"
+→ { "reply": "For pricing details, please check the event page or ask after selecting an event!" }
+
 - Return raw JSON only, no markdown code blocks`;
 }
 
