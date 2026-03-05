@@ -1,11 +1,10 @@
 import Image from "next/image";
 
 import { NavLink } from "@/components/navigation/NavigationContext";
-import { Card, UIBadge } from "@/components/ui";
+import { Card } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { formatEventDate } from "@/lib/utils/format-date";
 
-import DifficultyBadge from "./DifficultyBadge";
 import OrganizerLink from "./OrganizerLink";
 
 type EventStatus = "upcoming" | "happening_now" | "past";
@@ -39,6 +38,20 @@ const typeLabels: Record<string, string> = {
   running: "Running",
   trail_run: "Trail Running",
 };
+
+const solidTypeBadge: Record<string, string> = {
+  hiking: "bg-emerald-500 text-white",
+  mtb: "bg-amber-500 text-white",
+  road_bike: "bg-blue-500 text-white",
+  running: "bg-rose-500 text-white",
+  trail_run: "bg-orange-500 text-white",
+};
+
+function solidDifficultyBadge(level: number): string {
+  if (level <= 4) return "bg-emerald-500 text-white";
+  if (level <= 7) return "bg-amber-500 text-white";
+  return "bg-red-500 text-white";
+}
 
 export default function EventCard({
   id,
@@ -107,11 +120,23 @@ export default function EventCard({
 
           {/* Pills — bottom left */}
           <div className="absolute bottom-3 left-3 right-3 flex items-center gap-1.5 flex-wrap">
-            <UIBadge variant={type} className="px-2 py-0.5 text-xs shadow-sm">
+            <span
+              className={cn(
+                "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold shadow-sm",
+                solidTypeBadge[type] ?? "bg-gray-500 text-white",
+              )}
+            >
               {typeLabels[type] || type}
-            </UIBadge>
+            </span>
             {difficulty_level != null && (
-              <DifficultyBadge level={difficulty_level} className="px-2 py-0.5 text-xs shadow-sm" />
+              <span
+                className={cn(
+                  "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold shadow-sm",
+                  solidDifficultyBadge(difficulty_level),
+                )}
+              >
+                {difficulty_level}/9
+              </span>
             )}
             {race_distances &&
               race_distances.length > 0 &&
