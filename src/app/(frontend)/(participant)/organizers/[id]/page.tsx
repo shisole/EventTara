@@ -5,11 +5,14 @@ import BadgeGrid from "@/components/badges/BadgeGrid";
 import EventCard from "@/components/events/EventCard";
 import OrganizerProfileHeader from "@/components/organizers/OrganizerProfileHeader";
 import OrganizerStats from "@/components/organizers/OrganizerStats";
+import OrganizerReviewSection from "@/components/reviews/OrganizerReviewSection";
 import StarRating from "@/components/reviews/StarRating";
 import { Breadcrumbs, Button } from "@/components/ui";
+import { isOrganizerReviewsEnabled } from "@/lib/cms/cached";
 import type { BorderTier } from "@/lib/constants/avatar-borders";
 import { BreadcrumbTitle } from "@/lib/contexts/BreadcrumbContext";
 import { createClient } from "@/lib/supabase/server";
+import type { OrganizerReviewsResponse } from "@/lib/types/organizer-reviews";
 
 export const dynamic = "force-dynamic";
 
@@ -224,6 +227,100 @@ export default async function OrganizerProfilePage({
   } = await supabase.auth.getUser();
   const isOwnProfile = authUser?.id === profile.user_id;
 
+  // Fetch organizer reviews (if feature flag enabled)
+  const orgReviewsEnabled = await isOrganizerReviewsEnabled();
+  let orgReviewsData: OrganizerReviewsResponse | null = null;
+  let existingOrgReviewId: string | null = null;
+
+  if (orgReviewsEnabled) {
+    // Fetch reviews + aggregates
+    const { data: orgReviewRows } = await supabase
+      .from("organizer_reviews")
+      .select("rating, tags")
+      .eq("organizer_id", orgId);
+
+    const orgTotalReviews = orgReviewRows?.length ?? 0;
+    let orgAvgRating = 0;
+    const orgTagCounts: Record<string, number> = {};
+
+    if (orgReviewRows && orgReviewRows.length > 0) {
+      orgAvgRating = orgReviewRows.reduce((sum, r) => sum + r.rating, 0) / orgReviewRows.length;
+      for (const review of orgReviewRows) {
+        if (Array.isArray(review.tags)) {
+          for (const tag of review.tags) {
+            orgTagCounts[tag] = (orgTagCounts[tag] || 0) + 1;
+          }
+        }
+      }
+    }
+
+    // Fetch first page of reviews with user info + photos
+    const { data: orgReviews } = await supabase
+      .from("organizer_reviews")
+      .select(
+        "*, users:user_id(full_name, username, avatar_url, active_border_id), organizer_review_photos(id, image_url, sort_order)",
+      )
+      .eq("organizer_id", orgId)
+      .order("created_at", { ascending: false })
+      .range(0, 9);
+
+    const mappedReviews = (orgReviews || []).map((r: any) => ({
+      id: r.id,
+      organizer_id: r.organizer_id,
+      user_id: r.is_anonymous ? null : r.user_id,
+      rating: r.rating,
+      text: r.text,
+      is_anonymous: r.is_anonymous,
+      tags: r.tags || [],
+      created_at: r.created_at,
+      updated_at: r.updated_at,
+      user: r.is_anonymous
+        ? null
+        : {
+            full_name: r.users?.full_name ?? "User",
+            username: r.users?.username ?? null,
+            avatar_url: r.users?.avatar_url ?? null,
+            active_border_id: r.users?.active_border_id ?? null,
+          },
+      photos: (r.organizer_review_photos || [])
+        .sort((a: any, b: any) => a.sort_order - b.sort_order)
+        .map((p: any) => ({ id: p.id, image_url: p.image_url, sort_order: p.sort_order })),
+    }));
+
+    orgReviewsData = {
+      reviews: mappedReviews,
+      averageRating: orgAvgRating,
+      totalReviews: orgTotalReviews,
+      tagCounts: orgTagCounts,
+      page: 1,
+      hasMore: orgTotalReviews > 10,
+    };
+
+    // Check if current user already has a review
+    if (authUser) {
+      const { data: myReview } = await supabase
+        .from("organizer_reviews")
+        .select("id")
+        .eq("organizer_id", orgId)
+        .eq("user_id", authUser.id)
+        .single();
+      existingOrgReviewId = myReview?.id ?? null;
+    }
+  }
+
+  // Get current user info for the review form
+  let currentUserInfo: { id: string; fullName: string } | null = null;
+  if (authUser) {
+    const { data: authUserData } = await supabase
+      .from("users")
+      .select("full_name, is_guest")
+      .eq("id", authUser.id)
+      .single();
+    if (authUserData && !authUserData.is_guest) {
+      currentUserInfo = { id: authUser.id, fullName: authUserData.full_name };
+    }
+  }
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-12 space-y-10">
       <Breadcrumbs />
@@ -310,10 +407,21 @@ export default async function OrganizerProfilePage({
         <BadgeGrid badges={badges} />
       </div>
 
-      {/* Reviews */}
+      {/* Organizer Reviews (feature flagged) */}
+      {orgReviewsEnabled && orgReviewsData && (
+        <OrganizerReviewSection
+          organizerId={orgId}
+          initialData={orgReviewsData}
+          currentUser={currentUserInfo}
+          isOwnProfile={isOwnProfile}
+          existingReviewId={existingOrgReviewId}
+        />
+      )}
+
+      {/* Event Reviews (legacy — shown when organizer reviews are disabled, or always as supplement) */}
       {totalReviews > 0 && (
         <div>
-          <h2 className="text-xl font-heading font-bold mb-4 text-center">Reviews</h2>
+          <h2 className="text-xl font-heading font-bold mb-4 text-center">Event Reviews</h2>
           <div className="flex items-center justify-center gap-3 mb-6">
             <StarRating value={Math.round(avgRating)} readonly size="md" />
             <span className="font-bold text-gray-900 dark:text-white">{avgRating.toFixed(1)}</span>
