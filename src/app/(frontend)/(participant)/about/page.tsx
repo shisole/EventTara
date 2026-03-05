@@ -48,7 +48,7 @@ export default function AboutPage() {
           {/* 2019-2022: The Beginning */}
           <div className="mb-16">
             <div className="flex flex-col md:flex-row gap-8 items-start">
-              <div className="md:w-1/2">
+              <div className="w-full md:w-1/2">
                 <h3 className="text-2xl font-heading font-bold text-gray-900 dark:text-white mb-4">
                   2019-2022: The Beginning
                 </h3>
@@ -64,7 +64,7 @@ export default function AboutPage() {
                   those isolated years.
                 </p>
               </div>
-              <div className="md:w-1/2">
+              <div className="w-full md:w-1/2">
                 <JourneyStepGallery
                   images={[
                     { src: "/images/about/mtb-trail.jpg", alt: "Mountain biking on Panay trails" },
@@ -81,7 +81,7 @@ export default function AboutPage() {
           {/* 2024: Crossfit to Running */}
           <div className="mb-16">
             <div className="flex flex-col md:flex-row-reverse gap-8 items-start">
-              <div className="md:w-1/2">
+              <div className="w-full md:w-1/2">
                 <h3 className="text-2xl font-heading font-bold text-gray-900 dark:text-white mb-4">
                   2024: Crossfit to Running
                 </h3>
@@ -96,7 +96,7 @@ export default function AboutPage() {
                   Events Collective). That trail run changed everything.
                 </p>
               </div>
-              <div className="md:w-1/2">
+              <div className="w-full md:w-1/2">
                 <JourneyStepGallery
                   images={[
                     { src: "/images/about/imperial-run.jpg", alt: "Finishing The Imperial Run" },
@@ -113,7 +113,7 @@ export default function AboutPage() {
           {/* 2024: Discovering Hiking */}
           <div className="mb-16">
             <div className="flex flex-col md:flex-row gap-8 items-start">
-              <div className="md:w-1/2">
+              <div className="w-full md:w-1/2">
                 <h3 className="text-2xl font-heading font-bold text-gray-900 dark:text-white mb-4">
                   2024: Discovering Hiking
                 </h3>
@@ -129,7 +129,7 @@ export default function AboutPage() {
                   my community.
                 </p>
               </div>
-              <div className="md:w-1/2">
+              <div className="w-full md:w-1/2">
                 <JourneyStepGallery
                   images={[
                     { src: "/images/about/mt-igatmon.jpg", alt: "Summit of Mt. Igatmon, Igbaras" },
@@ -147,7 +147,7 @@ export default function AboutPage() {
           {/* January 2025: The Turning Point */}
           <div className="mb-16">
             <div className="flex flex-col md:flex-row-reverse gap-8 items-start">
-              <div className="md:w-1/2">
+              <div className="w-full md:w-1/2">
                 <h3 className="text-2xl font-heading font-bold text-gray-900 dark:text-white mb-4">
                   January 2025: The Turning Point
                 </h3>
@@ -165,7 +165,7 @@ export default function AboutPage() {
                   &quot;When you&apos;re grieving, anything is possible.&quot;
                 </p>
               </div>
-              <div className="md:w-1/2">
+              <div className="w-full md:w-1/2">
                 <JourneyStepGallery
                   images={[
                     {
@@ -181,7 +181,7 @@ export default function AboutPage() {
           {/* Present: Builder */}
           <div className="mb-16">
             <div className="flex flex-col md:flex-row gap-8 items-start">
-              <div className="md:w-1/2">
+              <div className="w-full md:w-1/2">
                 <h3 className="text-2xl font-heading font-bold text-gray-900 dark:text-white mb-4">
                   Present: From Runner to Hiker to Builder
                 </h3>
@@ -196,7 +196,7 @@ export default function AboutPage() {
                   Panay Island. I knew there had to be a better way.
                 </p>
               </div>
-              <div className="md:w-1/2">
+              <div className="w-full md:w-1/2">
                 <JourneyStepGallery
                   images={[
                     { src: "/images/about/recent-hike.jpg", alt: "Recent hiking adventure" },
