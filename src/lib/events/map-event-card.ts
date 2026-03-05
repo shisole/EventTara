@@ -23,6 +23,7 @@ export interface EventCardData {
   difficulty_level?: number | null;
   race_distances: number[];
   hasRoute?: boolean;
+  is_featured?: boolean;
 }
 
 export interface EventEnrichments {
@@ -131,5 +132,6 @@ export function mapEventToCard(
     difficulty_level: event.difficulty_level,
     race_distances: enrichments.raceDistances[event.id] ?? [],
     hasRoute: enrichments.routeEventIds.has(event.id),
+    is_featured: event.is_featured ?? false,
   };
 }
