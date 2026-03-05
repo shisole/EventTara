@@ -5,7 +5,8 @@ import { getCachedNavigation, parseFooterLegalLinks, parseFooterSections } from 
 export default async function Footer() {
   const navigation = await getCachedNavigation();
 
-  const footerTagline = navigation?.footer_tagline || "Tara na! — Your adventure starts here.";
+  const footerTagline =
+    navigation?.footer_tagline || "Started in Iloilo, built for adventurers nationwide 🇵🇭";
   const sections = parseFooterSections(navigation);
   const legalLinks = parseFooterLegalLinks(navigation);
 
