@@ -145,7 +145,7 @@ export default function OrganizerWaitlistModal() {
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center p-4 transition-opacity duration-200 ${
+      className={`fixed inset-0 z-[80] flex items-center justify-center p-4 transition-opacity duration-200 ${
         isVisible ? "bg-black/60 opacity-100" : "bg-black/0 opacity-0"
       }`}
       role="dialog"
