@@ -46,20 +46,19 @@ function Lightbox({
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       switch (e.key) {
-      case "Escape": {
-      onClose();
-      break;
-      }
-      case "ArrowLeft": {
-      goPrev();
-      break;
-      }
-      case "ArrowRight": { {
-      goNext();
-      // No default
-      }
-      break;
-      }
+        case "Escape": {
+          onClose();
+          break;
+        }
+        case "ArrowLeft": {
+          goPrev();
+          break;
+        }
+        case "ArrowRight": {
+          goNext();
+          break;
+        }
+        // No default
       }
     }
     document.addEventListener("keydown", onKey);
