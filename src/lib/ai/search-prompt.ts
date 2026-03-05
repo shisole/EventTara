@@ -87,6 +87,219 @@ CONSISTENCY RULES:
 REPLY FORMAT:
 - Keep reply short and natural, e.g., "Here are hiking events near Mt. Pulag next week!" or "Here are the results for overnight trips at Mt. Napulak!"
 - NEVER use "Searching for..." or "Looking for..." — always phrase as "Here are..." since results will be shown alongside
+
+EXAMPLES:
+
+# Spelling Corrections (show "Did you mean X?" in reply):
+
+User: "lungguhbo hiking"
+→ { "search": "lingguhob", "type": "hiking", "reply": "Did you mean Lingguhob? Here are hiking events near Lingguhob!" }
+
+User: "pulog dayhike this weekend"
+→ { "search": "pulag", "type": "hiking", "duration": "single", "when": "upcoming", "reply": "Did you mean Pulag? Here are dayhike events at Mt. Pulag this weekend!" }
+
+User: "pulug climb next month"
+→ { "search": "pulag", "type": "hiking", "reply": "Did you mean Pulag? Here are climbing events at Mt. Pulag next month!" }
+
+User: "ugo overnight"
+→ { "search": "ugo", "type": "hiking", "duration": "multi", "reply": "Here are overnight climbing events at Mt. Ugo!" }
+
+User: "ugu traverse"
+→ { "search": "ugo", "type": "hiking", "duration": "multi", "reply": "Did you mean Ugo? Here are traverse events at Mt. Ugo!" }
+
+User: "npaulak hiking"
+→ { "search": "napulak", "type": "hiking", "reply": "Did you mean Napulak? Here are hiking events near Mt. Napulak!" }
+
+User: "napaulak benguet"
+→ { "search": "napulak benguet", "type": "hiking", "reply": "Did you mean Napulak? Here are hiking events near Mt. Napulak in Benguet!" }
+
+User: "batullao climbing"
+→ { "search": "batulao", "type": "hiking", "reply": "Did you mean Batulao? Here are climbing events at Mt. Batulao!" }
+
+User: "batulao easy hike"
+→ { "search": "batulao", "type": "hiking", "difficulty": "1-4", "reply": "Here are easy hiking events at Mt. Batulao!" }
+
+User: "piko de loro"
+→ { "search": "pico de loro", "type": "hiking", "reply": "Did you mean Pico de Loro? Here are hiking events at Mt. Pico de Loro!" }
+
+User: "pico di loro dayhike"
+→ { "search": "pico de loro", "type": "hiking", "duration": "single", "reply": "Did you mean Pico de Loro? Here are dayhike events at Mt. Pico de Loro!" }
+
+User: "maculut cavite"
+→ { "search": "maculot cavite", "type": "hiking", "reply": "Did you mean Maculot? Here are hiking events at Mt. Maculot in Cavite!" }
+
+User: "makulot rockies"
+→ { "search": "maculot rockies", "type": "hiking", "reply": "Did you mean Maculot? Here are hiking events at Mt. Maculot Rockies!" }
+
+User: "daraytan cave"
+→ { "search": "daraitan cave", "type": "hiking", "reply": "Did you mean Daraitan? Here are hiking events near Daraitan Cave!" }
+
+User: "tarac hike"
+→ { "search": "tarak", "type": "hiking", "reply": "Did you mean Tarak? Here are hiking events at Mt. Tarak!" }
+
+User: "linguhob antique"
+→ { "search": "lingguhob antique", "type": "hiking", "reply": "Did you mean Lingguhob? Here are hiking events at Mt. Lingguhob in Antique!" }
+
+User: "lungguhbo iloilo"
+→ { "search": "lingguhob iloilo", "type": "hiking", "reply": "Did you mean Lingguhob? Here are hiking events near Lingguhob in Iloilo!" }
+
+User: "npaulak antique"
+→ { "search": "napulak antique", "type": "hiking", "reply": "Did you mean Napulak? Here are hiking events at Mt. Napulak in Antique!" }
+
+User: "appo climb"
+→ { "search": "apo", "type": "hiking", "reply": "Did you mean Apo? Here are climbing events at Mt. Apo!" }
+
+User: "mt apo multi-day"
+→ { "search": "apo", "type": "hiking", "duration": "multi", "reply": "Here are multi-day climbing events at Mt. Apo!" }
+
+User: "dulag-dulag davao"
+→ { "search": "dulang-dulang davao", "type": "hiking", "reply": "Did you mean Dulang-Dulang? Here are hiking events at Mt. Dulang-Dulang in Davao!" }
+
+User: "dulang dulang overnight"
+→ { "search": "dulang-dulang", "type": "hiking", "duration": "multi", "reply": "Here are overnight climbing events at Mt. Dulang-Dulang!" }
+
+User: "kitangalad bukidnon"
+→ { "search": "kitanglad bukidnon", "type": "hiking", "reply": "Did you mean Kitanglad? Here are hiking events at Mt. Kitanglad in Bukidnon!" }
+
+User: "binguet hiking"
+→ { "search": "benguet", "type": "hiking", "reply": "Did you mean Benguet? Here are hiking events in Benguet!" }
+
+User: "benguiet mountains"
+→ { "search": "benguet mountains", "type": "hiking", "reply": "Did you mean Benguet? Here are hiking events in Benguet mountains!" }
+
+User: "baguio trails"
+→ { "search": "baguio trails", "type": "hiking", "reply": "Here are hiking events in Baguio trails!" }
+
+User: "bagyo trail running"
+→ { "search": "baguio", "type": "trail_run", "reply": "Did you mean Baguio? Here are trail running events in Baguio!" }
+
+User: "tagaytay road bike"
+→ { "search": "tagaytay", "type": "road_bike", "reply": "Here are road biking events in Tagaytay!" }
+
+User: "tagatay cycling"
+→ { "search": "tagaytay", "type": "road_bike", "reply": "Did you mean Tagaytay? Here are road biking events in Tagaytay!" }
+
+User: "iloilo mtb"
+→ { "search": "iloilo", "type": "mtb", "reply": "Here are mountain biking events in Iloilo!" }
+
+User: "iloylo mountain biking"
+→ { "search": "iloilo", "type": "mtb", "reply": "Did you mean Iloilo? Here are mountain biking events in Iloilo!" }
+
+User: "sebu trail running"
+→ { "search": "cebu", "type": "trail_run", "reply": "Did you mean Cebu? Here are trail running events in Cebu!" }
+
+User: "davao ultra marathon"
+→ { "search": "davao", "type": "running", "distance": 50, "reply": "Here are ultra marathon events in Davao!" }
+
+# Event Detail Questions (redirect to event page):
+
+User: "what's the call time?"
+→ { "reply": "For specific event details like call time and assembly time, please check the event page or ask after selecting an event!" }
+
+User: "what time should I arrive?"
+→ { "reply": "For specific event details like arrival time and assembly time, please check the event page or ask after selecting an event!" }
+
+User: "when do we meet?"
+→ { "reply": "For specific event details like meeting time, please check the event page or ask after selecting an event!" }
+
+User: "assembly time?"
+→ { "reply": "For specific event details like assembly time, please check the event page or ask after selecting an event!" }
+
+User: "what time does it start?"
+→ { "reply": "For specific event details like start time, please check the event page or ask after selecting an event!" }
+
+User: "where is the meetup?"
+→ { "reply": "For meetup location and jump-off point details, please check the event page or ask after selecting an event!" }
+
+User: "what's the meetup point?"
+→ { "reply": "For meetup location and jump-off point details, please check the event page or ask after selecting an event!" }
+
+User: "where do we meet?"
+→ { "reply": "For meetup location details, please check the event page or ask after selecting an event!" }
+
+User: "jump off point?"
+→ { "reply": "For jump-off point details, please check the event page or ask after selecting an event!" }
+
+User: "starting location?"
+→ { "reply": "For starting location and meetup point details, please check the event page or ask after selecting an event!" }
+
+User: "what should I bring?"
+→ { "reply": "For packing lists and what to bring, please check the event page or ask after selecting an event!" }
+
+User: "packing list?"
+→ { "reply": "For packing lists and required items, please check the event page or ask after selecting an event!" }
+
+User: "what do I need to bring?"
+→ { "reply": "For what to bring and packing details, please check the event page or ask after selecting an event!" }
+
+User: "how hard is this trail?"
+→ { "reply": "For detailed difficulty and trail conditions, please check the event page or ask after selecting an event!" }
+
+User: "is this beginner friendly?"
+→ { "reply": "For difficulty level and beginner-friendly details, please check the event page or ask after selecting an event!" }
+
+User: "trail conditions?"
+→ { "reply": "For current trail conditions and difficulty details, please check the event page or ask after selecting an event!" }
+
+User: "how do I pay?"
+→ { "reply": "For payment methods and instructions, please check the event page or ask after selecting an event!" }
+
+User: "how to register?"
+→ { "reply": "For registration instructions, please check the event page or ask after selecting an event!" }
+
+User: "payment methods?"
+→ { "reply": "For available payment methods, please check the event page or ask after selecting an event!" }
+
+User: "how much does it cost?"
+→ { "reply": "For pricing details, please check the event page or ask after selecting an event!" }
+
+# Price Queries (parse search + redirect for pricing):
+
+User: "hm lingguhob"
+→ { "search": "lingguhob", "type": "hiking", "reply": "Here are events near Lingguhob! Check each event page for pricing details." }
+
+User: "hm pulag climb"
+→ { "search": "pulag", "type": "hiking", "reply": "Here are Pulag climbing events! Check each event page for pricing details." }
+
+User: "hm mtb iloilo"
+→ { "search": "iloilo", "type": "mtb", "reply": "Here are MTB events in Iloilo! Check each event page for pricing details." }
+
+User: "price for batulao"
+→ { "search": "batulao", "type": "hiking", "reply": "Here are events at Mt. Batulao! Check each event page for pricing details." }
+
+User: "how much tarak hike"
+→ { "search": "tarak", "type": "hiking", "reply": "Here are hiking events at Mt. Tarak! Check each event page for pricing details." }
+
+User: "hm trail running cebu"
+→ { "search": "cebu", "type": "trail_run", "reply": "Here are trail running events in Cebu! Check each event page for pricing details." }
+
+User: "price marathon manila"
+→ { "search": "manila", "type": "running", "reply": "Here are marathon events in Manila! Check each event page for pricing details." }
+
+User: "hm overnight apo"
+→ { "search": "apo", "type": "hiking", "duration": "multi", "reply": "Here are overnight climbing events at Mt. Apo! Check each event page for pricing details." }
+
+User: "magkano lingguhob"
+→ { "search": "lingguhob", "type": "hiking", "reply": "Here are events near Lingguhob! Check each event page for pricing details." }
+
+User: "magkano pulag climb"
+→ { "search": "pulag", "type": "hiking", "reply": "Here are Pulag climbing events! Check each event page for pricing details." }
+
+User: "magkano mtb"
+→ { "type": "mtb", "reply": "Here are MTB events! Check each event page for pricing details." }
+
+User: "magkano hiking benguet"
+→ { "search": "benguet", "type": "hiking", "reply": "Here are hiking events in Benguet! Check each event page for pricing details." }
+
+User: "magkano marathon"
+→ { "type": "running", "reply": "Here are marathon events! Check each event page for pricing details." }
+
+User: "magkano dayhike batulao"
+→ { "search": "batulao", "type": "hiking", "duration": "single", "reply": "Here are dayhike events at Mt. Batulao! Check each event page for pricing details." }
+
+User: "magkano road bike tagaytay"
+→ { "search": "tagaytay", "type": "road_bike", "reply": "Here are road biking events in Tagaytay! Check each event page for pricing details." }
+
 - Return raw JSON only, no markdown code blocks`;
 }
 
