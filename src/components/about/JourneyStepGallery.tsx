@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 import ChevronLeftIcon from "@/components/icons/ChevronLeftIcon";
 import ChevronRightIcon from "@/components/icons/ChevronRightIcon";
@@ -21,12 +21,27 @@ export default function JourneyStepGallery({
   aspectRatio = "aspect-[4/3]",
 }: JourneyStepGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const touchStartX = useRef(0);
 
   const goTo = useCallback(
     (index: number) => {
       setActiveIndex(Math.max(0, Math.min(index, images.length - 1)));
     },
     [images.length],
+  );
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  }, []);
+
+  const handleTouchEnd = useCallback(
+    (e: React.TouchEvent) => {
+      const delta = touchStartX.current - e.changedTouches[0].clientX;
+      const SWIPE_THRESHOLD = 50;
+      if (delta > SWIPE_THRESHOLD) goTo(activeIndex + 1);
+      else if (delta < -SWIPE_THRESHOLD) goTo(activeIndex - 1);
+    },
+    [activeIndex, goTo],
   );
 
   if (images.length === 1) {
@@ -42,14 +57,14 @@ export default function JourneyStepGallery({
 
   return (
     <div className="group relative">
-      {/* Card stack */}
-      <div className={`relative ${aspectRatio} w-full`}>
+      {/* Card stack — px-4 gives room for side cards to peek without protruding */}
+      <div className={`relative ${aspectRatio} w-full px-4`}>
         {/* Left card (behind, rotated) */}
         {prevIndex !== null && (
           <button
             onClick={() => goTo(prevIndex)}
-            className="absolute inset-y-0 -left-3 z-0 w-[85%] cursor-pointer overflow-hidden rounded-2xl shadow-md transition-all duration-500 ease-out"
-            style={{ transform: "rotate(-4deg) scale(0.92)", transformOrigin: "bottom left" }}
+            className="absolute inset-y-0 left-0 z-0 w-[80%] cursor-pointer overflow-hidden rounded-2xl shadow-md transition-all duration-500 ease-out"
+            style={{ transform: "rotate(-3deg) scale(0.9)", transformOrigin: "bottom left" }}
             aria-label={`View ${images[prevIndex].alt}`}
           >
             <Image
@@ -66,8 +81,8 @@ export default function JourneyStepGallery({
         {nextIndex !== null && (
           <button
             onClick={() => goTo(nextIndex)}
-            className="absolute inset-y-0 -right-3 z-0 w-[85%] cursor-pointer overflow-hidden rounded-2xl shadow-md transition-all duration-500 ease-out"
-            style={{ transform: "rotate(4deg) scale(0.92)", transformOrigin: "bottom right" }}
+            className="absolute inset-y-0 right-0 z-0 w-[80%] cursor-pointer overflow-hidden rounded-2xl shadow-md transition-all duration-500 ease-out"
+            style={{ transform: "rotate(3deg) scale(0.9)", transformOrigin: "bottom right" }}
             aria-label={`View ${images[nextIndex].alt}`}
           >
             <Image
@@ -81,7 +96,11 @@ export default function JourneyStepGallery({
         )}
 
         {/* Center card (on top) */}
-        <div className="relative z-10 h-full w-full overflow-hidden rounded-2xl shadow-xl transition-all duration-500 ease-out">
+        <div
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          className="relative z-10 h-full w-full overflow-hidden rounded-2xl shadow-xl transition-all duration-500 ease-out"
+        >
           <Image
             src={images[activeIndex].src}
             alt={images[activeIndex].alt}
