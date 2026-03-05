@@ -132,11 +132,18 @@ export default function AboutPage() {
               <div className="w-full md:w-1/2">
                 <JourneyStepGallery
                   images={[
-                    { src: "/images/about/mt-igatmon.jpg", alt: "Summit of Mt. Igatmon, Igbaras" },
-                    { src: "/images/about/gallery-napulak.jpg", alt: "Summit of Mt. Napulak" },
+                    { src: "/images/about/hiking-igatmon.jpg", alt: "Summit of Mt. Igatmon" },
+                    { src: "/images/about/hiking-napulak.jpg", alt: "Summit of Mt. Napulak" },
+                    { src: "/images/about/hiking-loboc.jpg", alt: "Summit of Mt. Loboc" },
+                    { src: "/images/about/hiking-taripis.jpg", alt: "Hiking Mt. Taripis" },
+                    { src: "/images/about/hiking-opao.jpg", alt: "Summit of Mt. Opao" },
                     {
-                      src: "/images/about/gallery-taripis.jpg",
-                      alt: "Hiking Mt. Taripis trail",
+                      src: "/images/about/hiking-pulang-lupa.jpg",
+                      alt: "Summit of Mt. Pulang Lupa",
+                    },
+                    {
+                      src: "/images/about/hiking-bato-igmatindog.jpg",
+                      alt: "Bato Igmatindog",
                     },
                   ]}
                 />

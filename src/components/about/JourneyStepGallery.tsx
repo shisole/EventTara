@@ -16,6 +16,9 @@ interface JourneyStepGalleryProps {
   aspectRatio?: string;
 }
 
+const PEEK_PX = 24;
+const GAP_PX = 8;
+
 export default function JourneyStepGallery({
   images,
   aspectRatio = "aspect-[4/3]",
@@ -23,18 +26,29 @@ export default function JourneyStepGallery({
   const scrollRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
+  const getSlideWidth = useCallback((container: HTMLDivElement): number => {
+    const firstChild: HTMLElement | null = container.querySelector(":scope > div");
+    if (!firstChild) return container.clientWidth;
+    return firstChild.offsetWidth + GAP_PX;
+  }, []);
+
   const handleScroll = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
-    const index = Math.round(el.scrollLeft / el.clientWidth);
+    const slideWidth = getSlideWidth(el);
+    const index = Math.round(el.scrollLeft / slideWidth);
     setActiveIndex(index);
-  }, []);
+  }, [getSlideWidth]);
 
-  const scrollTo = useCallback((index: number) => {
-    const el = scrollRef.current;
-    if (!el) return;
-    el.scrollTo({ left: index * el.clientWidth, behavior: "smooth" });
-  }, []);
+  const scrollTo = useCallback(
+    (index: number) => {
+      const el = scrollRef.current;
+      if (!el) return;
+      const slideWidth = getSlideWidth(el);
+      el.scrollTo({ left: index * slideWidth, behavior: "smooth" });
+    },
+    [getSlideWidth],
+  );
 
   if (images.length === 1) {
     return (
@@ -45,29 +59,41 @@ export default function JourneyStepGallery({
   }
 
   return (
-    <div className={`group relative ${aspectRatio} w-full overflow-hidden rounded-2xl shadow-lg`}>
-      <div
-        ref={scrollRef}
-        onScroll={handleScroll}
-        className="absolute inset-0 flex snap-x snap-mandatory overflow-x-auto"
-        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-      >
-        {images.map((image, i) => (
-          <div key={i} className="relative h-full w-full flex-none snap-start">
-            <Image src={image.src} alt={image.alt} fill className="object-cover" />
-          </div>
-        ))}
+    <div className="group relative">
+      <div className={`${aspectRatio} w-full`}>
+        <div
+          ref={scrollRef}
+          onScroll={handleScroll}
+          className="flex h-full snap-x snap-mandatory gap-2 overflow-x-auto"
+          style={{
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
+            paddingRight: PEEK_PX,
+          }}
+        >
+          {images.map((image, i) => (
+            <div
+              key={i}
+              className="relative h-full flex-none snap-start overflow-hidden rounded-2xl shadow-lg"
+              style={{ width: `calc(100% - ${PEEK_PX + GAP_PX}px)` }}
+            >
+              <Image src={image.src} alt={image.alt} fill className="object-cover" />
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Dot indicators */}
-      <div className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 gap-1.5">
+      <div className="mt-3 flex justify-center gap-1.5">
         {images.map((_, i) => (
           <button
             key={i}
             onClick={() => scrollTo(i)}
             aria-label={`Go to image ${i + 1}`}
             className={`h-2 rounded-full transition-all ${
-              i === activeIndex ? "w-4 bg-white" : "w-2 bg-white/50"
+              i === activeIndex
+                ? "w-4 bg-gray-800 dark:bg-white"
+                : "w-2 bg-gray-300 dark:bg-gray-600"
             }`}
           />
         ))}
