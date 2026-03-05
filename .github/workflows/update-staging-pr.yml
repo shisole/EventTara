@@ -5,6 +5,9 @@ on:
     branches: [staging]
     types: [closed]
 
+permissions:
+  pull-requests: write
+
 jobs:
   update-description:
     if: github.event.pull_request.merged == true
