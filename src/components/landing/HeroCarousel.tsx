@@ -3,9 +3,8 @@ import Image from "next/image";
 interface Slide {
   image: {
     url: string;
+    mobileUrl?: string;
     alt: string;
-    width?: number;
-    height?: number;
   };
 }
 
@@ -37,17 +36,22 @@ export default function HeroCarousel({ slides }: HeroCarouselProps) {
                 : undefined
             }
           >
-            <Image
-              src={slide.image.url}
-              alt={slide.image.alt || "Adventure"}
-              fill
-              className="object-cover"
-              sizes="100vw"
-              quality={50}
-              priority={i === 0}
-              fetchPriority={i === 0 ? "high" : "auto"}
-              loading={i === 0 ? "eager" : "lazy"}
-            />
+            <picture>
+              {slide.image.mobileUrl && (
+                <source media="(max-width: 1024px)" srcSet={slide.image.mobileUrl} />
+              )}
+              <Image
+                src={slide.image.url}
+                alt={slide.image.alt || "Adventure"}
+                fill
+                className="object-cover"
+                sizes="100vw"
+                quality={50}
+                priority={i === 0}
+                fetchPriority={i === 0 ? "high" : "auto"}
+                loading={i === 0 ? "eager" : "lazy"}
+              />
+            </picture>
           </div>
         );
       })}
