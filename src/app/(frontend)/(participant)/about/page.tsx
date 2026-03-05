@@ -245,6 +245,108 @@ export default function AboutPage() {
           </p>
         </div>
       </section>
+
+      {/* From the Trails - Photo Gallery */}
+      <section className="py-16 bg-white dark:bg-slate-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl sm:text-4xl font-heading font-bold text-gray-900 dark:text-white mb-4 text-center">
+            From the Trails
+          </h2>
+          <p className="text-lg text-gray-600 dark:text-gray-400 mb-12 text-center max-w-2xl mx-auto">
+            Moments from the journey that led to EventTara
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Photo 1 */}
+            <div className="relative group">
+              <Image
+                src="/images/about/gallery-bucari.jpg"
+                alt="Bucari Extreme 27km finish line"
+                width={600}
+                height={400}
+                className="rounded-2xl shadow-lg w-full h-64 object-cover"
+              />
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 rounded-b-2xl">
+                <p className="text-white font-medium">Bucari Extreme 27km - my first trail run</p>
+              </div>
+            </div>
+
+            {/* Photo 2 */}
+            <div className="relative group">
+              <Image
+                src="/images/about/mt-igatmon.jpg"
+                alt="Mt. Igatmon summit"
+                width={600}
+                height={400}
+                className="rounded-2xl shadow-lg w-full h-64 object-cover"
+              />
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 rounded-b-2xl">
+                <p className="text-white font-medium">
+                  Mt. Igatmon - where the hiking journey started
+                </p>
+              </div>
+            </div>
+
+            {/* Photo 3 */}
+            <div className="relative group">
+              <Image
+                src="/images/about/gallery-mtb.jpg"
+                alt="Mountain biking on Panay trails"
+                width={600}
+                height={400}
+                className="rounded-2xl shadow-lg w-full h-64 object-cover"
+              />
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 rounded-b-2xl">
+                <p className="text-white font-medium">Early days on the trails of Panay</p>
+              </div>
+            </div>
+
+            {/* Photo 4 */}
+            <div className="relative group">
+              <Image
+                src="/images/about/marathon-stats.jpg"
+                alt="42km Dinagyang Marathon stats"
+                width={600}
+                height={400}
+                className="rounded-2xl shadow-lg w-full h-64 object-cover"
+              />
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 rounded-b-2xl">
+                <p className="text-white font-medium">
+                  42km Dinagyang Marathon - a tribute to my grandfather
+                </p>
+              </div>
+            </div>
+
+            {/* Photo 5 */}
+            <div className="relative group">
+              <Image
+                src="/images/about/gallery-roadbike.jpg"
+                alt="Road cycling along Iloilo coast"
+                width={600}
+                height={400}
+                className="rounded-2xl shadow-lg w-full h-64 object-cover"
+              />
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 rounded-b-2xl">
+                <p className="text-white font-medium">Long rides along Iloilo&apos;s coast</p>
+              </div>
+            </div>
+
+            {/* Photo 6 */}
+            <div className="relative group">
+              <Image
+                src="/images/about/gallery-imperial.jpg"
+                alt="Imperial Run with running club"
+                width={600}
+                height={400}
+                className="rounded-2xl shadow-lg w-full h-64 object-cover"
+              />
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 rounded-b-2xl">
+                <p className="text-white font-medium">With the Iloilo outdoor community</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }
