@@ -91,11 +91,11 @@ function OrganizersSkeleton() {
     <section className="bg-white py-12 dark:bg-slate-800">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto mb-8 h-4 w-40 animate-pulse rounded bg-gray-200 dark:bg-slate-700" />
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+        <div className="flex flex-wrap justify-center gap-4">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <div
               key={i}
-              className="flex flex-col items-center rounded-xl border border-gray-100 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-gray-900/50"
+              className="flex w-36 flex-col items-center rounded-xl border border-gray-100 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-gray-900/50"
             >
               <div className="mb-3 h-16 w-16 animate-pulse rounded-full bg-gray-200 dark:bg-slate-700" />
               <div className="mb-1 h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-slate-700" />

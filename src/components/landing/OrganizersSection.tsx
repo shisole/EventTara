@@ -119,12 +119,12 @@ export default async function OrganizersSection() {
         <p className="mb-8 text-center text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
           Pioneer Organizers
         </p>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+        <div className="flex flex-wrap justify-center gap-4">
           {cards.map((org) => (
             <Link
               key={org.id}
               href={`/organizers/${org.id}`}
-              className="group flex flex-col items-center rounded-xl border border-gray-100 bg-gray-50/50 p-4 transition-all hover:border-lime-200 hover:bg-lime-50/50 hover:shadow-md dark:border-gray-800 dark:bg-gray-900/50 dark:hover:border-lime-900 dark:hover:bg-lime-950/20"
+              className="group flex w-36 flex-col items-center rounded-xl border border-gray-100 bg-gray-50/50 p-4 transition-all hover:border-lime-200 hover:bg-lime-50/50 hover:shadow-md dark:border-gray-800 dark:bg-gray-900/50 dark:hover:border-lime-900 dark:hover:bg-lime-950/20"
             >
               <Avatar
                 src={org.logo_url}
