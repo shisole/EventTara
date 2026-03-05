@@ -42,7 +42,11 @@ export default function HeroSection({ heroData }: HeroSectionProps) {
   return (
     <section className="relative py-16 sm:py-24 overflow-hidden min-h-[500px] lg:min-h-[600px] flex items-center">
       {heroSlides.length > 0 ? (
-        <HeroCarousel slides={heroSlides} />
+        <>
+          <HeroCarousel slides={heroSlides} />
+          {/* Bottom gradient fade into next section */}
+          <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-white dark:from-slate-800 to-transparent z-[1]" />
+        </>
       ) : (
         <>
           <div className="absolute inset-0 bg-gray-50 dark:bg-slate-900" />
