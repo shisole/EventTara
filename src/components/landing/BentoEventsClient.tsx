@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 import { type EventCardData } from "@/lib/events/map-event-card";
 import { cn } from "@/lib/utils";
@@ -133,7 +133,9 @@ export default function BentoEventsClient({ initialEvents, initialTab }: BentoEv
   const [currentPage, setCurrentPage] = useState(0);
   const [loading, setLoading] = useState(false);
   const [animating, setAnimating] = useState(false);
-  const [slideDirection, setSlideDirection] = useState<"left" | null>(null);
+
+  // Two-phase slide: "exit" = slide out left, "enter" = slide in from right
+  const [slide, setSlide] = useState<"exit" | "enter" | null>(null);
 
   // Cache: keyed by tab key, stores fetched events
   const cache = useRef<Record<string, EventCardData[]>>({ [initialTab]: initialEvents });
@@ -149,52 +151,91 @@ export default function BentoEventsClient({ initialEvents, initialTab }: BentoEv
   const mobileScrollRef = useRef<HTMLDivElement>(null);
 
   // -------------------------------------------------------------------------
+  // Shared slide helper: exit left → swap content → enter from right
+  // -------------------------------------------------------------------------
+
+  const slideTransition = useCallback(
+    (onSwap: () => void) => {
+      if (animating) return;
+      setAnimating(true);
+
+      // Phase 1: slide out to the left
+      setSlide("exit");
+
+      setTimeout(() => {
+        // Phase 2: swap content while off-screen, position at right
+        onSwap();
+        setSlide("enter");
+
+        // Force a frame so the browser paints at translate-x-[105%] before transitioning
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            // Phase 3: slide in from the right
+            setSlide(null);
+            setTimeout(() => {
+              setAnimating(false);
+            }, 300);
+          });
+        });
+      }, 300);
+    },
+    [animating],
+  );
+
+  // -------------------------------------------------------------------------
   // Tab switching
   // -------------------------------------------------------------------------
 
   const handleTabClick = useCallback(
-    async (tabKey: string) => {
+    (tabKey: string) => {
       if (tabKey === activeTab || animating) return;
 
-      // Slide out current content to the left
-      setSlideDirection("left");
-      setAnimating(true);
+      const needsFetch = !cache.current[tabKey];
 
-      // Wait for slide-out to finish, then swap tab
-      await new Promise((r) => setTimeout(r, 300));
+      if (needsFetch) {
+        // Slide out, then show skeleton while fetching, then slide in results
+        slideTransition(() => {
+          setActiveTab(tabKey);
+          setCurrentPage(0);
+          setLoading(true);
+        });
 
-      setActiveTab(tabKey);
-      setCurrentPage(0);
-
-      // If not cached, fetch
-      if (!cache.current[tabKey]) {
         const tab = TABS.find((t) => t.key === tabKey);
         if (tab) {
-          setLoading(true);
-          setSlideDirection(null);
-          setAnimating(false);
-          try {
-            const res = await fetch(`/api/events?${tab.param}&limit=10`);
-            if (!res.ok) throw new Error("Failed to fetch");
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const data: any = await res.json();
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const rawEvents: any[] = Array.isArray(data.events) ? data.events : [];
-            cache.current[tabKey] = rawEvents.map((e) => mapApiEventToCard(e));
-          } catch {
-            cache.current[tabKey] = [];
-          } finally {
-            setLoading(false);
-          }
+          fetch(`/api/events?${tab.param}&limit=10`)
+            .then((res) => {
+              if (!res.ok) throw new Error("Failed to fetch");
+              return res.json();
+            })
+            .then((data) => {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const rawEvents: any[] = Array.isArray(data.events) ? data.events : [];
+              cache.current[tabKey] = rawEvents.map((e) => mapApiEventToCard(e));
+            })
+            .catch(() => {
+              cache.current[tabKey] = [];
+            })
+            .finally(() => {
+              // Slide in the fetched content
+              setLoading(false);
+              setSlide("enter");
+              requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                  setSlide(null);
+                  setTimeout(() => setAnimating(false), 300);
+                });
+              });
+            });
         }
-        return;
+      } else {
+        // Cached: smooth slide exit → swap → slide enter
+        slideTransition(() => {
+          setActiveTab(tabKey);
+          setCurrentPage(0);
+        });
       }
-
-      // Cached: slide in from right
-      setSlideDirection(null);
-      setAnimating(false);
     },
-    [activeTab, animating],
+    [activeTab, animating, slideTransition],
   );
 
   // -------------------------------------------------------------------------
@@ -205,21 +246,14 @@ export default function BentoEventsClient({ initialEvents, initialTab }: BentoEv
     (direction: "prev" | "next") => {
       if (animating || pages <= 1) return;
 
-      // Wrap around: next from last page → page 0, prev from page 0 → last page
       const nextPage =
         direction === "next" ? (currentPage + 1) % pages : (currentPage - 1 + pages) % pages;
 
-      // Always slide left (right-to-left)
-      setSlideDirection("left");
-      setAnimating(true);
-
-      setTimeout(() => {
+      slideTransition(() => {
         setCurrentPage(nextPage);
-        setSlideDirection(null);
-        setAnimating(false);
-      }, 300);
+      });
     },
-    [animating, currentPage, pages],
+    [animating, currentPage, pages, slideTransition],
   );
 
   // -------------------------------------------------------------------------
@@ -241,11 +275,6 @@ export default function BentoEventsClient({ initialEvents, initialTab }: BentoEv
     [goToPage],
   );
 
-  // Reset page when events change (e.g. after fetch)
-  useEffect(() => {
-    setCurrentPage(0);
-  }, [activeTab]);
-
   // -------------------------------------------------------------------------
   // Render
   // -------------------------------------------------------------------------
@@ -253,7 +282,7 @@ export default function BentoEventsClient({ initialEvents, initialTab }: BentoEv
   const tabLabel = TABS.find((t) => t.key === activeTab)?.label ?? activeTab;
 
   return (
-    <div>
+    <div className="overflow-hidden">
       {/* Tab bar + arrows row */}
       <div className="flex items-center justify-between gap-4 mb-6">
         {/* Tabs */}
@@ -263,7 +292,7 @@ export default function BentoEventsClient({ initialEvents, initialTab }: BentoEv
               <button
                 key={tab.key}
                 onClick={() => {
-                  void handleTabClick(tab.key);
+                  handleTabClick(tab.key);
                 }}
                 className={cn(
                   "px-4 py-2 text-sm font-medium rounded-full transition-colors whitespace-nowrap",
@@ -323,19 +352,36 @@ export default function BentoEventsClient({ initialEvents, initialTab }: BentoEv
 
       {/* Loading state */}
       {loading && (
-        <>
+        <div
+          className={cn(
+            slide === "enter"
+              ? "translate-x-[105%]"
+              : slide === "exit"
+                ? "-translate-x-[105%] transition-transform duration-300 ease-in-out"
+                : "translate-x-0 transition-transform duration-300 ease-in-out",
+          )}
+        >
           <div className="hidden md:block">
             <BentoSkeleton />
           </div>
           <div className="md:hidden">
             <MobileSkeleton />
           </div>
-        </>
+        </div>
       )}
 
       {/* Empty state */}
       {!loading && events.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
+        <div
+          className={cn(
+            "flex flex-col items-center justify-center py-16 text-center",
+            slide === "enter"
+              ? "translate-x-[105%]"
+              : slide === "exit"
+                ? "-translate-x-[105%] transition-transform duration-300 ease-in-out"
+                : "translate-x-0 transition-transform duration-300 ease-in-out",
+          )}
+        >
           <p className="text-gray-500 dark:text-gray-400 mb-3">No {tabLabel} events right now</p>
           <Link
             href="/events"
@@ -355,9 +401,11 @@ export default function BentoEventsClient({ initialEvents, initialTab }: BentoEv
         >
           <div
             className={cn(
-              "transition-transform duration-300 ease-in-out",
-              slideDirection === "left" && "-translate-x-[105%]",
-              !slideDirection && "translate-x-0",
+              slide === "enter"
+                ? "translate-x-[105%]"
+                : slide === "exit"
+                  ? "-translate-x-[105%] transition-transform duration-300 ease-in-out"
+                  : "translate-x-0 transition-transform duration-300 ease-in-out",
             )}
           >
             {pageEvents.length > 0 && (
@@ -394,13 +442,7 @@ export default function BentoEventsClient({ initialEvents, initialTab }: BentoEv
                   key={i}
                   onClick={() => {
                     if (i !== currentPage && !animating) {
-                      setSlideDirection("left");
-                      setAnimating(true);
-                      setTimeout(() => {
-                        setCurrentPage(i);
-                        setSlideDirection(null);
-                        setAnimating(false);
-                      }, 300);
+                      slideTransition(() => setCurrentPage(i));
                     }
                   }}
                   className={cn(
