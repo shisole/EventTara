@@ -66,6 +66,20 @@ export interface CmsFeatureFlags {
   strava_showcase_route_map: boolean;
 }
 
+/** A single homepage section entry inside cms_homepage_sections.sections JSONB */
+export interface CmsHomepageSection {
+  key: string;
+  label: string;
+  enabled: boolean;
+  order: number;
+}
+
+/** cms_homepage_sections — singleton (id = 1) */
+export interface CmsHomepageSections {
+  id: number;
+  sections: Json;
+}
+
 /** cms_pages — multi-row */
 export interface CmsPage {
   id: number;

@@ -1,18 +1,27 @@
-import Image from "next/image";
-import Link from "next/link";
 import { Suspense } from "react";
 
+import CategoriesSection from "@/components/landing/CategoriesSection";
+import ContactCTASection from "@/components/landing/ContactCTASection";
 import EntryBanner from "@/components/landing/EntryBanner";
+import FAQSection from "@/components/landing/FAQSection";
 import FeedShowcaseSection from "@/components/landing/FeedShowcaseSection";
 import GamificationSection from "@/components/landing/GamificationSection";
 import HeroSection from "@/components/landing/HeroSection";
+import HowItWorksSection from "@/components/landing/HowItWorksSection";
 import OrganizersSection from "@/components/landing/OrganizersSection";
 import OrganizerWaitlistModal from "@/components/landing/OrganizerWaitlistModal";
 import ParallaxMountain from "@/components/landing/ParallaxMountain";
 import StravaShowcaseSection from "@/components/landing/StravaShowcaseSection";
 import TestimonialsSection from "@/components/landing/TestimonialsSection";
 import UpcomingEventsSection from "@/components/landing/UpcomingEventsSection";
-import { getCachedHeroCarousel, getCachedSiteSettings, parseHeroSlides } from "@/lib/cms/cached";
+import {
+  getCachedHeroCarousel,
+  getCachedHomepageSections,
+  getCachedSiteSettings,
+  parseHeroSlides,
+  parseHomepageSections,
+} from "@/lib/cms/cached";
+import { type CmsHomepageSection } from "@/lib/cms/types";
 
 export const metadata = {
   title: "EventTara — Outdoor Adventure Events in Panay Island",
@@ -28,50 +37,18 @@ export const metadata = {
 
 export const revalidate = 300;
 
-const categories = [
-  {
-    name: "Hiking",
-    slug: "hiking",
-    image: "https://images.unsplash.com/photo-1551632811-561732d1e306?w=1280&h=200&fit=crop",
-  },
-  {
-    name: "Mountain Biking",
-    slug: "mtb",
-    image: "https://images.unsplash.com/photo-1544191696-102dbdaeeaa0?w=1280&h=200&fit=crop",
-  },
-  {
-    name: "Road Biking",
-    slug: "road_bike",
-    image: "https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=1280&h=200&fit=crop",
-  },
-  {
-    name: "Running",
-    slug: "running",
-    image: "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=1280&h=200&fit=crop",
-  },
-  {
-    name: "Trail Running",
-    slug: "trail_run",
-    image: "https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=1280&h=200&fit=crop",
-  },
-];
-
-const steps = [
-  {
-    icon: "\u{1F50D}",
-    title: "Browse Events",
-    description: "Discover adventure events happening near you or across the country.",
-  },
-  {
-    icon: "\u{1F3AB}",
-    title: "Book Your Spot",
-    description: "Reserve your slot in seconds. No hassle, no long forms.",
-  },
-  {
-    icon: "\u{1F3D4}\uFE0F",
-    title: "Go Adventure!",
-    description: "Show up, have fun, and collect badges for your achievements.",
-  },
+const DEFAULT_SECTIONS: CmsHomepageSection[] = [
+  { key: "hero", label: "Hero Carousel", enabled: true, order: 0 },
+  { key: "upcoming_events", label: "Upcoming Events", enabled: true, order: 1 },
+  { key: "strava_showcase", label: "Strava Showcase", enabled: true, order: 2 },
+  { key: "how_it_works", label: "How It Works", enabled: true, order: 3 },
+  { key: "feed_showcase", label: "Activity Feed Showcase", enabled: true, order: 4 },
+  { key: "gamification", label: "Badges & Gamification", enabled: true, order: 5 },
+  { key: "categories", label: "Event Categories", enabled: true, order: 6 },
+  { key: "organizers", label: "Trusted Organizers", enabled: true, order: 7 },
+  { key: "testimonials", label: "Testimonials", enabled: true, order: 8 },
+  { key: "faq", label: "FAQ", enabled: true, order: 9 },
+  { key: "contact_cta", label: "Contact CTA", enabled: true, order: 10 },
 ];
 
 function UpcomingEventsSkeleton() {
@@ -162,229 +139,119 @@ function GamificationSkeleton() {
   );
 }
 
+function StravaShowcaseSkeleton() {
+  return (
+    <div className="bg-gradient-to-b from-orange-50/60 to-white py-16 dark:from-orange-950/20 dark:to-gray-950 sm:py-20">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mb-12 text-center">
+          <div className="mx-auto h-8 w-48 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700" />
+          <div className="mx-auto mt-4 h-10 w-96 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function renderSection(key: string, parallaxImageUrl: string, heroData: HeroData | null) {
+  switch (key) {
+    case "hero": {
+      return <HeroSection heroData={heroData} />;
+    }
+    case "upcoming_events": {
+      return (
+        <Suspense fallback={<UpcomingEventsSkeleton />}>
+          <UpcomingEventsSection />
+        </Suspense>
+      );
+    }
+    case "strava_showcase": {
+      return (
+        <Suspense fallback={<StravaShowcaseSkeleton />}>
+          <StravaShowcaseSection />
+        </Suspense>
+      );
+    }
+    case "how_it_works": {
+      return <HowItWorksSection />;
+    }
+    case "feed_showcase": {
+      return (
+        <Suspense fallback={<ParallaxMountain imageUrl={parallaxImageUrl} />}>
+          <FeedShowcaseSection imageUrl={parallaxImageUrl} />
+        </Suspense>
+      );
+    }
+    case "gamification": {
+      return (
+        <Suspense fallback={<GamificationSkeleton />}>
+          <GamificationSection />
+        </Suspense>
+      );
+    }
+    case "categories": {
+      return <CategoriesSection />;
+    }
+    case "organizers": {
+      return (
+        <Suspense fallback={<OrganizersSkeleton />}>
+          <OrganizersSection />
+        </Suspense>
+      );
+    }
+    case "testimonials": {
+      return (
+        <Suspense fallback={<TestimonialsSkeleton />}>
+          <TestimonialsSection />
+        </Suspense>
+      );
+    }
+    case "faq": {
+      return <FAQSection />;
+    }
+    case "contact_cta": {
+      return <ContactCTASection />;
+    }
+    default: {
+      return null;
+    }
+  }
+}
+
+interface HeroData {
+  slides: { image: { url: string; alt: string } }[];
+}
+
 export default async function Home() {
-  const [heroData, settings] = await Promise.all([
+  const [heroData, settings, sectionsData] = await Promise.all([
     getCachedHeroCarousel(),
     getCachedSiteSettings(),
+    getCachedHomepageSections(),
   ]);
+
   const heroSlides = parseHeroSlides(heroData);
-  const transformedHeroData =
+  const transformedHeroData: HeroData | null =
     heroSlides.length > 0
       ? { slides: heroSlides.map((s) => ({ image: { url: s.url, alt: s.alt } })) }
       : null;
   const parallaxImageUrl =
-    settings?.parallax_image_url ||
+    settings?.parallax_image_url ??
     "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80";
+
+  const cmsSections = parseHomepageSections(sectionsData);
+  const sections = cmsSections.length > 0 ? cmsSections : DEFAULT_SECTIONS;
+  const enabledSections = sections.filter((s) => s.enabled);
 
   return (
     <main>
       <EntryBanner />
 
-      {/* Hero Section — renders immediately with pre-fetched data */}
-      <HeroSection heroData={transformedHeroData} />
-
-      {/* Upcoming Events — streams as Supabase data arrives */}
-      <Suspense fallback={<UpcomingEventsSkeleton />}>
-        <UpcomingEventsSection />
-      </Suspense>
-
-      {/* Strava Showcase — feature-flagged sub-sections */}
-      <Suspense
-        fallback={
-          <div className="bg-gradient-to-b from-orange-50/60 to-white py-16 dark:from-orange-950/20 dark:to-gray-950 sm:py-20">
-            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-              <div className="mb-12 text-center">
-                <div className="mx-auto h-8 w-48 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700" />
-                <div className="mx-auto mt-4 h-10 w-96 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
-              </div>
-            </div>
-          </div>
-        }
-      >
-        <StravaShowcaseSection />
-      </Suspense>
-
-      {/* How It Works — static, renders immediately */}
-      <section className="py-12 bg-white dark:bg-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl sm:text-4xl font-heading font-bold text-center text-gray-900 dark:text-white mb-12">
-            How It Works
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {steps.map((step, idx) => (
-              <div key={idx} className="text-center">
-                <div className="text-5xl mb-4">{step.icon}</div>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                  {step.title}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400">{step.description}</p>
-              </div>
-            ))}
-          </div>
+      {enabledSections.map((section) => (
+        <div key={section.key}>
+          {renderSection(section.key, parallaxImageUrl, transformedHeroData)}
         </div>
-      </section>
+      ))}
 
-      {/* Parallax mountain reveal — with feed showcase revealed on scroll */}
-      <Suspense fallback={<ParallaxMountain imageUrl={parallaxImageUrl} />}>
-        <FeedShowcaseSection imageUrl={parallaxImageUrl} />
-      </Suspense>
-
-      {/* Gamification Showcase — streams as Supabase data arrives */}
-      <Suspense fallback={<GamificationSkeleton />}>
-        <GamificationSection />
-      </Suspense>
-
-      {/* Event Categories — static images, renders immediately */}
-      <section className="py-12 bg-gray-50 dark:bg-slate-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl sm:text-4xl font-heading font-bold text-center text-gray-900 dark:text-white mb-12">
-            Find Your Adventure
-          </h2>
-          <div className="flex flex-col gap-4">
-            {categories.map((cat, i) => (
-              <Link
-                key={cat.slug}
-                href={`/events?type=${cat.slug}`}
-                className="relative h-32 sm:h-40 rounded-2xl overflow-hidden group"
-              >
-                <Image
-                  src={cat.image}
-                  alt={cat.name}
-                  fill
-                  sizes="(max-width: 1280px) 95vw, 1280px"
-                  className="object-cover transition-transform duration-300 group-hover:scale-110"
-                  quality={50}
-                  loading={i === 0 ? "eager" : "lazy"}
-                />
-                <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-colors" />
-                <div className="absolute inset-0 flex items-center px-6">
-                  <h3 className="text-white font-heading font-bold text-xl sm:text-2xl drop-shadow-lg">
-                    {cat.name}
-                  </h3>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Trusted Organizers — streams as Supabase data arrives */}
-      <Suspense fallback={<OrganizersSkeleton />}>
-        <OrganizersSection />
-      </Suspense>
-
-      {/* Participant Testimonials — streams as Supabase data arrives */}
-      <Suspense fallback={<TestimonialsSkeleton />}>
-        <TestimonialsSection />
-      </Suspense>
-
-      {/* Organizer Waitlist Modal */}
       <OrganizerWaitlistModal />
-
-      {/* FAQ Section — static with JSON-LD */}
-      <FAQSection />
-
-      {/* Contact CTA — static */}
-      <section className="py-12 bg-white dark:bg-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl sm:text-4xl font-heading font-bold text-gray-900 dark:text-white mb-4">
-            Have Questions?
-          </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-400 mb-8 max-w-2xl mx-auto">
-            Whether you need help with an event, have a partnership idea, or just want to say hello
-            — we&apos;re here for you.
-          </p>
-          <Link
-            href="/contact"
-            className="inline-flex items-center justify-center font-semibold rounded-xl text-lg py-4 px-8 bg-lime-500 hover:bg-lime-400 text-slate-900 transition-colors"
-          >
-            Contact Us
-          </Link>
-        </div>
-      </section>
     </main>
-  );
-}
-
-const faqs = [
-  {
-    question: "What types of events are available on EventTara?",
-    answer:
-      "EventTara features outdoor adventure events including hiking, trail running, mountain biking, road cycling, and running events across Panay Island and beyond.",
-  },
-  {
-    question: "How do I book an event?",
-    answer:
-      "Browse available events, select the one you want to join, and click the Book button. You can pay online or choose cash payment at the event. Your spot is reserved immediately.",
-  },
-  {
-    question: "Can I cancel my booking?",
-    answer:
-      "Yes, you can cancel your booking from the My Events page. Cancellation policies may vary by event, so check the event details for specifics.",
-  },
-  {
-    question: "What are badges and how do I earn them?",
-    answer:
-      "Badges are collectible achievements you earn by participating in events and completing milestones. Check in at events to automatically earn badges. View your collection on your profile page.",
-  },
-  {
-    question: "How do I become an event organizer?",
-    answer:
-      "Sign up for a free account and create your first event. You will automatically become an organizer with access to the organizer dashboard for managing events, check-ins, and participants.",
-  },
-  {
-    question: "Is EventTara free to use?",
-    answer:
-      "Yes, creating an account and browsing events is completely free. Event prices are set by individual organizers and vary by event.",
-  },
-];
-
-const faqJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  mainEntity: faqs.map((faq) => ({
-    "@type": "Question",
-    name: faq.question,
-    acceptedAnswer: {
-      "@type": "Answer",
-      text: faq.answer,
-    },
-  })),
-};
-
-function FAQSection() {
-  return (
-    <section className="py-12 bg-gray-50 dark:bg-slate-900">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
-      />
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="text-3xl sm:text-4xl font-heading font-bold text-center text-gray-900 dark:text-white mb-4">
-          Frequently Asked Questions
-        </h2>
-        <p className="text-center text-gray-600 dark:text-gray-400 mb-10">
-          Everything you need to know about EventTara.
-        </p>
-        <div className="space-y-3">
-          {faqs.map((faq, i) => (
-            <details
-              key={i}
-              className="group bg-white dark:bg-slate-800 rounded-2xl shadow-sm dark:shadow-gray-950/20"
-            >
-              <summary className="flex items-center justify-between cursor-pointer p-5 font-semibold text-gray-900 dark:text-white list-none [&::-webkit-details-marker]:hidden">
-                {faq.question}
-                <span className="ml-4 shrink-0 text-gray-400 transition-transform duration-200 group-open:rotate-180">
-                  &#9662;
-                </span>
-              </summary>
-              <p className="px-5 pb-5 text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-                {faq.answer}
-              </p>
-            </details>
-          ))}
-        </div>
-      </div>
-    </section>
   );
 }
