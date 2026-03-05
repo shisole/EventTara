@@ -7,6 +7,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import MobileNav from "@/components/layout/MobileNav";
 import Navbar from "@/components/layout/Navbar";
+import { NavigationProvider } from "@/components/navigation/NavigationContext";
+import NavigationLoader from "@/components/navigation/NavigationLoader";
 import OfflineIndicator from "@/components/pwa/OfflineIndicator";
 import type { BorderTier } from "@/lib/constants/avatar-borders";
 import { BreadcrumbProvider } from "@/lib/contexts/BreadcrumbContext";
@@ -211,8 +213,9 @@ export default function ClientShell({
   const handleMenuOpen = useCallback(() => setDrawerOpen(true), []);
 
   return (
-    <>
+    <NavigationProvider>
       <OfflineIndicator />
+      <NavigationLoader />
       <div
         className={`transition-all duration-300 origin-top min-h-dvh flex flex-col ${
           drawerOpen ? "scale-[0.95] opacity-50 rounded-xl overflow-hidden pointer-events-none" : ""
@@ -250,6 +253,6 @@ export default function ClientShell({
 
       <ChatBubble />
       <InstallPrompt />
-    </>
+    </NavigationProvider>
   );
 }

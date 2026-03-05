@@ -1,6 +1,6 @@
 import Image from "next/image";
-import Link from "next/link";
 
+import { NavLink } from "@/components/navigation/NavigationContext";
 import { Card, UIBadge } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { formatEventDate } from "@/lib/utils/format-date";
@@ -65,7 +65,7 @@ export default function EventCard({
   const formattedDate = formatEventDate(date, endDate, { short: true });
 
   return (
-    <Link href={`/events/${id}`}>
+    <NavLink href={`/events/${id}`}>
       <Card
         className={cn(
           "overflow-hidden cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700",
@@ -188,6 +188,6 @@ export default function EventCard({
           </div>
         </div>
       </Card>
-    </Link>
+    </NavLink>
   );
 }

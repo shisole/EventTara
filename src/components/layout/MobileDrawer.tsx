@@ -1,11 +1,11 @@
 "use client";
 
 import type { User } from "@supabase/supabase-js";
-import Link from "next/link";
 import { useEffect, useRef } from "react";
 
 import { CloseIcon } from "@/components/icons";
 import ActivityCard from "@/components/layout/ActivityCard";
+import { NavLink } from "@/components/navigation/NavigationContext";
 
 interface Activity {
   slug: string;
@@ -86,13 +86,13 @@ export default function MobileDrawer({
         <div className="overflow-y-auto h-[calc(100%-65px)] p-4 space-y-4">
           {/* Explore Events section */}
           <div>
-            <Link
+            <NavLink
               href="/events"
               onClick={onClose}
               className="block text-sm font-semibold text-gray-900 dark:text-white mb-2"
             >
               Explore Events
-            </Link>
+            </NavLink>
             <div className="space-y-2">
               {activities.map((activity) => (
                 <div key={activity.slug} onClick={onClose}>
@@ -109,35 +109,35 @@ export default function MobileDrawer({
           {user ? (
             <div className="space-y-1">
               {role === "organizer" && (
-                <Link
+                <NavLink
                   href="/dashboard"
                   onClick={onClose}
                   className="block px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium"
                 >
                   Dashboard
-                </Link>
+                </NavLink>
               )}
-              <Link
+              <NavLink
                 href="/profile"
                 onClick={onClose}
                 className="block px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium"
               >
                 Profile
-              </Link>
-              <Link
+              </NavLink>
+              <NavLink
                 href="/my-events"
                 onClick={onClose}
                 className="block px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium"
               >
                 My Events
-              </Link>
-              <Link
+              </NavLink>
+              <NavLink
                 href="/notifications"
                 onClick={onClose}
                 className="block px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium"
               >
                 Notifications
-              </Link>
+              </NavLink>
               <button
                 onClick={() => {
                   onClose();
@@ -150,27 +150,27 @@ export default function MobileDrawer({
             </div>
           ) : (
             <div className="space-y-2">
-              <Link
+              <NavLink
                 href="/signup?role=organizer"
                 onClick={onClose}
                 className="block px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium text-center"
               >
                 Host Your Event
-              </Link>
-              <Link
+              </NavLink>
+              <NavLink
                 href="/login"
                 onClick={onClose}
                 className="block px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium text-center"
               >
                 Sign In
-              </Link>
-              <Link
+              </NavLink>
+              <NavLink
                 href="/signup"
                 onClick={onClose}
                 className="block px-4 py-3 rounded-xl bg-lime-500 text-gray-900 hover:bg-lime-400 font-semibold text-center"
               >
                 Get Started
-              </Link>
+              </NavLink>
             </div>
           )}
         </div>
