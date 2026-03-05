@@ -32,9 +32,14 @@ if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
   process.exit(1);
 }
 
-// Safety: prevent running against production
-if (SUPABASE_URL.includes("prod") || SUPABASE_URL.includes("production")) {
-  console.error("REFUSING to seed against a production database!");
+// Safety: require explicit confirmation via --yes flag
+if (!process.argv.includes("--yes")) {
+  console.error(
+    `\n  WARNING: You are about to SEED the database at:\n  ${SUPABASE_URL}\n\n` +
+      "  This will create test accounts and data.\n" +
+      "  Run with --yes to confirm:\n\n" +
+      "    pnpm seed --yes\n",
+  );
   process.exit(1);
 }
 
@@ -238,17 +243,30 @@ const COVER_IMAGES = {
 // ---------------------------------------------------------------------------
 
 const PANAY_MOUNTAINS = [
+  // Panay Trilogy (Antique)
   { name: "Mt. Madja-as", province: "Antique", difficulty_level: 8, elevation_masl: 2117 },
-  { name: "Mt. Nangtud", province: "Capiz", difficulty_level: 8, elevation_masl: 2074 },
-  { name: "Mt. Baloy", province: "Antique", difficulty_level: 9, elevation_masl: 1958 },
+  { name: "Mt. Nangtud", province: "Antique", difficulty_level: 8, elevation_masl: 2073 },
+  { name: "Mt. Baloy", province: "Antique", difficulty_level: 9, elevation_masl: 1981 },
+  // Antique
   { name: "Mt. Balabag", province: "Antique", difficulty_level: 6, elevation_masl: 1713 },
   { name: "Mt. Agbalanti", province: "Antique", difficulty_level: 6, elevation_masl: 1579 },
+  // Iloilo — Igbaras group
+  { name: "Mt. Opao", province: "Iloilo", difficulty_level: 6, elevation_masl: 1296 },
+  { name: "Mt. Taripis", province: "Iloilo", difficulty_level: 4, elevation_masl: 1320 },
+  { name: "Mt. Pulang Lupa", province: "Iloilo", difficulty_level: 3, elevation_masl: 1260 },
+  { name: "Mt. Napulak", province: "Iloilo", difficulty_level: 4, elevation_masl: 1239 },
+  { name: "Tambara Ridge", province: "Iloilo", difficulty_level: 2, elevation_masl: 1193 },
+  { name: "Mt. Igatmon", province: "Iloilo", difficulty_level: 6, elevation_masl: 1120 },
+  { name: "Bato Igmatindog", province: "Iloilo", difficulty_level: 4, elevation_masl: 1000 },
+  { name: "Mt. Loboc", province: "Iloilo", difficulty_level: 4, elevation_masl: 1000 },
+  // Iloilo — other
   { name: "Mt. Inaman", province: "Iloilo", difficulty_level: 5, elevation_masl: 1396 },
   { name: "Mt. Igdalig", province: "Iloilo", difficulty_level: 5, elevation_masl: 1377 },
-  { name: "Mt. Napulak", province: "Iloilo", difficulty_level: 4, elevation_masl: 1239 },
-  { name: "Mt. Opao", province: "Iloilo", difficulty_level: 4, elevation_masl: 600 },
-  { name: "Mt. Lingguhob", province: "Iloilo", difficulty_level: 5, elevation_masl: 700 },
-  { name: "Mt. Igatmon", province: "Antique", difficulty_level: 6, elevation_masl: 900 },
+  { name: "Mt. Lingguhob", province: "Iloilo", difficulty_level: 6, elevation_masl: 1226 },
+  // Iloilo — Miag-ao Trilogy
+  { name: "Mt. Kongkong", province: "Iloilo", difficulty_level: 3, elevation_masl: 1046 },
+  { name: "Bato Sampaw", province: "Iloilo", difficulty_level: 2, elevation_masl: 794 },
+  { name: "Mt. Panay", province: "Iloilo", difficulty_level: 3, elevation_masl: 800 },
 ];
 
 /** Map of hiking event title -> mountain names to link */
@@ -1861,8 +1879,7 @@ async function cleanExistingTestData() {
   await supabase.from("event_routes").delete().neq("id", "00000000-0000-0000-0000-000000000000");
   await supabase.from("event_mountains").delete().neq("id", "00000000-0000-0000-0000-000000000000");
 
-  // Clean mountains
-  await supabase.from("mountains").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+  // Mountains are reference data — keep them across seed/unseed cycles
 
   // Clean app testimonials (not tied to user cascade)
   await supabase
@@ -2558,6 +2575,21 @@ async function createBadges(eventMap: Map<string, string>): Promise<Map<string, 
       continue;
     }
 
+    // Check if badge already exists (badges are reference data, kept across cycles)
+    const { data: existing } = await supabase
+      .from("badges")
+      .select("id")
+      .eq("title", badge.title)
+      .single();
+
+    if (existing) {
+      // Update event_id to link to new seed event, keep the badge
+      await supabase.from("badges").update({ event_id: eventId }).eq("id", existing.id);
+      badgeMap.set(badge.title, existing.id);
+      log("  ✅", `${badge.title} (${badge.eventTitle}) [existing]`);
+      continue;
+    }
+
     const { data, error } = await supabase
       .from("badges")
       .insert({
@@ -2828,12 +2860,22 @@ const ALL_EVENT_TYPES = ["hiking", "running", "road_bike", "mtb", "trail_run"];
 async function createSystemBadges(): Promise<Map<string, string>> {
   log("\u{1F396}\uFE0F", "Creating system badges...");
 
-  // Delete existing system badges first (cascades to user_badges) for idempotency
-  await supabase.from("badges").delete().eq("type", "system");
-
+  // Badges are reference data — check if exists, skip if so
   const criteriaKeyToId = new Map<string, string>();
 
   for (const badge of SYSTEM_BADGE_DEFS) {
+    const { data: existing } = await supabase
+      .from("badges")
+      .select("id")
+      .eq("criteria_key", badge.criteriaKey)
+      .single();
+
+    if (existing) {
+      criteriaKeyToId.set(badge.criteriaKey, existing.id);
+      log("  \u2705", `${badge.title} (${badge.criteriaKey}) [existing]`);
+      continue;
+    }
+
     const { data, error } = await supabase
       .from("badges")
       .insert({

@@ -1,9 +1,29 @@
-import Link from "next/link";
-
+import { CalendarIcon } from "@/components/icons";
 import { fetchEventEnrichments, mapEventToCard } from "@/lib/events/map-event-card";
 import { createClient } from "@/lib/supabase/server";
 
 import BentoEventsClient from "./BentoEventsClient";
+
+function ComingSoonPlaceholder() {
+  return (
+    <section className="py-12 bg-white dark:bg-slate-800">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 className="text-3xl sm:text-4xl font-heading font-bold text-gray-900 dark:text-white mb-6">
+          Discover Events
+        </h2>
+        <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-700 py-16">
+          <CalendarIcon className="h-10 w-10 text-lime-500 mb-4" />
+          <p className="font-heading text-xl font-bold text-gray-900 dark:text-white">
+            Coming Soon
+          </p>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Events from our organizers are on the way
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 export default async function BentoEventsSection() {
   const supabase = await createClient();
@@ -36,7 +56,7 @@ export default async function BentoEventsSection() {
     initialTab = "upcoming";
   }
 
-  if (!events || events.length === 0) return null;
+  if (!events || events.length === 0) return <ComingSoonPlaceholder />;
 
   // Count total upcoming for mobile "+N more" card
   const { count: totalUpcoming } = await supabase
@@ -49,24 +69,39 @@ export default async function BentoEventsSection() {
   const cards = events.map((event: any) => mapEventToCard(event, today, enrichments));
 
   return (
-    <section className="py-12 bg-white dark:bg-slate-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-3xl sm:text-4xl font-heading font-bold text-gray-900 dark:text-white">
-            Discover Events
-          </h2>
-          <Link
-            href="/events"
-            className="text-lime-600 dark:text-lime-400 font-semibold hover:underline"
-          >
-            View all
-          </Link>
+    <section className="relative py-12 bg-white dark:bg-slate-800">
+      {/* Blurred content */}
+      <div className="pointer-events-none select-none blur-[6px]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-3xl sm:text-4xl font-heading font-bold text-gray-900 dark:text-white">
+              Discover Events
+            </h2>
+            <span className="text-lime-600 dark:text-lime-400 font-semibold">View all</span>
+          </div>
+          <BentoEventsClient
+            initialEvents={cards}
+            initialTab={initialTab}
+            totalUpcoming={totalUpcoming ?? 0}
+          />
         </div>
-        <BentoEventsClient
-          initialEvents={cards}
-          initialTab={initialTab}
-          totalUpcoming={totalUpcoming ?? 0}
-        />
+      </div>
+
+      {/* Coming Soon overlay */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="rounded-2xl bg-white/90 px-8 py-5 shadow-lg backdrop-blur-sm dark:bg-gray-900/90">
+          <div className="flex items-center gap-3">
+            <CalendarIcon className="h-6 w-6 text-lime-500" />
+            <div>
+              <p className="font-heading text-lg font-bold text-gray-900 dark:text-white">
+                Coming Soon
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Events from our organizers are on the way
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );
