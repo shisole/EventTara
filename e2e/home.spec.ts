@@ -7,7 +7,7 @@ test("homepage loads and shows key content", async ({ page }) => {
   await expect(page.locator("h1")).toContainText("Tara na!");
 
   // "Explore Events" link is visible and points to /events
-  const exploreLink = page.getByRole("link", { name: /explore events/i });
+  const exploreLink = page.getByRole("link", { name: /explore events/i }).first();
   await expect(exploreLink).toBeVisible();
 
   // "How It Works" section is present
@@ -17,7 +17,7 @@ test("homepage loads and shows key content", async ({ page }) => {
 test('"Explore Events" navigates to events page', async ({ page }) => {
   await page.goto("/");
 
-  const exploreLink = page.getByRole("link", { name: /explore events/i });
+  const exploreLink = page.getByRole("link", { name: /explore events/i }).first();
   await expect(exploreLink).toHaveAttribute("href", "/events");
 
   // Hero carousel images overlap the CTA; force click since visibility is verified above
