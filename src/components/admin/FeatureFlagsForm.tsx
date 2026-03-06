@@ -42,6 +42,10 @@ const FLAG_META: Record<string, { label: string; description: string }> = {
     description:
       "When enabled, locks Strava login, gamification, and bento sections behind a 'Coming Soon' overlay.",
   },
+  ewallet_payments: {
+    label: "E-Wallet Payments",
+    description: "Enable GCash and Maya as payment methods for event bookings.",
+  },
 };
 
 export default function FeatureFlagsForm() {

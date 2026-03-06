@@ -9,24 +9,33 @@ interface PaymentMethodPickerProps {
   onSelect: (method: string) => void;
 }
 
-const PAYMENT_METHODS = [
-  { id: "gcash", name: "GCash", icon: "💙", comingSoon: true },
-  { id: "maya", name: "Maya", icon: "💚", comingSoon: true },
-  { id: "cash", name: "Cash", icon: "💵", comingSoon: false },
+const EWALLET_METHODS = [
+  { id: "gcash", name: "GCash", icon: "💙" },
+  { id: "maya", name: "Maya", icon: "💚" },
 ];
 
+const CASH_METHOD = { id: "cash", name: "Cash", icon: "💵" };
+
 export default function PaymentMethodPicker({ selected, onSelect }: PaymentMethodPickerProps) {
-  const [showComingSoon, setShowComingSoon] = useState(false);
+  const [ewalletEnabled, setEwalletEnabled] = useState(false);
 
   useEffect(() => {
     void fetch("/api/feature-flags")
       .then((r) => r.json())
-      .then((d: { showComingSoon?: boolean }) => setShowComingSoon(d.showComingSoon === true))
+      .then((d: { ewalletPayments?: boolean }) => setEwalletEnabled(d.ewalletPayments === true))
       // eslint-disable-next-line @typescript-eslint/no-empty-function
       .catch(() => {});
   }, []);
 
-  const methods = showComingSoon ? PAYMENT_METHODS : PAYMENT_METHODS.filter((m) => !m.comingSoon);
+  const methods = ewalletEnabled
+    ? [
+        ...EWALLET_METHODS.map((m) => ({ ...m, comingSoon: false })),
+        { ...CASH_METHOD, comingSoon: false },
+      ]
+    : [
+        ...EWALLET_METHODS.map((m) => ({ ...m, comingSoon: true })),
+        { ...CASH_METHOD, comingSoon: false },
+      ];
 
   return (
     <div className="space-y-2">

@@ -68,6 +68,7 @@ export interface CmsFeatureFlags {
   organizer_reviews: boolean;
   events_two_col_mobile: boolean;
   show_coming_soon: boolean;
+  ewallet_payments: boolean;
 }
 
 /** A single homepage section entry inside cms_homepage_sections.sections JSONB */
