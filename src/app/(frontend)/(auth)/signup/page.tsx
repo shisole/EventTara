@@ -119,7 +119,7 @@ function SignupForm() {
       if (!existingProfile) {
         await supabase
           .from("organizer_profiles")
-          .insert({ user_id: userId, org_name: metadata.org_name });
+          .insert({ user_id: userId, org_name: metadata.org_name, is_claimed: true });
       }
     }
   };
