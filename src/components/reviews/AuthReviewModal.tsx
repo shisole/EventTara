@@ -70,6 +70,19 @@ export default function AuthReviewModal({
     };
   }, []);
 
+  // Close on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && state !== "success") {
+        onClose();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [onClose, state]);
+
   // Success: auto-close after 1500ms (no confetti)
   useEffect(() => {
     if (state !== "success" || !authenticatedUser) return;
@@ -115,9 +128,10 @@ export default function AuthReviewModal({
       if (data.user) {
         const profile = await fetchUserProfile(data.user.id, displayName);
         setAuthenticatedUser(profile);
+        setState("success");
+      } else {
+        setError("Something went wrong. Please try again.");
       }
-
-      setState("success");
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -195,9 +209,10 @@ export default function AuthReviewModal({
       if (data.user) {
         const profile = await fetchUserProfile(data.user.id, displayName);
         setAuthenticatedUser(profile);
+        setState("success");
+      } else {
+        setError("Something went wrong. Please try again.");
       }
-
-      setState("success");
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
