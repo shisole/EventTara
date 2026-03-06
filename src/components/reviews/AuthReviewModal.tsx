@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { CheckCircleIcon, CloseIcon, EnvelopeIcon } from "@/components/icons";
 import { Button, OtpCodeInput } from "@/components/ui";
@@ -11,8 +11,10 @@ import { generateUsername } from "@/lib/utils/generate-username";
 type ModalState = "form" | "verify-code" | "success";
 type AuthMethod = "password" | "otp";
 type AuthMode = "login" | "signup";
+type UsernameStatus = "idle" | "checking" | "available" | "taken" | "invalid";
 
 const CODE_LENGTH = 6;
+const USERNAME_REGEX = /^[a-z0-9._-]{3,30}$/;
 const emptyCode = () => Array.from<string>({ length: CODE_LENGTH }).fill("");
 
 async function fetchUserProfile(
@@ -44,6 +46,8 @@ export default function AuthReviewModal({
   const [authMode, setAuthMode] = useState<AuthMode>("login");
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
+  const [username, setUsername] = useState("");
+  const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>("idle");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [code, setCode] = useState<string[]>(emptyCode());
@@ -55,6 +59,7 @@ export default function AuthReviewModal({
     id: string;
     fullName: string;
   } | null>(null);
+  const usernameTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Animate in on mount
   useEffect(() => {
@@ -86,6 +91,34 @@ export default function AuthReviewModal({
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [onClose, state]);
+
+  // Check username availability
+  const checkUsername = useCallback((value: string) => {
+    if (usernameTimerRef.current) clearTimeout(usernameTimerRef.current);
+
+    const normalized = value.toLowerCase().trim();
+    if (!normalized) {
+      setUsernameStatus("idle");
+      return;
+    }
+    if (!USERNAME_REGEX.test(normalized)) {
+      setUsernameStatus("invalid");
+      return;
+    }
+
+    setUsernameStatus("checking");
+    usernameTimerRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `/api/users/check-username?username=${encodeURIComponent(normalized)}`,
+        );
+        const data: { available: boolean } = await res.json();
+        setUsernameStatus(data.available ? "available" : "taken");
+      } catch {
+        setUsernameStatus("idle");
+      }
+    }, 400);
+  }, []);
 
   // Success: auto-close after 1500ms (no confetti)
   useEffect(() => {
@@ -159,6 +192,28 @@ export default function AuthReviewModal({
     }
 
     if (authMethod === "password") {
+      const trimmedUsername = username.trim().toLowerCase();
+      if (!trimmedUsername) {
+        setError("Please enter a username.");
+        return;
+      }
+      if (!USERNAME_REGEX.test(trimmedUsername)) {
+        setError(
+          "Username must be 3-30 characters, lowercase, with only letters, numbers, dots, hyphens, or underscores.",
+        );
+        return;
+      }
+      if (usernameStatus === "taken") {
+        setError("This username is already taken.");
+        return;
+      }
+      if (usernameStatus === "checking" || usernameStatus === "idle") {
+        setError("Please wait for username availability to be checked.");
+        return;
+      }
+    }
+
+    if (authMethod === "password") {
       if (!password || !confirmPassword) {
         setError("Please enter a password and confirm it.");
         return;
@@ -192,7 +247,12 @@ export default function AuthReviewModal({
         }
 
         if (data.user) {
-          await generateUsername(supabase, data.user.id, trimmedEmail);
+          // Set custom username if provided, otherwise generate one
+          const usernameTrimmed = username.trim().toLowerCase();
+          await (usernameTrimmed && usernameStatus === "available" ? supabase
+              .from("users")
+              .update({ username: usernameTrimmed })
+              .eq("id", data.user.id) : generateUsername(supabase, data.user.id, trimmedEmail));
           const profile = await fetchUserProfile(data.user.id, fullName.trim());
           setAuthenticatedUser(profile);
           setUserDisplay(fullName.trim());
@@ -391,25 +451,65 @@ export default function AuthReviewModal({
             </div>
 
             {authMode === "signup" && authMethod === "password" && (
-              <div>
-                <label
-                  htmlFor="auth-review-fullname"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
-                >
-                  Full name
-                </label>
-                <input
-                  id="auth-review-fullname"
-                  type="text"
-                  value={fullName}
-                  onChange={(e) => {
-                    setFullName(e.target.value);
-                  }}
-                  placeholder="Your name"
-                  autoFocus
-                  className={inputClassName}
-                />
-              </div>
+              <>
+                <div>
+                  <label
+                    htmlFor="auth-review-fullname"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
+                  >
+                    Full name
+                  </label>
+                  <input
+                    id="auth-review-fullname"
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => {
+                      setFullName(e.target.value);
+                    }}
+                    placeholder="Your name"
+                    autoFocus
+                    className={inputClassName}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="auth-review-username"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
+                  >
+                    Username
+                    {usernameStatus === "checking" && (
+                      <span className="ml-2 text-sm font-normal text-gray-500">Checking...</span>
+                    )}
+                    {usernameStatus === "available" && (
+                      <span className="ml-2 text-sm font-normal text-green-600 dark:text-green-400">
+                        ✓ Available
+                      </span>
+                    )}
+                    {usernameStatus === "taken" && (
+                      <span className="ml-2 text-sm font-normal text-red-600 dark:text-red-400">
+                        ✗ Taken
+                      </span>
+                    )}
+                    {usernameStatus === "invalid" && (
+                      <span className="ml-2 text-sm font-normal text-red-600 dark:text-red-400">
+                        ✗ Invalid
+                      </span>
+                    )}
+                  </label>
+                  <input
+                    id="auth-review-username"
+                    type="text"
+                    value={username}
+                    onChange={(e) => {
+                      setUsername(e.target.value);
+                      checkUsername(e.target.value);
+                    }}
+                    placeholder="3-30 characters, lowercase, letters/numbers/._-"
+                    className={inputClassName}
+                  />
+                </div>
+              </>
             )}
 
             <div>
@@ -518,6 +618,8 @@ export default function AuthReviewModal({
                   setAuthMethod(authMethod === "password" ? "otp" : "password");
                   setError("");
                   setFullName("");
+                  setUsername("");
+                  setUsernameStatus("idle");
                   setConfirmPassword("");
                 }}
                 className="block w-full text-sm text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 font-medium"
@@ -539,6 +641,8 @@ export default function AuthReviewModal({
                   setPassword("");
                   setConfirmPassword("");
                   setFullName("");
+                  setUsername("");
+                  setUsernameStatus("idle");
                 }}
                 className="block w-full text-sm text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
               >
