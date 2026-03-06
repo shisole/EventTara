@@ -1,4 +1,5 @@
 import { CalendarIcon } from "@/components/icons";
+import { isComingSoonEnabled } from "@/lib/cms/cached";
 import { fetchEventEnrichments, mapEventToCard } from "@/lib/events/map-event-card";
 import { createClient } from "@/lib/supabase/server";
 
@@ -26,6 +27,7 @@ function ComingSoonPlaceholder() {
 }
 
 export default async function BentoEventsSection() {
+  const comingSoon = await isComingSoonEnabled();
   const supabase = await createClient();
   const now = new Date().toISOString();
   const today = now.split("T")[0];
@@ -70,8 +72,7 @@ export default async function BentoEventsSection() {
 
   return (
     <section className="relative py-12 bg-white dark:bg-slate-800">
-      {/* Blurred content */}
-      <div className="pointer-events-none select-none blur-[6px]">
+      <div className={comingSoon ? "pointer-events-none select-none blur-[6px]" : undefined}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-3xl sm:text-4xl font-heading font-bold text-gray-900 dark:text-white">
@@ -87,22 +88,23 @@ export default async function BentoEventsSection() {
         </div>
       </div>
 
-      {/* Coming Soon overlay */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="rounded-2xl bg-white/90 px-8 py-5 shadow-lg backdrop-blur-sm dark:bg-gray-900/90">
-          <div className="flex items-center gap-3">
-            <CalendarIcon className="h-6 w-6 text-lime-500" />
-            <div>
-              <p className="font-heading text-lg font-bold text-gray-900 dark:text-white">
-                Coming Soon
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Events from our organizers are on the way
-              </p>
+      {comingSoon && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="rounded-2xl bg-white/90 px-8 py-5 shadow-lg backdrop-blur-sm dark:bg-gray-900/90">
+            <div className="flex items-center gap-3">
+              <CalendarIcon className="h-6 w-6 text-lime-500" />
+              <div>
+                <p className="font-heading text-lg font-bold text-gray-900 dark:text-white">
+                  Coming Soon
+                </p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Events from our organizers are on the way
+                </p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </section>
   );
 }
