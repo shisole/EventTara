@@ -1,7 +1,7 @@
 "use client";
 
 import { type User } from "@supabase/supabase-js";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { type CmsFeatureFlags } from "@/lib/cms/types";
 import { createClient } from "@/lib/supabase/client";
@@ -81,7 +81,14 @@ export default function DebugToolPanel({
   const [copied, setCopied] = useState(false);
   const [stravaConnected, setStravaConnected] = useState<boolean | null>(null);
 
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
   const { serverFlags, overrides, setOverride, resetOverrides } = useDebugFlags();
+
+  // Clean up copy timer on unmount
+  useEffect(() => {
+    return () => clearTimeout(copyTimerRef.current);
+  }, []);
 
   // Fetch Strava connection status
   useEffect(() => {
@@ -97,9 +104,14 @@ export default function DebugToolPanel({
   }, [user.id]);
 
   const handleCopyUserId = useCallback(async () => {
-    await navigator.clipboard.writeText(user.id);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+    try {
+      await navigator.clipboard.writeText(user.id);
+      setCopied(true);
+      clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // clipboard API not available
+    }
   }, [user.id]);
 
   const overrideCount = Object.keys(overrides).length;
@@ -276,11 +288,7 @@ export default function DebugToolPanel({
             <Row label="Role" value={role ?? "—"} />
             <div className="flex items-center justify-between py-1">
               <span className="text-gray-400">Admin</span>
-              {role === "admin" ? (
-                <span className="rounded bg-teal-500/20 px-1.5 text-teal-400">yes</span>
-              ) : (
-                <span className="text-gray-200">no</span>
-              )}
+              <span className="rounded bg-teal-500/20 px-1.5 text-teal-400">yes</span>
             </div>
             <Row label="Anonymous" value={user.is_anonymous ? "yes" : "no"} />
             <Row label="Provider" value={user.app_metadata.provider ?? "—"} />
