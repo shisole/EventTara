@@ -7,6 +7,7 @@ export { default as Avatar } from "./Avatar";
 export { default as AvatarWithBorder } from "./AvatarWithBorder";
 export { default as UserAvatar } from "./UserAvatar";
 export { default as DateRangePicker } from "./DateRangePicker";
+export { default as DemoBadge } from "./DemoBadge";
 export { default as OtpCodeInput } from "./OtpCodeInput";
 export { default as Toggle } from "./Toggle";
 export {

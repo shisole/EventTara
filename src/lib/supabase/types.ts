@@ -51,6 +51,7 @@ export interface Database {
           claim_expires_at: string | null;
           is_claimed: boolean;
           pending_username: string | null;
+          is_demo: boolean;
           created_at: string;
         };
         Insert: {
@@ -64,6 +65,7 @@ export interface Database {
           claim_expires_at?: string | null;
           is_claimed?: boolean;
           pending_username?: string | null;
+          is_demo?: boolean;
           created_at?: string;
         };
         Update: {
@@ -77,6 +79,7 @@ export interface Database {
           claim_expires_at?: string | null;
           is_claimed?: boolean;
           pending_username?: string | null;
+          is_demo?: boolean;
           created_at?: string;
         };
         Relationships: [];
@@ -98,6 +101,7 @@ export interface Database {
           cover_image_url: string | null;
           difficulty_level: number | null;
           is_featured: boolean;
+          is_demo: boolean;
           created_at: string;
         };
         Insert: {
@@ -116,6 +120,7 @@ export interface Database {
           cover_image_url?: string | null;
           difficulty_level?: number | null;
           is_featured?: boolean;
+          is_demo?: boolean;
           created_at?: string;
         };
         Update: {
@@ -134,6 +139,7 @@ export interface Database {
           cover_image_url?: string | null;
           difficulty_level?: number | null;
           is_featured?: boolean;
+          is_demo?: boolean;
           created_at?: string;
         };
         Relationships: [];
@@ -986,6 +992,7 @@ export interface Database {
           strava_showcase_route_map: boolean;
           organizer_reviews: boolean;
           events_two_col_mobile: boolean;
+          show_coming_soon: boolean;
         };
         Insert: {
           id?: number;
@@ -995,6 +1002,7 @@ export interface Database {
           strava_showcase_route_map?: boolean;
           organizer_reviews?: boolean;
           events_two_col_mobile?: boolean;
+          show_coming_soon?: boolean;
         };
         Update: {
           id?: number;
@@ -1004,6 +1012,7 @@ export interface Database {
           strava_showcase_route_map?: boolean;
           organizer_reviews?: boolean;
           events_two_col_mobile?: boolean;
+          show_coming_soon?: boolean;
         };
         Relationships: [];
       };

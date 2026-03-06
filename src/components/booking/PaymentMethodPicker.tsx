@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 import { cn } from "@/lib/utils";
 
 interface PaymentMethodPickerProps {
@@ -14,13 +16,25 @@ const PAYMENT_METHODS = [
 ];
 
 export default function PaymentMethodPicker({ selected, onSelect }: PaymentMethodPickerProps) {
+  const [showComingSoon, setShowComingSoon] = useState(false);
+
+  useEffect(() => {
+    void fetch("/api/feature-flags")
+      .then((r) => r.json())
+      .then((d: { showComingSoon?: boolean }) => setShowComingSoon(d.showComingSoon === true))
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      .catch(() => {});
+  }, []);
+
+  const methods = showComingSoon ? PAYMENT_METHODS : PAYMENT_METHODS.filter((m) => !m.comingSoon);
+
   return (
     <div className="space-y-2">
       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
         Payment Method
       </label>
-      <div className="grid grid-cols-3 gap-3">
-        {PAYMENT_METHODS.map((method) => (
+      <div className={cn("grid gap-3", methods.length > 2 ? "grid-cols-3" : "grid-cols-1")}>
+        {methods.map((method) => (
           <button
             key={method.id}
             type="button"

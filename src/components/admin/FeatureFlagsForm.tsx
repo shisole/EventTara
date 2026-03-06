@@ -37,6 +37,11 @@ const FLAG_META: Record<string, { label: string; description: string }> = {
     label: "Events — 2-Column Mobile Grid",
     description: "Show event cards in a 2-column grid on mobile instead of single column.",
   },
+  show_coming_soon: {
+    label: "Show Coming Soon Features",
+    description:
+      "Display locked 'Coming Soon' UI for unreleased features (e.g., Facebook login, GCash/Maya, gamification).",
+  },
 };
 
 export default function FeatureFlagsForm() {

@@ -13,9 +13,11 @@ export async function GET() {
   }
 
   const enabled = await isActivityFeedEnabled();
+  const flags = cmsResult as Record<string, unknown> | null;
 
   return NextResponse.json({
     activityFeedEnabled: enabled,
+    showComingSoon: flags?.show_coming_soon === true,
     envOverride: process.env.ACTIVITY_FEED_ENABLED ?? null,
     cmsResult,
     cmsError,

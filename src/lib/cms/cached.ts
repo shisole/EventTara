@@ -208,6 +208,18 @@ export function parseHomepageSections(data: CmsHomepageSections | null): CmsHome
 }
 
 /**
+ * Returns whether the "Coming Soon" locked features should be shown.
+ */
+export async function isComingSoonEnabled(): Promise<boolean> {
+  try {
+    const flags = await getCachedFeatureFlags();
+    return flags?.show_coming_soon === true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Returns whether the organizer reviews feature flag is enabled.
  */
 export async function isOrganizerReviewsEnabled(): Promise<boolean> {
