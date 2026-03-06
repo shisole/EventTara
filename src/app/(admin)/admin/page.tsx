@@ -19,6 +19,12 @@ const cards = [
     href: "/admin/sections",
     count: "11 sections",
   },
+  {
+    title: "Organizers",
+    description: "Create organizer profiles and manage claim links.",
+    href: "/admin/organizers",
+    count: "Profiles",
+  },
 ];
 
 export default function AdminOverview() {

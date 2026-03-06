@@ -276,7 +276,11 @@ export async function POST(request: Request) {
     // Auto-create organizer profile
     const { data: newProfile, error: profileError } = await supabase
       .from("organizer_profiles")
-      .insert({ user_id: user.id, org_name: user.user_metadata?.full_name || "My Organization" })
+      .insert({
+        user_id: user.id,
+        org_name: user.user_metadata?.full_name || "My Organization",
+        is_claimed: true,
+      })
       .select()
       .single();
 
