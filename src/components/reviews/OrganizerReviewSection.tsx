@@ -11,7 +11,6 @@ import OrganizerReviewForm from "./OrganizerReviewForm";
 import OrganizerReviewList from "./OrganizerReviewList";
 
 const AuthReviewModal = dynamic(() => import("./AuthReviewModal"), { ssr: false });
-const GuestReviewModal = dynamic(() => import("./GuestReviewModal"), { ssr: false });
 
 interface OrganizerReviewSectionProps {
   organizerId: string;
@@ -39,11 +38,10 @@ export default function OrganizerReviewSection({
   const [data, setData] = useState<OrganizerReviewsResponse>(initialData);
   const [showForm, setShowForm] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [showGuestModal, setShowGuestModal] = useState(false);
-  const [guestReviewError, setGuestReviewError] = useState("");
   const [formKey, setFormKey] = useState(0);
   const [myReviewId, setMyReviewId] = useState<string | null>(existingReviewId);
   const [activeUser, setActiveUser] = useState(currentUser);
+  const [isGuestUser, setIsGuestUser] = useState(false);
 
   const router = useRouter();
   const isLoggedIn = !!activeUser;
@@ -74,8 +72,15 @@ export default function OrganizerReviewSection({
   const handleSuccess = useCallback(() => {
     setShowForm(false);
     setFormKey((k) => k + 1);
+    // Save localStorage to prevent guest spam
+    if (isGuestUser) {
+      localStorage.setItem(
+        `guestReview_${organizerId}`,
+        JSON.stringify({ submitted: true, timestamp: Date.now() }),
+      );
+    }
     void refresh();
-  }, [refresh]);
+  }, [refresh, isGuestUser, organizerId]);
 
   const canReview = !isOwnProfile;
   const hasReviewed = !!myReviewId;
@@ -127,14 +132,7 @@ export default function OrganizerReviewSection({
                   if (isLoggedIn) {
                     setShowForm(true);
                   } else {
-                    // Check if guest already reviewed this organizer
-                    const storageKey = `guestReview_${organizerId}`;
-                    if (localStorage.getItem(storageKey)) {
-                      setGuestReviewError("You've already reviewed this organizer.");
-                      setTimeout(() => setGuestReviewError(""), 5000);
-                    } else {
-                      setShowGuestModal(true);
-                    }
+                    setShowAuthModal(true);
                   }
                 }}
                 className="rounded-lg bg-teal-600 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-teal-700 dark:bg-teal-700 dark:hover:bg-teal-600"
@@ -156,34 +154,18 @@ export default function OrganizerReviewSection({
         </div>
       )}
 
-      {guestReviewError && (
-        <div
-          className="fixed bottom-4 left-4 right-4 max-w-sm rounded-lg bg-red-100 p-4 text-sm text-red-800 dark:bg-red-900/30 dark:text-red-200"
-          role="alert"
-        >
-          {guestReviewError}
-        </div>
-      )}
-
       {showAuthModal && (
         <AuthReviewModal
+          organizerId={organizerId}
           organizerName={organizerName}
           onAuthenticated={(user) => {
             setActiveUser(user);
+            setIsGuestUser(!!user.isGuest);
             setShowAuthModal(false);
             setShowForm(true);
             router.refresh();
           }}
           onClose={() => setShowAuthModal(false)}
-        />
-      )}
-
-      {showGuestModal && (
-        <GuestReviewModal
-          organizerId={organizerId}
-          organizerName={organizerName}
-          onSubmitted={handleSuccess}
-          onClose={() => setShowGuestModal(false)}
         />
       )}
     </div>

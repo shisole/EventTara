@@ -31,12 +31,14 @@ async function fetchUserProfile(
 }
 
 interface AuthReviewModalProps {
+  organizerId: string;
   organizerName: string;
-  onAuthenticated: (user: { id: string; fullName: string }) => void;
+  onAuthenticated: (user: { id: string; fullName: string; isGuest?: boolean }) => void;
   onClose: () => void;
 }
 
 export default function AuthReviewModal({
+  organizerId,
   organizerName,
   onAuthenticated,
   onClose,
@@ -59,6 +61,7 @@ export default function AuthReviewModal({
     id: string;
     fullName: string;
   } | null>(null);
+  const [isGuestAuth, setIsGuestAuth] = useState(false);
   const usernameTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Animate in on mount
@@ -127,14 +130,14 @@ export default function AuthReviewModal({
     const timer = setTimeout(() => {
       setIsVisible(false);
       setTimeout(() => {
-        onAuthenticated(authenticatedUser);
+        onAuthenticated({ ...authenticatedUser, isGuest: isGuestAuth });
       }, 200);
     }, 1500);
 
     return () => {
       clearTimeout(timer);
     };
-  }, [state, authenticatedUser, onAuthenticated]);
+  }, [state, authenticatedUser, isGuestAuth, onAuthenticated]);
 
   const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -384,6 +387,36 @@ export default function AuthReviewModal({
       } else {
         setCode(emptyCode());
       }
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGuestContinue = async () => {
+    setError("");
+    setLoading(true);
+    try {
+      const supabase = createClient();
+
+      // Check localStorage first
+      const storageKey = `guestReview_${organizerId}`;
+      if (localStorage.getItem(storageKey)) {
+        setError("You've already reviewed this organizer.");
+        return;
+      }
+
+      const { data, error: anonError } = await supabase.auth.signInAnonymously();
+      if (anonError || !data.user) {
+        setError("Something went wrong. Please try again.");
+        return;
+      }
+
+      setIsGuestAuth(true);
+      setUserDisplay("Guest");
+      setAuthenticatedUser({ id: data.user.id, fullName: "Guest" });
+      setState("success");
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -650,6 +683,26 @@ export default function AuthReviewModal({
                   : "Already have an account? Sign in"}
               </button>
             </div>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200 dark:border-gray-700" />
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-white dark:bg-slate-800 px-2 text-gray-400 dark:text-gray-500">
+                  or
+                </span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleGuestContinue}
+              disabled={loading}
+              className="w-full rounded-xl border border-gray-300 dark:border-gray-600 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors disabled:opacity-50"
+            >
+              {loading ? "Setting up..." : "Continue as Guest"}
+            </button>
 
             {authMethod === "otp" && (
               <p className="text-xs text-center text-gray-400 dark:text-gray-500">
