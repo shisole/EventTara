@@ -40,7 +40,7 @@ const FLAG_META: Record<string, { label: string; description: string }> = {
   show_coming_soon: {
     label: "Show Coming Soon Features",
     description:
-      "Display locked 'Coming Soon' UI for unreleased features (e.g., Facebook login, GCash/Maya, gamification).",
+      "When enabled, locks Strava login, gamification, and bento sections behind a 'Coming Soon' overlay.",
   },
 };
 
