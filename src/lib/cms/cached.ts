@@ -220,6 +220,18 @@ export async function isComingSoonEnabled(): Promise<boolean> {
 }
 
 /**
+ * Returns whether e-wallet payments (GCash, Maya) are enabled.
+ */
+export async function isEwalletPaymentsEnabled(): Promise<boolean> {
+  try {
+    const flags = await getCachedFeatureFlags();
+    return flags?.ewallet_payments === true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Returns whether the organizer reviews feature flag is enabled.
  */
 export async function isOrganizerReviewsEnabled(): Promise<boolean> {

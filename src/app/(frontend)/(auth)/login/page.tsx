@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 
 import { CheckCircleIcon, StravaIcon } from "@/components/icons";
 import { Button, Input, OtpCodeInput } from "@/components/ui";
+import { STRAVA_AUTH_URL, STRAVA_SCOPES } from "@/lib/strava/constants";
 import { createClient } from "@/lib/supabase/client";
 import { generateUsername } from "@/lib/utils/generate-username";
 
@@ -248,7 +249,7 @@ export default function LoginPage() {
     <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md p-8 space-y-6">
       <h2 className="text-2xl font-heading font-bold text-center">Welcome Back!</h2>
 
-      {showComingSoon && (
+      {showComingSoon ? (
         <>
           <Button disabled className="w-full bg-[#1877F2]/60 cursor-not-allowed" size="lg">
             Continue with Facebook
@@ -264,19 +265,40 @@ export default function LoginPage() {
               Coming Soon
             </span>
           </Button>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200 dark:border-gray-700" />
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="bg-white dark:bg-gray-900 px-4 text-gray-400 dark:text-gray-500">
-                or
-              </span>
-            </div>
-          </div>
         </>
+      ) : (
+        <Button
+          className="w-full bg-[#FC4C02] hover:bg-[#E34402] text-white"
+          size="lg"
+          onClick={() => {
+            const clientId = process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID;
+            if (!clientId) return;
+            const params = new URLSearchParams({
+              client_id: clientId,
+              redirect_uri: `${globalThis.location.origin}/auth/strava/callback`,
+              response_type: "code",
+              scope: STRAVA_SCOPES.join(","),
+              state: JSON.stringify({ flow: "login", returnUrl: "/events" }),
+              approval_prompt: "auto",
+            });
+            globalThis.location.href = `${STRAVA_AUTH_URL}?${params.toString()}`;
+          }}
+        >
+          <StravaIcon className="w-5 h-5 mr-2" />
+          Continue with Strava
+        </Button>
       )}
+
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-200 dark:border-gray-700" />
+        </div>
+        <div className="relative flex justify-center text-sm">
+          <span className="bg-white dark:bg-gray-900 px-4 text-gray-400 dark:text-gray-500">
+            or
+          </span>
+        </div>
+      </div>
 
       <form
         onSubmit={authMethod === "password" ? handlePasswordLogin : handleOtpSubmit}

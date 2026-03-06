@@ -993,6 +993,7 @@ export interface Database {
           organizer_reviews: boolean;
           events_two_col_mobile: boolean;
           show_coming_soon: boolean;
+          ewallet_payments: boolean;
         };
         Insert: {
           id?: number;
@@ -1003,6 +1004,7 @@ export interface Database {
           organizer_reviews?: boolean;
           events_two_col_mobile?: boolean;
           show_coming_soon?: boolean;
+          ewallet_payments?: boolean;
         };
         Update: {
           id?: number;
@@ -1013,6 +1015,7 @@ export interface Database {
           organizer_reviews?: boolean;
           events_two_col_mobile?: boolean;
           show_coming_soon?: boolean;
+          ewallet_payments?: boolean;
         };
         Relationships: [];
       };
