@@ -8,7 +8,7 @@ import { Button, OtpCodeInput } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
 import { generateUsername } from "@/lib/utils/generate-username";
 
-type ModalState = "form" | "verify-code" | "success";
+type ModalState = "form" | "verify-code" | "guest" | "success";
 type AuthMethod = "password" | "otp";
 type AuthMode = "login" | "signup";
 type UsernameStatus = "idle" | "checking" | "available" | "taken" | "invalid";
@@ -31,12 +31,14 @@ async function fetchUserProfile(
 }
 
 interface AuthReviewModalProps {
+  organizerId: string;
   organizerName: string;
-  onAuthenticated: (user: { id: string; fullName: string }) => void;
+  onAuthenticated: (user: { id: string; fullName: string; isGuest?: boolean }) => void;
   onClose: () => void;
 }
 
 export default function AuthReviewModal({
+  organizerId,
   organizerName,
   onAuthenticated,
   onClose,
@@ -59,6 +61,8 @@ export default function AuthReviewModal({
     id: string;
     fullName: string;
   } | null>(null);
+  const [isGuestAuth, setIsGuestAuth] = useState(false);
+  const [guestName, setGuestName] = useState("");
   const usernameTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Animate in on mount
@@ -127,14 +131,14 @@ export default function AuthReviewModal({
     const timer = setTimeout(() => {
       setIsVisible(false);
       setTimeout(() => {
-        onAuthenticated(authenticatedUser);
+        onAuthenticated({ ...authenticatedUser, isGuest: isGuestAuth });
       }, 200);
     }, 1500);
 
     return () => {
       clearTimeout(timer);
     };
-  }, [state, authenticatedUser, onAuthenticated]);
+  }, [state, authenticatedUser, isGuestAuth, onAuthenticated]);
 
   const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -384,6 +388,43 @@ export default function AuthReviewModal({
       } else {
         setCode(emptyCode());
       }
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGuestSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    const trimmedName = guestName.trim();
+    if (!trimmedName) {
+      setError("Please enter your name.");
+      return;
+    }
+
+    // Check localStorage first
+    const storageKey = `guestReview_${organizerId}`;
+    if (localStorage.getItem(storageKey)) {
+      setError("You've already reviewed this organizer.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const supabase = createClient();
+      const { data, error: anonError } = await supabase.auth.signInAnonymously();
+      if (anonError || !data.user) {
+        setError("Something went wrong. Please try again.");
+        return;
+      }
+
+      setIsGuestAuth(true);
+      setUserDisplay(trimmedName);
+      setAuthenticatedUser({ id: data.user.id, fullName: trimmedName });
+      setState("success");
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -651,6 +692,28 @@ export default function AuthReviewModal({
               </button>
             </div>
 
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200 dark:border-gray-700" />
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-white dark:bg-slate-800 px-2 text-gray-400 dark:text-gray-500">
+                  or
+                </span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setError("");
+                setState("guest");
+              }}
+              className="w-full rounded-xl border border-gray-300 dark:border-gray-600 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+            >
+              Continue as Guest
+            </button>
+
             {authMethod === "otp" && (
               <p className="text-xs text-center text-gray-400 dark:text-gray-500">
                 We&apos;ll send a 6-digit code to your email.
@@ -678,6 +741,62 @@ export default function AuthReviewModal({
             loading={loading}
             error={error}
           />
+        )}
+
+        {state === "guest" && (
+          <form onSubmit={handleGuestSubmit} className="space-y-5">
+            <div className="text-center">
+              <div className="w-14 h-14 bg-teal-100 dark:bg-teal-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                <EnvelopeIcon className="w-7 h-7 text-teal-600 dark:text-teal-400" />
+              </div>
+              <h2 className="text-xl font-heading font-bold text-gray-900 dark:text-white">
+                What&apos;s your name?
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                This will be shown on your review for {organizerName}
+              </p>
+            </div>
+
+            <div>
+              <label
+                htmlFor="guest-review-name"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
+              >
+                Your name
+              </label>
+              <input
+                id="guest-review-name"
+                type="text"
+                value={guestName}
+                onChange={(e) => setGuestName(e.target.value)}
+                placeholder="Enter your name"
+                autoFocus
+                className={inputClassName}
+              />
+            </div>
+
+            {error && (
+              <p className="text-sm text-red-500" role="alert">
+                {error}
+              </p>
+            )}
+
+            <Button type="submit" className="w-full" size="lg" disabled={loading}>
+              {loading ? "Setting up..." : "Continue"}
+            </Button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setError("");
+                setGuestName("");
+                setState("form");
+              }}
+              className="block w-full text-sm text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-center"
+            >
+              Back to sign in
+            </button>
+          </form>
         )}
 
         {state === "success" && (

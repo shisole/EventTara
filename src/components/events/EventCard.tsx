@@ -1,7 +1,7 @@
 import Image from "next/image";
 
 import { NavLink } from "@/components/navigation/NavigationContext";
-import { Card } from "@/components/ui";
+import { Card, DemoBadge } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { formatEventDate } from "@/lib/utils/format-date";
 
@@ -30,6 +30,7 @@ interface EventCardProps {
   race_distances?: number[];
   hasRoute?: boolean;
   compact?: boolean;
+  is_demo?: boolean;
 }
 
 const typeLabels: Record<string, string> = {
@@ -75,6 +76,7 @@ export default function EventCard({
   race_distances,
   hasRoute,
   compact,
+  is_demo,
 }: EventCardProps) {
   const spotsLeft = max_participants - booking_count;
   const formattedDate = formatEventDate(date, endDate, { short: true });
@@ -107,6 +109,13 @@ export default function EventCard({
               }
               className="object-cover"
             />
+          )}
+
+          {/* Demo badge — top right */}
+          {is_demo && (
+            <div className="absolute top-3 right-3 z-10">
+              <DemoBadge />
+            </div>
           )}
 
           {/* Status badge — top left */}

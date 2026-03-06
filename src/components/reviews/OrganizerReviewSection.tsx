@@ -41,6 +41,7 @@ export default function OrganizerReviewSection({
   const [formKey, setFormKey] = useState(0);
   const [myReviewId, setMyReviewId] = useState<string | null>(existingReviewId);
   const [activeUser, setActiveUser] = useState(currentUser);
+  const [isGuestUser, setIsGuestUser] = useState(false);
 
   const router = useRouter();
   const isLoggedIn = !!activeUser;
@@ -51,6 +52,7 @@ export default function OrganizerReviewSection({
     try {
       const res = await fetch(`/api/organizers/${organizerId}/reviews?page=1&limit=10`);
       if (res.ok) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const fresh: OrganizerReviewsResponse = await res.json();
         setData(fresh);
         // Find the current user's review in the refreshed data
@@ -70,8 +72,15 @@ export default function OrganizerReviewSection({
   const handleSuccess = useCallback(() => {
     setShowForm(false);
     setFormKey((k) => k + 1);
+    // Save localStorage to prevent guest spam
+    if (isGuestUser) {
+      localStorage.setItem(
+        `guestReview_${organizerId}`,
+        JSON.stringify({ submitted: true, timestamp: Date.now() }),
+      );
+    }
     void refresh();
-  }, [refresh]);
+  }, [refresh, isGuestUser, organizerId]);
 
   const canReview = !isOwnProfile;
   const hasReviewed = !!myReviewId;
@@ -111,7 +120,7 @@ export default function OrganizerReviewSection({
                 key={formKey}
                 organizerId={organizerId}
                 existingReview={existingReview ?? undefined}
-                userName={activeUser!.fullName}
+                userName={activeUser?.fullName ?? ""}
                 onSuccess={handleSuccess}
               />
             </div>
@@ -147,9 +156,11 @@ export default function OrganizerReviewSection({
 
       {showAuthModal && (
         <AuthReviewModal
+          organizerId={organizerId}
           organizerName={organizerName}
           onAuthenticated={(user) => {
             setActiveUser(user);
+            setIsGuestUser(!!user.isGuest);
             setShowAuthModal(false);
             setShowForm(true);
             router.refresh();

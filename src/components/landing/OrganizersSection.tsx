@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { Avatar } from "@/components/ui";
+import { Avatar, DemoBadge } from "@/components/ui";
 import { isOrganizerReviewsEnabled } from "@/lib/cms/cached";
 import { REVIEW_TAGS } from "@/lib/constants/review-tags";
 import { createClient } from "@/lib/supabase/server";
@@ -13,6 +13,7 @@ interface OrganizerCard {
   avgRating: number | null;
   reviewCount: number;
   topTag: string | null;
+  is_demo: boolean;
 }
 
 export default async function OrganizersSection() {
@@ -21,7 +22,7 @@ export default async function OrganizersSection() {
   // Fetch all organizer profiles (no events requirement)
   const { data: orgProfiles } = await supabase
     .from("organizer_profiles")
-    .select("id, org_name, logo_url")
+    .select("id, org_name, logo_url, is_demo")
     .order("created_at", { ascending: true })
     .limit(12);
 
@@ -45,6 +46,7 @@ export default async function OrganizersSection() {
     org_name: org.org_name,
     logo_url: org.logo_url,
     event_count: eventCounts[org.id] || 0,
+    is_demo: org.is_demo,
   }));
 
   // Fetch review stats if feature is enabled
@@ -108,6 +110,7 @@ export default async function OrganizersSection() {
       avgRating: stats?.avgRating ?? null,
       reviewCount: stats?.reviewCount ?? 0,
       topTag: stats?.topTag ?? null,
+      is_demo: org.is_demo,
     };
   });
 
@@ -135,6 +138,7 @@ export default async function OrganizersSection() {
               <span className="mb-1 max-w-full truncate text-center text-sm font-semibold text-gray-800 dark:text-gray-200">
                 {org.org_name}
               </span>
+              {org.is_demo && <DemoBadge className="mb-1" />}
 
               {reviewsEnabled && org.reviewCount > 0 ? (
                 <>

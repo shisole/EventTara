@@ -26,6 +26,7 @@ interface EventData {
   difficulty_level?: number | null;
   race_distances?: number[];
   hasRoute?: boolean;
+  is_demo?: boolean;
 }
 
 export interface NearbyState {
@@ -98,6 +99,7 @@ export default function EventsGrid({ events, nearbyState, twoColMobile }: Events
             race_distances={event.race_distances}
             hasRoute={event.hasRoute}
             compact={twoColMobile}
+            is_demo={event.is_demo}
           />
         </div>
       ))}
