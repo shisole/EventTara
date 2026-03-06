@@ -11,6 +11,7 @@ import OrganizerReviewForm from "./OrganizerReviewForm";
 import OrganizerReviewList from "./OrganizerReviewList";
 
 const AuthReviewModal = dynamic(() => import("./AuthReviewModal"), { ssr: false });
+const GuestReviewModal = dynamic(() => import("./GuestReviewModal"), { ssr: false });
 
 interface OrganizerReviewSectionProps {
   organizerId: string;
@@ -38,6 +39,8 @@ export default function OrganizerReviewSection({
   const [data, setData] = useState<OrganizerReviewsResponse>(initialData);
   const [showForm, setShowForm] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showGuestModal, setShowGuestModal] = useState(false);
+  const [guestReviewError, setGuestReviewError] = useState("");
   const [formKey, setFormKey] = useState(0);
   const [myReviewId, setMyReviewId] = useState<string | null>(existingReviewId);
   const [activeUser, setActiveUser] = useState(currentUser);
@@ -51,6 +54,7 @@ export default function OrganizerReviewSection({
     try {
       const res = await fetch(`/api/organizers/${organizerId}/reviews?page=1&limit=10`);
       if (res.ok) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const fresh: OrganizerReviewsResponse = await res.json();
         setData(fresh);
         // Find the current user's review in the refreshed data
@@ -111,7 +115,7 @@ export default function OrganizerReviewSection({
                 key={formKey}
                 organizerId={organizerId}
                 existingReview={existingReview ?? undefined}
-                userName={activeUser!.fullName}
+                userName={activeUser?.fullName ?? ""}
                 onSuccess={handleSuccess}
               />
             </div>
@@ -123,7 +127,14 @@ export default function OrganizerReviewSection({
                   if (isLoggedIn) {
                     setShowForm(true);
                   } else {
-                    setShowAuthModal(true);
+                    // Check if guest already reviewed this organizer
+                    const storageKey = `guestReview_${organizerId}`;
+                    if (localStorage.getItem(storageKey)) {
+                      setGuestReviewError("You've already reviewed this organizer.");
+                      setTimeout(() => setGuestReviewError(""), 5000);
+                    } else {
+                      setShowGuestModal(true);
+                    }
                   }
                 }}
                 className="rounded-lg bg-teal-600 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-teal-700 dark:bg-teal-700 dark:hover:bg-teal-600"
@@ -145,6 +156,15 @@ export default function OrganizerReviewSection({
         </div>
       )}
 
+      {guestReviewError && (
+        <div
+          className="fixed bottom-4 left-4 right-4 max-w-sm rounded-lg bg-red-100 p-4 text-sm text-red-800 dark:bg-red-900/30 dark:text-red-200"
+          role="alert"
+        >
+          {guestReviewError}
+        </div>
+      )}
+
       {showAuthModal && (
         <AuthReviewModal
           organizerName={organizerName}
@@ -155,6 +175,15 @@ export default function OrganizerReviewSection({
             router.refresh();
           }}
           onClose={() => setShowAuthModal(false)}
+        />
+      )}
+
+      {showGuestModal && (
+        <GuestReviewModal
+          organizerId={organizerId}
+          organizerName={organizerName}
+          onSubmitted={handleSuccess}
+          onClose={() => setShowGuestModal(false)}
         />
       )}
     </div>
