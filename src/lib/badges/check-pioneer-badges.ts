@@ -33,7 +33,7 @@ export async function checkAndAwardPioneerBadges(
       .select("user_id")
       .order("created_at", { ascending: true })
       .limit(PIONEER_ORGANIZER_CAP);
-    return (data ?? []).map((o) => o.user_id);
+    return (data ?? []).map((o) => o.user_id).filter((id): id is string => id !== null);
   });
 
   // --- First Review: distinct users who have at least one organizer review ---
