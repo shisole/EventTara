@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { CloseIcon, SendIcon } from "@/components/icons";
+import { type Corner } from "@/lib/hooks/useDraggable";
 
 import ChatMessage from "./ChatMessage";
 import type { ChatMessage as ChatMessageType, ChatResponse } from "./types";
@@ -39,11 +40,43 @@ interface ChatPanelProps {
   open: boolean;
   onClose: () => void;
   keyboard?: KeyboardState;
+  corner?: Corner;
 }
 
 const PANEL_MAX_HEIGHT = 460;
 
-export default function ChatPanel({ open, onClose, keyboard }: ChatPanelProps) {
+const panelPositionClasses: Record<Corner, { mobile: string; desktop: string }> = {
+  "bottom-right": {
+    mobile: "right-4 bottom-[9.5rem] h-[min(460px,calc(100dvh-12rem))]",
+    desktop: "md:bottom-6 md:right-[5.25rem]",
+  },
+  "bottom-left": {
+    mobile: "left-4 bottom-[9.5rem] h-[min(460px,calc(100dvh-12rem))]",
+    desktop: "md:bottom-6 md:left-[5.25rem]",
+  },
+  "top-right": {
+    mobile: "right-4 top-[7.5rem] h-[min(460px,calc(100dvh-12rem))]",
+    desktop: "md:top-[4.5rem] md:right-[5.25rem]",
+  },
+  "top-left": {
+    mobile: "left-4 top-[7.5rem] h-[min(460px,calc(100dvh-12rem))]",
+    desktop: "md:top-[4.5rem] md:left-[5.25rem]",
+  },
+};
+
+const panelSlideDirection: Record<Corner, { open: string; closed: string }> = {
+  "bottom-right": { open: "translate-y-0", closed: "translate-y-2" },
+  "bottom-left": { open: "translate-y-0", closed: "translate-y-2" },
+  "top-right": { open: "translate-y-0", closed: "-translate-y-2" },
+  "top-left": { open: "translate-y-0", closed: "-translate-y-2" },
+};
+
+export default function ChatPanel({
+  open,
+  onClose,
+  keyboard,
+  corner = "bottom-right",
+}: ChatPanelProps) {
   const searchParams = useSearchParams();
   const unlimitedChat = useMemo(() => searchParams.get("chat_debug") === "1", [searchParams]);
   const [messages, setMessages] = useState<ChatMessageType[]>([
@@ -176,13 +209,16 @@ export default function ChatPanel({ open, onClose, keyboard }: ChatPanelProps) {
       }
     : undefined;
 
+  const position = panelPositionClasses[corner];
+  const slide = panelSlideDirection[corner];
+
   return (
     <div
       className={`fixed z-[60] transition-all duration-200 ease-out ${
         open
-          ? "opacity-100 pointer-events-auto translate-y-0"
-          : "opacity-0 pointer-events-none translate-y-2"
-      } right-4 w-[calc(100vw-2rem)] max-w-[400px] ${keyboardOpen ? "" : "bottom-[9.5rem] h-[min(460px,calc(100dvh-12rem))]"} md:bottom-6 md:right-[5.25rem] md:w-[400px] md:h-[min(500px,calc(100dvh-6rem))]`}
+          ? `opacity-100 pointer-events-auto ${slide.open}`
+          : `opacity-0 pointer-events-none ${slide.closed}`
+      } w-[calc(100vw-2rem)] max-w-[400px] ${keyboardOpen ? "" : position.mobile} ${position.desktop} md:w-[400px] md:h-[min(500px,calc(100dvh-6rem))]`}
       style={keyboardStyle}
     >
       <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-900">
