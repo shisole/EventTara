@@ -155,6 +155,13 @@ async function sendBadgeEmails(
   }
 }
 
+/**
+ * Fire-and-forget: send review request emails to checked-in participants.
+ * Fetches event details and organizer info, then sends review invitation
+ * emails to all non-guest participants with valid email addresses.
+ *
+ * Never throws — errors are logged internally.
+ */
 async function sendReviewRequestEmails(
   eventId: string,
   userIds: string[],
@@ -210,7 +217,7 @@ async function sendReviewRequestEmails(
         to: u.email,
         subject: `Share your review for ${event.title}`,
         html: reviewRequestHtml({
-          userName: u.full_name,
+          userName: u.full_name || "Adventurer",
           eventTitle: event.title,
           eventDate,
           organizerName: organizerName ?? "the event organizer",
