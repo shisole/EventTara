@@ -25,7 +25,7 @@ export default function ChatBubble() {
   const [collapsed, setCollapsed] = useState(false);
   const keyboard = useKeyboardHeight();
   const keyboardOpen = keyboard.keyboardHeight > 0;
-  const { corner, isDragging, isSnapping, dragStyle, handlers, wasDrag } = useDraggable();
+  const { corner, isDragging, isSnapping, dragStyle, handlers, dragRef, wasDrag } = useDraggable();
 
   const handleClose = useCallback(() => setOpen(false), []);
   const handleToggle = useCallback(() => {
@@ -63,9 +63,10 @@ export default function ChatBubble() {
       <ChatPanel open={open} onClose={handleClose} keyboard={keyboard} corner={corner} />
 
       <button
+        ref={dragRef}
         onClick={handleToggle}
         {...handlers}
-        className={`fixed z-[60] ${positionClasses} flex items-center justify-center rounded-full shadow-md ${transitionClasses} active:scale-95 ${
+        className={`fixed z-[60] touch-none ${positionClasses} flex items-center justify-center rounded-full shadow-md ${transitionClasses} active:scale-95 ${
           keyboardOpen ? "!hidden" : ""
         } ${isDragging ? "cursor-grabbing scale-110 shadow-lg" : "cursor-grab"} ${
           open

@@ -48,11 +48,10 @@ interface UseDraggableReturn {
   isSnapping: boolean;
   dragStyle: React.CSSProperties | undefined;
   handlers: {
-    onTouchStart: (e: React.TouchEvent) => void;
-    onTouchMove: (e: React.TouchEvent) => void;
-    onTouchEnd: () => void;
     onMouseDown: (e: React.MouseEvent) => void;
   };
+  /** Ref callback to attach to the draggable element for touch event listeners */
+  dragRef: (el: HTMLElement | null) => void;
   /** Whether the last interaction was a drag (not a tap) — used to suppress click */
   wasDrag: boolean;
 }
@@ -189,28 +188,59 @@ export function useDraggable(): UseDraggableReturn {
     };
   }, [isDragging, handleDragMove, handleDragEnd]);
 
-  const onTouchStart = useCallback(
-    (e: React.TouchEvent) => {
-      const touch = e.touches[0];
-      handleDragStart(touch.clientX, touch.clientY, e.currentTarget);
-    },
-    [handleDragStart],
-  );
+  // Keep handler refs stable so we don't need to re-attach listeners
+  const handleDragStartRef = useRef(handleDragStart);
+  const handleDragMoveRef = useRef(handleDragMove);
+  const handleDragEndRef = useRef(handleDragEnd);
+  handleDragStartRef.current = handleDragStart;
+  handleDragMoveRef.current = handleDragMove;
+  handleDragEndRef.current = handleDragEnd;
 
-  const onTouchMove = useCallback(
-    (e: React.TouchEvent) => {
-      const touch = e.touches[0];
-      handleDragMove(touch.clientX, touch.clientY);
-      if (dragStateRef.current.hasMoved) {
-        e.preventDefault();
+  // Stable touch handlers that read from refs
+  const handleTouchStart = useCallback((e: TouchEvent) => {
+    const touch = e.touches[0];
+    if (e.currentTarget) {
+      handleDragStartRef.current(touch.clientX, touch.clientY, e.currentTarget);
+    }
+  }, []);
+
+  const handleTouchMove = useCallback((e: TouchEvent) => {
+    const touch = e.touches[0];
+    handleDragMoveRef.current(touch.clientX, touch.clientY);
+    if (dragStateRef.current.hasMoved) {
+      e.preventDefault();
+    }
+  }, []);
+
+  const handleTouchEnd = useCallback(() => {
+    handleDragEndRef.current();
+  }, []);
+
+  // Attach touch listeners imperatively with { passive: false } so preventDefault works.
+  // React registers touch handlers as passive by default, which prevents preventDefault
+  // from stopping page scroll during drag.
+  const dragElRef = useRef<HTMLElement | null>(null);
+
+  const dragRef = useCallback(
+    (el: HTMLElement | null) => {
+      // Cleanup previous element
+      const prev = dragElRef.current;
+      if (prev) {
+        prev.removeEventListener("touchstart", handleTouchStart);
+        prev.removeEventListener("touchmove", handleTouchMove);
+        prev.removeEventListener("touchend", handleTouchEnd);
+      }
+
+      dragElRef.current = el;
+
+      if (el) {
+        el.addEventListener("touchstart", handleTouchStart, { passive: true });
+        el.addEventListener("touchmove", handleTouchMove, { passive: false });
+        el.addEventListener("touchend", handleTouchEnd, { passive: true });
       }
     },
-    [handleDragMove],
+    [handleTouchStart, handleTouchMove, handleTouchEnd],
   );
-
-  const onTouchEnd = useCallback(() => {
-    handleDragEnd();
-  }, [handleDragEnd]);
 
   const onMouseDown = useCallback(
     (e: React.MouseEvent) => {
@@ -229,6 +259,7 @@ export function useDraggable(): UseDraggableReturn {
         top: `${dragPosition.y}px`,
         transform: "translate(-50%, -50%)",
         transition: "none",
+        touchAction: "none",
       }
     : undefined;
 
@@ -238,11 +269,9 @@ export function useDraggable(): UseDraggableReturn {
     isSnapping,
     dragStyle,
     handlers: {
-      onTouchStart,
-      onTouchMove,
-      onTouchEnd,
       onMouseDown,
     },
+    dragRef,
     wasDrag,
   };
 }
