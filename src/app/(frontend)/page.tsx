@@ -12,6 +12,7 @@ import HowItWorksSection from "@/components/landing/HowItWorksSection";
 import OrganizersSection from "@/components/landing/OrganizersSection";
 import OrganizerWaitlistModal from "@/components/landing/OrganizerWaitlistModal";
 import ParallaxMountain from "@/components/landing/ParallaxMountain";
+import PioneerCounterSection from "@/components/landing/PioneerCounterSection";
 import StravaShowcaseSection from "@/components/landing/StravaShowcaseSection";
 import TestimonialsSection from "@/components/landing/TestimonialsSection";
 import {
@@ -46,9 +47,10 @@ const DEFAULT_SECTIONS: CmsHomepageSection[] = [
   { key: "gamification", label: "Badges & Gamification", enabled: true, order: 5 },
   { key: "categories", label: "Event Categories", enabled: true, order: 6 },
   { key: "organizers", label: "Trusted Organizers", enabled: true, order: 7 },
-  { key: "testimonials", label: "Testimonials", enabled: true, order: 8 },
-  { key: "faq", label: "FAQ", enabled: true, order: 9 },
-  { key: "contact_cta", label: "Contact CTA", enabled: true, order: 10 },
+  { key: "pioneer_counter", label: "Pioneer Counter", enabled: true, order: 8 },
+  { key: "testimonials", label: "Testimonials", enabled: true, order: 9 },
+  { key: "faq", label: "FAQ", enabled: true, order: 10 },
+  { key: "contact_cta", label: "Contact CTA", enabled: true, order: 11 },
 ];
 
 function BentoEventsSkeleton() {
@@ -215,6 +217,9 @@ function renderSection(key: string, parallaxImageUrl: string, heroData: HeroData
           <OrganizersSection />
         </Suspense>
       );
+    }
+    case "pioneer_counter": {
+      return <PioneerCounterSection />;
     }
     case "testimonials": {
       return (
