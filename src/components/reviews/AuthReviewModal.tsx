@@ -249,10 +249,9 @@ export default function AuthReviewModal({
         if (data.user) {
           // Set custom username if provided, otherwise generate one
           const usernameTrimmed = username.trim().toLowerCase();
-          await (usernameTrimmed && usernameStatus === "available" ? supabase
-              .from("users")
-              .update({ username: usernameTrimmed })
-              .eq("id", data.user.id) : generateUsername(supabase, data.user.id, trimmedEmail));
+          await (usernameTrimmed && usernameStatus === "available"
+            ? supabase.from("users").update({ username: usernameTrimmed }).eq("id", data.user.id)
+            : generateUsername(supabase, data.user.id, trimmedEmail));
           const profile = await fetchUserProfile(data.user.id, fullName.trim());
           setAuthenticatedUser(profile);
           setUserDisplay(fullName.trim());
