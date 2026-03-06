@@ -5,15 +5,18 @@ import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { DebugFlagProvider } from "@/components/debug/DebugFlagContext";
 import MobileNav from "@/components/layout/MobileNav";
 import Navbar from "@/components/layout/Navbar";
 import { NavigationProvider } from "@/components/navigation/NavigationContext";
 import NavigationLoader from "@/components/navigation/NavigationLoader";
 import OfflineIndicator from "@/components/pwa/OfflineIndicator";
-import type { BorderTier } from "@/lib/constants/avatar-borders";
+import { type CmsFeatureFlags } from "@/lib/cms/types";
+import { type BorderTier } from "@/lib/constants/avatar-borders";
 import { BreadcrumbProvider } from "@/lib/contexts/BreadcrumbContext";
 import { createClient } from "@/lib/supabase/client";
 
+const DebugToolPanel = dynamic(() => import("@/components/debug/DebugToolPanel"), { ssr: false });
 const DemoBanner = dynamic(() => import("@/components/layout/DemoBanner"));
 const MobileDrawer = dynamic(() => import("@/components/layout/MobileDrawer"));
 const ChatBubble = dynamic(() => import("@/components/chat/ChatBubble"), { ssr: false });
@@ -57,6 +60,9 @@ interface ClientShellProps {
   initialNavLayout?: string;
   activityFeedEnabled?: boolean;
   adminUserIds?: string[];
+  featureFlags?: CmsFeatureFlags | null;
+  siteSettings?: { site_name?: string; tagline?: string; nav_layout?: string } | null;
+  heroSlideCount?: number;
 }
 
 export default function ClientShell({
@@ -64,6 +70,9 @@ export default function ClientShell({
   initialNavLayout = "strip",
   activityFeedEnabled = false,
   adminUserIds = [],
+  featureFlags = null,
+  siteSettings = null,
+  heroSlideCount = 0,
 }: ClientShellProps) {
   const pathname = usePathname();
   const isLighthouse = useMemo(
@@ -71,6 +80,13 @@ export default function ClientShell({
       typeof globalThis !== "undefined" &&
       globalThis.location !== undefined &&
       new URLSearchParams(globalThis.location.search).has("lighthouse"),
+    [],
+  );
+  const isDebugMode = useMemo(
+    () =>
+      typeof globalThis !== "undefined" &&
+      globalThis.location !== undefined &&
+      new URLSearchParams(globalThis.location.search).has("debug_tool"),
     [],
   );
   const supabase = createClient();
@@ -86,6 +102,9 @@ export default function ClientShell({
   const [navLayout] = useState<string>(initialNavLayout);
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
+
+  const isAdmin = !!user && adminUserIds.includes(user.id);
+  const showDebugPanel = isDebugMode && isAdmin && !loading;
 
   const fetchRole = useCallback(
     async (userId: string) => {
@@ -215,48 +234,60 @@ export default function ClientShell({
   const handleMenuOpen = useCallback(() => setDrawerOpen(true), []);
 
   return (
-    <NavigationProvider>
-      <OfflineIndicator />
-      <NavigationLoader />
-      <div
-        className={`transition-all duration-300 origin-top min-h-dvh flex flex-col ${
-          drawerOpen ? "scale-[0.95] opacity-50 rounded-xl overflow-hidden pointer-events-none" : ""
-        }`}
-      >
-        {!isLighthouse && <DemoBanner isLoggedIn={!loading && !!user && !user.is_anonymous} />}
-        <Navbar
+    <DebugFlagProvider active={showDebugPanel} serverFlags={featureFlags}>
+      <NavigationProvider>
+        <OfflineIndicator />
+        <NavigationLoader />
+        <div
+          className={`transition-all duration-300 origin-top min-h-dvh flex flex-col ${
+            drawerOpen
+              ? "scale-[0.95] opacity-50 rounded-xl overflow-hidden pointer-events-none"
+              : ""
+          }`}
+        >
+          {!isLighthouse && <DemoBanner isLoggedIn={!loading && !!user && !user.is_anonymous} />}
+          <Navbar
+            user={user}
+            role={role}
+            loading={loading}
+            activities={activities}
+            navLayout={navLayout}
+            activeBorder={activeBorder}
+            activityFeedEnabled={activityFeedEnabled}
+            isAdmin={isAdmin}
+            onLogout={() => void handleLogout()}
+            onMenuOpen={handleMenuOpen}
+            onBorderChange={(borderId, tier, color) => {
+              setActiveBorder(borderId ? { id: borderId, tier, color } : null);
+            }}
+          />
+          <BreadcrumbProvider>
+            <div className="flex-1 pb-16 md:pb-0">{children}</div>
+          </BreadcrumbProvider>
+          <MobileNav user={user} role={role} activityFeedEnabled={activityFeedEnabled} />
+        </div>
+
+        <MobileDrawer
+          open={drawerOpen}
+          onClose={handleDrawerClose}
+          activities={activities}
           user={user}
           role={role}
-          loading={loading}
-          activities={activities}
-          navLayout={navLayout}
-          activeBorder={activeBorder}
-          activityFeedEnabled={activityFeedEnabled}
-          isAdmin={!!user && adminUserIds.includes(user.id)}
+          isAdmin={isAdmin}
           onLogout={() => void handleLogout()}
-          onMenuOpen={handleMenuOpen}
-          onBorderChange={(borderId, tier, color) => {
-            setActiveBorder(borderId ? { id: borderId, tier, color } : null);
-          }}
         />
-        <BreadcrumbProvider>
-          <div className="flex-1 pb-16 md:pb-0">{children}</div>
-        </BreadcrumbProvider>
-        <MobileNav user={user} role={role} activityFeedEnabled={activityFeedEnabled} />
-      </div>
 
-      <MobileDrawer
-        open={drawerOpen}
-        onClose={handleDrawerClose}
-        activities={activities}
-        user={user}
-        role={role}
-        isAdmin={!!user && adminUserIds.includes(user.id)}
-        onLogout={() => void handleLogout()}
-      />
-
-      <ChatBubble />
-      <InstallPrompt />
-    </NavigationProvider>
+        <ChatBubble />
+        <InstallPrompt />
+        {showDebugPanel && user && (
+          <DebugToolPanel
+            user={user}
+            role={role}
+            siteSettings={siteSettings}
+            heroSlideCount={heroSlideCount}
+          />
+        )}
+      </NavigationProvider>
+    </DebugFlagProvider>
   );
 }
