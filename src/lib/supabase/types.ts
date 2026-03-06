@@ -42,29 +42,41 @@ export interface Database {
       organizer_profiles: {
         Row: {
           id: string;
-          user_id: string;
+          user_id: string | null;
           org_name: string;
           description: string | null;
           logo_url: string | null;
           payment_info: Json;
+          claim_token: string | null;
+          claim_expires_at: string | null;
+          is_claimed: boolean;
+          pending_username: string | null;
           created_at: string;
         };
         Insert: {
           id?: string;
-          user_id: string;
+          user_id: string | null;
           org_name: string;
           description?: string | null;
           logo_url?: string | null;
           payment_info?: Json;
+          claim_token?: string | null;
+          claim_expires_at?: string | null;
+          is_claimed?: boolean;
+          pending_username?: string | null;
           created_at?: string;
         };
         Update: {
           id?: string;
-          user_id?: string;
+          user_id?: string | null;
           org_name?: string;
           description?: string | null;
           logo_url?: string | null;
           payment_info?: Json;
+          claim_token?: string | null;
+          claim_expires_at?: string | null;
+          is_claimed?: boolean;
+          pending_username?: string | null;
           created_at?: string;
         };
         Relationships: [];
