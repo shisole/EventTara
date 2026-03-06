@@ -10,6 +10,7 @@ const navItems = [
   { href: "/admin/feature-flags", label: "Feature Flags", icon: "flag" },
   { href: "/admin/hero", label: "Hero Banners", icon: "image" },
   { href: "/admin/sections", label: "Sections", icon: "layers" },
+  { href: "/admin/organizers", label: "Organizers", icon: "users" },
 ] as const;
 
 function NavIcon({ icon }: { icon: (typeof navItems)[number]["icon"] }) {
@@ -58,6 +59,18 @@ function NavIcon({ icon }: { icon: (typeof navItems)[number]["icon"] }) {
             strokeLinejoin="round"
             strokeWidth={2}
             d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+          />
+        </svg>
+      );
+    }
+    case "users": {
+      return (
+        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
           />
         </svg>
       );
