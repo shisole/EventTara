@@ -38,6 +38,7 @@ const FLAG_LABELS: Record<keyof Omit<CmsFeatureFlags, "id">, string> = {
   organizer_reviews: "Organizer Reviews",
   events_two_col_mobile: "Events 2-Col Mobile",
   show_coming_soon: "Show Coming Soon",
+  ewallet_payments: "E-Wallet Payments",
 };
 
 type FlagKey = keyof Omit<CmsFeatureFlags, "id">;
@@ -51,6 +52,7 @@ const FLAG_KEYS: FlagKey[] = [
   "organizer_reviews",
   "events_two_col_mobile",
   "show_coming_soon",
+  "ewallet_payments",
 ];
 
 /* ------------------------------------------------------------------ */
