@@ -186,6 +186,7 @@ export default async function OrganizerReviewsPage({
 
       <OrganizerReviewSection
         organizerId={orgId}
+        organizerName={profile.org_name}
         initialData={orgReviewsData}
         currentUser={currentUserInfo}
         isOwnProfile={isOwnProfile}

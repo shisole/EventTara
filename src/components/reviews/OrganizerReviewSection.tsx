@@ -1,6 +1,8 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
 import type { OrganizerReviewsResponse } from "@/lib/types/organizer-reviews";
@@ -8,8 +10,11 @@ import type { OrganizerReviewsResponse } from "@/lib/types/organizer-reviews";
 import OrganizerReviewForm from "./OrganizerReviewForm";
 import OrganizerReviewList from "./OrganizerReviewList";
 
+const AuthReviewModal = dynamic(() => import("./AuthReviewModal"), { ssr: false });
+
 interface OrganizerReviewSectionProps {
   organizerId: string;
+  organizerName: string;
   initialData: OrganizerReviewsResponse;
   /** Current user info — null if logged out or guest */
   currentUser: { id: string; fullName: string } | null;
@@ -23,6 +28,7 @@ interface OrganizerReviewSectionProps {
 
 export default function OrganizerReviewSection({
   organizerId,
+  organizerName,
   initialData,
   currentUser,
   isOwnProfile,
@@ -31,8 +37,13 @@ export default function OrganizerReviewSection({
 }: OrganizerReviewSectionProps) {
   const [data, setData] = useState<OrganizerReviewsResponse>(initialData);
   const [showForm, setShowForm] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [formKey, setFormKey] = useState(0);
   const [myReviewId, setMyReviewId] = useState<string | null>(existingReviewId);
+  const [activeUser, setActiveUser] = useState(currentUser);
+
+  const router = useRouter();
+  const isLoggedIn = !!activeUser;
 
   const existingReview = myReviewId ? data.reviews.find((r) => r.id === myReviewId) : null;
 
@@ -44,9 +55,9 @@ export default function OrganizerReviewSection({
         setData(fresh);
         // Find the current user's review in the refreshed data
         // Try by user_id first (non-anonymous), then fall back to existing myReviewId
-        if (currentUser) {
+        if (activeUser) {
           const mine =
-            fresh.reviews.find((r) => r.user_id === currentUser.id) ??
+            fresh.reviews.find((r) => r.user_id === activeUser.id) ??
             fresh.reviews.find((r) => r.id === myReviewId);
           if (mine) setMyReviewId(mine.id);
         }
@@ -54,7 +65,7 @@ export default function OrganizerReviewSection({
     } catch {
       // Silently fail
     }
-  }, [organizerId, currentUser, myReviewId]);
+  }, [organizerId, activeUser, myReviewId]);
 
   const handleSuccess = useCallback(() => {
     setShowForm(false);
@@ -62,7 +73,7 @@ export default function OrganizerReviewSection({
     void refresh();
   }, [refresh]);
 
-  const canReview = !!currentUser && !isOwnProfile;
+  const canReview = !isOwnProfile;
   const hasReviewed = !!myReviewId;
 
   return (
@@ -100,7 +111,7 @@ export default function OrganizerReviewSection({
                 key={formKey}
                 organizerId={organizerId}
                 existingReview={existingReview ?? undefined}
-                userName={currentUser.fullName}
+                userName={activeUser!.fullName}
                 onSuccess={handleSuccess}
               />
             </div>
@@ -108,7 +119,13 @@ export default function OrganizerReviewSection({
             <div className="text-center">
               <button
                 type="button"
-                onClick={() => setShowForm(true)}
+                onClick={() => {
+                  if (isLoggedIn) {
+                    setShowForm(true);
+                  } else {
+                    setShowAuthModal(true);
+                  }
+                }}
                 className="rounded-lg bg-teal-600 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-teal-700 dark:bg-teal-700 dark:hover:bg-teal-600"
               >
                 {hasReviewed ? "Edit Your Review" : "Write a Review"}
@@ -126,6 +143,19 @@ export default function OrganizerReviewSection({
           <p className="text-3xl mb-2">&#x2B50;</p>
           <p className="text-gray-500 dark:text-gray-400">No reviews yet. Be the first!</p>
         </div>
+      )}
+
+      {showAuthModal && (
+        <AuthReviewModal
+          organizerName={organizerName}
+          onAuthenticated={(user) => {
+            setActiveUser(user);
+            setShowAuthModal(false);
+            setShowForm(true);
+            router.refresh();
+          }}
+          onClose={() => setShowAuthModal(false)}
+        />
       )}
     </div>
   );
