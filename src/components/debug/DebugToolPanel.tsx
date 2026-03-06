@@ -103,6 +103,14 @@ export default function DebugToolPanel({
       });
   }, [user.id]);
 
+  // Add padding to body when panel is expanded
+  useEffect(() => {
+    document.body.style.paddingBottom = open ? "300px" : "";
+    return () => {
+      document.body.style.paddingBottom = "";
+    };
+  }, [open]);
+
   const handleCopyUserId = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(user.id);
