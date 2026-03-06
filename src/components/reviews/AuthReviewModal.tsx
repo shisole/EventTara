@@ -10,6 +10,7 @@ import { generateUsername } from "@/lib/utils/generate-username";
 
 type ModalState = "form" | "verify-code" | "success";
 type AuthMethod = "password" | "otp";
+type AuthMode = "login" | "signup";
 
 const CODE_LENGTH = 6;
 const emptyCode = () => Array.from<string>({ length: CODE_LENGTH }).fill("");
@@ -40,8 +41,11 @@ export default function AuthReviewModal({
 }: AuthReviewModalProps) {
   const [state, setState] = useState<ModalState>("form");
   const [authMethod, setAuthMethod] = useState<AuthMethod>("password");
+  const [authMode, setAuthMode] = useState<AuthMode>("login");
   const [email, setEmail] = useState("");
+  const [fullName, setFullName] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [code, setCode] = useState<string[]>(emptyCode());
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -131,6 +135,90 @@ export default function AuthReviewModal({
         setState("success");
       } else {
         setError("Something went wrong. Please try again.");
+      }
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    if (!fullName.trim()) {
+      setError("Please enter your full name.");
+      return;
+    }
+
+    if (authMethod === "password") {
+      if (!password || !confirmPassword) {
+        setError("Please enter a password and confirm it.");
+        return;
+      }
+      if (password !== confirmPassword) {
+        setError("Passwords do not match.");
+        return;
+      }
+      if (password.length < 8) {
+        setError("Password must be at least 8 characters.");
+        return;
+      }
+    }
+
+    setLoading(true);
+    try {
+      const supabase = createClient();
+
+      if (authMethod === "password") {
+        const { data, error: signUpError } = await supabase.auth.signUp({
+          email: trimmedEmail,
+          password,
+          options: {
+            data: { full_name: fullName.trim() },
+          },
+        });
+
+        if (signUpError) {
+          setError(signUpError.message || "Signup failed. Please try again.");
+          return;
+        }
+
+        if (data.user) {
+          await generateUsername(supabase, data.user.id, trimmedEmail);
+          const profile = await fetchUserProfile(data.user.id, fullName.trim());
+          setAuthenticatedUser(profile);
+          setUserDisplay(fullName.trim());
+          setState("success");
+        } else {
+          setError("Signup succeeded but no user was returned. Please try again.");
+        }
+      } else {
+        const { error: otpError } = await supabase.auth.signInWithOtp({
+          email: trimmedEmail,
+          options: {
+            data: { full_name: fullName.trim() },
+          },
+        });
+
+        if (otpError) {
+          if (otpError.message?.includes("rate")) {
+            setError("Too many attempts. Try again in a few minutes.");
+          } else {
+            setError(otpError.message || "Something went wrong. Please try again.");
+          }
+          return;
+        }
+
+        setUserDisplay(trimmedEmail);
+        setState("verify-code");
       }
     } catch {
       setError("Something went wrong. Please try again.");
@@ -278,7 +366,13 @@ export default function AuthReviewModal({
 
         {state === "form" && (
           <form
-            onSubmit={authMethod === "password" ? handlePasswordLogin : handleOtpSubmit}
+            onSubmit={
+              authMode === "signup"
+                ? handleSignup
+                : authMethod === "password"
+                  ? handlePasswordLogin
+                  : handleOtpSubmit
+            }
             className="space-y-5"
           >
             <div className="text-center">
@@ -289,10 +383,34 @@ export default function AuthReviewModal({
                 id="auth-review-modal-title"
                 className="text-xl font-heading font-bold text-gray-900 dark:text-white"
               >
-                Sign in to leave your review
+                {authMode === "signup"
+                  ? "Create account to review"
+                  : "Sign in to leave your review"}
               </h2>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{organizerName}</p>
             </div>
+
+            {authMode === "signup" && authMethod === "password" && (
+              <div>
+                <label
+                  htmlFor="auth-review-fullname"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
+                >
+                  Full name
+                </label>
+                <input
+                  id="auth-review-fullname"
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => {
+                    setFullName(e.target.value);
+                  }}
+                  placeholder="Your name"
+                  autoFocus
+                  className={inputClassName}
+                />
+              </div>
+            )}
 
             <div>
               <label
@@ -309,38 +427,64 @@ export default function AuthReviewModal({
                   setEmail(e.target.value);
                 }}
                 placeholder="you@example.com"
-                autoFocus
+                autoFocus={authMode === "login"}
                 className={inputClassName}
               />
             </div>
 
             {authMethod === "password" && (
-              <div>
-                <label
-                  htmlFor="auth-review-password"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
-                >
-                  Password
-                </label>
-                <input
-                  id="auth-review-password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                  }}
-                  placeholder="Enter your password"
-                  className={inputClassName}
-                />
-                <div className="flex justify-end mt-1.5">
-                  <Link
-                    href="/forgot-password"
-                    className="text-sm text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 font-medium"
+              <>
+                <div>
+                  <label
+                    htmlFor="auth-review-password"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
                   >
-                    Forgot password?
-                  </Link>
+                    Password
+                  </label>
+                  <input
+                    id="auth-review-password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                    }}
+                    placeholder={
+                      authMode === "signup" ? "At least 8 characters" : "Enter your password"
+                    }
+                    className={inputClassName}
+                  />
+                  {authMode === "login" && (
+                    <div className="flex justify-end mt-1.5">
+                      <Link
+                        href="/forgot-password"
+                        className="text-sm text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 font-medium"
+                      >
+                        Forgot password?
+                      </Link>
+                    </div>
+                  )}
                 </div>
-              </div>
+                {authMode === "signup" && (
+                  <div>
+                    <label
+                      htmlFor="auth-review-confirm-password"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
+                    >
+                      Confirm password
+                    </label>
+                    <input
+                      id="auth-review-confirm-password"
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => {
+                        setConfirmPassword(e.target.value);
+                      }}
+                      placeholder="Confirm your password"
+                      className={inputClassName}
+                    />
+                  </div>
+                )}
+              </>
             )}
 
             {error && (
@@ -351,32 +495,63 @@ export default function AuthReviewModal({
 
             <Button type="submit" className="w-full" size="lg" disabled={loading}>
               {loading
-                ? authMethod === "password"
-                  ? "Signing in..."
-                  : "Sending code..."
-                : authMethod === "password"
-                  ? "Sign In"
-                  : "Send Code"}
+                ? authMode === "signup"
+                  ? authMethod === "password"
+                    ? "Creating account..."
+                    : "Sending code..."
+                  : authMethod === "password"
+                    ? "Signing in..."
+                    : "Sending code..."
+                : authMode === "signup"
+                  ? authMethod === "password"
+                    ? "Create Account"
+                    : "Send Code"
+                  : authMethod === "password"
+                    ? "Sign In"
+                    : "Send Code"}
             </Button>
 
-            <div className="text-center">
+            <div className="space-y-2 text-center">
               <button
                 type="button"
                 onClick={() => {
                   setAuthMethod(authMethod === "password" ? "otp" : "password");
                   setError("");
+                  setFullName("");
+                  setConfirmPassword("");
                 }}
-                className="text-sm text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 font-medium"
+                className="block w-full text-sm text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 font-medium"
               >
                 {authMethod === "password"
-                  ? "Use a one-time code instead"
-                  : "Sign in with password instead"}
+                  ? authMode === "signup"
+                    ? "Use email code instead"
+                    : "Use a one-time code instead"
+                  : authMode === "signup"
+                    ? "Use password instead"
+                    : "Sign in with password instead"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setAuthMode(authMode === "login" ? "signup" : "login");
+                  setError("");
+                  setEmail("");
+                  setPassword("");
+                  setConfirmPassword("");
+                  setFullName("");
+                }}
+                className="block w-full text-sm text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+              >
+                {authMode === "login"
+                  ? "Don't have an account? Sign up"
+                  : "Already have an account? Sign in"}
               </button>
             </div>
 
             {authMethod === "otp" && (
               <p className="text-xs text-center text-gray-400 dark:text-gray-500">
-                We&apos;ll send a 6-digit code to your email. Works for new and existing accounts.
+                We&apos;ll send a 6-digit code to your email.
+                {authMode === "signup" && " Works for new and existing accounts."}
               </p>
             )}
           </form>
