@@ -18,6 +18,7 @@ export async function GET() {
   return NextResponse.json({
     activityFeedEnabled: enabled,
     showComingSoon: flags?.show_coming_soon === true,
+    ewalletPayments: flags?.ewallet_payments === true,
     envOverride: process.env.ACTIVITY_FEED_ENABLED ?? null,
     cmsResult,
     cmsError,

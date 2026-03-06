@@ -40,7 +40,11 @@ const FLAG_META: Record<string, { label: string; description: string }> = {
   show_coming_soon: {
     label: "Show Coming Soon Features",
     description:
-      "Display locked 'Coming Soon' UI for unreleased features (e.g., Facebook login, GCash/Maya, gamification).",
+      "Display locked 'Coming Soon' UI for unreleased features (e.g., Facebook login, gamification).",
+  },
+  ewallet_payments: {
+    label: "E-Wallet Payments",
+    description: "Enable GCash and Maya as payment methods for event bookings.",
   },
 };
 
