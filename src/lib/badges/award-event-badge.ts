@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { checkAndAwardSystemBadges } from "@/lib/badges/check-system-badges";
 import { sendEmail } from "@/lib/email/send";
 import { badgeAwardedHtml } from "@/lib/email/templates/badge-awarded";
+import { reviewRequestHtml } from "@/lib/email/templates/review-request";
 import { createNotifications } from "@/lib/notifications/create";
 import type { Database } from "@/lib/supabase/types";
 
@@ -33,6 +34,9 @@ export async function onEventCompleted(
     // Re-evaluate system badges for all checked-in users (distance milestones
     // require completed events, so this triggers on completion)
     reEvaluateSystemBadges(checkedInUserIds, supabase);
+
+    // Fire-and-forget: review request emails
+    sendReviewRequestEmails(eventId, checkedInUserIds, supabase).catch(() => null);
 
     return { awarded: eventBadgeResult };
   } catch (error) {
@@ -140,12 +144,87 @@ async function sendBadgeEmails(
           badgeTitle: badge.title,
           badgeDescription: badge.description,
           badgeImageUrl: badge.image_url,
-          eventTitle: event?.title || "an EventTara event",
+          eventTitle: event?.title ?? "an EventTara event",
           username: u.username ?? undefined,
           badgeId: badge.id,
         }),
       }).catch((error_) => {
         console.error("[awardEventBadge] email failed:", error_);
+      });
+    }
+  }
+}
+
+/**
+ * Fire-and-forget: send review request emails to checked-in participants.
+ * Fetches event details and organizer info, then sends review invitation
+ * emails to all non-guest participants with valid email addresses.
+ *
+ * Never throws — errors are logged internally.
+ */
+async function sendReviewRequestEmails(
+  eventId: string,
+  userIds: string[],
+  supabase: SupabaseClient<Database>,
+) {
+  // Return early if no user IDs
+  if (userIds.length === 0) return;
+
+  // Fetch event details
+  const { data: event } = await supabase
+    .from("events")
+    .select("title, date, organizer_id")
+    .eq("id", eventId)
+    .single();
+
+  if (!event?.organizer_id) return;
+
+  // Fetch organizer name
+  const { data: organizer } = await supabase
+    .from("organizer_profiles")
+    .select("org_name")
+    .eq("user_id", event.organizer_id)
+    .single();
+
+  const organizerName = organizer?.org_name ?? null;
+
+  // Fetch user emails, filtering out guests
+  const { data: users } = await supabase
+    .from("users")
+    .select("id, email, full_name")
+    .in("id", userIds)
+    .eq("is_guest", false);
+
+  if (!users) return;
+
+  // Format event date
+  const eventDate = event.date
+    ? new Date(event.date).toLocaleDateString("en-US", {
+        weekday: "long",
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
+    : "Date TBD";
+
+  // Build review URL
+  const reviewUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://eventtara.com"}/organizers/${event.organizer_id}/reviews`;
+
+  // Send emails to all users with non-null email
+  for (const u of users) {
+    if (u.email) {
+      sendEmail({
+        to: u.email,
+        subject: `Share your review for ${event.title}`,
+        html: reviewRequestHtml({
+          userName: u.full_name || "Adventurer",
+          eventTitle: event.title,
+          eventDate,
+          organizerName: organizerName ?? "the event organizer",
+          reviewUrl,
+        }),
+      }).catch((error_) => {
+        console.error("[sendReviewRequestEmails] email failed:", error_);
       });
     }
   }

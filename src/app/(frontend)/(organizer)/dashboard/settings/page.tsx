@@ -1,5 +1,6 @@
 import OrganizerProfileForm from "@/components/dashboard/OrganizerProfileForm";
 import PaymentSettingsForm from "@/components/dashboard/PaymentSettingsForm";
+import ReviewQRCode from "@/components/dashboard/ReviewQRCode";
 import StravaConnectionCard from "@/components/strava/StravaConnectionCard";
 import { createClient } from "@/lib/supabase/server";
 
@@ -62,6 +63,15 @@ export default async function SettingsPage() {
             <StravaConnectionCard />
           </div>
         </section>
+
+        {profile && (
+          <section>
+            <h2 className="text-xl font-heading font-bold mb-4 dark:text-white">Review QR Code</h2>
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-6">
+              <ReviewQRCode organizerId={profile.id} organizerName={profile.org_name} />
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );
