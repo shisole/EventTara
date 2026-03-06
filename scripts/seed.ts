@@ -1972,6 +1972,7 @@ async function createOrganizerProfiles(userMap: Map<string, string>): Promise<Ma
           gcash_number: "09171234567",
           maya_number: "09181234567",
         },
+        is_demo: true,
       })
       .select("id")
       .single();
@@ -2014,6 +2015,7 @@ async function createEvents(orgMap: Map<string, string>): Promise<Map<string, st
         price: event.price,
         status: event.status,
         cover_image_url: event.cover_image_url,
+        is_demo: true,
       })
       .select("id")
       .single();

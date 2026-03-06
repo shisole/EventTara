@@ -14,7 +14,7 @@ import EventLocationMap from "@/components/maps/EventLocationMap";
 import ReviewForm from "@/components/reviews/ReviewForm";
 import ReviewList from "@/components/reviews/ReviewList";
 import EventRouteSection from "@/components/strava/EventRouteSection";
-import { Breadcrumbs, UIBadge } from "@/components/ui";
+import { Breadcrumbs, DemoBadge, UIBadge } from "@/components/ui";
 import { resolvePresetImage } from "@/lib/constants/avatars";
 import { BreadcrumbTitle } from "@/lib/contexts/BreadcrumbContext";
 import { cdnUrl } from "@/lib/storage";
@@ -425,6 +425,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
             <div className="flex items-center gap-2 mb-3">
               <UIBadge variant={event.type as any}>{typeLabels[event.type] || event.type}</UIBadge>
               {event.difficulty_level && <DifficultyBadge level={event.difficulty_level} />}
+              {event.is_demo && <DemoBadge />}
             </div>
             <h1 className="text-3xl md:text-4xl font-heading font-bold mb-4">{event.title}</h1>
             <div className="flex flex-wrap items-center gap-4 text-gray-600 dark:text-gray-400">

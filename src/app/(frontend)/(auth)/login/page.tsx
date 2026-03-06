@@ -27,6 +27,15 @@ export default function LoginPage() {
 
   // OTP code state
   const [code, setCode] = useState<string[]>(emptyCode());
+  const [showComingSoon, setShowComingSoon] = useState(false);
+
+  useEffect(() => {
+    void fetch("/api/feature-flags")
+      .then((r) => r.json())
+      .then((d: { showComingSoon?: boolean }) => setShowComingSoon(d.showComingSoon === true))
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     void supabase.auth.getUser().then(({ data: { user } }) => {
@@ -239,31 +248,35 @@ export default function LoginPage() {
     <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md p-8 space-y-6">
       <h2 className="text-2xl font-heading font-bold text-center">Welcome Back!</h2>
 
-      <Button disabled className="w-full bg-[#1877F2]/60 cursor-not-allowed" size="lg">
-        Continue with Facebook
-        <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium">
-          Coming Soon
-        </span>
-      </Button>
+      {showComingSoon && (
+        <>
+          <Button disabled className="w-full bg-[#1877F2]/60 cursor-not-allowed" size="lg">
+            Continue with Facebook
+            <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium">
+              Coming Soon
+            </span>
+          </Button>
 
-      <Button disabled className="w-full bg-[#FC4C02]/60 cursor-not-allowed" size="lg">
-        <StravaIcon className="w-5 h-5 mr-2" />
-        Continue with Strava
-        <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium">
-          Coming Soon
-        </span>
-      </Button>
+          <Button disabled className="w-full bg-[#FC4C02]/60 cursor-not-allowed" size="lg">
+            <StravaIcon className="w-5 h-5 mr-2" />
+            Continue with Strava
+            <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium">
+              Coming Soon
+            </span>
+          </Button>
 
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-200 dark:border-gray-700" />
-        </div>
-        <div className="relative flex justify-center text-sm">
-          <span className="bg-white dark:bg-gray-900 px-4 text-gray-400 dark:text-gray-500">
-            or
-          </span>
-        </div>
-      </div>
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200 dark:border-gray-700" />
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="bg-white dark:bg-gray-900 px-4 text-gray-400 dark:text-gray-500">
+                or
+              </span>
+            </div>
+          </div>
+        </>
+      )}
 
       <form
         onSubmit={authMethod === "password" ? handlePasswordLogin : handleOtpSubmit}

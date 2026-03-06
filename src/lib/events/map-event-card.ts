@@ -24,6 +24,7 @@ export interface EventCardData {
   race_distances: number[];
   hasRoute?: boolean;
   is_featured?: boolean;
+  is_demo?: boolean;
 }
 
 export interface EventEnrichments {
@@ -133,5 +134,6 @@ export function mapEventToCard(
     race_distances: enrichments.raceDistances[event.id] ?? [],
     hasRoute: enrichments.routeEventIds.has(event.id),
     is_featured: event.is_featured ?? false,
+    is_demo: event.is_demo ?? false,
   };
 }
