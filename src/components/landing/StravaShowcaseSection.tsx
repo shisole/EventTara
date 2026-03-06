@@ -1,5 +1,5 @@
 import { CheckCircleIcon, ExploreIcon, StarIcon, StravaIcon } from "@/components/icons";
-import { getStravaShowcaseFlags } from "@/lib/cms/cached";
+import { getStravaShowcaseFlags, isComingSoonEnabled } from "@/lib/cms/cached";
 import { createClient } from "@/lib/supabase/server";
 
 import StravaShowcaseRouteMap from "./StravaShowcaseRouteMap";
@@ -49,7 +49,7 @@ async function fetchAggregateStats(): Promise<{
 }
 
 export default async function StravaShowcaseSection() {
-  const flags = await getStravaShowcaseFlags();
+  const [flags, comingSoon] = await Promise.all([getStravaShowcaseFlags(), isComingSoonEnabled()]);
   const anyEnabled = flags.features || flags.stats || flags.routeMap;
 
   if (!anyEnabled) return null;
@@ -58,8 +58,7 @@ export default async function StravaShowcaseSection() {
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-orange-50/60 to-white py-16 dark:from-orange-950/20 dark:to-gray-950 sm:py-20">
-      {/* Blurred content */}
-      <div className="pointer-events-none select-none blur-[6px]">
+      <div className={comingSoon ? "pointer-events-none select-none blur-[6px]" : undefined}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Section header */}
           <div className="mb-12 text-center">
@@ -149,22 +148,23 @@ export default async function StravaShowcaseSection() {
         </div>
       </div>
 
-      {/* Coming Soon overlay */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="rounded-2xl bg-white/90 px-8 py-5 shadow-lg backdrop-blur-sm dark:bg-gray-900/90">
-          <div className="flex items-center gap-3">
-            <StravaIcon className="h-6 w-6 text-[#FC4C02]" />
-            <div>
-              <p className="font-heading text-lg font-bold text-gray-900 dark:text-white">
-                Coming Soon
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Strava integration is on the way
-              </p>
+      {comingSoon && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="rounded-2xl bg-white/90 px-8 py-5 shadow-lg backdrop-blur-sm dark:bg-gray-900/90">
+            <div className="flex items-center gap-3">
+              <StravaIcon className="h-6 w-6 text-[#FC4C02]" />
+              <div>
+                <p className="font-heading text-lg font-bold text-gray-900 dark:text-white">
+                  Coming Soon
+                </p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Strava integration is on the way
+                </p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </section>
   );
 }
