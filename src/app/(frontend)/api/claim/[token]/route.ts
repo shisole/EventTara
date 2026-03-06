@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request, { params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
@@ -72,8 +72,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ tok
     return NextResponse.json({ error: "Failed to create account" }, { status: 500 });
   }
 
+  // Use service client to bypass RLS — the new user doesn't own these rows yet
+  const adminClient = createServiceClient();
+
   // Update the users table
-  const { error: userError } = await supabase
+  const { error: userError } = await adminClient
     .from("users")
     .update({
       full_name,
@@ -87,7 +90,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ tok
   }
 
   // Update the organizer profile
-  const { error: orgError } = await supabase
+  const { error: orgError } = await adminClient
     .from("organizer_profiles")
     .update({
       user_id: userId,
