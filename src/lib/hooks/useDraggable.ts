@@ -205,11 +205,14 @@ export function useDraggable(): UseDraggableReturn {
   }, []);
 
   const handleTouchMove = useCallback((e: TouchEvent) => {
-    const touch = e.touches[0];
-    handleDragMoveRef.current(touch.clientX, touch.clientY);
-    if (dragStateRef.current.hasMoved) {
+    // Always prevent default while touch is active on the bubble — if we wait
+    // until the drag threshold is crossed, the browser has already committed
+    // to scrolling and won't stop.
+    if (dragStateRef.current.isDragging) {
       e.preventDefault();
     }
+    const touch = e.touches[0];
+    handleDragMoveRef.current(touch.clientX, touch.clientY);
   }, []);
 
   const handleTouchEnd = useCallback(() => {
