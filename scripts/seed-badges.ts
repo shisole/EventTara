@@ -284,6 +284,42 @@ const MOUNTAIN_BADGE_DEFS: MountainBadgeDef[] = [
     rarity: "epic",
     eventTitles: ["Mt. Igatmon Expedition", "Mt. Igatmon Summit Day Hike", "Mt. Igatmon Traverse"],
   },
+  {
+    mountain: "Mt. Taripis",
+    title: "Mt. Taripis",
+    description:
+      "Summited Mt. Taripis in Igbaras at 1,320m — one of the Igbaras mountain group's crown jewels.",
+    image_url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=200&h=200&fit=crop",
+    rarity: "rare",
+    eventTitles: [],
+  },
+  {
+    mountain: "Bato Igmatindog",
+    title: "Bato Igmatindog",
+    description:
+      "Conquered the standing rock of Igbaras — Bato Igmatindog at 1,000m, a dramatic rock formation summit.",
+    image_url: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=200&h=200&fit=crop",
+    rarity: "rare",
+    eventTitles: [],
+  },
+  {
+    mountain: "Mt. Loboc",
+    title: "Mt. Loboc",
+    description:
+      "Reached the summit of Mt. Loboc in Igbaras at 1,000m — dense forest trails and rewarding ridgeline views.",
+    image_url: "https://images.unsplash.com/photo-1551632811-561732d1e306?w=200&h=200&fit=crop",
+    rarity: "rare",
+    eventTitles: [],
+  },
+  {
+    mountain: "Mt. Pulang Lupa",
+    title: "Mt. Pulang Lupa",
+    description:
+      "Stood on the red earth summit of Mt. Pulang Lupa in Igbaras at 1,260m — named for its distinctive reddish soil.",
+    image_url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=200&h=200&fit=crop",
+    rarity: "rare",
+    eventTitles: [],
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -534,6 +570,15 @@ const SYSTEM_BADGE_DEFS: SystemBadgeDef[] = [
     category: "location",
     rarity: "legendary",
     imageUrl: "\u{1F451}",
+  },
+  {
+    criteriaKey: "igbaras_graduate",
+    title: "Igbaras Graduate",
+    description:
+      "Conquered all 7 peaks of the Igbaras mountain group: Mt. Igatmon, Mt. Napulak, Mt. Opao, Mt. Taripis, Bato Igmatindog, Mt. Loboc, and Mt. Pulang Lupa",
+    category: "location",
+    rarity: "legendary",
+    imageUrl: "\u{1F393}",
   },
 ];
 
