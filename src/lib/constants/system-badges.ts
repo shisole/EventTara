@@ -10,9 +10,9 @@ export interface SystemBadge {
 }
 
 /**
- * All 16 system badges that are automatically awarded on check-in.
+ * All 19 system badges that are automatically awarded.
  * These are seeded into the `badges` table with `type = 'system'`
- * and evaluated by the badge engine after every check-in.
+ * and evaluated by the badge engine after check-in, signup, or review.
  */
 export const SYSTEM_BADGES: SystemBadge[] = [
   // First activity per type
@@ -148,14 +148,41 @@ export const SYSTEM_BADGES: SystemBadge[] = [
     rarity: "rare",
     imageUrl: "🔗",
   },
-  // Pioneer
+  // Pioneer (check-in)
   {
     criteriaKey: "pioneer",
-    title: "EventTara Pioneer",
+    title: "Check-in Pioneer",
     description: "Among the first 100 users to check in on EventTara",
     category: "special",
     rarity: "legendary",
     imageUrl: "🚀",
+  },
+  // Pioneer (signup)
+  {
+    criteriaKey: "pioneer_participant",
+    title: "Pioneer Participant",
+    description: "Among the first 250 users to join EventTara",
+    category: "special",
+    rarity: "legendary",
+    imageUrl: "🌟",
+  },
+  // Pioneer (organizer)
+  {
+    criteriaKey: "pioneer_organizer",
+    title: "Pioneer Organizer",
+    description: "Among the first 50 organizers on EventTara",
+    category: "special",
+    rarity: "legendary",
+    imageUrl: "🏔️",
+  },
+  // First review
+  {
+    criteriaKey: "first_review",
+    title: "First Review",
+    description: "Wrote your first organizer review on EventTara",
+    category: "special",
+    rarity: "rare",
+    imageUrl: "✍️",
   },
 ];
 
@@ -184,4 +211,7 @@ export const SYSTEM_BADGE_CRITERIA_HINTS: Record<string, string> = {
   distance_100k: "Complete a 100km+ ultra event",
   strava_connected: "Connect your Strava account",
   pioneer: "Be among the first 100 users to check in on EventTara",
+  pioneer_participant: "Be among the first 250 users to join EventTara",
+  pioneer_organizer: "Be among the first 50 organizers on EventTara",
+  first_review: "Write your first organizer review",
 };

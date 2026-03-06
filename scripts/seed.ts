@@ -2843,14 +2843,41 @@ const SYSTEM_BADGE_DEFS: SystemBadgeDef[] = [
     rarity: "legendary",
     imageUrl: "\u{1F451}",
   },
-  // Pioneer
+  // Pioneer (check-in)
   {
     criteriaKey: "pioneer",
-    title: "EventTara Pioneer",
+    title: "Check-in Pioneer",
     description: "Among the first 100 users to check in on EventTara",
     category: "special",
     rarity: "legendary",
     imageUrl: "\u{1F680}",
+  },
+  // Pioneer (signup)
+  {
+    criteriaKey: "pioneer_participant",
+    title: "Pioneer Participant",
+    description: "Among the first 250 users to join EventTara",
+    category: "special",
+    rarity: "legendary",
+    imageUrl: "\u{1F31F}",
+  },
+  // Pioneer (organizer)
+  {
+    criteriaKey: "pioneer_organizer",
+    title: "Pioneer Organizer",
+    description: "Among the first 50 organizers on EventTara",
+    category: "special",
+    rarity: "legendary",
+    imageUrl: "\u{1F3D4}\uFE0F",
+  },
+  // First review
+  {
+    criteriaKey: "first_review",
+    title: "First Review",
+    description: "Wrote your first organizer review on EventTara",
+    category: "special",
+    rarity: "rare",
+    imageUrl: "\u270D\uFE0F",
   },
 ];
 

@@ -18,36 +18,34 @@ interface OrganizerCard {
 export default async function OrganizersSection() {
   const supabase = await createClient();
 
-  const { data: organizers } = await supabase
+  // Fetch all organizer profiles (no events requirement)
+  const { data: orgProfiles } = await supabase
     .from("organizer_profiles")
-    .select("id, org_name, logo_url, events!inner(id)")
-    .in("events.status", ["published", "completed"])
+    .select("id, org_name, logo_url")
+    .order("created_at", { ascending: true })
     .limit(12);
 
-  // Dedupe (inner join can return multiples) and sort by event count
-  const uniqueOrganizers = organizers
-    ? Object.values(
-        organizers.reduce<
-          Record<
-            string,
-            { id: string; org_name: string; logo_url: string | null; event_count: number }
-          >
-        >((acc, org: any) => {
-          if (!acc[org.id]) {
-            acc[org.id] = {
-              id: org.id,
-              org_name: org.org_name,
-              logo_url: org.logo_url,
-              event_count: 0,
-            };
-          }
-          acc[org.id].event_count += Array.isArray(org.events) ? org.events.length : 1;
-          return acc;
-        }, {}),
-      ).sort((a, b) => b.event_count - a.event_count)
-    : [];
+  if (!orgProfiles || orgProfiles.length === 0) return null;
 
-  if (uniqueOrganizers.length === 0) return null;
+  // Fetch event counts per organizer
+  const orgIds = orgProfiles.map((o) => o.id);
+  const { data: eventRows } = await supabase
+    .from("events")
+    .select("organizer_id")
+    .in("organizer_id", orgIds)
+    .in("status", ["published", "completed"]);
+
+  const eventCounts: Record<string, number> = {};
+  for (const row of eventRows || []) {
+    eventCounts[row.organizer_id] = (eventCounts[row.organizer_id] || 0) + 1;
+  }
+
+  const uniqueOrganizers = orgProfiles.map((org) => ({
+    id: org.id,
+    org_name: org.org_name,
+    logo_url: org.logo_url,
+    event_count: eventCounts[org.id] || 0,
+  }));
 
   // Fetch review stats if feature is enabled
   const reviewsEnabled = await isOrganizerReviewsEnabled();
@@ -121,12 +119,12 @@ export default async function OrganizersSection() {
         <p className="mb-8 text-center text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
           Pioneer Organizers
         </p>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+        <div className="flex flex-wrap justify-center gap-4">
           {cards.map((org) => (
             <Link
               key={org.id}
               href={`/organizers/${org.id}`}
-              className="group flex flex-col items-center rounded-xl border border-gray-100 bg-gray-50/50 p-4 transition-all hover:border-lime-200 hover:bg-lime-50/50 hover:shadow-md dark:border-gray-800 dark:bg-gray-900/50 dark:hover:border-lime-900 dark:hover:bg-lime-950/20"
+              className="group flex w-36 flex-col items-center rounded-xl border border-gray-100 bg-gray-50/50 p-4 transition-all hover:border-lime-200 hover:bg-lime-50/50 hover:shadow-md dark:border-gray-800 dark:bg-gray-900/50 dark:hover:border-lime-900 dark:hover:bg-lime-950/20"
             >
               <Avatar
                 src={org.logo_url}
