@@ -6,7 +6,13 @@ import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import ClientShell from "@/components/layout/ClientShell";
 import Footer from "@/components/layout/Footer";
 import ThemeProvider from "@/components/layout/ThemeProvider";
-import { getCachedSiteSettings, isActivityFeedEnabled } from "@/lib/cms/cached";
+import {
+  getCachedFeatureFlags,
+  getCachedHeroCarousel,
+  getCachedSiteSettings,
+  isActivityFeedEnabled,
+  parseHeroSlides,
+} from "@/lib/cms/cached";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -89,9 +95,11 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const [settings, activityFeedEnabled] = await Promise.all([
+  const [settings, activityFeedEnabled, featureFlags, heroCarousel] = await Promise.all([
     getCachedSiteSettings(),
     isActivityFeedEnabled(),
+    getCachedFeatureFlags(),
+    getCachedHeroCarousel(),
   ]);
   const navLayout = settings?.nav_layout || "strip";
   const adminUserIds = (process.env.ADMIN_USER_IDS ?? "")
@@ -157,6 +165,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             initialNavLayout={navLayout}
             activityFeedEnabled={activityFeedEnabled}
             adminUserIds={adminUserIds}
+            featureFlags={featureFlags}
+            siteSettings={
+              settings
+                ? {
+                    site_name: settings.site_name,
+                    tagline: settings.tagline,
+                    nav_layout: settings.nav_layout,
+                  }
+                : null
+            }
+            heroSlideCount={parseHeroSlides(heroCarousel).length}
           >
             {children}
           </ClientShell>
