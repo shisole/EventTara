@@ -57,6 +57,9 @@ export default async function ManageEventPage({ params }: { params: Promise<{ id
     0,
   );
   const activeBookings = (bookings || []).filter((b: any) => !b.participant_cancelled).length;
+  const pendingPaymentCount = (bookings || []).filter(
+    (b: any) => b.payment_status === "pending" && !b.participant_cancelled,
+  ).length;
   const totalParticipants = activeBookings + totalCompanions;
 
   // Get check-ins
@@ -186,7 +189,12 @@ export default async function ManageEventPage({ params }: { params: Promise<{ id
         </div>
       )}
 
-      <EventDashboardTabs eventId={id} eventPrice={event.price}>
+      <EventDashboardTabs
+        eventId={id}
+        eventPrice={event.price}
+        bookingCount={activeBookings}
+        pendingPaymentCount={pendingPaymentCount}
+      >
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4">
           <div className="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm dark:shadow-gray-950/30">
