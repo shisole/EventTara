@@ -19,6 +19,24 @@ export async function GET(request: Request) {
       if (user) {
         const provider = user.app_metadata?.provider;
 
+        // Ensure public.users row exists (trigger may not have fired yet for OAuth)
+        const { data: existingRow } = await supabase
+          .from("users")
+          .select("id")
+          .eq("id", user.id)
+          .single();
+
+        if (!existingRow) {
+          const meta = user.user_metadata;
+          await supabase.from("users").insert({
+            id: user.id,
+            email: user.email ?? null,
+            full_name: meta?.full_name ?? meta?.name ?? "User",
+            avatar_url: meta?.avatar_url ?? meta?.picture ?? null,
+            role: "participant",
+          });
+        }
+
         // Sync Google profile data to users table
         if (provider === "google") {
           const meta = user.user_metadata;

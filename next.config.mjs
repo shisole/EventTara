@@ -40,6 +40,11 @@ const nextConfig = {
         protocol: "https",
         hostname: "images.unsplash.com",
       },
+      // Google user profile photos
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+      },
       // Strava CDN (athlete profile photos)
       {
         protocol: "https",
