@@ -1,4 +1,3 @@
-import dynamic from "next/dynamic";
 import { Suspense } from "react";
 
 import BentoEventsSection from "@/components/landing/BentoEventsSection";
@@ -16,6 +15,7 @@ import ParallaxMountain from "@/components/landing/ParallaxMountain";
 import PioneerCounterSection from "@/components/landing/PioneerCounterSection";
 import StravaShowcaseSection from "@/components/landing/StravaShowcaseSection";
 import TestimonialsSection from "@/components/landing/TestimonialsSection";
+import ThreeHeroSceneLoader from "@/components/landing/three/ThreeHeroSceneLoader";
 import {
   getCachedHeroCarousel,
   getCachedHomepageSections,
@@ -25,13 +25,6 @@ import {
   parseHomepageSections,
 } from "@/lib/cms/cached";
 import { type CmsHomepageSection } from "@/lib/cms/types";
-
-const ThreeHeroScene = dynamic(() => import("@/components/landing/three/ThreeHeroScene"), {
-  ssr: false,
-  loading: () => (
-    <div className="h-screen bg-gradient-to-b from-sky-400 to-sky-200 dark:from-sky-900 dark:to-slate-800" />
-  ),
-});
 
 export const metadata = {
   title: "EventTara — Outdoor Adventure Events in Panay Island",
@@ -282,7 +275,7 @@ export default async function Home() {
     <main>
       <EntryBanner />
 
-      {threejsEnabled && <ThreeHeroScene />}
+      {threejsEnabled && <ThreeHeroSceneLoader />}
 
       {enabledSections.map((section) => (
         <div key={section.key}>
