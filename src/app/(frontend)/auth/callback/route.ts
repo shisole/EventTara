@@ -45,7 +45,7 @@ export async function GET(request: Request) {
           .select("id")
           .eq("username", username)
           .neq("id", user.id)
-          .single();
+          .maybeSingle();
 
         if (taken) {
           username = `${username}${Math.floor(Math.random() * 9000) + 1000}`;

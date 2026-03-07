@@ -28,7 +28,7 @@ export async function buildUsername(
     .from("users")
     .select("id")
     .eq("username", username)
-    .single();
+    .maybeSingle();
 
   if (taken) {
     username = `${username}${Math.floor(Math.random() * 9000) + 1000}`;
@@ -51,7 +51,7 @@ export async function generateUsername(
     .from("users")
     .select("username")
     .eq("id", userId)
-    .single();
+    .maybeSingle();
 
   if (existingUser?.username) return;
 
@@ -73,7 +73,7 @@ export async function generateUsername(
     .from("users")
     .select("id")
     .eq("username", username)
-    .single();
+    .maybeSingle();
 
   if (taken) {
     username = `${username}${Math.floor(Math.random() * 9000) + 1000}`;
