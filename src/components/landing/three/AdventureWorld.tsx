@@ -1,13 +1,13 @@
 "use client";
 
 import { Environment } from "@react-three/drei";
-import { Component, type ErrorInfo, type ReactNode, Suspense } from "react";
+import { Component, type ErrorInfo, type ReactNode, Suspense, useMemo } from "react";
 
 import CameraRig from "./CameraRig";
 import Climber from "./characters/Climber";
 import Cyclist from "./characters/Cyclist";
 import Runner from "./characters/Runner";
-import MountainTerrain from "./environment/MountainTerrain";
+import MountainTerrain, { getTerrainHeight } from "./environment/MountainTerrain";
 import Road from "./environment/Road";
 import Vegetation from "./environment/Vegetation";
 
@@ -47,6 +47,14 @@ export default function AdventureWorld({
   scrollContainerRef,
   onProgressChange,
 }: AdventureWorldProps) {
+  // Place climber on the mountain surface
+  const climberX = 1.5;
+  const climberZ = 2;
+  const climberPos: [number, number, number] = useMemo(
+    () => [climberX, getTerrainHeight(climberX, climberZ) + 0.5, climberZ],
+    [],
+  );
+
   return (
     <>
       {/* Global lighting */}
@@ -62,21 +70,21 @@ export default function AdventureWorld({
         <MountainTerrain position={[0, 0, 0]} />
         <ModelErrorBoundary
           fallback={
-            <mesh position={[1.5, 7, 2]}>
-              <capsuleGeometry args={[0.2, 0.6, 8, 16]} />
+            <mesh position={climberPos}>
+              <capsuleGeometry args={[0.08, 0.2, 8, 16]} />
               <meshStandardMaterial color="#EF4444" />
             </mesh>
           }
         >
           <Suspense
             fallback={
-              <mesh position={[1.5, 7, 2]}>
-                <capsuleGeometry args={[0.2, 0.6, 8, 16]} />
+              <mesh position={climberPos}>
+                <capsuleGeometry args={[0.08, 0.2, 8, 16]} />
                 <meshStandardMaterial color="#EF4444" />
               </mesh>
             }
           >
-            <Climber position={[1.5, 7, 2]} scale={0.01} />
+            <Climber position={climberPos} rotation={[0, Math.PI, 0]} scale={0.4} />
           </Suspense>
         </ModelErrorBoundary>
       </group>
@@ -96,16 +104,16 @@ export default function AdventureWorld({
         <ModelErrorBoundary
           fallback={
             <>
-              <mesh position={[0, 0.8, 0]}>
-                <capsuleGeometry args={[0.25, 0.7, 8, 16]} />
+              <mesh position={[0, 0.3, 0]}>
+                <capsuleGeometry args={[0.08, 0.2, 8, 16]} />
                 <meshStandardMaterial color="#3B82F6" />
               </mesh>
-              <mesh position={[0, 0.4, 0.4]} rotation={[0, 0, Math.PI / 2]}>
-                <torusGeometry args={[0.35, 0.04, 8, 24]} />
+              <mesh position={[0, 0.15, 0.15]} rotation={[0, 0, Math.PI / 2]}>
+                <torusGeometry args={[0.12, 0.015, 8, 24]} />
                 <meshStandardMaterial color="#1F2937" />
               </mesh>
-              <mesh position={[0, 0.4, -0.4]} rotation={[0, 0, Math.PI / 2]}>
-                <torusGeometry args={[0.35, 0.04, 8, 24]} />
+              <mesh position={[0, 0.15, -0.15]} rotation={[0, 0, Math.PI / 2]}>
+                <torusGeometry args={[0.12, 0.015, 8, 24]} />
                 <meshStandardMaterial color="#1F2937" />
               </mesh>
             </>
@@ -114,22 +122,22 @@ export default function AdventureWorld({
           <Suspense
             fallback={
               <>
-                <mesh position={[0, 0.8, 0]}>
-                  <capsuleGeometry args={[0.25, 0.7, 8, 16]} />
+                <mesh position={[0, 0.3, 0]}>
+                  <capsuleGeometry args={[0.08, 0.2, 8, 16]} />
                   <meshStandardMaterial color="#3B82F6" />
                 </mesh>
-                <mesh position={[0, 0.4, 0.4]} rotation={[0, 0, Math.PI / 2]}>
-                  <torusGeometry args={[0.35, 0.04, 8, 24]} />
+                <mesh position={[0, 0.15, 0.15]} rotation={[0, 0, Math.PI / 2]}>
+                  <torusGeometry args={[0.12, 0.015, 8, 24]} />
                   <meshStandardMaterial color="#1F2937" />
                 </mesh>
-                <mesh position={[0, 0.4, -0.4]} rotation={[0, 0, Math.PI / 2]}>
-                  <torusGeometry args={[0.35, 0.04, 8, 24]} />
+                <mesh position={[0, 0.15, -0.15]} rotation={[0, 0, Math.PI / 2]}>
+                  <torusGeometry args={[0.12, 0.015, 8, 24]} />
                   <meshStandardMaterial color="#1F2937" />
                 </mesh>
               </>
             }
           >
-            <Cyclist position={[0, 0.8, 0]} scale={0.01} />
+            <Cyclist position={[0, 0.3, 0]} scale={0.4} />
           </Suspense>
         </ModelErrorBoundary>
       </group>
@@ -147,21 +155,21 @@ export default function AdventureWorld({
         <Road variant="road" position={[0, 0, 0]} />
         <ModelErrorBoundary
           fallback={
-            <mesh position={[1, 0.9, 0]}>
-              <capsuleGeometry args={[0.2, 0.8, 8, 16]} />
+            <mesh position={[1, 0.35, 0]}>
+              <capsuleGeometry args={[0.08, 0.2, 8, 16]} />
               <meshStandardMaterial color="#10B981" />
             </mesh>
           }
         >
           <Suspense
             fallback={
-              <mesh position={[1, 0.9, 0]}>
-                <capsuleGeometry args={[0.2, 0.8, 8, 16]} />
+              <mesh position={[1, 0.35, 0]}>
+                <capsuleGeometry args={[0.08, 0.2, 8, 16]} />
                 <meshStandardMaterial color="#10B981" />
               </mesh>
             }
           >
-            <Runner position={[1, 0.9, 0]} scale={0.01} />
+            <Runner position={[1, 0.35, 0]} scale={0.4} />
           </Suspense>
         </ModelErrorBoundary>
       </group>
