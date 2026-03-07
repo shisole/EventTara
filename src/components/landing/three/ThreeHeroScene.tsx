@@ -1,8 +1,17 @@
 "use client";
 
+import { useProgress } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import Link from "next/link";
-import { Suspense, useCallback, useRef, useState } from "react";
+import {
+  Component,
+  type ErrorInfo,
+  type ReactNode,
+  Suspense,
+  useCallback,
+  useRef,
+  useState,
+} from "react";
 
 import AdventureWorld from "./AdventureWorld";
 
@@ -30,6 +39,57 @@ function getSceneOpacity(progress: number, sceneIndex: number): number {
   return 0;
 }
 
+function LoadingScreen() {
+  const { progress, active } = useProgress();
+
+  if (!active) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-b from-sky-400 to-sky-200 dark:from-sky-900 dark:to-slate-800">
+      <p className="mb-4 text-lg font-medium text-white">Loading adventure...</p>
+      <div className="h-2 w-64 overflow-hidden rounded-full bg-white/30">
+        <div
+          className="h-full rounded-full bg-white transition-all duration-300"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+      <p className="mt-2 text-sm text-white/60">{Math.round(progress)}%</p>
+    </div>
+  );
+}
+
+interface CanvasErrorBoundaryProps {
+  children: ReactNode;
+}
+
+interface CanvasErrorBoundaryState {
+  hasError: boolean;
+}
+
+class CanvasErrorBoundary extends Component<CanvasErrorBoundaryProps, CanvasErrorBoundaryState> {
+  constructor(props: CanvasErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(): CanvasErrorBoundaryState {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error("ThreeHeroScene WebGL error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex h-full w-full items-center justify-center bg-gradient-to-b from-sky-400 to-sky-200 dark:from-sky-900 dark:to-slate-800" />
+      );
+    }
+    return this.props.children;
+  }
+}
+
 export default function ThreeHeroScene() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [progress, setProgress] = useState(0);
@@ -42,21 +102,30 @@ export default function ThreeHeroScene() {
 
   return (
     <div className="relative">
+      <LoadingScreen />
+
       <div className="fixed inset-0 z-0">
-        <Canvas
-          camera={{ fov: 50, near: 0.1, far: 200 }}
-          dpr={[1, 2]}
-          frameloop="always"
-          gl={{ antialias: true, alpha: false }}
-        >
-          <color attach="background" args={["#87CEEB"]} />
-          <Suspense fallback={null}>
-            <AdventureWorld scrollContainerRef={scrollRef} onProgressChange={handleProgress} />
-          </Suspense>
-        </Canvas>
+        <CanvasErrorBoundary>
+          <Canvas
+            camera={{ fov: 50, near: 0.1, far: 200 }}
+            dpr={[1, 2]}
+            frameloop="always"
+            gl={{ antialias: true, alpha: false }}
+            performance={{ min: 0.5 }}
+          >
+            <color attach="background" args={["#87CEEB"]} />
+            <Suspense fallback={null}>
+              <AdventureWorld scrollContainerRef={scrollRef} onProgressChange={handleProgress} />
+            </Suspense>
+          </Canvas>
+        </CanvasErrorBoundary>
       </div>
 
-      <div ref={scrollRef} className="relative z-10" style={{ height: "300vh" }}>
+      <div
+        ref={scrollRef}
+        className="relative z-10"
+        style={{ height: "300vh", willChange: "transform" }}
+      >
         {SCENES.map((scene, i) => (
           <div
             key={scene.label}

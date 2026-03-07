@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useEffect, useState } from "react";
 
 const ThreeHeroScene = dynamic(() => import("./ThreeHeroScene"), {
   ssr: false,
@@ -9,6 +10,26 @@ const ThreeHeroScene = dynamic(() => import("./ThreeHeroScene"), {
   ),
 });
 
+function isWebGLAvailable(): boolean {
+  try {
+    const canvas = document.createElement("canvas");
+    return !!(
+      globalThis.WebGLRenderingContext &&
+      (canvas.getContext("webgl") || canvas.getContext("experimental-webgl"))
+    );
+  } catch {
+    return false;
+  }
+}
+
 export default function ThreeHeroSceneLoader() {
+  const [supported, setSupported] = useState(true);
+
+  useEffect(() => {
+    setSupported(isWebGLAvailable());
+  }, []);
+
+  if (!supported) return null;
+
   return <ThreeHeroScene />;
 }
