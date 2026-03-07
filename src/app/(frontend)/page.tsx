@@ -47,8 +47,8 @@ const DEFAULT_SECTIONS: CmsHomepageSection[] = [
   { key: "gamification", label: "Badges & Gamification", enabled: true, order: 5 },
   { key: "categories", label: "Event Categories", enabled: true, order: 6 },
   { key: "organizers", label: "Trusted Organizers", enabled: true, order: 7 },
-  { key: "pioneer_counter", label: "Pioneer Counter", enabled: true, order: 8 },
-  { key: "organizer_waitlist", label: "Organizer Waitlist", enabled: true, order: 9 },
+  { key: "organizer_waitlist", label: "Organizer Waitlist", enabled: true, order: 8 },
+  { key: "pioneer_counter", label: "Pioneer Counter", enabled: true, order: 9 },
   { key: "testimonials", label: "Testimonials", enabled: true, order: 10 },
   { key: "faq", label: "FAQ", enabled: true, order: 11 },
   { key: "contact_cta", label: "Contact CTA", enabled: true, order: 12 },
@@ -274,7 +274,7 @@ export default async function Home() {
   // Ensure organizer_waitlist is present (may be missing from older CMS data)
   if (!sections.some((s) => s.key === "organizer_waitlist")) {
     const pioneerIdx = sections.findIndex((s) => s.key === "pioneer_counter");
-    const insertOrder = pioneerIdx === -1 ? 9 : sections[pioneerIdx].order + 1;
+    const insertOrder = pioneerIdx === -1 ? 8 : sections[pioneerIdx].order - 0.5;
     const waitlistSection: CmsHomepageSection = {
       key: "organizer_waitlist",
       label: "Organizer Waitlist",
