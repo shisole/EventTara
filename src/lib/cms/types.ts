@@ -67,7 +67,9 @@ export interface CmsFeatureFlags {
   strava_showcase_route_map: boolean;
   organizer_reviews: boolean;
   events_two_col_mobile: boolean;
-  show_coming_soon: boolean;
+  coming_soon_strava: boolean;
+  coming_soon_gamification: boolean;
+  coming_soon_bento: boolean;
   ewallet_payments: boolean;
   oauth_google: boolean;
   oauth_strava: boolean;

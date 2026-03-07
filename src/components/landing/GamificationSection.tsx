@@ -2,7 +2,7 @@ import Image from "next/image";
 
 import { StarIcon } from "@/components/icons";
 import UserAvatar from "@/components/ui/UserAvatar";
-import { isComingSoonEnabled } from "@/lib/cms/cached";
+import { isGamificationComingSoon } from "@/lib/cms/cached";
 import type { BorderTier } from "@/lib/constants/avatar-borders";
 import { TIER_LABELS, TIER_LABEL_COLORS } from "@/lib/constants/avatar-borders";
 import { resolvePresetImage } from "@/lib/constants/avatars";
@@ -21,7 +21,7 @@ const RARITY_ORDER: Record<BadgeRarity, number> = {
 const BORDER_TIERS: BorderTier[] = ["common", "rare", "epic", "legendary"];
 
 export default async function GamificationSection() {
-  const comingSoon = await isComingSoonEnabled();
+  const comingSoon = await isGamificationComingSoon();
 
   const supabase = await createClient();
 

@@ -17,7 +17,9 @@ export async function GET() {
 
   return NextResponse.json({
     activityFeedEnabled: enabled,
-    showComingSoon: flags?.show_coming_soon === true,
+    comingSoonStrava: flags?.coming_soon_strava === true,
+    comingSoonGamification: flags?.coming_soon_gamification === true,
+    comingSoonBento: flags?.coming_soon_bento === true,
     ewalletPayments: flags?.ewallet_payments === true,
     oauthGoogle: flags?.oauth_google === true,
     oauthStrava: flags?.oauth_strava === true,

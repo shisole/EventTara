@@ -1,5 +1,5 @@
 import { CheckCircleIcon, ExploreIcon, StarIcon, StravaIcon } from "@/components/icons";
-import { getStravaShowcaseFlags, isComingSoonEnabled } from "@/lib/cms/cached";
+import { getStravaShowcaseFlags, isStravaComingSoon } from "@/lib/cms/cached";
 import { createClient } from "@/lib/supabase/server";
 
 import StravaShowcaseRouteMap from "./StravaShowcaseRouteMap";
@@ -49,7 +49,7 @@ async function fetchAggregateStats(): Promise<{
 }
 
 export default async function StravaShowcaseSection() {
-  const [flags, comingSoon] = await Promise.all([getStravaShowcaseFlags(), isComingSoonEnabled()]);
+  const [flags, comingSoon] = await Promise.all([getStravaShowcaseFlags(), isStravaComingSoon()]);
   const anyEnabled = flags.features || flags.stats || flags.routeMap;
 
   if (!anyEnabled) return null;

@@ -208,12 +208,36 @@ export function parseHomepageSections(data: CmsHomepageSections | null): CmsHome
 }
 
 /**
- * Returns whether the "Coming Soon" locked features should be shown.
+ * Returns whether the Strava showcase section is locked behind "Coming Soon".
  */
-export async function isComingSoonEnabled(): Promise<boolean> {
+export async function isStravaComingSoon(): Promise<boolean> {
   try {
     const flags = await getCachedFeatureFlags();
-    return flags?.show_coming_soon === true;
+    return flags?.coming_soon_strava === true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Returns whether the gamification section is locked behind "Coming Soon".
+ */
+export async function isGamificationComingSoon(): Promise<boolean> {
+  try {
+    const flags = await getCachedFeatureFlags();
+    return flags?.coming_soon_gamification === true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Returns whether the bento events section is locked behind "Coming Soon".
+ */
+export async function isBentoComingSoon(): Promise<boolean> {
+  try {
+    const flags = await getCachedFeatureFlags();
+    return flags?.coming_soon_bento === true;
   } catch {
     return false;
   }

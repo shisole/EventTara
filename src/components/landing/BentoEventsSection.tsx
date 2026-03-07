@@ -1,5 +1,5 @@
 import { CalendarIcon } from "@/components/icons";
-import { isComingSoonEnabled } from "@/lib/cms/cached";
+import { isBentoComingSoon } from "@/lib/cms/cached";
 import { fetchEventEnrichments, mapEventToCard } from "@/lib/events/map-event-card";
 import { createClient } from "@/lib/supabase/server";
 
@@ -27,7 +27,7 @@ function ComingSoonPlaceholder() {
 }
 
 export default async function BentoEventsSection() {
-  const comingSoon = await isComingSoonEnabled();
+  const comingSoon = await isBentoComingSoon();
   const supabase = await createClient();
   const now = new Date().toISOString();
   const today = now.split("T")[0];

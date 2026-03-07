@@ -37,10 +37,20 @@ const FLAG_META: Record<string, { label: string; description: string }> = {
     label: "Events — 2-Column Mobile Grid",
     description: "Show event cards in a 2-column grid on mobile instead of single column.",
   },
-  show_coming_soon: {
-    label: "Show Coming Soon Features",
+  coming_soon_strava: {
+    label: "Lock Strava Showcase",
     description:
-      "When enabled, locks Strava login, gamification, and bento sections behind a 'Coming Soon' overlay.",
+      "When enabled, locks the Strava showcase section on the homepage behind a 'Coming Soon' overlay.",
+  },
+  coming_soon_gamification: {
+    label: "Lock Gamification",
+    description:
+      "When enabled, locks the gamification/badges section on the homepage behind a 'Coming Soon' overlay.",
+  },
+  coming_soon_bento: {
+    label: "Lock Bento Events",
+    description:
+      "When enabled, locks the bento events section on the homepage behind a 'Coming Soon' overlay.",
   },
   ewallet_payments: {
     label: "E-Wallet Payments",
