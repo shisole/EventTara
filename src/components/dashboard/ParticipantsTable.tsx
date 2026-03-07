@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui";
 import PaymentStatusBadge from "@/components/ui/PaymentStatusBadge";
@@ -198,6 +198,10 @@ export default function ParticipantsTable({
   const [checkInFilter, setCheckInFilter] = useState<CheckInFilter>("all");
   const isCompleted = eventStatus === "completed";
 
+  // Bulk selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkLoading, setBulkLoading] = useState(false);
+
   const filteredBookings = useMemo(() => {
     if (!bookings) return [];
     return bookings.filter((booking) => {
@@ -230,6 +234,117 @@ export default function ParticipantsTable({
       return true;
     });
   }, [bookings, searchQuery, paymentFilter, checkInFilter, checkedInUserIds]);
+
+  // Selectable bookings: filtered bookings that are not cancelled
+  const selectableBookings = useMemo(
+    () => filteredBookings.filter((b) => !b.participant_cancelled),
+    [filteredBookings],
+  );
+
+  const selectableIds = useMemo(
+    () => new Set(selectableBookings.map((b) => b.id)),
+    [selectableBookings],
+  );
+
+  // Clear selections that are no longer visible when filters change
+  useEffect(() => {
+    setSelectedIds((prev) => {
+      const next = new Set<string>();
+      for (const id of prev) {
+        if (selectableIds.has(id)) next.add(id);
+      }
+      if (next.size !== prev.size) return next;
+      return prev;
+    });
+  }, [selectableIds]);
+
+  const allSelected =
+    selectableBookings.length > 0 && selectedIds.size === selectableBookings.length;
+
+  const toggleSelectAll = useCallback(() => {
+    if (allSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(selectableBookings.map((b) => b.id)));
+    }
+  }, [allSelected, selectableBookings]);
+
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }, []);
+
+  // Bulk action handlers — process sequentially to avoid overwhelming the API
+  const handleBulkMarkPaid = useCallback(async () => {
+    setBulkLoading(true);
+    try {
+      for (const id of selectedIds) {
+        await fetch(`/api/bookings/${id}/verify`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "approve" }),
+        });
+      }
+    } catch (error) {
+      console.error("Bulk mark paid failed:", error);
+    } finally {
+      setBulkLoading(false);
+      setSelectedIds(new Set());
+      router.refresh();
+    }
+  }, [selectedIds, router]);
+
+  const handleBulkCheckIn = useCallback(async () => {
+    setBulkLoading(true);
+    try {
+      for (const id of selectedIds) {
+        const booking = bookings.find((b) => b.id === id);
+        if (booking?.user_id) {
+          await fetch("/api/checkins", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ event_id: eventId, user_id: booking.user_id }),
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Bulk check-in failed:", error);
+    } finally {
+      setBulkLoading(false);
+      setSelectedIds(new Set());
+      router.refresh();
+    }
+  }, [selectedIds, bookings, eventId, router]);
+
+  const handleBulkCancel = useCallback(async () => {
+    const confirmed = globalThis.confirm(
+      `Are you sure you want to cancel ${selectedIds.size} participant${selectedIds.size === 1 ? "" : "s"}?`,
+    );
+    if (!confirmed) return;
+    setBulkLoading(true);
+    try {
+      for (const id of selectedIds) {
+        await fetch(`/api/bookings/${id}/participant`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ cancelled: true }),
+        });
+      }
+    } catch (error) {
+      console.error("Bulk cancel failed:", error);
+    } finally {
+      setBulkLoading(false);
+      setSelectedIds(new Set());
+      router.refresh();
+    }
+  }, [selectedIds, router]);
 
   const handleBookingAction = async (bookingId: string, action: "approve" | "reject") => {
     setActionLoading(`booking-${bookingId}`);
@@ -501,106 +616,122 @@ export default function ParticipantsTable({
                     booking.participant_cancelled && "opacity-60",
                   )}
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="font-medium dark:text-white truncate">
-                        <span className={booking.participant_cancelled ? "line-through" : ""}>
-                          {getParticipantName(booking)}
-                        </span>
-                        {booking.participant_cancelled && (
-                          <span className="ml-2 text-xs text-red-500 font-normal">cancelled</span>
+                  <div className="flex items-start gap-3">
+                    {!isCompleted && !booking.participant_cancelled && (
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(booking.id)}
+                        onChange={() => toggleSelect(booking.id)}
+                        className="mt-1 h-4 w-4 shrink-0 rounded border-gray-300 text-teal-600 focus:ring-teal-500 dark:border-gray-600 dark:bg-gray-800 cursor-pointer"
+                      />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="font-medium dark:text-white truncate">
+                            <span className={booking.participant_cancelled ? "line-through" : ""}>
+                              {getParticipantName(booking)}
+                            </span>
+                            {booking.participant_cancelled && (
+                              <span className="ml-2 text-xs text-red-500 font-normal">
+                                cancelled
+                              </span>
+                            )}
+                            {booking.added_by && (
+                              <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+                                added
+                              </span>
+                            )}
+                          </p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                            {getParticipantEmail(booking)}
+                          </p>
+                        </div>
+                        <div className="shrink-0 flex items-center gap-2">
+                          {checkedInUserIds && booking.user_id && (
+                            <span
+                              className={cn(
+                                "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium",
+                                checkedInUserIds.has(booking.user_id)
+                                  ? "bg-teal-100 text-teal-700 dark:bg-teal-900/50 dark:text-teal-300"
+                                  : "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-500",
+                              )}
+                            >
+                              {checkedInUserIds.has(booking.user_id)
+                                ? "Checked in"
+                                : "Not checked in"}
+                            </span>
+                          )}
+                          {renderStatusBadge(booking)}
+                        </div>
+                      </div>
+
+                      <div className="mt-2 flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+                        {booking.payment_method && !booking.added_by && (
+                          <span>{booking.payment_method.toUpperCase()}</span>
                         )}
-                        {booking.added_by && (
-                          <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
-                            added
+                        <span>{new Date(booking.booked_at).toLocaleDateString("en-PH")}</span>
+                        {activeComps.length > 0 && (
+                          <span>
+                            +{activeComps.length} companion{activeComps.length === 1 ? "" : "s"}
                           </span>
                         )}
-                      </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                        {getParticipantEmail(booking)}
-                      </p>
-                    </div>
-                    <div className="shrink-0 flex items-center gap-2">
-                      {checkedInUserIds && booking.user_id && (
-                        <span
-                          className={cn(
-                            "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium",
-                            checkedInUserIds.has(booking.user_id)
-                              ? "bg-teal-100 text-teal-700 dark:bg-teal-900/50 dark:text-teal-300"
-                              : "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-500",
-                          )}
-                        >
-                          {checkedInUserIds.has(booking.user_id) ? "Checked in" : "Not checked in"}
-                        </span>
-                      )}
-                      {renderStatusBadge(booking)}
-                    </div>
-                  </div>
+                      </div>
 
-                  <div className="mt-2 flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
-                    {booking.payment_method && !booking.added_by && (
-                      <span>{booking.payment_method.toUpperCase()}</span>
-                    )}
-                    <span>{new Date(booking.booked_at).toLocaleDateString("en-PH")}</span>
-                    {activeComps.length > 0 && (
-                      <span>
-                        +{activeComps.length} companion{activeComps.length === 1 ? "" : "s"}
-                      </span>
-                    )}
-                  </div>
+                      <div className="mt-3 flex items-center gap-2">
+                        {renderBookingActions(booking)}
+                      </div>
 
-                  <div className="mt-3 flex items-center gap-2">
-                    {renderBookingActions(booking)}
-                  </div>
-
-                  {comps.length > 0 && (
-                    <div className="mt-3 border-t border-gray-100 dark:border-gray-800 pt-3 space-y-2">
-                      {comps.map((comp) => {
-                        const isCompLoading = actionLoading === `comp-${comp.id}`;
-                        return (
-                          <div
-                            key={comp.id}
-                            className="flex items-center justify-between gap-2 pl-4 text-sm"
-                          >
-                            <div className="flex items-center gap-2 min-w-0">
-                              <span className="text-gray-400">↳</span>
-                              <span className="text-gray-600 dark:text-gray-400 truncate">
-                                {comp.full_name}
-                              </span>
-                              <span
-                                className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${companionStatusStyle[comp.status] || companionStatusStyle.pending}`}
+                      {comps.length > 0 && (
+                        <div className="mt-3 border-t border-gray-100 dark:border-gray-800 pt-3 space-y-2">
+                          {comps.map((comp) => {
+                            const isCompLoading = actionLoading === `comp-${comp.id}`;
+                            return (
+                              <div
+                                key={comp.id}
+                                className="flex items-center justify-between gap-2 pl-4 text-sm"
                               >
-                                {comp.status}
-                              </span>
-                            </div>
-                            <div className="shrink-0">
-                              {isBookingPaid && comp.status === "confirmed" && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleCompanionAction(comp.id, "cancel")}
-                                  disabled={isCompLoading}
-                                  className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
-                                >
-                                  {isCompLoading ? "..." : "Cancel"}
-                                </Button>
-                              )}
-                              {isBookingPaid && comp.status === "cancelled" && (
-                                <Button
-                                  variant="secondary"
-                                  size="sm"
-                                  onClick={() => handleCompanionAction(comp.id, "confirm")}
-                                  disabled={isCompLoading}
-                                >
-                                  {isCompLoading ? "..." : "Restore"}
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <span className="text-gray-400">↳</span>
+                                  <span className="text-gray-600 dark:text-gray-400 truncate">
+                                    {comp.full_name}
+                                  </span>
+                                  <span
+                                    className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${companionStatusStyle[comp.status] || companionStatusStyle.pending}`}
+                                  >
+                                    {comp.status}
+                                  </span>
+                                </div>
+                                <div className="shrink-0">
+                                  {isBookingPaid && comp.status === "confirmed" && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleCompanionAction(comp.id, "cancel")}
+                                      disabled={isCompLoading}
+                                      className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
+                                    >
+                                      {isCompLoading ? "..." : "Cancel"}
+                                    </Button>
+                                  )}
+                                  {isBookingPaid && comp.status === "cancelled" && (
+                                    <Button
+                                      variant="secondary"
+                                      size="sm"
+                                      onClick={() => handleCompanionAction(comp.id, "confirm")}
+                                      disabled={isCompLoading}
+                                    >
+                                      {isCompLoading ? "..." : "Restore"}
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
               );
             })}
@@ -616,6 +747,17 @@ export default function ParticipantsTable({
             <table className="w-full">
               <thead className="bg-gray-50 dark:bg-gray-800">
                 <tr className="first:[&>th]:rounded-tl-2xl last:[&>th]:rounded-tr-2xl">
+                  {!isCompleted && (
+                    <th className="w-10 px-3 py-3">
+                      <input
+                        type="checkbox"
+                        checked={allSelected}
+                        onChange={toggleSelectAll}
+                        disabled={selectableBookings.length === 0}
+                        className="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500 dark:border-gray-600 dark:bg-gray-800 cursor-pointer disabled:cursor-default disabled:opacity-50"
+                      />
+                    </th>
+                  )}
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
                     Name
                   </th>
@@ -650,6 +792,18 @@ export default function ParticipantsTable({
                   return (
                     <Fragment key={booking.id}>
                       <tr className={booking.participant_cancelled ? "opacity-60" : ""}>
+                        {!isCompleted && (
+                          <td className="w-10 px-3 py-4">
+                            {!booking.participant_cancelled && (
+                              <input
+                                type="checkbox"
+                                checked={selectedIds.has(booking.id)}
+                                onChange={() => toggleSelect(booking.id)}
+                                className="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500 dark:border-gray-600 dark:bg-gray-800 cursor-pointer"
+                              />
+                            )}
+                          </td>
+                        )}
                         <td className="px-6 py-4 font-medium dark:text-white">
                           <span className={booking.participant_cancelled ? "line-through" : ""}>
                             {getParticipantName(booking)}
@@ -709,6 +863,7 @@ export default function ParticipantsTable({
                         const isCompLoading = actionLoading === `comp-${comp.id}`;
                         return (
                           <tr key={comp.id} className="bg-gray-50/50 dark:bg-gray-800/50">
+                            {!isCompleted && <td className="w-10 px-3 py-3" />}
                             <td className="px-6 py-3 pl-12 text-sm text-gray-600 dark:text-gray-400">
                               ↳ {comp.full_name}{" "}
                               <span className="text-gray-400 dark:text-gray-500">(companion)</span>
@@ -767,6 +922,58 @@ export default function ParticipantsTable({
             </table>
           </div>
         </>
+      )}
+      {/* Floating bulk action bar */}
+      {selectedIds.size > 0 && !isCompleted && (
+        <div className="fixed bottom-4 left-1/2 z-30 -translate-x-1/2 flex items-center gap-3 rounded-2xl bg-slate-800/90 px-5 py-3 shadow-2xl backdrop-blur-sm">
+          <span className="text-sm font-medium text-white whitespace-nowrap">
+            {selectedIds.size} selected
+          </span>
+          <div className="h-5 w-px bg-slate-600" />
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={handleBulkMarkPaid}
+            disabled={bulkLoading}
+            className="whitespace-nowrap"
+          >
+            {bulkLoading ? "Processing..." : "Mark as Paid"}
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleBulkCheckIn}
+            disabled={bulkLoading}
+            className="whitespace-nowrap"
+          >
+            {bulkLoading ? "Processing..." : "Check In"}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleBulkCancel}
+            disabled={bulkLoading}
+            className="text-red-400 hover:text-red-300 hover:bg-red-950/50 whitespace-nowrap"
+          >
+            {bulkLoading ? "Processing..." : "Cancel"}
+          </Button>
+          <button
+            type="button"
+            onClick={() => setSelectedIds(new Set())}
+            disabled={bulkLoading}
+            className="ml-1 rounded-lg p-1.5 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors disabled:opacity-50"
+            aria-label="Clear selection"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
       )}
     </>
   );
