@@ -10,7 +10,7 @@ import GamificationSection from "@/components/landing/GamificationSection";
 import HeroSection from "@/components/landing/HeroSection";
 import HowItWorksSection from "@/components/landing/HowItWorksSection";
 import OrganizersSection from "@/components/landing/OrganizersSection";
-import OrganizerWaitlistModal from "@/components/landing/OrganizerWaitlistModal";
+import OrganizerWaitlistSection from "@/components/landing/OrganizerWaitlistSection";
 import ParallaxMountain from "@/components/landing/ParallaxMountain";
 import PioneerCounterSection from "@/components/landing/PioneerCounterSection";
 import StravaShowcaseSection from "@/components/landing/StravaShowcaseSection";
@@ -48,9 +48,10 @@ const DEFAULT_SECTIONS: CmsHomepageSection[] = [
   { key: "categories", label: "Event Categories", enabled: true, order: 6 },
   { key: "organizers", label: "Trusted Organizers", enabled: true, order: 7 },
   { key: "pioneer_counter", label: "Pioneer Counter", enabled: true, order: 8 },
-  { key: "testimonials", label: "Testimonials", enabled: true, order: 9 },
-  { key: "faq", label: "FAQ", enabled: true, order: 10 },
-  { key: "contact_cta", label: "Contact CTA", enabled: true, order: 11 },
+  { key: "organizer_waitlist", label: "Organizer Waitlist", enabled: true, order: 9 },
+  { key: "testimonials", label: "Testimonials", enabled: true, order: 10 },
+  { key: "faq", label: "FAQ", enabled: true, order: 11 },
+  { key: "contact_cta", label: "Contact CTA", enabled: true, order: 12 },
 ];
 
 function BentoEventsSkeleton() {
@@ -221,6 +222,9 @@ function renderSection(key: string, parallaxImageUrl: string, heroData: HeroData
     case "pioneer_counter": {
       return <PioneerCounterSection />;
     }
+    case "organizer_waitlist": {
+      return <OrganizerWaitlistSection />;
+    }
     case "testimonials": {
       return (
         <Suspense fallback={<TestimonialsSkeleton />}>
@@ -277,8 +281,6 @@ export default async function Home() {
           {renderSection(section.key, parallaxImageUrl, transformedHeroData)}
         </div>
       ))}
-
-      <OrganizerWaitlistModal />
     </main>
   );
 }
