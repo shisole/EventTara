@@ -44,6 +44,7 @@ const FLAG_LABELS: Record<keyof Omit<CmsFeatureFlags, "id">, string> = {
   oauth_google: "Lock Google Login",
   oauth_strava: "Lock Strava Login",
   oauth_facebook: "Lock Facebook Login",
+  threejs_hero: "Three.js Hero",
 };
 
 type FlagKey = keyof Omit<CmsFeatureFlags, "id">;
@@ -63,6 +64,7 @@ const FLAG_KEYS: FlagKey[] = [
   "oauth_google",
   "oauth_strava",
   "oauth_facebook",
+  "threejs_hero",
 ];
 
 /* ------------------------------------------------------------------ */

@@ -15,10 +15,12 @@ import ParallaxMountain from "@/components/landing/ParallaxMountain";
 import PioneerCounterSection from "@/components/landing/PioneerCounterSection";
 import StravaShowcaseSection from "@/components/landing/StravaShowcaseSection";
 import TestimonialsSection from "@/components/landing/TestimonialsSection";
+import ThreeHeroSceneLoader from "@/components/landing/three/ThreeHeroSceneLoader";
 import {
   getCachedHeroCarousel,
   getCachedHomepageSections,
   getCachedSiteSettings,
+  isThreeJsHeroEnabled,
   parseHeroSlides,
   parseHomepageSections,
 } from "@/lib/cms/cached";
@@ -247,10 +249,11 @@ interface HeroData {
 }
 
 export default async function Home() {
-  const [heroData, settings, sectionsData] = await Promise.all([
+  const [heroData, settings, sectionsData, threejsEnabled] = await Promise.all([
     getCachedHeroCarousel(),
     getCachedSiteSettings(),
     getCachedHomepageSections(),
+    isThreeJsHeroEnabled(),
   ]);
 
   const heroSlides = parseHeroSlides(heroData);
@@ -273,6 +276,8 @@ export default async function Home() {
   return (
     <main>
       <EntryBanner />
+
+      {threejsEnabled && <ThreeHeroSceneLoader />}
 
       {enabledSections.map((section) => (
         <div key={section.key}>
