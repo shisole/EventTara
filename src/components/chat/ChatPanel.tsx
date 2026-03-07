@@ -58,6 +58,22 @@ export default function ChatPanel({ open, onClose, keyboard }: ChatPanelProps) {
   const [remaining, setRemaining] = useState<number>(DAILY_LIMIT);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const locationRef = useRef<{ lat: number; lng: number } | null>(null);
+  const hasAutoSuggested = useRef(false);
+
+  // Request geolocation once on first open
+  useEffect(() => {
+    if (!open || locationRef.current) return;
+    navigator.geolocation?.getCurrentPosition(
+      (pos) => {
+        locationRef.current = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      },
+      () => {
+        // Geolocation denied or unavailable — continue without it
+      },
+      { enableHighAccuracy: false, timeout: 8000 },
+    );
+  }, [open]);
 
   // Read persisted usage on mount
   useEffect(() => {
@@ -83,6 +99,54 @@ export default function ChatPanel({ open, onClose, keyboard }: ChatPanelProps) {
     }
   }, [open]);
 
+  // Auto-suggest nearby events on first open when location is available
+  useEffect(() => {
+    if (!open || hasAutoSuggested.current || loading) return;
+    // Wait a bit for geolocation to resolve
+    const timer = setTimeout(() => {
+      if (!locationRef.current || hasAutoSuggested.current || remaining <= 0) return;
+      hasAutoSuggested.current = true;
+      // Fire a "nearby events" search automatically
+      void (async () => {
+        setLoading(true);
+        try {
+          const res = await fetch("/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              message: "What events are happening near me?",
+              lat: locationRef.current!.lat,
+              lng: locationRef.current!.lng,
+            }),
+          });
+          const data: ChatResponse = await res.json();
+          if (res.ok && data.events && data.events.length > 0) {
+            setMessages((prev) => [
+              ...prev,
+              {
+                role: "assistant",
+                content: data.reply,
+                events: data.events,
+                totalCount: data.totalCount,
+                filterUrl: data.filterUrl,
+              },
+            ]);
+            if (!unlimitedChat) {
+              incrementUsed();
+              setRemaining(DAILY_LIMIT - getUsedToday());
+            }
+          }
+        } catch {
+          // Silently fail — auto-suggest is best-effort
+        } finally {
+          setLoading(false);
+        }
+      })();
+    }, 1500);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally run once on first open
+  }, [open]);
+
   const handleSend = async () => {
     const trimmed = input.trim();
     if (!trimmed || loading) return;
@@ -93,10 +157,15 @@ export default function ChatPanel({ open, onClose, keyboard }: ChatPanelProps) {
     setLoading(true);
 
     try {
+      const payload: Record<string, unknown> = { message: trimmed };
+      if (locationRef.current) {
+        payload.lat = locationRef.current.lat;
+        payload.lng = locationRef.current.lng;
+      }
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: trimmed }),
+        body: JSON.stringify(payload),
       });
 
       const data: ChatResponse = await res.json();

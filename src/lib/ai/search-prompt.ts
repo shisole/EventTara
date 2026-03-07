@@ -7,10 +7,11 @@ export interface ParsedSearchParams {
   duration?: "single" | "multi";
   distance?: number;
   difficulty?: string;
+  nearMe?: boolean;
   reply: string;
 }
 
-export function buildSearchSystemPrompt(): string {
+export function buildSearchSystemPrompt(userLocation?: { lat: number; lng: number }): string {
   const now = new Date();
   const today = now.toISOString().split("T")[0];
   const dayOfWeek = now.toLocaleDateString("en-US", { weekday: "long" });
@@ -31,6 +32,7 @@ Return ONLY valid JSON with these fields (all optional except reply):
   "duration": "single" | "multi",
   "distance": number (km),
   "difficulty": "min-max" (e.g. "1-4", "5-7", "8-9", "3-9", "1-9"),
+  "nearMe": true | false (set true when user wants events near their location),
   "reply": "friendly 1-2 sentence response describing what you're searching for"
 }
 
@@ -57,7 +59,7 @@ TYPE RULES (in priority order):
 SEARCH RULES:
 - If the user mentions a specific place/location, put it in search
 - Words like "near", "around", "within", "in" followed by a place → treat as location, include in search
-- "near me" → search: "near me"
+- "near me" or "nearby" → set nearMe: true (results will be sorted by distance from user's location)${userLocation ? `\nThe user's current location is: lat ${userLocation.lat.toFixed(4)}, lng ${userLocation.lng.toFixed(4)}. When they say "near me" or ask for nearby events, set nearMe: true.` : ""}
 - If the user mentions an organizer name, group name, or club name, put it in search (e.g., "yenergy events" → search: "yenergy")
 - If the user mentions a guide's name, put the name in search (e.g., "events with manong edong" → search: "edong")
 - AUTOCORRECT typos and misspellings of Philippine mountain names, locations, and activity terms before putting them in search. Examples: "npaulak" → "napulak", "pulog" → "pulag", "cebu" stays "cebu", "apo" stays "apo". Always output the corrected spelling in the search field

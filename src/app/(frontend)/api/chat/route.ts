@@ -6,6 +6,7 @@ import { buildSearchSystemPrompt, buildSuggestionPrompt } from "@/lib/ai/search-
 import type { ParsedSearchParams } from "@/lib/ai/search-prompt";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, Json } from "@/lib/supabase/types";
+import { haversineDistance } from "@/lib/utils/geo";
 
 type EventType = Database["public"]["Tables"]["events"]["Row"]["type"];
 
@@ -25,6 +26,7 @@ export async function POST(request: Request) {
 
   // Parse request body
   let message: string;
+  let userLocation: { lat: number; lng: number } | undefined;
   try {
     const body = await request.json();
     message = body.message;
@@ -33,6 +35,10 @@ export async function POST(request: Request) {
     }
     if (message.length > 500) {
       return NextResponse.json({ error: "Message too long (max 500 characters)" }, { status: 400 });
+    }
+    // Optional geolocation from the client
+    if (typeof body.lat === "number" && typeof body.lng === "number") {
+      userLocation = { lat: body.lat, lng: body.lng };
     }
   } catch {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
@@ -76,7 +82,7 @@ export async function POST(request: Request) {
     const completion = await anthropic.messages.create({
       model: "claude-haiku-4-5-20251001",
       max_tokens: 300,
-      system: buildSearchSystemPrompt(),
+      system: buildSearchSystemPrompt(userLocation),
       messages: [{ role: "user", content: message.trim() }],
     });
 
@@ -110,7 +116,7 @@ export async function POST(request: Request) {
 
   let dataQ = supabase
     .from("events")
-    .select("id, title, type, date, location, price, cover_image_url")
+    .select("id, title, type, date, location, price, cover_image_url, coordinates")
     .in("status", ["published", "completed"] as const);
 
   // Apply parsed filters
@@ -250,11 +256,52 @@ export async function POST(request: Request) {
     }
   }
 
-  dataQ = dataQ.order("date", { ascending: true }).limit(3);
+  // When sorting by distance, fetch more results to sort client-side then take top 3
+  const fetchLimit = userLocation && parsed.nearMe ? 20 : 3;
+  dataQ = dataQ.order("date", { ascending: true }).limit(fetchLimit);
 
   const [{ count: totalCount }, { data: events }] = await Promise.all([countQ, dataQ]);
 
-  const miniEvents = (events ?? []).map((e) => ({
+  interface ChatEvent {
+    id: string;
+    title: string;
+    type: EventType;
+    date: string;
+    location: string;
+    price: number;
+    cover_image_url: string | null;
+    coordinates: { lat: number; lng: number } | null;
+  }
+
+  const allEvents = (events ?? []) as ChatEvent[];
+
+  // Sort by distance from user's location when nearMe is requested
+  const topEvents: ChatEvent[] =
+    userLocation && parsed.nearMe && allEvents.length > 0
+      ? [...allEvents]
+          .sort((a, b) => {
+            const distA = a.coordinates
+              ? haversineDistance(
+                  userLocation.lat,
+                  userLocation.lng,
+                  a.coordinates.lat,
+                  a.coordinates.lng,
+                )
+              : Infinity;
+            const distB = b.coordinates
+              ? haversineDistance(
+                  userLocation.lat,
+                  userLocation.lng,
+                  b.coordinates.lat,
+                  b.coordinates.lng,
+                )
+              : Infinity;
+            return distA - distB;
+          })
+          .slice(0, 3)
+      : allEvents.slice(0, 3);
+
+  const miniEvents = topEvents.map((e) => ({
     id: e.id,
     title: e.title,
     type: e.type,
