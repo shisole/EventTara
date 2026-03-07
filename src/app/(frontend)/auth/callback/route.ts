@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { createClient } from "@/lib/supabase/server";
-import { buildUsername, generateUsername } from "@/lib/utils/generate-username";
+import { buildUsername } from "@/lib/utils/generate-username";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -17,54 +17,26 @@ export async function GET(request: Request) {
       } = await supabase.auth.getUser();
 
       if (user) {
-        const provider = user.app_metadata?.provider;
+        const meta = user.user_metadata;
+        const preferredName = meta?.full_name ?? meta?.name;
+        const username = await buildUsername(supabase, preferredName, user.email ?? "");
 
-        // Ensure public.users row exists (trigger may not have fired yet for OAuth)
-        const { data: existingRow } = await supabase
-          .from("users")
-          .select("id")
-          .eq("id", user.id)
-          .single();
-
-        if (existingRow) {
-          // Existing row — ensure username is set
-          await generateUsername(
-            supabase,
-            user.id,
-            user.email ?? "",
-            user.user_metadata?.full_name ?? user.user_metadata?.name,
-          );
-        } else {
-          const meta = user.user_metadata;
-          const preferredName = meta?.full_name ?? meta?.name;
-          const username = await buildUsername(supabase, preferredName, user.email ?? "");
-          await supabase.from("users").insert({
+        // Upsert public.users row — the DB trigger may or may not have created it yet.
+        // Using upsert ensures username + profile data are always set regardless.
+        await supabase.from("users").upsert(
+          {
             id: user.id,
             email: user.email ?? null,
             full_name: preferredName ?? "User",
             avatar_url: meta?.avatar_url ?? meta?.picture ?? null,
             role: "participant",
             username,
-          });
-        }
-
-        // Sync Google profile data to users table
-        if (provider === "google") {
-          const meta = user.user_metadata;
-          const updates: Record<string, string | null> = {};
-
-          if (meta?.full_name) updates.full_name = meta.full_name;
-          if (meta?.avatar_url) updates.avatar_url = meta.avatar_url;
-
-          if (Object.keys(updates).length > 0) {
-            await supabase.from("users").update(updates).eq("id", user.id);
-          }
-        }
+          },
+          { onConflict: "id", ignoreDuplicates: false },
+        );
 
         // Handle organizer signup metadata
-        if (user.user_metadata?.role === "organizer") {
-          const meta = user.user_metadata;
-
+        if (meta?.role === "organizer") {
           await supabase.from("organizer_profiles").upsert(
             {
               user_id: user.id,
