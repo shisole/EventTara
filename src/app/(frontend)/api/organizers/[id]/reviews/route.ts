@@ -6,7 +6,7 @@ import {
   MAX_REVIEW_TEXT_LENGTH,
   VALID_TAG_KEYS,
 } from "@/lib/constants/review-tags";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import type {
   OrganizerReviewsResponse,
   OrganizerReviewWithUser,
@@ -82,6 +82,7 @@ export async function GET(request: Request, { params }: RouteCtx) {
     rating: r.rating,
     text: r.text,
     is_anonymous: r.is_anonymous,
+    guest_name: r.guest_name ?? null,
     tags: r.tags || [],
     created_at: r.created_at,
     updated_at: r.updated_at,
@@ -121,14 +122,11 @@ export async function POST(request: Request, { params }: RouteCtx) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   let body: {
     rating?: number;
     text?: string;
     is_anonymous?: boolean;
+    guest_name?: string;
     tags?: string[];
     photo_urls?: string[];
   };
@@ -138,7 +136,21 @@ export async function POST(request: Request, { params }: RouteCtx) {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
 
-  const { rating, text, is_anonymous = false, tags = [], photo_urls = [] } = body;
+  const { rating, text, is_anonymous = false, guest_name, tags = [], photo_urls = [] } = body;
+  const isGuestReview = !user && !!guest_name;
+
+  // Must be logged in OR submitting as guest with a name
+  if (!user && !isGuestReview) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Validate guest name
+  if (isGuestReview && (!guest_name.trim() || guest_name.trim().length > 100)) {
+    return NextResponse.json(
+      { error: "Please provide a valid name (max 100 characters)" },
+      { status: 400 },
+    );
+  }
 
   // Validate rating
   if (!rating || !Number.isInteger(rating) || rating < 1 || rating > 5) {
@@ -161,7 +173,10 @@ export async function POST(request: Request, { params }: RouteCtx) {
     return NextResponse.json({ error: "Invalid tags" }, { status: 400 });
   }
 
-  // Validate photo URLs
+  // Validate photo URLs (guests cannot upload photos)
+  if (isGuestReview && photo_urls.length > 0) {
+    return NextResponse.json({ error: "Guests cannot upload photos" }, { status: 400 });
+  }
   if (!Array.isArray(photo_urls) || photo_urls.length > MAX_REVIEW_PHOTOS) {
     return NextResponse.json(
       { error: `Maximum ${MAX_REVIEW_PHOTOS} photos allowed` },
@@ -169,8 +184,10 @@ export async function POST(request: Request, { params }: RouteCtx) {
     );
   }
 
+  const admin = createServiceClient();
+
   // Verify organizer exists
-  const { data: org } = await supabase
+  const { data: org } = await admin
     .from("organizer_profiles")
     .select("id, user_id")
     .eq("id", organizerId)
@@ -180,38 +197,79 @@ export async function POST(request: Request, { params }: RouteCtx) {
     return NextResponse.json({ error: "Organizer not found" }, { status: 404 });
   }
 
-  // Prevent self-review
-  if (org.user_id === user.id) {
-    return NextResponse.json(
-      { error: "You cannot review your own organizer profile" },
-      { status: 400 },
-    );
+  if (user) {
+    // --- Authenticated review ---
+
+    // Prevent self-review
+    if (org.user_id === user.id) {
+      return NextResponse.json(
+        { error: "You cannot review your own organizer profile" },
+        { status: 400 },
+      );
+    }
+
+    // Check for existing review
+    const { data: existing } = await admin
+      .from("organizer_reviews")
+      .select("id")
+      .eq("organizer_id", organizerId)
+      .eq("user_id", user.id)
+      .single();
+
+    if (existing) {
+      return NextResponse.json(
+        { error: "You have already reviewed this organizer. Edit your existing review instead." },
+        { status: 409 },
+      );
+    }
+
+    const { data: review, error } = await admin
+      .from("organizer_reviews")
+      .insert({
+        organizer_id: organizerId,
+        user_id: user.id,
+        rating,
+        text: text?.trim() || null,
+        is_anonymous,
+        tags,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    // Insert photos if any
+    if (photo_urls.length > 0) {
+      const photoRows = photo_urls.map((url, i) => ({
+        review_id: review.id,
+        image_url: url,
+        sort_order: i,
+      }));
+      await admin.from("organizer_review_photos").insert(photoRows);
+    }
+
+    // Fire-and-forget: award "First Review" badge if non-anonymous
+    if (!is_anonymous) {
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      awardFirstReviewBadge(user.id, supabase).catch(() => {});
+    }
+
+    return NextResponse.json({ review }, { status: 201 });
   }
 
-  // Check for existing review (UNIQUE constraint also prevents this, but nice error message)
-  const { data: existing } = await supabase
-    .from("organizer_reviews")
-    .select("id")
-    .eq("organizer_id", organizerId)
-    .eq("user_id", user.id)
-    .single();
-
-  if (existing) {
-    return NextResponse.json(
-      { error: "You have already reviewed this organizer. Edit your existing review instead." },
-      { status: 409 },
-    );
-  }
-
-  // Insert review
-  const { data: review, error } = await supabase
+  // --- Guest review (no auth, uses service client) ---
+  // Use organizer's user_id as a placeholder — guest reviews are always anonymous
+  const { data: review, error } = await admin
     .from("organizer_reviews")
     .insert({
       organizer_id: organizerId,
-      user_id: user.id,
+      user_id: org.user_id!,
       rating,
       text: text?.trim() || null,
-      is_anonymous,
+      is_anonymous: true,
+      guest_name: guest_name!.trim(),
       tags,
     })
     .select()
@@ -219,22 +277,6 @@ export async function POST(request: Request, { params }: RouteCtx) {
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
-  // Insert photos if any
-  if (photo_urls.length > 0) {
-    const photoRows = photo_urls.map((url, i) => ({
-      review_id: review.id,
-      image_url: url,
-      sort_order: i,
-    }));
-    await supabase.from("organizer_review_photos").insert(photoRows);
-  }
-
-  // Fire-and-forget: award "First Review" badge if this is the user's first non-anonymous review
-  if (!is_anonymous) {
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    awardFirstReviewBadge(user.id, supabase).catch(() => {});
   }
 
   return NextResponse.json({ review }, { status: 201 });

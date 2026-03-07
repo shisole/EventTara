@@ -238,6 +238,7 @@ export default async function OrganizerProfilePage({
       rating: r.rating,
       text: r.text,
       is_anonymous: r.is_anonymous,
+      guest_name: r.guest_name ?? null,
       tags: r.tags || [],
       created_at: r.created_at,
       updated_at: r.updated_at,

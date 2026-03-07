@@ -436,24 +436,11 @@ export default function AuthReviewModal({
       return;
     }
 
-    setLoading(true);
-    try {
-      const supabase = createClient();
-      const { data, error: anonError } = await supabase.auth.signInAnonymously();
-      if (anonError || !data.user) {
-        setError("Something went wrong. Please try again.");
-        return;
-      }
-
-      setIsGuestAuth(true);
-      setUserDisplay(trimmedName);
-      setAuthenticatedUser({ id: data.user.id, fullName: trimmedName });
-      setState("success");
-    } catch {
-      setError("Something went wrong. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+    // No sign-in needed — pass guest info directly to the parent
+    setIsGuestAuth(true);
+    setUserDisplay(trimmedName);
+    setAuthenticatedUser({ id: "guest", fullName: trimmedName });
+    setState("success");
   };
 
   const handleGoogleLogin = async () => {

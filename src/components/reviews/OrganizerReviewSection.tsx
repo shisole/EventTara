@@ -121,6 +121,7 @@ export default function OrganizerReviewSection({
                 organizerId={organizerId}
                 existingReview={existingReview ?? undefined}
                 userName={activeUser?.fullName ?? ""}
+                isGuest={isGuestUser}
                 onSuccess={handleSuccess}
               />
             </div>

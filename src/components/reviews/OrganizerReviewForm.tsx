@@ -16,6 +16,8 @@ interface OrganizerReviewFormProps {
   /** If provided, the form is in "edit" mode. */
   existingReview?: OrganizerReviewWithUser;
   userName: string;
+  /** If true, the user is a guest (no auth session) */
+  isGuest?: boolean;
   onSuccess: () => void;
 }
 
@@ -23,6 +25,7 @@ export default function OrganizerReviewForm({
   organizerId,
   existingReview,
   userName,
+  isGuest = false,
   onSuccess,
 }: OrganizerReviewFormProps) {
   const isEdit = !!existingReview;
@@ -33,7 +36,7 @@ export default function OrganizerReviewForm({
   const [photos, setPhotos] = useState<string[]>(
     existingReview?.photos.map((p) => p.image_url) ?? [],
   );
-  const [isAnonymous, setIsAnonymous] = useState(existingReview?.is_anonymous ?? false);
+  const [isAnonymous, setIsAnonymous] = useState(isGuest || existingReview?.is_anonymous || false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,13 +52,16 @@ export default function OrganizerReviewForm({
       setError(null);
 
       try {
-        const body = {
+        const body: Record<string, unknown> = {
           rating,
           text: text.trim() || undefined,
-          is_anonymous: isAnonymous,
+          is_anonymous: isGuest ? true : isAnonymous,
           tags,
           photo_urls: photos,
         };
+        if (isGuest) {
+          body.guest_name = userName;
+        }
 
         const res = await fetch(`/api/organizers/${organizerId}/reviews`, {
           method: isEdit ? "PATCH" : "POST",
@@ -75,7 +81,7 @@ export default function OrganizerReviewForm({
         setSubmitting(false);
       }
     },
-    [rating, text, isAnonymous, tags, photos, organizerId, isEdit, onSuccess],
+    [rating, text, isAnonymous, isGuest, userName, tags, photos, organizerId, isEdit, onSuccess],
   );
 
   return (
@@ -115,48 +121,58 @@ export default function OrganizerReviewForm({
         </p>
       </div>
 
-      {/* Photos */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-          Photos <span className="text-gray-400 font-normal">(optional, max 5)</span>
-        </label>
-        <ReviewPhotoUpload photos={photos} onChange={setPhotos} disabled={submitting} />
-      </div>
-
-      {/* Post as: user / anonymous */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-          Post as
-        </label>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => setIsAnonymous(false)}
-            disabled={submitting}
-            className={cn(
-              "rounded-full px-4 py-1.5 text-sm font-medium transition-all",
-              isAnonymous
-                ? "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"
-                : "bg-teal-100 text-teal-800 ring-1 ring-teal-300 dark:bg-teal-900/40 dark:text-teal-300 dark:ring-teal-700",
-            )}
-          >
-            {userName}
-          </button>
-          <button
-            type="button"
-            onClick={() => setIsAnonymous(true)}
-            disabled={submitting}
-            className={cn(
-              "rounded-full px-4 py-1.5 text-sm font-medium transition-all",
-              isAnonymous
-                ? "bg-gray-700 text-white ring-1 ring-gray-600 dark:bg-gray-600 dark:ring-gray-500"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700",
-            )}
-          >
-            Anonymous
-          </button>
+      {/* Photos (not available for guests) */}
+      {!isGuest && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+            Photos <span className="text-gray-400 font-normal">(optional, max 5)</span>
+          </label>
+          <ReviewPhotoUpload photos={photos} onChange={setPhotos} disabled={submitting} />
         </div>
-      </div>
+      )}
+
+      {/* Post as: user / anonymous (hidden for guests — always anonymous) */}
+      {!isGuest && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+            Post as
+          </label>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setIsAnonymous(false)}
+              disabled={submitting}
+              className={cn(
+                "rounded-full px-4 py-1.5 text-sm font-medium transition-all",
+                isAnonymous
+                  ? "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"
+                  : "bg-teal-100 text-teal-800 ring-1 ring-teal-300 dark:bg-teal-900/40 dark:text-teal-300 dark:ring-teal-700",
+              )}
+            >
+              {userName}
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsAnonymous(true)}
+              disabled={submitting}
+              className={cn(
+                "rounded-full px-4 py-1.5 text-sm font-medium transition-all",
+                isAnonymous
+                  ? "bg-gray-700 text-white ring-1 ring-gray-600 dark:bg-gray-600 dark:ring-gray-500"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700",
+              )}
+            >
+              Anonymous
+            </button>
+          </div>
+        </div>
+      )}
+
+      {isGuest && (
+        <p className="text-xs text-gray-400 dark:text-gray-500">
+          Posting as <span className="font-medium">{userName}</span> (guest)
+        </p>
+      )}
 
       {error && (
         <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 rounded-lg px-3 py-2">

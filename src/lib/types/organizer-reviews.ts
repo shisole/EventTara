@@ -20,6 +20,7 @@ export interface OrganizerReviewWithUser {
   rating: number;
   text: string | null;
   is_anonymous: boolean;
+  guest_name: string | null;
   tags: string[];
   created_at: string;
   updated_at: string;

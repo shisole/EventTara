@@ -18,7 +18,9 @@ interface OrganizerReviewCardProps {
 const TAG_MAP = new Map(REVIEW_TAGS.map((t) => [t.key, t]));
 
 export default function OrganizerReviewCard({ review }: OrganizerReviewCardProps) {
-  const displayName = review.is_anonymous ? "Anonymous" : (review.user?.full_name ?? "User");
+  const displayName = review.is_anonymous
+    ? review.guest_name || "Anonymous"
+    : (review.user?.full_name ?? "User");
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   return (

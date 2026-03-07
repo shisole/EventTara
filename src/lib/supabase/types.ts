@@ -1277,6 +1277,7 @@ export interface Database {
           rating: number;
           text: string | null;
           is_anonymous: boolean;
+          guest_name: string | null;
           tags: string[];
           created_at: string;
           updated_at: string;
@@ -1288,6 +1289,7 @@ export interface Database {
           rating: number;
           text?: string | null;
           is_anonymous?: boolean;
+          guest_name?: string | null;
           tags?: string[];
           created_at?: string;
           updated_at?: string;
@@ -1299,6 +1301,7 @@ export interface Database {
           rating?: number;
           text?: string | null;
           is_anonymous?: boolean;
+          guest_name?: string | null;
           tags?: string[];
           created_at?: string;
           updated_at?: string;
