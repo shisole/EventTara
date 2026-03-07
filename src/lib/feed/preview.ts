@@ -65,7 +65,7 @@ export async function fetchFeedPreviewItems(): Promise<FeedPreviewItem[]> {
     raw.push({
       id: b.id,
       activityType: "booking",
-      userId: b.user_id,
+      userId: b.user_id!,
       text: `is joining ${event?.title || "an event"}`,
       contextImageUrl: event?.cover_image_url || null,
       badgeImageUrl: null,

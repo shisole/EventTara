@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useEffect, useRef, useState } from "react";
 
 const RouteMap = dynamic(() => import("@/components/strava/RouteMap"), {
   ssr: false,
@@ -24,12 +25,40 @@ const COASTAL_ROAD_DISTANCE = 110_000; // 110 km out-and-back
 const COASTAL_ROAD_ELEVATION = 650; // meters
 
 export default function StravaShowcaseRouteMap() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "200px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <RouteMap
-      polyline={COASTAL_ROAD_POLYLINE}
-      distance={COASTAL_ROAD_DISTANCE}
-      elevationGain={COASTAL_ROAD_ELEVATION}
-      className="rounded-xl shadow-lg"
-    />
+    <div ref={ref}>
+      {visible ? (
+        <RouteMap
+          polyline={COASTAL_ROAD_POLYLINE}
+          distance={COASTAL_ROAD_DISTANCE}
+          elevationGain={COASTAL_ROAD_ELEVATION}
+          className="rounded-xl shadow-lg"
+        />
+      ) : (
+        <div
+          className="animate-pulse rounded-xl bg-gray-100 dark:bg-gray-800"
+          style={{ height: 300 }}
+        />
+      )}
+    </div>
   );
 }

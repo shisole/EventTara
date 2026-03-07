@@ -13,7 +13,11 @@ test.describe("Login page", () => {
   test("has link to signup", async ({ page }) => {
     await page.goto("/login");
 
-    const signupLink = page.getByRole("link", { name: /sign up|create account|register/i });
+    // "Don't have an account? Sign Up" — scoped to main content (not navbar)
+    const signupLink = page
+      .getByRole("paragraph")
+      .filter({ hasText: /don't have an account/i })
+      .getByRole("link");
     await expect(signupLink).toBeVisible();
   });
 });
@@ -33,7 +37,11 @@ test.describe("Signup page", () => {
   test("has link to login", async ({ page }) => {
     await page.goto("/signup");
 
-    const loginLink = page.getByRole("link", { name: /log in|sign in/i });
+    // "Already have an account? Sign In" — scoped to main content (not navbar)
+    const loginLink = page
+      .getByRole("paragraph")
+      .filter({ hasText: /already have an account/i })
+      .getByRole("link");
     await expect(loginLink).toBeVisible();
   });
 });
