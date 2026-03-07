@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Fragment, useState } from "react";
+import { Fragment, useState, useTransition } from "react";
 
 import { Button } from "@/components/ui";
 import PaymentStatusBadge from "@/components/ui/PaymentStatusBadge";
@@ -73,15 +73,17 @@ function ManualStatusDropdown({
   currentStatus: "paid" | "reserved" | "pending";
   onUpdated: () => void;
 }) {
-  const [loading, setLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const [fetching, setFetching] = useState(false);
   const [open, setOpen] = useState(false);
+  const loading = fetching || isPending;
 
   async function handleChange(newStatus: "paid" | "reserved" | "pending") {
     if (newStatus === currentStatus) {
       setOpen(false);
       return;
     }
-    setLoading(true);
+    setFetching(true);
     setOpen(false);
     try {
       const res = await fetch(`/api/events/${eventId}/participants/${bookingId}`, {
@@ -90,11 +92,13 @@ function ManualStatusDropdown({
         body: JSON.stringify({ manualStatus: newStatus }),
       });
       if (!res.ok) throw new Error("Failed");
-      onUpdated();
-      // Don't clear loading — component re-renders with new data from router.refresh()
+      startTransition(() => {
+        onUpdated();
+      });
     } catch (error) {
       console.error("Status update failed:", error);
-      setLoading(false);
+    } finally {
+      setFetching(false);
     }
   }
 
