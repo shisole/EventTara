@@ -346,7 +346,7 @@ export interface Database {
         Row: {
           id: string;
           event_id: string;
-          user_id: string;
+          user_id: string | null;
           status: "pending" | "confirmed" | "cancelled";
           payment_status: "pending" | "paid" | "rejected" | "refunded";
           payment_method: "gcash" | "maya" | "cash" | null;
@@ -357,11 +357,15 @@ export interface Database {
           qr_code: string | null;
           event_distance_id: string | null;
           booked_at: string;
+          added_by: string | null;
+          manual_status: "paid" | "reserved" | "pending" | null;
+          manual_name: string | null;
+          manual_contact: string | null;
         };
         Insert: {
           id?: string;
           event_id: string;
-          user_id: string;
+          user_id?: string | null;
           status?: "pending" | "confirmed" | "cancelled";
           payment_status?: "pending" | "paid" | "rejected" | "refunded";
           payment_method?: "gcash" | "maya" | "cash" | null;
@@ -372,11 +376,15 @@ export interface Database {
           qr_code?: string | null;
           event_distance_id?: string | null;
           booked_at?: string;
+          added_by?: string | null;
+          manual_status?: "paid" | "reserved" | "pending" | null;
+          manual_name?: string | null;
+          manual_contact?: string | null;
         };
         Update: {
           id?: string;
           event_id?: string;
-          user_id?: string;
+          user_id?: string | null;
           status?: "pending" | "confirmed" | "cancelled";
           payment_status?: "pending" | "paid" | "rejected" | "refunded";
           payment_method?: "gcash" | "maya" | "cash" | null;
@@ -387,6 +395,10 @@ export interface Database {
           qr_code?: string | null;
           event_distance_id?: string | null;
           booked_at?: string;
+          added_by?: string | null;
+          manual_status?: "paid" | "reserved" | "pending" | null;
+          manual_name?: string | null;
+          manual_contact?: string | null;
         };
         Relationships: [];
       };

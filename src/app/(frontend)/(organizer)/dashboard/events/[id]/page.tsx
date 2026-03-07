@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import BadgeAwarder from "@/components/dashboard/BadgeAwarder";
 import CompleteEventButton from "@/components/dashboard/CompleteEventButton";
 import EventDashboardTabs from "@/components/dashboard/EventDashboardTabs";
-import ParticipantsTable from "@/components/dashboard/ParticipantsTable";
+import ParticipantsSection from "@/components/dashboard/ParticipantsSection";
 import PublishButton from "@/components/dashboard/PublishButton";
 import { ChevronLeftIcon } from "@/components/icons";
 import { Button, UIBadge } from "@/components/ui";
@@ -19,6 +19,13 @@ export default async function ManageEventPage({ params }: { params: Promise<{ id
   const { data: event } = await supabase.from("events").select("*").eq("id", id).single();
 
   if (!event) notFound();
+
+  // Get event distances
+  const { data: distances } = await supabase
+    .from("event_distances")
+    .select("id, distance_km, label, price")
+    .eq("event_id", id)
+    .order("distance_km", { ascending: true });
 
   // Get bookings with user info
   const { data: bookings } = await supabase
@@ -201,10 +208,14 @@ export default async function ManageEventPage({ params }: { params: Promise<{ id
         {/* Participant List */}
         <div className="mt-8">
           <h2 className="text-xl font-heading font-bold mb-4 dark:text-white">Participants</h2>
-          <ParticipantsTable
+          <ParticipantsSection
+            eventId={id}
+            eventStatus={event.status}
+            isFull={totalParticipants >= event.max_participants}
             bookings={(bookings || []) as any}
             companionsByBooking={companionsByBooking}
             checkedInUserIds={checkedInUserIds}
+            distances={(distances || []) as any}
           />
         </div>
 

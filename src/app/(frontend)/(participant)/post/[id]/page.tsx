@@ -80,7 +80,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
     activity = {
       id: booking.id,
       activityType: "booking",
-      userId: booking.user_id,
+      userId: booking.user_id!,
       text: `is joining ${event?.title || "an event"}`,
       contextImageUrl: event?.cover_image_url || null,
       ...nullBadge,
