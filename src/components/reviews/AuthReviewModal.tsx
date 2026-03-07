@@ -477,7 +477,7 @@ export default function AuthReviewModal({
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-end md:items-center justify-center md:p-4 transition-opacity duration-200 ${
+      className={`fixed inset-0 z-[80] flex items-end md:items-center justify-center md:p-4 transition-opacity duration-200 ${
         isVisible ? "opacity-100 bg-black/60" : "opacity-0 bg-black/0"
       }`}
       role="dialog"
