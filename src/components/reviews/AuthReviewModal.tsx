@@ -3,8 +3,15 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { CheckCircleIcon, CloseIcon, EnvelopeIcon } from "@/components/icons";
+import {
+  CheckCircleIcon,
+  CloseIcon,
+  EnvelopeIcon,
+  GoogleIcon,
+  StravaIcon,
+} from "@/components/icons";
 import { Button, OtpCodeInput } from "@/components/ui";
+import { STRAVA_AUTH_URL, STRAVA_SCOPES } from "@/lib/strava/constants";
 import { createClient } from "@/lib/supabase/client";
 import { generateUsername } from "@/lib/utils/generate-username";
 
@@ -63,7 +70,24 @@ export default function AuthReviewModal({
   } | null>(null);
   const [isGuestAuth, setIsGuestAuth] = useState(false);
   const [guestName, setGuestName] = useState("");
+  const [oauthGoogle, setOauthGoogle] = useState(false);
+  const [oauthStrava, setOauthStrava] = useState(false);
+  const [oauthFacebook, setOauthFacebook] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const usernameTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Fetch OAuth feature flags
+  useEffect(() => {
+    void fetch("/api/feature-flags")
+      .then((r) => r.json())
+      .then((d: { oauthGoogle?: boolean; oauthStrava?: boolean; oauthFacebook?: boolean }) => {
+        setOauthGoogle(d.oauthGoogle === true);
+        setOauthStrava(d.oauthStrava === true);
+        setOauthFacebook(d.oauthFacebook === true);
+      })
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      .catch(() => {});
+  }, []);
 
   // Animate in on mount
   useEffect(() => {
@@ -432,6 +456,22 @@ export default function AuthReviewModal({
     }
   };
 
+  const handleGoogleLogin = async () => {
+    setGoogleLoading(true);
+    setError("");
+    const supabase = createClient();
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${globalThis.location.origin}/auth/callback`,
+      },
+    });
+    if (oauthError) {
+      setError(oauthError.message || "Something went wrong. Please try again.");
+      setGoogleLoading(false);
+    }
+  };
+
   const inputClassName =
     "w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition-colors";
 
@@ -488,6 +528,104 @@ export default function AuthReviewModal({
                   : "Sign in to leave your review"}
               </h2>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{organizerName}</p>
+            </div>
+
+            {/* OAuth buttons */}
+            {oauthGoogle ? (
+              <Button
+                type="button"
+                disabled
+                className="w-full bg-white/60 cursor-not-allowed border border-gray-300"
+                size="lg"
+              >
+                <GoogleIcon className="w-5 h-5 mr-2" />
+                Continue with Google
+                <span className="ml-2 rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium">
+                  Coming Soon
+                </span>
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                className="w-full bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
+                size="lg"
+                onClick={handleGoogleLogin}
+                disabled={googleLoading}
+              >
+                <GoogleIcon className="w-5 h-5 mr-2" />
+                {googleLoading ? "Redirecting..." : "Continue with Google"}
+              </Button>
+            )}
+
+            {oauthFacebook ? (
+              <Button
+                type="button"
+                disabled
+                className="w-full bg-[#1877F2]/60 cursor-not-allowed"
+                size="lg"
+              >
+                Continue with Facebook
+                <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium">
+                  Coming Soon
+                </span>
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                className="w-full bg-[#1877F2] hover:bg-[#1565C0] text-white"
+                size="lg"
+                disabled
+              >
+                Continue with Facebook
+              </Button>
+            )}
+
+            {oauthStrava ? (
+              <Button
+                type="button"
+                disabled
+                className="w-full bg-[#FC4C02]/60 cursor-not-allowed"
+                size="lg"
+              >
+                <StravaIcon className="w-5 h-5 mr-2" />
+                Continue with Strava
+                <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium">
+                  Coming Soon
+                </span>
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                className="w-full bg-[#FC4C02] hover:bg-[#E34402] text-white"
+                size="lg"
+                onClick={() => {
+                  const clientId = process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID;
+                  if (!clientId) return;
+                  const params = new URLSearchParams({
+                    client_id: clientId,
+                    redirect_uri: `${globalThis.location.origin}/auth/strava/callback`,
+                    response_type: "code",
+                    scope: STRAVA_SCOPES.join(","),
+                    state: JSON.stringify({ flow: "login", returnUrl: "/events" }),
+                    approval_prompt: "auto",
+                  });
+                  globalThis.location.href = `${STRAVA_AUTH_URL}?${params.toString()}`;
+                }}
+              >
+                <StravaIcon className="w-5 h-5 mr-2" />
+                Continue with Strava
+              </Button>
+            )}
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200 dark:border-gray-700" />
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-white dark:bg-slate-800 px-2 text-gray-400 dark:text-gray-500">
+                  or
+                </span>
+              </div>
             </div>
 
             {authMode === "signup" && authMethod === "password" && (
