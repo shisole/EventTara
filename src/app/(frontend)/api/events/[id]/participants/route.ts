@@ -1,0 +1,89 @@
+import { randomUUID } from "node:crypto";
+
+import { NextResponse } from "next/server";
+
+import { createClient } from "@/lib/supabase/server";
+
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id: eventId } = await params;
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Verify user is the organizer
+  const { data: event } = await supabase
+    .from("events")
+    .select("id, organizer_id, max_participants, price")
+    .eq("id", eventId)
+    .single();
+
+  if (!event) {
+    return NextResponse.json({ error: "Event not found" }, { status: 404 });
+  }
+
+  if (event.organizer_id !== user.id) {
+    return NextResponse.json({ error: "Not authorized" }, { status: 403 });
+  }
+
+  const body = await request.json();
+  const { userId, manualName, manualContact, manualStatus, eventDistanceId } = body as {
+    userId?: string;
+    manualName?: string;
+    manualContact?: string;
+    manualStatus: "paid" | "reserved" | "pending";
+    eventDistanceId?: string;
+  };
+
+  if (!userId && !manualName) {
+    return NextResponse.json({ error: "Either a user or a name is required" }, { status: 400 });
+  }
+
+  // Check if the user already has a booking for this event
+  if (userId) {
+    const { data: existing } = await supabase
+      .from("bookings")
+      .select("id")
+      .eq("event_id", eventId)
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (existing) {
+      return NextResponse.json(
+        { error: "This user already has a booking for this event" },
+        { status: 409 },
+      );
+    }
+  }
+
+  // Map manual_status to booking fields
+  const isPaid = manualStatus === "paid";
+  const qrCode = isPaid ? `eventtara:checkin:${eventId}:${userId || randomUUID()}` : null;
+
+  const { data: booking, error } = await supabase
+    .from("bookings")
+    .insert({
+      event_id: eventId,
+      user_id: userId || null,
+      status: isPaid ? ("confirmed" as const) : ("pending" as const),
+      payment_status: isPaid ? ("paid" as const) : ("pending" as const),
+      added_by: user.id,
+      manual_status: manualStatus,
+      manual_name: userId ? null : (manualName ?? null),
+      manual_contact: userId ? null : (manualContact ?? null),
+      qr_code: qrCode,
+      event_distance_id: eventDistanceId || null,
+    })
+    .select("*")
+    .single();
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ booking }, { status: 201 });
+}

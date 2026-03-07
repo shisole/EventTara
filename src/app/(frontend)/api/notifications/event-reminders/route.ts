@@ -52,13 +52,15 @@ export async function POST(request: Request) {
 
     await createNotifications(
       supabase,
-      bookings.map((b) => ({
-        userId: b.user_id,
-        type: "event_reminder" as const,
-        title: "Event Tomorrow",
-        body: `${event.title} is happening tomorrow at ${eventDate}. Don't forget!`,
-        href: `/events/${event.id}`,
-      })),
+      bookings
+        .filter((b) => b.user_id)
+        .map((b) => ({
+          userId: b.user_id!,
+          type: "event_reminder" as const,
+          title: "Event Tomorrow",
+          body: `${event.title} is happening tomorrow at ${eventDate}. Don't forget!`,
+          href: `/events/${event.id}`,
+        })),
     );
 
     totalNotified += bookings.length;

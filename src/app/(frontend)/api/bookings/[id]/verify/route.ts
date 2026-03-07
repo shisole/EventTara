@@ -104,7 +104,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
     // Notify participant that booking is confirmed (fire-and-forget)
     createNotification(supabase, {
-      userId: booking.user_id,
+      userId: booking.user_id!,
       type: "booking_confirmed",
       title: "Booking Confirmed",
       body: `Your payment for ${(booking.events as any).title} has been approved. You're all set!`,
