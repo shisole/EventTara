@@ -7,6 +7,9 @@ import CameraRig from "./CameraRig";
 import Climber from "./characters/Climber";
 import Cyclist from "./characters/Cyclist";
 import Runner from "./characters/Runner";
+import MountainTerrain from "./environment/MountainTerrain";
+import Road from "./environment/Road";
+import Vegetation from "./environment/Vegetation";
 
 interface AdventureWorldProps {
   scrollContainerRef: React.RefObject<HTMLDivElement | null>;
@@ -26,10 +29,7 @@ export default function AdventureWorld({
 
       {/* Scene 1: Mountain & Climber */}
       <group position={[0, 0, 0]}>
-        <mesh position={[0, 5, 0]}>
-          <coneGeometry args={[6, 12, 8]} />
-          <meshStandardMaterial color="#6B7280" roughness={0.9} />
-        </mesh>
+        <MountainTerrain position={[0, 0, 0]} />
         <Suspense
           fallback={
             <mesh position={[1.5, 7, 2]}>
@@ -42,12 +42,13 @@ export default function AdventureWorld({
         </Suspense>
       </group>
 
+      {/* Vegetation between Scene 1 and Scene 2 */}
+      <Vegetation position={[6, 0, -4]} density={10} />
+      <Vegetation position={[-8, 0, -6]} density={8} />
+
       {/* Scene 2: Trail & Mountain Biker */}
       <group position={[-6, 0, -8]}>
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]}>
-          <planeGeometry args={[12, 20]} />
-          <meshStandardMaterial color="#8B7355" roughness={1} />
-        </mesh>
+        <Road variant="trail" position={[0, 0, 0]} />
         <Suspense
           fallback={
             <>
@@ -70,16 +71,13 @@ export default function AdventureWorld({
         </Suspense>
       </group>
 
+      {/* Vegetation between Scene 2 and Scene 3 */}
+      <Vegetation position={[2, 0, -18]} density={14} />
+      <Vegetation position={[-4, 0, -22]} density={6} />
+
       {/* Scene 3: Road & Runner */}
       <group position={[4, 0, -26]}>
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]}>
-          <planeGeometry args={[8, 20]} />
-          <meshStandardMaterial color="#4B5563" roughness={0.8} />
-        </mesh>
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
-          <planeGeometry args={[0.15, 18]} />
-          <meshStandardMaterial color="#FCD34D" />
-        </mesh>
+        <Road variant="road" position={[0, 0, 0]} />
         <Suspense
           fallback={
             <mesh position={[1, 0.9, 0]}>
