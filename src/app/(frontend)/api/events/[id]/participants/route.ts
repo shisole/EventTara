@@ -66,6 +66,29 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     }
   }
 
+  // Check capacity
+  const { count: bookingCount } = await supabase
+    .from("bookings")
+    .select("*", { count: "exact", head: true })
+    .eq("event_id", eventId)
+    .eq("participant_cancelled", false);
+
+  const { count: companionCount } = await supabase
+    .from("booking_companions")
+    .select("*", { count: "exact", head: true })
+    .in(
+      "booking_id",
+      (await supabase.from("bookings").select("id").eq("event_id", eventId)).data?.map(
+        (b) => b.id,
+      ) ?? [],
+    )
+    .neq("status", "cancelled");
+
+  const totalParticipants = (bookingCount ?? 0) + (companionCount ?? 0);
+  if (totalParticipants >= event.max_participants) {
+    return NextResponse.json({ error: "Event is at full capacity" }, { status: 409 });
+  }
+
   // Map manual_status to booking fields
   const isPaid = manualStatus === "paid";
   const qrCode = isPaid ? `eventtara:checkin:${eventId}:${userId || randomUUID()}` : null;
