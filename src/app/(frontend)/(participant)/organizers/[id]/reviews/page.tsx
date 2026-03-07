@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
   const { data: profile } = await supabase
     .from("organizer_profiles")
-    .select("org_name")
+    .select("org_name, logo_url")
     .eq("id", orgId)
     .single();
 
@@ -43,11 +43,18 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     ? `${profile.org_name} has ${avgRating} stars from ${totalReviews} review${totalReviews === 1 ? "" : "s"}. Read what participants say about this organizer on EventTara.`
     : `Read reviews for ${profile.org_name} on EventTara.`;
 
+  const images = profile.logo_url ? [{ url: profile.logo_url, width: 200, height: 200 }] : [];
+
   return {
     title,
     description,
-    openGraph: { title, description, type: "profile" as const },
-    twitter: { card: "summary_large_image" as const, title, description },
+    openGraph: { title, description, type: "profile" as const, images },
+    twitter: {
+      card: profile.logo_url ? ("summary" as const) : ("summary_large_image" as const),
+      title,
+      description,
+      images,
+    },
   };
 }
 

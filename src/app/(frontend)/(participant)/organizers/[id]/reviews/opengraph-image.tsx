@@ -70,6 +70,7 @@ export default async function OGImage({ params }: { params: Promise<{ id: string
   ]);
 
   const orgName = profile?.org_name ?? "Organizer";
+  const logoUrl = profile?.logo_url;
   const totalReviews = reviewRows?.length ?? 0;
   const avgRating =
     totalReviews > 0 ? reviewRows!.reduce((sum, r) => sum + r.rating, 0) / totalReviews : 0;
@@ -104,20 +105,48 @@ export default async function OGImage({ params }: { params: Promise<{ id: string
         Organizer Reviews
       </div>
 
-      {/* Org name */}
-      <div
-        style={{
-          display: "flex",
-          fontSize: 52,
-          fontWeight: 800,
-          color: "white",
-          lineHeight: 1.2,
-          marginBottom: 24,
-          maxWidth: "90%",
-          textShadow: "0 2px 8px rgba(0,0,0,0.3)",
-        }}
-      >
-        {orgName.length > 50 ? orgName.slice(0, 47) + "..." : orgName}
+      {/* Logo + Org name */}
+      <div style={{ display: "flex", alignItems: "center", gap: 24, marginBottom: 24 }}>
+        {logoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={logoUrl}
+            alt=""
+            width={80}
+            height={80}
+            style={{ borderRadius: 16, objectFit: "cover" }}
+          />
+        ) : (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: 80,
+              height: 80,
+              borderRadius: 16,
+              backgroundColor: "rgba(255,255,255,0.2)",
+              color: "white",
+              fontSize: 36,
+              fontWeight: 700,
+            }}
+          >
+            {orgName.charAt(0).toUpperCase()}
+          </div>
+        )}
+        <div
+          style={{
+            display: "flex",
+            fontSize: 48,
+            fontWeight: 800,
+            color: "white",
+            lineHeight: 1.2,
+            maxWidth: "70%",
+            textShadow: "0 2px 8px rgba(0,0,0,0.3)",
+          }}
+        >
+          {orgName.length > 40 ? orgName.slice(0, 37) + "..." : orgName}
+        </div>
       </div>
 
       {/* Stars + count */}
