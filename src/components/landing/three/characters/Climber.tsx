@@ -36,4 +36,5 @@ export default function Climber({
   );
 }
 
-useGLTF.preload("/models/climber.glb");
+// Preload disabled until model files are added to public/models/
+// useGLTF.preload("/models/climber.glb");

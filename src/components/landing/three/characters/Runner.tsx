@@ -36,4 +36,5 @@ export default function Runner({
   );
 }
 
-useGLTF.preload("/models/runner.glb");
+// Preload disabled until model files are added to public/models/
+// useGLTF.preload("/models/runner.glb");

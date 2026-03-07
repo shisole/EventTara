@@ -36,4 +36,5 @@ export default function Cyclist({
   );
 }
 
-useGLTF.preload("/models/cyclist.glb");
+// Preload disabled until model files are added to public/models/
+// useGLTF.preload("/models/cyclist.glb");
