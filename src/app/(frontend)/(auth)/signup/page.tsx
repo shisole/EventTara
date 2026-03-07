@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState, useEffect, useRef, useCallback } from "react";
 
-import { CheckCircleIcon, StravaIcon } from "@/components/icons";
+import { CheckCircleIcon, GoogleIcon, StravaIcon } from "@/components/icons";
 import { Button, Input, OtpCodeInput } from "@/components/ui";
 import { STRAVA_AUTH_URL, STRAVA_SCOPES } from "@/lib/strava/constants";
 import { createClient } from "@/lib/supabase/client";
@@ -92,6 +92,7 @@ function SignupForm() {
   // OTP code state
   const [code, setCode] = useState<string[]>(emptyCode());
   const [showComingSoon, setShowComingSoon] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   // Store metadata to apply after verification
   const metadataRef = useRef<Record<string, string>>({});
@@ -103,6 +104,21 @@ function SignupForm() {
       metadata.org_name = orgName.trim();
     }
     return metadata;
+  };
+
+  const handleGoogleSignup = async () => {
+    setGoogleLoading(true);
+    setError("");
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${globalThis.location.origin}/auth/callback`,
+      },
+    });
+    if (oauthError) {
+      setError(oauthError.message || "Something went wrong. Please try again.");
+      setGoogleLoading(false);
+    }
   };
 
   const handlePostSignup = async (userId: string) => {
@@ -385,6 +401,18 @@ function SignupForm() {
 
       {showComingSoon ? (
         <>
+          <Button
+            disabled
+            className="w-full bg-white/60 cursor-not-allowed border border-gray-300"
+            size="lg"
+          >
+            <GoogleIcon className="w-5 h-5 mr-2" />
+            Continue with Google
+            <span className="ml-2 rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium">
+              Coming Soon
+            </span>
+          </Button>
+
           <Button disabled className="w-full bg-[#1877F2]/60 cursor-not-allowed" size="lg">
             Continue with Facebook
             <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium">
@@ -401,26 +429,37 @@ function SignupForm() {
           </Button>
         </>
       ) : (
-        <Button
-          className="w-full bg-[#FC4C02] hover:bg-[#E34402] text-white"
-          size="lg"
-          onClick={() => {
-            const clientId = process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID;
-            if (!clientId) return;
-            const params = new URLSearchParams({
-              client_id: clientId,
-              redirect_uri: `${globalThis.location.origin}/auth/strava/callback`,
-              response_type: "code",
-              scope: STRAVA_SCOPES.join(","),
-              state: JSON.stringify({ flow: "login", returnUrl: "/events" }),
-              approval_prompt: "auto",
-            });
-            globalThis.location.href = `${STRAVA_AUTH_URL}?${params.toString()}`;
-          }}
-        >
-          <StravaIcon className="w-5 h-5 mr-2" />
-          Continue with Strava
-        </Button>
+        <div className="space-y-3">
+          <Button
+            className="w-full bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
+            size="lg"
+            onClick={handleGoogleSignup}
+            disabled={googleLoading}
+          >
+            <GoogleIcon className="w-5 h-5 mr-2" />
+            {googleLoading ? "Redirecting..." : "Continue with Google"}
+          </Button>
+          <Button
+            className="w-full bg-[#FC4C02] hover:bg-[#E34402] text-white"
+            size="lg"
+            onClick={() => {
+              const clientId = process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID;
+              if (!clientId) return;
+              const params = new URLSearchParams({
+                client_id: clientId,
+                redirect_uri: `${globalThis.location.origin}/auth/strava/callback`,
+                response_type: "code",
+                scope: STRAVA_SCOPES.join(","),
+                state: JSON.stringify({ flow: "login", returnUrl: "/events" }),
+                approval_prompt: "auto",
+              });
+              globalThis.location.href = `${STRAVA_AUTH_URL}?${params.toString()}`;
+            }}
+          >
+            <StravaIcon className="w-5 h-5 mr-2" />
+            Continue with Strava
+          </Button>
+        </div>
       )}
 
       <div className="relative">
