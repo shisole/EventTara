@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { createClient } from "@/lib/supabase/server";
+import { generateUsername } from "@/lib/utils/generate-username";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -15,23 +16,43 @@ export async function GET(request: Request) {
         data: { user },
       } = await supabase.auth.getUser();
 
-      if (user?.user_metadata?.role === "organizer") {
-        // Create organizer profile from signup metadata
-        const meta = user.user_metadata;
+      if (user) {
+        const provider = user.app_metadata?.provider;
 
-        await supabase.from("organizer_profiles").upsert(
-          {
-            user_id: user.id,
-            org_name: meta.org_name,
-            description: meta.org_description || null,
-            logo_url: meta.org_logo_url || null,
-          },
-          { onConflict: "user_id" },
-        );
+        // Sync Google profile data to users table
+        if (provider === "google") {
+          const meta = user.user_metadata;
+          const updates: Record<string, string | null> = {};
 
-        await supabase.from("users").update({ role: "organizer" }).eq("id", user.id);
+          if (meta?.full_name) updates.full_name = meta.full_name;
+          if (meta?.avatar_url) updates.avatar_url = meta.avatar_url;
 
-        return NextResponse.redirect(`${origin}/dashboard`);
+          if (Object.keys(updates).length > 0) {
+            await supabase.from("users").update(updates).eq("id", user.id);
+          }
+
+          // Generate username if not set
+          await generateUsername(supabase, user.id, user.email ?? "");
+        }
+
+        // Handle organizer signup metadata
+        if (user.user_metadata?.role === "organizer") {
+          const meta = user.user_metadata;
+
+          await supabase.from("organizer_profiles").upsert(
+            {
+              user_id: user.id,
+              org_name: meta.org_name,
+              description: meta.org_description ?? null,
+              logo_url: meta.org_logo_url ?? null,
+            },
+            { onConflict: "user_id" },
+          );
+
+          await supabase.from("users").update({ role: "organizer" }).eq("id", user.id);
+
+          return NextResponse.redirect(`${origin}/dashboard`);
+        }
       }
 
       return NextResponse.redirect(`${origin}${next}`);
