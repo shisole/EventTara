@@ -24,19 +24,32 @@ const SCENES = [
 function getSceneOpacity(progress: number, sceneIndex: number): number {
   const sceneStart = sceneIndex * 0.33;
   const sceneEnd = sceneStart + 0.33;
-  const fadeIn = 0.05;
-  const fadeOut = 0.05;
+  // Slight delay before text appears after camera reaches the scene
+  const delay = 0.03;
+  const fadeIn = 0.08;
+  const fadeOut = 0.06;
 
-  if (progress < sceneStart + fadeIn) {
-    return Math.max(0, (progress - sceneStart) / fadeIn);
+  const delayedStart = sceneStart + delay;
+
+  if (progress < delayedStart) {
+    return 0;
+  }
+  if (progress < delayedStart + fadeIn) {
+    return Math.max(0, (progress - delayedStart) / fadeIn);
   }
   if (progress > sceneEnd - fadeOut) {
     return Math.max(0, (sceneEnd - progress) / fadeOut);
   }
-  if (progress >= sceneStart + fadeIn && progress <= sceneEnd - fadeOut) {
+  if (progress >= delayedStart + fadeIn && progress <= sceneEnd - fadeOut) {
     return 1;
   }
   return 0;
+}
+
+function getCtaOpacity(progress: number): number {
+  // CTA fades in from 0.85 to 1.0 for a gradual reveal
+  if (progress < 0.85) return 0;
+  return Math.min(1, (progress - 0.85) / 0.15);
 }
 
 function LoadingScreen() {
@@ -98,7 +111,8 @@ export default function ThreeHeroScene() {
     setProgress(p);
   }, []);
 
-  const showCTA = progress > 0.9;
+  const ctaOpacity = getCtaOpacity(progress);
+  const scrollIndicatorOpacity = progress < 0.05 ? 1 : Math.max(0, 1 - (progress - 0.05) / 0.05);
 
   return (
     <div className="relative">
@@ -145,7 +159,7 @@ export default function ThreeHeroScene() {
 
         <div
           className="pointer-events-auto sticky top-0 flex h-screen items-center justify-center"
-          style={{ opacity: showCTA ? 1 : 0, transition: "opacity 0.5s" }}
+          style={{ opacity: ctaOpacity }}
         >
           <div className="px-4 text-center">
             <h2 className="mb-4 font-heading text-4xl font-bold text-white drop-shadow-lg sm:text-6xl">
@@ -172,7 +186,27 @@ export default function ThreeHeroScene() {
         </div>
       </div>
 
-      <div className="relative z-10 -mt-32 h-32 bg-gradient-to-b from-transparent to-white dark:to-slate-800" />
+      {/* Scroll-down indicator — animated chevron that fades out on scroll */}
+      <div
+        className="pointer-events-none fixed bottom-8 left-1/2 z-10 -translate-x-1/2"
+        style={{ opacity: scrollIndicatorOpacity }}
+      >
+        <div className="flex flex-col items-center gap-1">
+          <span className="text-sm font-medium tracking-wider text-white/70">SCROLL</span>
+          <svg
+            className="h-6 w-6 animate-bounce text-white/70"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+      </div>
+
+      {/* Gradient blend into the next section */}
+      <div className="relative z-10 -mt-48 h-48 bg-gradient-to-b from-transparent via-white/40 to-white dark:via-slate-800/40 dark:to-slate-800" />
     </div>
   );
 }

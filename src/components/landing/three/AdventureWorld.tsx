@@ -22,13 +22,16 @@ export default function AdventureWorld({
 }: AdventureWorldProps) {
   return (
     <>
-      <ambientLight intensity={0.4} />
-      <directionalLight position={[10, 20, 10]} intensity={1.2} castShadow />
+      {/* Global lighting */}
+      <ambientLight intensity={0.35} />
+      <directionalLight position={[10, 20, 10]} intensity={1.1} castShadow />
       <Environment preset="forest" />
       <CameraRig scrollContainerRef={scrollContainerRef} onProgressChange={onProgressChange} />
 
       {/* Scene 1: Mountain & Climber */}
       <group position={[0, 0, 0]}>
+        {/* Warm uplight for dramatic mountain lighting */}
+        <pointLight position={[0, -2, 4]} intensity={0.6} color="#FFA54F" distance={20} />
         <MountainTerrain position={[0, 0, 0]} />
         <Suspense
           fallback={
@@ -45,9 +48,14 @@ export default function AdventureWorld({
       {/* Vegetation between Scene 1 and Scene 2 */}
       <Vegetation position={[6, 0, -4]} density={10} />
       <Vegetation position={[-8, 0, -6]} density={8} />
+      <Vegetation position={[-3, 0, -3]} density={5} />
 
       {/* Scene 2: Trail & Mountain Biker */}
       <group position={[-6, 0, -8]}>
+        {/* Dappled light for trail scene — scattered point lights mimicking canopy gaps */}
+        <pointLight position={[-2, 4, -1]} intensity={0.5} color="#F5E6CC" distance={12} />
+        <pointLight position={[3, 3.5, 2]} intensity={0.35} color="#F5E6CC" distance={10} />
+        <pointLight position={[0, 5, -3]} intensity={0.4} color="#FFFBE6" distance={14} />
         <Road variant="trail" position={[0, 0, 0]} />
         <Suspense
           fallback={
@@ -70,6 +78,10 @@ export default function AdventureWorld({
           <Cyclist position={[0, 0.8, 0]} scale={0.01} />
         </Suspense>
       </group>
+
+      {/* Dense vegetation flanking the trail */}
+      <Vegetation position={[-12, 0, -6]} density={10} />
+      <Vegetation position={[0, 0, -10]} density={8} />
 
       {/* Vegetation between Scene 2 and Scene 3 */}
       <Vegetation position={[2, 0, -18]} density={14} />
@@ -96,8 +108,8 @@ export default function AdventureWorld({
         <meshStandardMaterial color="#4ADE80" roughness={1} />
       </mesh>
 
-      {/* Fog */}
-      <fog attach="fog" args={["#87CEEB", 20, 60]} />
+      {/* Fog — closer near, farther far for better depth layering */}
+      <fog attach="fog" args={["#87CEEB", 15, 55]} />
     </>
   );
 }
