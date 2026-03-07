@@ -53,7 +53,11 @@ function SignupForm() {
   useEffect(() => {
     void fetch("/api/feature-flags")
       .then((r) => r.json())
-      .then((d: { showComingSoon?: boolean }) => setShowComingSoon(d.showComingSoon === true))
+      .then((d: { oauthGoogle?: boolean; oauthStrava?: boolean; oauthFacebook?: boolean }) => {
+        setOauthGoogle(d.oauthGoogle === true);
+        setOauthStrava(d.oauthStrava === true);
+        setOauthFacebook(d.oauthFacebook === true);
+      })
       // eslint-disable-next-line @typescript-eslint/no-empty-function
       .catch(() => {});
   }, []);
@@ -91,7 +95,9 @@ function SignupForm() {
 
   // OTP code state
   const [code, setCode] = useState<string[]>(emptyCode());
-  const [showComingSoon, setShowComingSoon] = useState(false);
+  const [oauthGoogle, setOauthGoogle] = useState(false);
+  const [oauthStrava, setOauthStrava] = useState(false);
+  const [oauthFacebook, setOauthFacebook] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
   // Store metadata to apply after verification
@@ -399,79 +405,62 @@ function SignupForm() {
         </p>
       )}
 
-      {showComingSoon ? (
-        <>
-          <Button
-            disabled
-            className="w-full bg-white/60 cursor-not-allowed border border-gray-300"
-            size="lg"
-          >
-            <GoogleIcon className="w-5 h-5 mr-2" />
-            Continue with Google
-            <span className="ml-2 rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium">
-              Coming Soon
-            </span>
-          </Button>
-
-          <Button disabled className="w-full bg-[#1877F2]/60 cursor-not-allowed" size="lg">
-            Continue with Facebook
-            <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium">
-              Coming Soon
-            </span>
-          </Button>
-
-          <Button disabled className="w-full bg-[#FC4C02]/60 cursor-not-allowed" size="lg">
-            <StravaIcon className="w-5 h-5 mr-2" />
-            Continue with Strava
-            <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium">
-              Coming Soon
-            </span>
-          </Button>
-        </>
-      ) : (
-        <div className="space-y-3">
-          <Button
-            className="w-full bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
-            size="lg"
-            onClick={handleGoogleSignup}
-            disabled={googleLoading}
-          >
-            <GoogleIcon className="w-5 h-5 mr-2" />
-            {googleLoading ? "Redirecting..." : "Continue with Google"}
-          </Button>
-          <Button
-            className="w-full bg-[#FC4C02] hover:bg-[#E34402] text-white"
-            size="lg"
-            onClick={() => {
-              const clientId = process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID;
-              if (!clientId) return;
-              const params = new URLSearchParams({
-                client_id: clientId,
-                redirect_uri: `${globalThis.location.origin}/auth/strava/callback`,
-                response_type: "code",
-                scope: STRAVA_SCOPES.join(","),
-                state: JSON.stringify({ flow: "login", returnUrl: "/events" }),
-                approval_prompt: "auto",
-              });
-              globalThis.location.href = `${STRAVA_AUTH_URL}?${params.toString()}`;
-            }}
-          >
-            <StravaIcon className="w-5 h-5 mr-2" />
-            Continue with Strava
-          </Button>
-        </div>
+      {oauthGoogle && (
+        <Button
+          className="w-full bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
+          size="lg"
+          onClick={handleGoogleSignup}
+          disabled={googleLoading}
+        >
+          <GoogleIcon className="w-5 h-5 mr-2" />
+          {googleLoading ? "Redirecting..." : "Continue with Google"}
+        </Button>
       )}
 
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-200 dark:border-gray-700" />
-        </div>
-        <div className="relative flex justify-center text-sm">
-          <span className="bg-white dark:bg-gray-900 px-4 text-gray-400 dark:text-gray-500">
-            or
+      {oauthFacebook && (
+        <Button disabled className="w-full bg-[#1877F2]/60 cursor-not-allowed" size="lg">
+          Continue with Facebook
+          <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium">
+            Coming Soon
           </span>
+        </Button>
+      )}
+
+      {oauthStrava && (
+        <Button
+          className="w-full bg-[#FC4C02] hover:bg-[#E34402] text-white"
+          size="lg"
+          onClick={() => {
+            const clientId = process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID;
+            if (!clientId) return;
+            const params = new URLSearchParams({
+              client_id: clientId,
+              redirect_uri: `${globalThis.location.origin}/auth/strava/callback`,
+              response_type: "code",
+              scope: STRAVA_SCOPES.join(","),
+              state: JSON.stringify({ flow: "login", returnUrl: "/events" }),
+              approval_prompt: "auto",
+            });
+            globalThis.location.href = `${STRAVA_AUTH_URL}?${params.toString()}`;
+          }}
+        >
+          <StravaIcon className="w-5 h-5 mr-2" />
+          Continue with Strava
+        </Button>
+      )}
+
+      {(oauthGoogle || oauthStrava || oauthFacebook) && (
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-200 dark:border-gray-700" />
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="bg-white dark:bg-gray-900 px-4 text-gray-400 dark:text-gray-500">
+              or
+            </span>
+          </div>
         </div>
-      </div>
+      )}
 
       <form onSubmit={handleSignup} className="space-y-4">
         <Input
