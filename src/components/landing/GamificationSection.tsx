@@ -27,7 +27,8 @@ export default async function GamificationSection() {
 
   const { data: badges } = await supabase
     .from("badges")
-    .select("id, title, image_url, rarity, events!inner(title)")
+    .select("id, title, description, image_url, rarity")
+    .eq("type", "system")
     .limit(8);
 
   // Sort by rarity descending (legendary first) in JS since Supabase
@@ -55,7 +56,6 @@ export default async function GamificationSection() {
               {sortedBadges.map((badge) => {
                 const style = RARITY_STYLES[badge.rarity];
                 const resolved = resolvePresetImage(badge.image_url);
-                const eventTitle = badge.events.title;
 
                 return (
                   <div
@@ -92,10 +92,10 @@ export default async function GamificationSection() {
                       {badge.title}
                     </span>
 
-                    {/* Event name */}
-                    {eventTitle && (
-                      <span className="text-xs text-gray-500 dark:text-gray-400 text-center truncate max-w-full">
-                        {eventTitle}
+                    {/* Badge description */}
+                    {badge.description && (
+                      <span className="text-xs text-gray-500 dark:text-gray-400 text-center line-clamp-2 max-w-full">
+                        {badge.description}
                       </span>
                     )}
 
