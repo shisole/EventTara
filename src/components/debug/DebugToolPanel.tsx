@@ -39,6 +39,9 @@ const FLAG_LABELS: Record<keyof Omit<CmsFeatureFlags, "id">, string> = {
   events_two_col_mobile: "Events 2-Col Mobile",
   show_coming_soon: "Show Coming Soon",
   ewallet_payments: "E-Wallet Payments",
+  oauth_google: "OAuth — Google",
+  oauth_strava: "OAuth — Strava",
+  oauth_facebook: "OAuth — Facebook",
 };
 
 type FlagKey = keyof Omit<CmsFeatureFlags, "id">;
@@ -53,6 +56,9 @@ const FLAG_KEYS: FlagKey[] = [
   "events_two_col_mobile",
   "show_coming_soon",
   "ewallet_payments",
+  "oauth_google",
+  "oauth_strava",
+  "oauth_facebook",
 ];
 
 /* ------------------------------------------------------------------ */

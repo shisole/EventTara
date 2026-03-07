@@ -1,8 +1,9 @@
+import { createClient } from "@supabase/supabase-js";
 import { ImageResponse } from "next/og";
 
 import { loadCursiveFont, loadFaviconDataUri } from "@/lib/og/brand-assets";
 import { resolveOrganizerProfile } from "@/lib/organizers/resolve-profile";
-import { createClient } from "@/lib/supabase/server";
+import { type Database } from "@/lib/supabase/types";
 
 export const runtime = "nodejs";
 export const revalidate = 3600;
@@ -31,11 +32,14 @@ function StarRow({ rating }: { rating: number }) {
 
 export default async function OGImage({ params }: { params: Promise<{ id: string }> }) {
   const { id: idOrUsername } = await params;
-  const [fontData, faviconUri, supabase] = await Promise.all([
-    loadCursiveFont(),
-    loadFaviconDataUri(),
-    createClient(),
-  ]);
+  const [fontData, faviconUri] = await Promise.all([loadCursiveFont(), loadFaviconDataUri()]);
+
+  // Use a cookie-free client — OG images only read public data and cookies()
+  // conflicts with ISR caching on Vercel, causing 500 errors.
+  const supabase = createClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  );
 
   const orgId = await resolveOrganizerProfile(supabase, idOrUsername);
 

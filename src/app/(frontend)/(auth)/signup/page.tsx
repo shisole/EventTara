@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState, useEffect, useRef, useCallback } from "react";
 
-import { CheckCircleIcon, StravaIcon } from "@/components/icons";
+import { CheckCircleIcon, GoogleIcon, StravaIcon } from "@/components/icons";
 import { Button, Input, OtpCodeInput } from "@/components/ui";
 import { STRAVA_AUTH_URL, STRAVA_SCOPES } from "@/lib/strava/constants";
 import { createClient } from "@/lib/supabase/client";
@@ -53,7 +53,11 @@ function SignupForm() {
   useEffect(() => {
     void fetch("/api/feature-flags")
       .then((r) => r.json())
-      .then((d: { showComingSoon?: boolean }) => setShowComingSoon(d.showComingSoon === true))
+      .then((d: { oauthGoogle?: boolean; oauthStrava?: boolean; oauthFacebook?: boolean }) => {
+        setOauthGoogle(d.oauthGoogle === true);
+        setOauthStrava(d.oauthStrava === true);
+        setOauthFacebook(d.oauthFacebook === true);
+      })
       // eslint-disable-next-line @typescript-eslint/no-empty-function
       .catch(() => {});
   }, []);
@@ -91,7 +95,10 @@ function SignupForm() {
 
   // OTP code state
   const [code, setCode] = useState<string[]>(emptyCode());
-  const [showComingSoon, setShowComingSoon] = useState(false);
+  const [oauthGoogle, setOauthGoogle] = useState(false);
+  const [oauthStrava, setOauthStrava] = useState(false);
+  const [oauthFacebook, setOauthFacebook] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   // Store metadata to apply after verification
   const metadataRef = useRef<Record<string, string>>({});
@@ -103,6 +110,21 @@ function SignupForm() {
       metadata.org_name = orgName.trim();
     }
     return metadata;
+  };
+
+  const handleGoogleSignup = async () => {
+    setGoogleLoading(true);
+    setError("");
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${globalThis.location.origin}/auth/callback`,
+      },
+    });
+    if (oauthError) {
+      setError(oauthError.message || "Something went wrong. Please try again.");
+      setGoogleLoading(false);
+    }
   };
 
   const handlePostSignup = async (userId: string) => {
@@ -383,24 +405,28 @@ function SignupForm() {
         </p>
       )}
 
-      {showComingSoon ? (
-        <>
-          <Button disabled className="w-full bg-[#1877F2]/60 cursor-not-allowed" size="lg">
-            Continue with Facebook
-            <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium">
-              Coming Soon
-            </span>
-          </Button>
+      {oauthGoogle && (
+        <Button
+          className="w-full bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
+          size="lg"
+          onClick={handleGoogleSignup}
+          disabled={googleLoading}
+        >
+          <GoogleIcon className="w-5 h-5 mr-2" />
+          {googleLoading ? "Redirecting..." : "Continue with Google"}
+        </Button>
+      )}
 
-          <Button disabled className="w-full bg-[#FC4C02]/60 cursor-not-allowed" size="lg">
-            <StravaIcon className="w-5 h-5 mr-2" />
-            Continue with Strava
-            <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium">
-              Coming Soon
-            </span>
-          </Button>
-        </>
-      ) : (
+      {oauthFacebook && (
+        <Button disabled className="w-full bg-[#1877F2]/60 cursor-not-allowed" size="lg">
+          Continue with Facebook
+          <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium">
+            Coming Soon
+          </span>
+        </Button>
+      )}
+
+      {oauthStrava && (
         <Button
           className="w-full bg-[#FC4C02] hover:bg-[#E34402] text-white"
           size="lg"
@@ -423,16 +449,18 @@ function SignupForm() {
         </Button>
       )}
 
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-200 dark:border-gray-700" />
+      {(oauthGoogle || oauthStrava || oauthFacebook) && (
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-200 dark:border-gray-700" />
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="bg-white dark:bg-gray-900 px-4 text-gray-400 dark:text-gray-500">
+              or
+            </span>
+          </div>
         </div>
-        <div className="relative flex justify-center text-sm">
-          <span className="bg-white dark:bg-gray-900 px-4 text-gray-400 dark:text-gray-500">
-            or
-          </span>
-        </div>
-      </div>
+      )}
 
       <form onSubmit={handleSignup} className="space-y-4">
         <Input
