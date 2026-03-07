@@ -26,6 +26,7 @@ export { default as LockIcon } from "./LockIcon";
 export { default as LoginIcon } from "./LoginIcon";
 export { default as MenuIcon } from "./MenuIcon";
 export { default as MoonIcon } from "./MoonIcon";
+export { default as PrinterIcon } from "./PrinterIcon";
 export { default as ProfileIcon } from "./ProfileIcon";
 export { default as QRScanIcon } from "./QRScanIcon";
 export { default as RepostIcon } from "./RepostIcon";
