@@ -12,9 +12,28 @@ export interface AwardedBadge {
 
 const ALL_EVENT_TYPES = ["hiking", "running", "road_bike", "mtb", "trail_run"];
 
+/** The 7 Igbaras peaks required for the "Igbaras Graduate" badge. */
+const IGBARAS_PEAKS = [
+  "Mt. Igatmon",
+  "Mt. Napulak",
+  "Mt. Opao",
+  "Mt. Taripis",
+  "Bato Igmatindog",
+  "Mt. Loboc",
+  "Mt. Pulang Lupa",
+];
+
 /** Returns count for a given event type, defaulting to 0. */
 function typeCount(stats: CheckinStats, eventType: string): number {
   return stats.eventCountByType[eventType] ?? 0;
+}
+
+/**
+ * Converts a mountain name to the criteria_key format used by mountain location badges.
+ * e.g., "Mt. Madja-as" → "mountain_mt__madja-as"
+ */
+function mountainNameToCriteriaKey(name: string): string {
+  return `mountain_${name.toLowerCase().replaceAll(/[.\s]+/g, "_")}`;
 }
 
 const CRITERIA_EVALUATORS: Record<
@@ -38,6 +57,13 @@ const CRITERIA_EVALUATORS: Record<
   distance_100k: (stats) => stats.maxDistanceKm >= 100,
   strava_connected: (stats) => stats.hasStravaConnection,
   pioneer: (_stats, pioneerRank) => pioneerRank !== null && pioneerRank <= 100,
+  // Summit milestones
+  summits_1: (stats) => stats.summitedMountainNames.size > 0,
+  summits_3: (stats) => stats.summitedMountainNames.size >= 3,
+  summits_5: (stats) => stats.summitedMountainNames.size >= 5,
+  summits_all: (stats) =>
+    stats.totalMountainCount > 0 && stats.summitedMountainNames.size >= stats.totalMountainCount,
+  igbaras_graduate: (stats) => IGBARAS_PEAKS.every((peak) => stats.summitedMountainNames.has(peak)),
 };
 
 interface CheckinStats {
@@ -45,10 +71,14 @@ interface CheckinStats {
   eventCountByType: Record<string, number>;
   maxDistanceKm: number;
   hasStravaConnection: boolean;
+  /** Distinct mountain names the user has summited (from completed events) */
+  summitedMountainNames: Set<string>;
+  /** Total number of mountains in the mountains table */
+  totalMountainCount: number;
 }
 
 /**
- * Evaluates all 16 system badges for a user and awards any newly-earned ones.
+ * Evaluates all system badges for a user and awards any newly-earned ones.
  * Called fire-and-forget from the check-in API route -- never throws.
  *
  * @returns Array of newly awarded badge details (for email notification)
@@ -58,39 +88,57 @@ export async function checkAndAwardSystemBadges(
   supabase: SupabaseClient<Database>,
 ): Promise<AwardedBadge[]> {
   try {
-    // 1. Parallel fetch: check-in stats, existing system badge criteria_keys, system badge rows, distance data, and Strava connection
-    const [checkinsResult, existingResult, systemBadgesResult, distanceResult, stravaResult] =
-      await Promise.all([
-        // User's check-ins joined to events for type and status
-        supabase
-          .from("event_checkins")
-          .select("event_id, events:event_id(type, status)")
-          .eq("user_id", userId),
+    // 1. Parallel fetch: check-in stats, existing system badge criteria_keys, system badge rows, distance data, Strava connection, and mountain data
+    const [
+      checkinsResult,
+      existingResult,
+      systemBadgesResult,
+      distanceResult,
+      stravaResult,
+      mountainCheckinsResult,
+      mountainCountResult,
+    ] = await Promise.all([
+      // User's check-ins joined to events for type and status
+      supabase
+        .from("event_checkins")
+        .select("event_id, events:event_id(type, status)")
+        .eq("user_id", userId),
 
-        // User's existing system badges only (via inner join to badges table)
-        supabase
-          .from("user_badges")
-          .select("badge_id, badges:badge_id!inner(criteria_key)")
-          .eq("user_id", userId)
-          .eq("badges.type" as any, "system"),
+      // User's existing system badges only (via inner join to badges table)
+      supabase
+        .from("user_badges")
+        .select("badge_id, badges:badge_id!inner(criteria_key)")
+        .eq("user_id", userId)
+        .eq("badges.type" as any, "system"),
 
-        // All system badge rows from DB (need their IDs for insert)
-        supabase
-          .from("badges")
-          .select("id, criteria_key")
-          .eq("type", "system")
-          .not("criteria_key", "is", null),
+      // All system badge rows from DB (need their IDs for insert)
+      supabase
+        .from("badges")
+        .select("id, criteria_key")
+        .eq("type", "system")
+        .not("criteria_key", "is", null),
 
-        // User's bookings with distance info (for distance milestone badges)
-        supabase
-          .from("bookings")
-          .select("event_id, event_distance_id, event_distances:event_distance_id(distance_km)")
-          .eq("user_id", userId)
-          .not("event_distance_id", "is", null),
+      // User's bookings with distance info (for distance milestone badges)
+      supabase
+        .from("bookings")
+        .select("event_id, event_distance_id, event_distances:event_distance_id(distance_km)")
+        .eq("user_id", userId)
+        .not("event_distance_id", "is", null),
 
-        // Strava connection check
-        supabase.from("strava_connections").select("user_id").eq("user_id", userId).limit(1),
-      ]);
+      // Strava connection check
+      supabase.from("strava_connections").select("user_id").eq("user_id", userId).limit(1),
+
+      // User's check-ins joined to event_mountains → mountains (for mountain badges)
+      supabase
+        .from("event_checkins")
+        .select(
+          "event_id, events:event_id(status, event_mountains(mountain_id, mountains:mountain_id(name)))",
+        )
+        .eq("user_id", userId),
+
+      // Total mountain count in the system
+      supabase.from("mountains").select("id", { count: "exact", head: true }),
+    ]);
 
     // Build check-in stats
     const checkins = checkinsResult.data ?? [];
@@ -121,12 +169,28 @@ export async function checkAndAwardSystemBadges(
       }
     }
 
+    // Build summited mountain names from completed events only
+    const summitedMountainNames = new Set<string>();
+    for (const checkin of mountainCheckinsResult.data ?? []) {
+      const event = checkin.events as any;
+      if (event?.status !== "completed") continue;
+      const eventMountains = event?.event_mountains ?? [];
+      for (const em of eventMountains) {
+        const mountain = em.mountains;
+        if (mountain?.name) {
+          summitedMountainNames.add(mountain.name as string);
+        }
+      }
+    }
+
     const hasStravaConnection = (stravaResult.data?.length ?? 0) > 0;
     const stats: CheckinStats = {
       totalCheckins,
       eventCountByType,
       maxDistanceKm,
       hasStravaConnection,
+      summitedMountainNames,
+      totalMountainCount: mountainCountResult.count ?? 0,
     };
 
     // Build set of already-earned criteria keys
@@ -159,28 +223,42 @@ export async function checkAndAwardSystemBadges(
     // Build criteria_key -> SYSTEM_BADGES metadata lookup
     const badgeMetaByKey = new Map(SYSTEM_BADGES.map((b) => [b.criteriaKey, b]));
 
-    for (const [criteriaKey, evaluate] of Object.entries(CRITERIA_EVALUATORS)) {
-      // Skip if already earned
-      if (existingKeys.has(criteriaKey)) continue;
-
-      // Skip if no corresponding DB row (badge not seeded yet)
+    // Helper to try awarding a badge by criteria key
+    const tryAward = (criteriaKey: string) => {
+      if (existingKeys.has(criteriaKey)) return;
       const dbId = criteriaKeyToDbId.get(criteriaKey);
-      if (!dbId) continue;
+      if (!dbId) return;
 
-      // Evaluate criteria
-      if (evaluate(stats, pioneerRank)) {
-        newAwards.push({ user_id: userId, badge_id: dbId });
+      newAwards.push({ user_id: userId, badge_id: dbId });
 
-        const meta = badgeMetaByKey.get(criteriaKey);
-        if (meta) {
-          awardedBadges.push({
-            title: meta.title,
-            description: meta.description,
-            imageUrl: meta.imageUrl,
-            criteriaKey: meta.criteriaKey,
-          });
-        }
+      // Try SYSTEM_BADGES metadata first, fall back to DB badge title for mountain badges
+      const meta = badgeMetaByKey.get(criteriaKey);
+      if (meta) {
+        awardedBadges.push({
+          title: meta.title,
+          description: meta.description,
+          imageUrl: meta.imageUrl,
+          criteriaKey: meta.criteriaKey,
+        });
       }
+    };
+
+    // Evaluate static criteria evaluators
+    for (const [criteriaKey, evaluate] of Object.entries(CRITERIA_EVALUATORS)) {
+      if (existingKeys.has(criteriaKey)) continue;
+      if (!criteriaKeyToDbId.has(criteriaKey)) continue;
+      if (evaluate(stats, pioneerRank)) {
+        tryAward(criteriaKey);
+      }
+    }
+
+    // Evaluate dynamic mountain location badges (mountain_* criteria keys)
+    // These are seeded into the DB but not in CRITERIA_EVALUATORS
+    for (const mountainName of summitedMountainNames) {
+      const criteriaKey = mountainNameToCriteriaKey(mountainName);
+      if (existingKeys.has(criteriaKey)) continue;
+      if (!criteriaKeyToDbId.has(criteriaKey)) continue;
+      tryAward(criteriaKey);
     }
 
     // 4. Bulk upsert new user_badges rows

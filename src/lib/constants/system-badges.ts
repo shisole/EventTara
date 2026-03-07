@@ -184,6 +184,48 @@ export const SYSTEM_BADGES: SystemBadge[] = [
     rarity: "rare",
     imageUrl: "✍️",
   },
+  // Summit milestones
+  {
+    criteriaKey: "summits_1",
+    title: "First Summit",
+    description: "Reached your first mountain summit on EventTara",
+    category: "location",
+    rarity: "common",
+    imageUrl: "🏔️",
+  },
+  {
+    criteriaKey: "summits_3",
+    title: "3 Summits",
+    description: "Conquered 3 different mountain summits",
+    category: "location",
+    rarity: "rare",
+    imageUrl: "⛰️",
+  },
+  {
+    criteriaKey: "summits_5",
+    title: "5 Summits",
+    description: "Conquered 5 different mountain summits — a true peak bagger",
+    category: "location",
+    rarity: "epic",
+    imageUrl: "🏔️",
+  },
+  {
+    criteriaKey: "summits_all",
+    title: "Panay Mountaineer",
+    description: "Summited every mountain on EventTara — you've conquered Panay's peaks",
+    category: "location",
+    rarity: "legendary",
+    imageUrl: "👑",
+  },
+  {
+    criteriaKey: "igbaras_graduate",
+    title: "Igbaras Graduate",
+    description:
+      "Conquered all 7 peaks of the Igbaras mountain group: Mt. Igatmon, Mt. Napulak, Mt. Opao, Mt. Taripis, Bato Igmatindog, Mt. Loboc, and Mt. Pulang Lupa",
+    category: "location",
+    rarity: "legendary",
+    imageUrl: "🎓",
+  },
 ];
 
 /** Set of all system badge criteria keys, for fast lookups. */
@@ -214,4 +256,9 @@ export const SYSTEM_BADGE_CRITERIA_HINTS: Record<string, string> = {
   pioneer_participant: "Be among the first 250 users to join EventTara",
   pioneer_organizer: "Be among the first 50 organizers on EventTara",
   first_review: "Write your first organizer review",
+  summits_1: "Complete a hiking event linked to a mountain",
+  summits_3: "Summit 3 different mountains",
+  summits_5: "Summit 5 different mountains",
+  summits_all: "Summit every mountain on EventTara",
+  igbaras_graduate: "Summit all 7 peaks of the Igbaras mountain group",
 };

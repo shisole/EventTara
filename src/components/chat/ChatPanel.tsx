@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { CloseIcon, SendIcon } from "@/components/icons";
+import { type Corner } from "@/lib/hooks/useDraggable";
 
 import ChatMessage from "./ChatMessage";
 import type { ChatMessage as ChatMessageType, ChatResponse } from "./types";
@@ -39,11 +40,43 @@ interface ChatPanelProps {
   open: boolean;
   onClose: () => void;
   keyboard?: KeyboardState;
+  corner?: Corner;
 }
 
 const PANEL_MAX_HEIGHT = 460;
 
-export default function ChatPanel({ open, onClose, keyboard }: ChatPanelProps) {
+const panelPositionClasses: Record<Corner, { mobile: string; desktop: string }> = {
+  "bottom-right": {
+    mobile: "right-4 bottom-[9.5rem] h-[min(460px,calc(100dvh-12rem))]",
+    desktop: "md:bottom-6 md:right-[5.25rem]",
+  },
+  "bottom-left": {
+    mobile: "left-4 bottom-[9.5rem] h-[min(460px,calc(100dvh-12rem))]",
+    desktop: "md:bottom-6 md:left-[5.25rem]",
+  },
+  "top-right": {
+    mobile: "right-4 top-[7.5rem] h-[min(460px,calc(100dvh-12rem))]",
+    desktop: "md:top-[4.5rem] md:right-[5.25rem]",
+  },
+  "top-left": {
+    mobile: "left-4 top-[7.5rem] h-[min(460px,calc(100dvh-12rem))]",
+    desktop: "md:top-[4.5rem] md:left-[5.25rem]",
+  },
+};
+
+const panelSlideDirection: Record<Corner, { open: string; closed: string }> = {
+  "bottom-right": { open: "translate-y-0", closed: "translate-y-2" },
+  "bottom-left": { open: "translate-y-0", closed: "translate-y-2" },
+  "top-right": { open: "translate-y-0", closed: "-translate-y-2" },
+  "top-left": { open: "translate-y-0", closed: "-translate-y-2" },
+};
+
+export default function ChatPanel({
+  open,
+  onClose,
+  keyboard,
+  corner = "bottom-right",
+}: ChatPanelProps) {
   const searchParams = useSearchParams();
   const unlimitedChat = useMemo(() => searchParams.get("chat_debug") === "1", [searchParams]);
   const [messages, setMessages] = useState<ChatMessageType[]>([
@@ -58,6 +91,22 @@ export default function ChatPanel({ open, onClose, keyboard }: ChatPanelProps) {
   const [remaining, setRemaining] = useState<number>(DAILY_LIMIT);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const locationRef = useRef<{ lat: number; lng: number } | null>(null);
+  const hasAutoSuggested = useRef(false);
+
+  // Request geolocation once on first open
+  useEffect(() => {
+    if (!open || locationRef.current) return;
+    navigator.geolocation?.getCurrentPosition(
+      (pos) => {
+        locationRef.current = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      },
+      () => {
+        // Geolocation denied or unavailable — continue without it
+      },
+      { enableHighAccuracy: false, timeout: 8000 },
+    );
+  }, [open]);
 
   // Read persisted usage on mount
   useEffect(() => {
@@ -83,6 +132,54 @@ export default function ChatPanel({ open, onClose, keyboard }: ChatPanelProps) {
     }
   }, [open]);
 
+  // Auto-suggest nearby events on first open when location is available
+  useEffect(() => {
+    if (!open || hasAutoSuggested.current || loading) return;
+    // Wait a bit for geolocation to resolve
+    const timer = setTimeout(() => {
+      if (!locationRef.current || hasAutoSuggested.current || remaining <= 0) return;
+      hasAutoSuggested.current = true;
+      // Fire a "nearby events" search automatically
+      void (async () => {
+        setLoading(true);
+        try {
+          const res = await fetch("/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              message: "What events are happening near me?",
+              lat: locationRef.current!.lat,
+              lng: locationRef.current!.lng,
+            }),
+          });
+          const data: ChatResponse = await res.json();
+          if (res.ok && data.events && data.events.length > 0) {
+            setMessages((prev) => [
+              ...prev,
+              {
+                role: "assistant",
+                content: data.reply,
+                events: data.events,
+                totalCount: data.totalCount,
+                filterUrl: data.filterUrl,
+              },
+            ]);
+            if (!unlimitedChat) {
+              incrementUsed();
+              setRemaining(DAILY_LIMIT - getUsedToday());
+            }
+          }
+        } catch {
+          // Silently fail — auto-suggest is best-effort
+        } finally {
+          setLoading(false);
+        }
+      })();
+    }, 1500);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally run once on first open
+  }, [open]);
+
   const handleSend = async () => {
     const trimmed = input.trim();
     if (!trimmed || loading) return;
@@ -93,10 +190,15 @@ export default function ChatPanel({ open, onClose, keyboard }: ChatPanelProps) {
     setLoading(true);
 
     try {
+      const payload: Record<string, unknown> = { message: trimmed };
+      if (locationRef.current) {
+        payload.lat = locationRef.current.lat;
+        payload.lng = locationRef.current.lng;
+      }
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: trimmed }),
+        body: JSON.stringify(payload),
       });
 
       const data: ChatResponse = await res.json();
@@ -176,13 +278,16 @@ export default function ChatPanel({ open, onClose, keyboard }: ChatPanelProps) {
       }
     : undefined;
 
+  const position = panelPositionClasses[corner];
+  const slide = panelSlideDirection[corner];
+
   return (
     <div
       className={`fixed z-[60] transition-all duration-200 ease-out ${
         open
-          ? "opacity-100 pointer-events-auto translate-y-0"
-          : "opacity-0 pointer-events-none translate-y-2"
-      } right-4 w-[calc(100vw-2rem)] max-w-[400px] ${keyboardOpen ? "" : "bottom-[9.5rem] h-[min(460px,calc(100dvh-12rem))]"} md:bottom-6 md:right-[5.25rem] md:w-[400px] md:h-[min(500px,calc(100dvh-6rem))]`}
+          ? `opacity-100 pointer-events-auto ${slide.open}`
+          : `opacity-0 pointer-events-none ${slide.closed}`
+      } w-[calc(100vw-2rem)] max-w-[400px] ${keyboardOpen ? "" : position.mobile} ${position.desktop} md:w-[400px] md:h-[min(500px,calc(100dvh-6rem))]`}
       style={keyboardStyle}
     >
       <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-900">
