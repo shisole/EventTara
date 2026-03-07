@@ -15,12 +15,19 @@ test.describe("Navigation", () => {
   test("can navigate from homepage to events and back", async ({ page }) => {
     await page.goto("/");
 
-    // Navigate to events
+    // Wait for splash screen to clear (z-[100] overlay, ~400ms)
+    await page
+      .locator(String.raw`.z-\[100\]`)
+      .waitFor({ state: "hidden", timeout: 5000 })
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      .catch(() => {});
+
+    // Navigate to events via the hero CTA link
     const exploreLink = page.getByRole("link", { name: /explore events/i }).first();
     await expect(exploreLink).toBeVisible();
-    await exploreLink.click({ force: true });
+    await exploreLink.click();
 
-    await expect(page).toHaveURL("/events");
+    await expect(page).toHaveURL("/events", { timeout: 10000 });
 
     // Navigate back via browser
     await page.goBack();
