@@ -1,8 +1,12 @@
 "use client";
 
 import { Environment } from "@react-three/drei";
+import { Suspense } from "react";
 
 import CameraRig from "./CameraRig";
+import Climber from "./characters/Climber";
+import Cyclist from "./characters/Cyclist";
+import Runner from "./characters/Runner";
 
 interface AdventureWorldProps {
   scrollContainerRef: React.RefObject<HTMLDivElement | null>;
@@ -26,10 +30,16 @@ export default function AdventureWorld({
           <coneGeometry args={[6, 12, 8]} />
           <meshStandardMaterial color="#6B7280" roughness={0.9} />
         </mesh>
-        <mesh position={[1.5, 7, 2]}>
-          <capsuleGeometry args={[0.2, 0.6, 8, 16]} />
-          <meshStandardMaterial color="#EF4444" />
-        </mesh>
+        <Suspense
+          fallback={
+            <mesh position={[1.5, 7, 2]}>
+              <capsuleGeometry args={[0.2, 0.6, 8, 16]} />
+              <meshStandardMaterial color="#EF4444" />
+            </mesh>
+          }
+        >
+          <Climber position={[1.5, 7, 2]} scale={0.01} />
+        </Suspense>
       </group>
 
       {/* Scene 2: Trail & Mountain Biker */}
@@ -38,18 +48,26 @@ export default function AdventureWorld({
           <planeGeometry args={[12, 20]} />
           <meshStandardMaterial color="#8B7355" roughness={1} />
         </mesh>
-        <mesh position={[0, 0.8, 0]}>
-          <capsuleGeometry args={[0.25, 0.7, 8, 16]} />
-          <meshStandardMaterial color="#3B82F6" />
-        </mesh>
-        <mesh position={[0, 0.4, 0.4]} rotation={[0, 0, Math.PI / 2]}>
-          <torusGeometry args={[0.35, 0.04, 8, 24]} />
-          <meshStandardMaterial color="#1F2937" />
-        </mesh>
-        <mesh position={[0, 0.4, -0.4]} rotation={[0, 0, Math.PI / 2]}>
-          <torusGeometry args={[0.35, 0.04, 8, 24]} />
-          <meshStandardMaterial color="#1F2937" />
-        </mesh>
+        <Suspense
+          fallback={
+            <>
+              <mesh position={[0, 0.8, 0]}>
+                <capsuleGeometry args={[0.25, 0.7, 8, 16]} />
+                <meshStandardMaterial color="#3B82F6" />
+              </mesh>
+              <mesh position={[0, 0.4, 0.4]} rotation={[0, 0, Math.PI / 2]}>
+                <torusGeometry args={[0.35, 0.04, 8, 24]} />
+                <meshStandardMaterial color="#1F2937" />
+              </mesh>
+              <mesh position={[0, 0.4, -0.4]} rotation={[0, 0, Math.PI / 2]}>
+                <torusGeometry args={[0.35, 0.04, 8, 24]} />
+                <meshStandardMaterial color="#1F2937" />
+              </mesh>
+            </>
+          }
+        >
+          <Cyclist position={[0, 0.8, 0]} scale={0.01} />
+        </Suspense>
       </group>
 
       {/* Scene 3: Road & Runner */}
@@ -62,10 +80,16 @@ export default function AdventureWorld({
           <planeGeometry args={[0.15, 18]} />
           <meshStandardMaterial color="#FCD34D" />
         </mesh>
-        <mesh position={[1, 0.9, 0]}>
-          <capsuleGeometry args={[0.2, 0.8, 8, 16]} />
-          <meshStandardMaterial color="#10B981" />
-        </mesh>
+        <Suspense
+          fallback={
+            <mesh position={[1, 0.9, 0]}>
+              <capsuleGeometry args={[0.2, 0.8, 8, 16]} />
+              <meshStandardMaterial color="#10B981" />
+            </mesh>
+          }
+        >
+          <Runner position={[1, 0.9, 0]} scale={0.01} />
+        </Suspense>
       </group>
 
       {/* Ground plane */}
