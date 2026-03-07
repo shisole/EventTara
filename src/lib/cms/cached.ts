@@ -292,6 +292,18 @@ export async function isEwalletPaymentsEnabled(): Promise<boolean> {
 }
 
 /**
+ * Returns whether the Three.js hero experience is enabled.
+ */
+export async function isThreeJsHeroEnabled(): Promise<boolean> {
+  try {
+    const flags = await getCachedFeatureFlags();
+    return flags?.threejs_hero ?? false;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Returns whether the organizer reviews feature flag is enabled.
  */
 export async function isOrganizerReviewsEnabled(): Promise<boolean> {
