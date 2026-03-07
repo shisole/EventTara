@@ -269,7 +269,21 @@ export default async function Home() {
     "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80";
 
   const cmsSections = parseHomepageSections(sectionsData);
-  const sections = cmsSections.length > 0 ? cmsSections : DEFAULT_SECTIONS;
+  let sections = cmsSections.length > 0 ? cmsSections : DEFAULT_SECTIONS;
+
+  // Ensure organizer_waitlist is present (may be missing from older CMS data)
+  if (!sections.some((s) => s.key === "organizer_waitlist")) {
+    const pioneerIdx = sections.findIndex((s) => s.key === "pioneer_counter");
+    const insertOrder = pioneerIdx === -1 ? 9 : sections[pioneerIdx].order + 1;
+    const waitlistSection: CmsHomepageSection = {
+      key: "organizer_waitlist",
+      label: "Organizer Waitlist",
+      enabled: true,
+      order: insertOrder,
+    };
+    sections = [...sections, waitlistSection].sort((a, b) => a.order - b.order);
+  }
+
   const enabledSections = sections.filter((s) => s.enabled);
 
   return (
