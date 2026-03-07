@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { buildUsername } from "@/lib/utils/generate-username";
 
 export async function GET(request: Request) {
@@ -17,13 +17,14 @@ export async function GET(request: Request) {
       } = await supabase.auth.getUser();
 
       if (user) {
+        const admin = createServiceClient();
         const meta = user.user_metadata;
         const preferredName = meta?.full_name ?? meta?.name;
-        const username = await buildUsername(supabase, preferredName, user.email ?? "");
+        const username = await buildUsername(admin, preferredName, user.email ?? "");
 
-        // Upsert public.users row — the DB trigger may or may not have created it yet.
-        // Using upsert ensures username + profile data are always set regardless.
-        await supabase.from("users").upsert(
+        // Upsert with service role to bypass RLS — the DB trigger creates the
+        // row with elevated privileges, so the user's client can't UPDATE it.
+        await admin.from("users").upsert(
           {
             id: user.id,
             email: user.email ?? null,
@@ -37,7 +38,7 @@ export async function GET(request: Request) {
 
         // Handle organizer signup metadata
         if (meta?.role === "organizer") {
-          await supabase.from("organizer_profiles").upsert(
+          await admin.from("organizer_profiles").upsert(
             {
               user_id: user.id,
               org_name: meta.org_name,
@@ -47,7 +48,7 @@ export async function GET(request: Request) {
             { onConflict: "user_id" },
           );
 
-          await supabase.from("users").update({ role: "organizer" }).eq("id", user.id);
+          await admin.from("users").update({ role: "organizer" }).eq("id", user.id);
 
           return NextResponse.redirect(`${origin}/dashboard`);
         }
