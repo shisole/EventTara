@@ -338,6 +338,7 @@ export async function POST(request: Request) {
       price: body.price,
       cover_image_url: body.cover_image_url,
       difficulty_level: body.difficulty_level ?? null,
+      waiver_text: body.waiver_text ?? null,
       status: "draft",
     })
     .select()
