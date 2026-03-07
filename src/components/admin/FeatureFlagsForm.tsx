@@ -47,16 +47,16 @@ const FLAG_META: Record<string, { label: string; description: string }> = {
     description: "Enable GCash and Maya as payment methods for event bookings.",
   },
   oauth_google: {
-    label: "OAuth — Google Login",
-    description: "Enable 'Continue with Google' on login and signup pages.",
+    label: "Lock Google Login",
+    description: "When enabled, locks 'Continue with Google' behind a 'Coming Soon' label.",
   },
   oauth_strava: {
-    label: "OAuth — Strava Login",
-    description: "Enable 'Continue with Strava' on login and signup pages.",
+    label: "Lock Strava Login",
+    description: "When enabled, locks 'Continue with Strava' behind a 'Coming Soon' label.",
   },
   oauth_facebook: {
-    label: "OAuth — Facebook Login",
-    description: "Enable 'Continue with Facebook' on login and signup pages.",
+    label: "Lock Facebook Login",
+    description: "When enabled, locks 'Continue with Facebook' behind a 'Coming Soon' label.",
   },
 };
 

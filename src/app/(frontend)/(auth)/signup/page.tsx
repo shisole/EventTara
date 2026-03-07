@@ -405,7 +405,19 @@ function SignupForm() {
         </p>
       )}
 
-      {oauthGoogle && (
+      {oauthGoogle ? (
+        <Button
+          disabled
+          className="w-full bg-white/60 cursor-not-allowed border border-gray-300"
+          size="lg"
+        >
+          <GoogleIcon className="w-5 h-5 mr-2" />
+          Continue with Google
+          <span className="ml-2 rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium">
+            Coming Soon
+          </span>
+        </Button>
+      ) : (
         <Button
           className="w-full bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
           size="lg"
@@ -417,16 +429,28 @@ function SignupForm() {
         </Button>
       )}
 
-      {oauthFacebook && (
+      {oauthFacebook ? (
         <Button disabled className="w-full bg-[#1877F2]/60 cursor-not-allowed" size="lg">
           Continue with Facebook
           <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium">
             Coming Soon
           </span>
         </Button>
+      ) : (
+        <Button className="w-full bg-[#1877F2] hover:bg-[#1565C0] text-white" size="lg" disabled>
+          Continue with Facebook
+        </Button>
       )}
 
-      {oauthStrava && (
+      {oauthStrava ? (
+        <Button disabled className="w-full bg-[#FC4C02]/60 cursor-not-allowed" size="lg">
+          <StravaIcon className="w-5 h-5 mr-2" />
+          Continue with Strava
+          <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium">
+            Coming Soon
+          </span>
+        </Button>
+      ) : (
         <Button
           className="w-full bg-[#FC4C02] hover:bg-[#E34402] text-white"
           size="lg"
@@ -449,18 +473,16 @@ function SignupForm() {
         </Button>
       )}
 
-      {(oauthGoogle || oauthStrava || oauthFacebook) && (
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-200 dark:border-gray-700" />
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="bg-white dark:bg-gray-900 px-4 text-gray-400 dark:text-gray-500">
-              or
-            </span>
-          </div>
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-200 dark:border-gray-700" />
         </div>
-      )}
+        <div className="relative flex justify-center text-sm">
+          <span className="bg-white dark:bg-gray-900 px-4 text-gray-400 dark:text-gray-500">
+            or
+          </span>
+        </div>
+      </div>
 
       <form onSubmit={handleSignup} className="space-y-4">
         <Input
