@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui";
 import PaymentStatusBadge from "@/components/ui/PaymentStatusBadge";
@@ -37,6 +37,23 @@ interface ParticipantsTableProps {
   isFull?: boolean;
   onAddParticipant?: () => void;
 }
+
+type PaymentFilter = "all" | "pending" | "paid" | "rejected" | "refunded";
+type CheckInFilter = "all" | "checked_in" | "not_checked_in";
+
+const PAYMENT_FILTERS: { label: string; value: PaymentFilter }[] = [
+  { label: "All", value: "all" },
+  { label: "Pending", value: "pending" },
+  { label: "Paid", value: "paid" },
+  { label: "Rejected", value: "rejected" },
+  { label: "Refunded", value: "refunded" },
+];
+
+const CHECKIN_FILTERS: { label: string; value: CheckInFilter }[] = [
+  { label: "All", value: "all" },
+  { label: "Checked in", value: "checked_in" },
+  { label: "Not checked in", value: "not_checked_in" },
+];
 
 const companionStatusStyle: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300",
@@ -176,7 +193,43 @@ export default function ParticipantsTable({
 }: ParticipantsTableProps) {
   const router = useRouter();
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [paymentFilter, setPaymentFilter] = useState<PaymentFilter>("all");
+  const [checkInFilter, setCheckInFilter] = useState<CheckInFilter>("all");
   const isCompleted = eventStatus === "completed";
+
+  const filteredBookings = useMemo(() => {
+    if (!bookings) return [];
+    return bookings.filter((booking) => {
+      // Search filter
+      if (searchQuery.trim()) {
+        const query = searchQuery.trim().toLowerCase();
+        const name = getParticipantName(booking).toLowerCase();
+        const email = getParticipantEmail(booking).toLowerCase();
+        if (!name.includes(query) && !email.includes(query)) return false;
+      }
+
+      // Payment status filter
+      if (paymentFilter !== "all") {
+        // For organizer-added participants, use manual_status
+        if (booking.added_by && booking.manual_status) {
+          if (booking.manual_status !== paymentFilter) return false;
+        } else if (booking.payment_status !== paymentFilter) {
+          return false;
+        }
+      }
+
+      // Check-in filter
+      if (checkInFilter !== "all" && checkedInUserIds) {
+        if (!booking.user_id) return false;
+        const isCheckedIn = checkedInUserIds.has(booking.user_id);
+        if (checkInFilter === "checked_in" && !isCheckedIn) return false;
+        if (checkInFilter === "not_checked_in" && isCheckedIn) return false;
+      }
+
+      return true;
+    });
+  }, [bookings, searchQuery, paymentFilter, checkInFilter, checkedInUserIds]);
 
   const handleBookingAction = async (bookingId: string, action: "approve" | "reject") => {
     setActionLoading(`booking-${bookingId}`);
@@ -338,9 +391,104 @@ export default function ParticipantsTable({
 
       {bookings && bookings.length > 0 && (
         <>
+          {/* Search and filter bar */}
+          <div className="mb-4 space-y-3">
+            {/* Search input */}
+            <div className="relative">
+              <svg
+                className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+                />
+              </svg>
+              <input
+                type="text"
+                placeholder="Search by name or email..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 dark:focus:ring-teal-400 focus:border-transparent"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              )}
+            </div>
+
+            {/* Filter chips */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-medium text-gray-500 dark:text-gray-400 mr-1">
+                Payment:
+              </span>
+              {PAYMENT_FILTERS.map((f) => (
+                <button
+                  key={f.value}
+                  type="button"
+                  onClick={() => setPaymentFilter(f.value)}
+                  className={cn(
+                    "inline-flex items-center px-3 py-1 rounded-full text-xs font-medium transition-colors",
+                    paymentFilter === f.value
+                      ? "bg-teal-600 text-white dark:bg-teal-500 dark:text-white"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700",
+                  )}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+
+            {checkedInUserIds && (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-medium text-gray-500 dark:text-gray-400 mr-1">
+                  Check-in:
+                </span>
+                {CHECKIN_FILTERS.map((f) => (
+                  <button
+                    key={f.value}
+                    type="button"
+                    onClick={() => setCheckInFilter(f.value)}
+                    className={cn(
+                      "inline-flex items-center px-3 py-1 rounded-full text-xs font-medium transition-colors",
+                      checkInFilter === f.value
+                        ? "bg-teal-600 text-white dark:bg-teal-500 dark:text-white"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700",
+                    )}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* No results message */}
+          {filteredBookings.length === 0 && (
+            <p className="text-center text-gray-500 dark:text-gray-400 py-8">
+              No matching participants found.
+            </p>
+          )}
+
           {/* Mobile card layout */}
-          <div className="space-y-3 md:hidden">
-            {bookings.map((booking) => {
+          <div className={cn("space-y-3 md:hidden", filteredBookings.length === 0 && "hidden")}>
+            {filteredBookings.map((booking) => {
               const comps = companionsByBooking[booking.id] || [];
               const activeComps = comps.filter((c) => c.status !== "cancelled");
               const isBookingPaid = booking.payment_status === "paid";
@@ -459,7 +607,12 @@ export default function ParticipantsTable({
           </div>
 
           {/* Desktop table layout */}
-          <div className="hidden md:block bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30">
+          <div
+            className={cn(
+              "hidden md:block bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30",
+              filteredBookings.length === 0 && "md:hidden",
+            )}
+          >
             <table className="w-full">
               <thead className="bg-gray-50 dark:bg-gray-800">
                 <tr className="first:[&>th]:rounded-tl-2xl last:[&>th]:rounded-tr-2xl">
@@ -489,7 +642,7 @@ export default function ParticipantsTable({
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                {bookings.map((booking) => {
+                {filteredBookings.map((booking) => {
                   const comps = companionsByBooking[booking.id] || [];
                   const activeComps = comps.filter((c) => c.status !== "cancelled");
                   const isBookingPaid = booking.payment_status === "paid";
