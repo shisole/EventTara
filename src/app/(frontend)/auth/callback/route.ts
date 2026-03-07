@@ -1,7 +1,24 @@
 import { NextResponse } from "next/server";
 
 import { createClient, createServiceClient } from "@/lib/supabase/server";
-import { buildUsername } from "@/lib/utils/generate-username";
+
+/**
+ * Generate a sanitized username from a name or email prefix.
+ */
+function toUsername(preferredName: string | undefined, email: string): string {
+  const prefix = preferredName?.trim()
+    ? preferredName
+        .trim()
+        .toLowerCase()
+        .replaceAll(/\s+/g, ".")
+        .replaceAll(/[^a-z0-9._-]/g, "")
+    : email
+        .trim()
+        .split("@")[0]
+        .toLowerCase()
+        .replaceAll(/[^a-z0-9._-]/g, "");
+  return prefix || "user";
+}
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -19,12 +36,23 @@ export async function GET(request: Request) {
       if (user) {
         const admin = createServiceClient();
         const meta = user.user_metadata;
-        const preferredName = meta?.full_name ?? meta?.name;
-        const username = await buildUsername(admin, preferredName, user.email ?? "");
+        const preferredName: string | undefined = meta?.full_name ?? meta?.name;
+        let username = toUsername(preferredName, user.email ?? "");
 
-        // Upsert with service role to bypass RLS — the DB trigger creates the
-        // row with elevated privileges, so the user's client can't UPDATE it.
-        await admin.from("users").upsert(
+        // Check collision
+        const { data: taken } = await admin
+          .from("users")
+          .select("id")
+          .eq("username", username)
+          .neq("id", user.id)
+          .single();
+
+        if (taken) {
+          username = `${username}${Math.floor(Math.random() * 9000) + 1000}`;
+        }
+
+        // Upsert with service role to bypass RLS
+        const { error: upsertError } = await admin.from("users").upsert(
           {
             id: user.id,
             email: user.email ?? null,
@@ -35,6 +63,12 @@ export async function GET(request: Request) {
           },
           { onConflict: "id", ignoreDuplicates: false },
         );
+
+        // Fallback: if upsert failed or username still NULL, do explicit UPDATE
+        if (upsertError) {
+          console.error("[auth/callback] upsert failed:", upsertError.message);
+          await admin.from("users").update({ username }).eq("id", user.id);
+        }
 
         // Handle organizer signup metadata
         if (meta?.role === "organizer") {
