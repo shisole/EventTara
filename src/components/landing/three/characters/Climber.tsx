@@ -24,6 +24,9 @@ export default function Climber({
     if (firstAction) {
       firstAction.reset().fadeIn(0.5).play();
     }
+    return () => {
+      firstAction?.fadeOut(0.5).stop();
+    };
   }, [actions, names]);
 
   return (
