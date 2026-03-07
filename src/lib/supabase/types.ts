@@ -994,6 +994,8 @@ export interface Database {
           events_two_col_mobile: boolean;
           show_coming_soon: boolean;
           ewallet_payments: boolean;
+          oauth_strava: boolean;
+          oauth_facebook: boolean;
         };
         Insert: {
           id?: number;
@@ -1005,6 +1007,8 @@ export interface Database {
           events_two_col_mobile?: boolean;
           show_coming_soon?: boolean;
           ewallet_payments?: boolean;
+          oauth_strava?: boolean;
+          oauth_facebook?: boolean;
         };
         Update: {
           id?: number;
@@ -1016,6 +1020,8 @@ export interface Database {
           events_two_col_mobile?: boolean;
           show_coming_soon?: boolean;
           ewallet_payments?: boolean;
+          oauth_strava?: boolean;
+          oauth_facebook?: boolean;
         };
         Relationships: [];
       };

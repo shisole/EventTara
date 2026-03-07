@@ -19,6 +19,8 @@ export async function GET() {
     activityFeedEnabled: enabled,
     showComingSoon: flags?.show_coming_soon === true,
     ewalletPayments: flags?.ewallet_payments === true,
+    oauthStrava: flags?.oauth_strava === true,
+    oauthFacebook: flags?.oauth_facebook === true,
     envOverride: process.env.ACTIVITY_FEED_ENABLED ?? null,
     cmsResult,
     cmsError,

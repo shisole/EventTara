@@ -220,6 +220,30 @@ export async function isComingSoonEnabled(): Promise<boolean> {
 }
 
 /**
+ * Returns whether Strava OAuth login is enabled.
+ */
+export async function isOAuthStravaEnabled(): Promise<boolean> {
+  try {
+    const flags = await getCachedFeatureFlags();
+    return flags?.oauth_strava === true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Returns whether Facebook OAuth login is enabled.
+ */
+export async function isOAuthFacebookEnabled(): Promise<boolean> {
+  try {
+    const flags = await getCachedFeatureFlags();
+    return flags?.oauth_facebook === true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Returns whether e-wallet payments (GCash, Maya) are enabled.
  */
 export async function isEwalletPaymentsEnabled(): Promise<boolean> {
