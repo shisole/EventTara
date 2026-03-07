@@ -3,13 +3,14 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/types";
 
 /**
- * Auto-generate a username from an email prefix.
- * Sanitizes the local part, checks for collisions, and appends a random suffix if taken.
+ * Auto-generate a username from a preferred name or email prefix.
+ * Sanitizes the value, checks for collisions, and appends a random suffix if taken.
  */
 export async function generateUsername(
   supabase: SupabaseClient<Database>,
   userId: string,
   email: string,
+  preferredName?: string,
 ): Promise<void> {
   const { data: existingUser } = await supabase
     .from("users")
@@ -19,11 +20,18 @@ export async function generateUsername(
 
   if (existingUser?.username) return;
 
-  const prefix = email
-    .trim()
-    .split("@")[0]
-    .toLowerCase()
-    .replaceAll(/[^a-z0-9._-]/g, "");
+  // "Stephen Karl Hisole" → "stephen.karl.hisole", or fall back to email prefix
+  const prefix = preferredName?.trim()
+    ? preferredName
+        .trim()
+        .toLowerCase()
+        .replaceAll(/\s+/g, ".")
+        .replaceAll(/[^a-z0-9._-]/g, "")
+    : email
+        .trim()
+        .split("@")[0]
+        .toLowerCase()
+        .replaceAll(/[^a-z0-9._-]/g, "");
   let username = prefix || "user";
 
   const { data: taken } = await supabase

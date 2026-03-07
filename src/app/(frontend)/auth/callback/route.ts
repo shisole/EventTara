@@ -49,8 +49,13 @@ export async function GET(request: Request) {
             await supabase.from("users").update(updates).eq("id", user.id);
           }
 
-          // Generate username if not set
-          await generateUsername(supabase, user.id, user.email ?? "");
+          // Generate username from Google name if not set
+          await generateUsername(
+            supabase,
+            user.id,
+            user.email ?? "",
+            meta?.full_name ?? meta?.name,
+          );
         }
 
         // Handle organizer signup metadata
