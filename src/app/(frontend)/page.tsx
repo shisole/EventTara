@@ -1,4 +1,3 @@
-import dynamic from "next/dynamic";
 import { Suspense } from "react";
 
 import BentoEventsSection from "@/components/landing/BentoEventsSection";
@@ -11,6 +10,7 @@ import GamificationSection from "@/components/landing/GamificationSection";
 import HeroSection from "@/components/landing/HeroSection";
 import HowItWorksSection from "@/components/landing/HowItWorksSection";
 import OrganizersSection from "@/components/landing/OrganizersSection";
+import OrganizerWaitlistSection from "@/components/landing/OrganizerWaitlistSection";
 import ParallaxMountain from "@/components/landing/ParallaxMountain";
 import PioneerCounterSection from "@/components/landing/PioneerCounterSection";
 import StravaShowcaseSection from "@/components/landing/StravaShowcaseSection";
@@ -23,8 +23,6 @@ import {
   parseHomepageSections,
 } from "@/lib/cms/cached";
 import { type CmsHomepageSection } from "@/lib/cms/types";
-
-const OrganizerWaitlistModal = dynamic(() => import("@/components/landing/OrganizerWaitlistModal"));
 
 export const metadata = {
   title: "EventTara — Outdoor Adventure Events in Panay Island",
@@ -49,10 +47,11 @@ const DEFAULT_SECTIONS: CmsHomepageSection[] = [
   { key: "gamification", label: "Badges & Gamification", enabled: true, order: 5 },
   { key: "categories", label: "Event Categories", enabled: true, order: 6 },
   { key: "organizers", label: "Trusted Organizers", enabled: true, order: 7 },
-  { key: "pioneer_counter", label: "Pioneer Counter", enabled: true, order: 8 },
-  { key: "testimonials", label: "Testimonials", enabled: true, order: 9 },
-  { key: "faq", label: "FAQ", enabled: true, order: 10 },
-  { key: "contact_cta", label: "Contact CTA", enabled: true, order: 11 },
+  { key: "organizer_waitlist", label: "Organizer Waitlist", enabled: true, order: 8 },
+  { key: "pioneer_counter", label: "Pioneer Counter", enabled: true, order: 9 },
+  { key: "testimonials", label: "Testimonials", enabled: true, order: 10 },
+  { key: "faq", label: "FAQ", enabled: true, order: 11 },
+  { key: "contact_cta", label: "Contact CTA", enabled: true, order: 12 },
 ];
 
 function BentoEventsSkeleton() {
@@ -223,6 +222,9 @@ function renderSection(key: string, parallaxImageUrl: string, heroData: HeroData
     case "pioneer_counter": {
       return <PioneerCounterSection />;
     }
+    case "organizer_waitlist": {
+      return <OrganizerWaitlistSection />;
+    }
     case "testimonials": {
       return (
         <Suspense fallback={<TestimonialsSkeleton />}>
@@ -267,7 +269,21 @@ export default async function Home() {
     "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80";
 
   const cmsSections = parseHomepageSections(sectionsData);
-  const sections = cmsSections.length > 0 ? cmsSections : DEFAULT_SECTIONS;
+  let sections = cmsSections.length > 0 ? cmsSections : DEFAULT_SECTIONS;
+
+  // Ensure organizer_waitlist is present (may be missing from older CMS data)
+  if (!sections.some((s) => s.key === "organizer_waitlist")) {
+    const pioneerIdx = sections.findIndex((s) => s.key === "pioneer_counter");
+    const insertOrder = pioneerIdx === -1 ? 8 : sections[pioneerIdx].order - 0.5;
+    const waitlistSection: CmsHomepageSection = {
+      key: "organizer_waitlist",
+      label: "Organizer Waitlist",
+      enabled: true,
+      order: insertOrder,
+    };
+    sections = [...sections, waitlistSection].sort((a, b) => a.order - b.order);
+  }
+
   const enabledSections = sections.filter((s) => s.enabled);
 
   return (
@@ -279,8 +295,6 @@ export default async function Home() {
           {renderSection(section.key, parallaxImageUrl, transformedHeroData)}
         </div>
       ))}
-
-      <OrganizerWaitlistModal />
     </main>
   );
 }
