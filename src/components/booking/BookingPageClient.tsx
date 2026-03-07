@@ -22,6 +22,7 @@ interface BookingPageClientProps {
   spotsLeft: number;
   distances?: EventDistance[];
   mode: "self" | "friend";
+  waiverText?: string | null;
 }
 
 export default function BookingPageClient({
@@ -35,6 +36,7 @@ export default function BookingPageClient({
   spotsLeft,
   distances,
   mode,
+  waiverText,
 }: BookingPageClientProps) {
   const [authenticated, setAuthenticated] = useState(initialAuth);
 
@@ -63,6 +65,7 @@ export default function BookingPageClient({
           spotsLeft={spotsLeft}
           distances={distances}
           mode={mode}
+          waiverText={waiverText}
         />
       </div>
     </>
