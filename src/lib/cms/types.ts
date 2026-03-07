@@ -69,6 +69,7 @@ export interface CmsFeatureFlags {
   events_two_col_mobile: boolean;
   show_coming_soon: boolean;
   ewallet_payments: boolean;
+  oauth_google: boolean;
   oauth_strava: boolean;
   oauth_facebook: boolean;
 }

@@ -46,6 +46,10 @@ const FLAG_META: Record<string, { label: string; description: string }> = {
     label: "E-Wallet Payments",
     description: "Enable GCash and Maya as payment methods for event bookings.",
   },
+  oauth_google: {
+    label: "OAuth — Google Login",
+    description: "Enable 'Continue with Google' on login and signup pages.",
+  },
   oauth_strava: {
     label: "OAuth — Strava Login",
     description: "Enable 'Continue with Strava' on login and signup pages.",

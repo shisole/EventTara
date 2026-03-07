@@ -220,6 +220,18 @@ export async function isComingSoonEnabled(): Promise<boolean> {
 }
 
 /**
+ * Returns whether Google OAuth login is enabled.
+ */
+export async function isOAuthGoogleEnabled(): Promise<boolean> {
+  try {
+    const flags = await getCachedFeatureFlags();
+    return flags?.oauth_google === true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Returns whether Strava OAuth login is enabled.
  */
 export async function isOAuthStravaEnabled(): Promise<boolean> {

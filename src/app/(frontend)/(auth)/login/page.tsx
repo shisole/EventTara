@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import { CheckCircleIcon, StravaIcon } from "@/components/icons";
+import { CheckCircleIcon, GoogleIcon, StravaIcon } from "@/components/icons";
 import { Button, Input, OtpCodeInput } from "@/components/ui";
 import { STRAVA_AUTH_URL, STRAVA_SCOPES } from "@/lib/strava/constants";
 import { createClient } from "@/lib/supabase/client";
@@ -28,13 +28,16 @@ export default function LoginPage() {
 
   // OTP code state
   const [code, setCode] = useState<string[]>(emptyCode());
+  const [oauthGoogle, setOauthGoogle] = useState(false);
   const [oauthStrava, setOauthStrava] = useState(false);
   const [oauthFacebook, setOauthFacebook] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   useEffect(() => {
     void fetch("/api/feature-flags")
       .then((r) => r.json())
-      .then((d: { oauthStrava?: boolean; oauthFacebook?: boolean }) => {
+      .then((d: { oauthGoogle?: boolean; oauthStrava?: boolean; oauthFacebook?: boolean }) => {
+        setOauthGoogle(d.oauthGoogle === true);
         setOauthStrava(d.oauthStrava === true);
         setOauthFacebook(d.oauthFacebook === true);
       })
@@ -209,6 +212,21 @@ export default function LoginPage() {
     }
   };
 
+  const handleGoogleLogin = async () => {
+    setGoogleLoading(true);
+    setError("");
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${globalThis.location.origin}/auth/callback`,
+      },
+    });
+    if (oauthError) {
+      setError(oauthError.message || "Something went wrong. Please try again.");
+      setGoogleLoading(false);
+    }
+  };
+
   if (state === "verify-code") {
     return (
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md p-8 space-y-6">
@@ -253,6 +271,18 @@ export default function LoginPage() {
     <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md p-8 space-y-6">
       <h2 className="text-2xl font-heading font-bold text-center">Welcome Back!</h2>
 
+      {oauthGoogle && (
+        <Button
+          className="w-full bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
+          size="lg"
+          onClick={handleGoogleLogin}
+          disabled={googleLoading}
+        >
+          <GoogleIcon className="w-5 h-5 mr-2" />
+          {googleLoading ? "Redirecting..." : "Continue with Google"}
+        </Button>
+      )}
+
       {oauthFacebook && (
         <Button disabled className="w-full bg-[#1877F2]/60 cursor-not-allowed" size="lg">
           Continue with Facebook
@@ -285,7 +315,7 @@ export default function LoginPage() {
         </Button>
       )}
 
-      {(oauthStrava || oauthFacebook) && (
+      {(oauthGoogle || oauthStrava || oauthFacebook) && (
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-gray-200 dark:border-gray-700" />

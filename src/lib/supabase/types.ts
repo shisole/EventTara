@@ -994,6 +994,7 @@ export interface Database {
           events_two_col_mobile: boolean;
           show_coming_soon: boolean;
           ewallet_payments: boolean;
+          oauth_google: boolean;
           oauth_strava: boolean;
           oauth_facebook: boolean;
         };
@@ -1007,6 +1008,7 @@ export interface Database {
           events_two_col_mobile?: boolean;
           show_coming_soon?: boolean;
           ewallet_payments?: boolean;
+          oauth_google?: boolean;
           oauth_strava?: boolean;
           oauth_facebook?: boolean;
         };
@@ -1020,6 +1022,7 @@ export interface Database {
           events_two_col_mobile?: boolean;
           show_coming_soon?: boolean;
           ewallet_payments?: boolean;
+          oauth_google?: boolean;
           oauth_strava?: boolean;
           oauth_facebook?: boolean;
         };
