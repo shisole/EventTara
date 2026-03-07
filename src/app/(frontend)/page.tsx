@@ -1,3 +1,4 @@
+import dynamic from "next/dynamic";
 import { Suspense } from "react";
 
 import BentoEventsSection from "@/components/landing/BentoEventsSection";
@@ -19,10 +20,18 @@ import {
   getCachedHeroCarousel,
   getCachedHomepageSections,
   getCachedSiteSettings,
+  isThreeJsHeroEnabled,
   parseHeroSlides,
   parseHomepageSections,
 } from "@/lib/cms/cached";
 import { type CmsHomepageSection } from "@/lib/cms/types";
+
+const ThreeHeroScene = dynamic(() => import("@/components/landing/three/ThreeHeroScene"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-screen bg-gradient-to-b from-sky-400 to-sky-200 dark:from-sky-900 dark:to-slate-800" />
+  ),
+});
 
 export const metadata = {
   title: "EventTara — Outdoor Adventure Events in Panay Island",
@@ -245,10 +254,11 @@ interface HeroData {
 }
 
 export default async function Home() {
-  const [heroData, settings, sectionsData] = await Promise.all([
+  const [heroData, settings, sectionsData, threejsEnabled] = await Promise.all([
     getCachedHeroCarousel(),
     getCachedSiteSettings(),
     getCachedHomepageSections(),
+    isThreeJsHeroEnabled(),
   ]);
 
   const heroSlides = parseHeroSlides(heroData);
@@ -271,6 +281,8 @@ export default async function Home() {
   return (
     <main>
       <EntryBanner />
+
+      {threejsEnabled && <ThreeHeroScene />}
 
       {enabledSections.map((section) => (
         <div key={section.key}>
