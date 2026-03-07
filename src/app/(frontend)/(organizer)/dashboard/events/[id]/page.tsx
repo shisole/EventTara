@@ -211,6 +211,7 @@ export default async function ManageEventPage({ params }: { params: Promise<{ id
           <ParticipantsSection
             eventId={id}
             eventStatus={event.status}
+            isFull={totalParticipants >= event.max_participants}
             bookings={(bookings || []) as any}
             companionsByBooking={companionsByBooking}
             checkedInUserIds={checkedInUserIds}

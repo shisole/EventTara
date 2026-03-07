@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Fragment, useState, useTransition } from "react";
+import { Fragment, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui";
 import PaymentStatusBadge from "@/components/ui/PaymentStatusBadge";
@@ -34,6 +34,7 @@ interface ParticipantsTableProps {
   checkedInUserIds?: Set<string>;
   eventId: string;
   eventStatus?: string;
+  isFull?: boolean;
   onAddParticipant?: () => void;
 }
 
@@ -73,17 +74,26 @@ function ManualStatusDropdown({
   currentStatus: "paid" | "reserved" | "pending";
   onUpdated: () => void;
 }) {
-  const [isPending, startTransition] = useTransition();
-  const [fetching, setFetching] = useState(false);
+  const [optimisticStatus, setOptimisticStatus] = useState<"paid" | "reserved" | "pending" | null>(
+    null,
+  );
   const [open, setOpen] = useState(false);
-  const loading = fetching || isPending;
+
+  const displayStatus = optimisticStatus ?? currentStatus;
+
+  // Clear optimistic status once server data catches up
+  useEffect(() => {
+    if (optimisticStatus && currentStatus === optimisticStatus) {
+      setOptimisticStatus(null);
+    }
+  }, [currentStatus, optimisticStatus]);
 
   async function handleChange(newStatus: "paid" | "reserved" | "pending") {
-    if (newStatus === currentStatus) {
+    if (newStatus === displayStatus) {
       setOpen(false);
       return;
     }
-    setFetching(true);
+    setOptimisticStatus(newStatus);
     setOpen(false);
     try {
       const res = await fetch(`/api/events/${eventId}/participants/${bookingId}`, {
@@ -91,23 +101,15 @@ function ManualStatusDropdown({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ manualStatus: newStatus }),
       });
-      if (!res.ok) throw new Error("Failed");
-      startTransition(() => {
-        onUpdated();
-      });
+      if (!res.ok) {
+        setOptimisticStatus(null);
+        throw new Error("Failed");
+      }
+      onUpdated();
     } catch (error) {
       console.error("Status update failed:", error);
-    } finally {
-      setFetching(false);
+      setOptimisticStatus(null);
     }
-  }
-
-  if (loading) {
-    return (
-      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
-        ...
-      </span>
-    );
   }
 
   return (
@@ -117,10 +119,10 @@ function ManualStatusDropdown({
         onClick={() => setOpen(!open)}
         className={cn(
           "inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium capitalize cursor-pointer transition-colors",
-          manualStatusStyle[currentStatus],
+          manualStatusStyle[displayStatus],
         )}
       >
-        {currentStatus}
+        {displayStatus}
         <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
@@ -136,7 +138,7 @@ function ManualStatusDropdown({
                 onClick={() => handleChange(s)}
                 className={cn(
                   "block w-full text-left px-4 py-2 text-xs font-medium capitalize hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors",
-                  s === currentStatus
+                  s === displayStatus
                     ? "text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700"
                     : "text-gray-600 dark:text-gray-400",
                 )}
@@ -169,6 +171,7 @@ export default function ParticipantsTable({
   checkedInUserIds,
   eventId,
   eventStatus,
+  isFull,
   onAddParticipant,
 }: ParticipantsTableProps) {
   const router = useRouter();
@@ -315,12 +318,17 @@ export default function ParticipantsTable({
 
   return (
     <>
-      {/* Add Participant button — hidden when event is completed */}
+      {/* Add Participant button — hidden when event is completed, disabled when full */}
       {onAddParticipant && !isCompleted && (
-        <div className="mb-4">
-          <Button variant="primary" size="sm" onClick={onAddParticipant}>
+        <div className="mb-4 flex items-center gap-3">
+          <Button variant="primary" size="sm" onClick={onAddParticipant} disabled={isFull}>
             + Add Participant
           </Button>
+          {isFull && (
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              Event is at full capacity
+            </span>
+          )}
         </div>
       )}
 
