@@ -428,10 +428,10 @@ export default function ParticipantsTable({
           </div>
 
           {/* Desktop table layout */}
-          <div className="hidden md:block bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 overflow-hidden">
+          <div className="hidden md:block bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30">
             <table className="w-full">
               <thead className="bg-gray-50 dark:bg-gray-800">
-                <tr>
+                <tr className="first:[&>th]:rounded-tl-2xl last:[&>th]:rounded-tr-2xl">
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
                     Name
                   </th>
