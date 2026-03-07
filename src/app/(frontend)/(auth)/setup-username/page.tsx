@@ -31,7 +31,7 @@ function SetupUsernameForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
-  const next = searchParams.get("next") ?? "/events";
+  const next = searchParams.get("next") ?? "/feed";
 
   const [username, setUsername] = useState("");
   const [usernameStatus, setUsernameStatus] = useState<
