@@ -33,6 +33,7 @@ interface ParticipantsTableProps {
   companionsByBooking: Record<string, Companion[]>;
   checkedInUserIds?: Set<string>;
   eventId: string;
+  eventStatus?: string;
   onAddParticipant?: () => void;
 }
 
@@ -47,6 +48,19 @@ const manualStatusStyle: Record<string, string> = {
   reserved: "bg-teal-100 text-teal-700 dark:bg-teal-900/50 dark:text-teal-300",
   pending: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300",
 };
+
+function ManualStatusBadge({ status }: { status: "paid" | "reserved" | "pending" }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center px-3 py-1 rounded-full text-xs font-medium capitalize",
+        manualStatusStyle[status],
+      )}
+    >
+      {status}
+    </span>
+  );
+}
 
 function ManualStatusDropdown({
   bookingId,
@@ -68,6 +82,7 @@ function ManualStatusDropdown({
       return;
     }
     setLoading(true);
+    setOpen(false);
     try {
       const res = await fetch(`/api/events/${eventId}/participants/${bookingId}`, {
         method: "PATCH",
@@ -76,11 +91,10 @@ function ManualStatusDropdown({
       });
       if (!res.ok) throw new Error("Failed");
       onUpdated();
+      // Don't clear loading — component re-renders with new data from router.refresh()
     } catch (error) {
       console.error("Status update failed:", error);
-    } finally {
       setLoading(false);
-      setOpen(false);
     }
   }
 
@@ -150,10 +164,12 @@ export default function ParticipantsTable({
   companionsByBooking,
   checkedInUserIds,
   eventId,
+  eventStatus,
   onAddParticipant,
 }: ParticipantsTableProps) {
   const router = useRouter();
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const isCompleted = eventStatus === "completed";
 
   const handleBookingAction = async (bookingId: string, action: "approve" | "reject") => {
     setActionLoading(`booking-${bookingId}`);
@@ -207,8 +223,11 @@ export default function ParticipantsTable({
   };
 
   const renderStatusBadge = (booking: Booking) => {
-    // Organizer-added participant: show interactive manual_status dropdown
+    // Organizer-added participant: show interactive dropdown or static badge if completed
     if (booking.added_by && booking.manual_status) {
+      if (isCompleted) {
+        return <ManualStatusBadge status={booking.manual_status} />;
+      }
       return (
         <ManualStatusDropdown
           bookingId={booking.id}
@@ -292,8 +311,8 @@ export default function ParticipantsTable({
 
   return (
     <>
-      {/* Add Participant button */}
-      {onAddParticipant && (
+      {/* Add Participant button — hidden when event is completed */}
+      {onAddParticipant && !isCompleted && (
         <div className="mb-4">
           <Button variant="primary" size="sm" onClick={onAddParticipant}>
             + Add Participant

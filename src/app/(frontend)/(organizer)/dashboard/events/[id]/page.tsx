@@ -210,6 +210,7 @@ export default async function ManageEventPage({ params }: { params: Promise<{ id
           <h2 className="text-xl font-heading font-bold mb-4 dark:text-white">Participants</h2>
           <ParticipantsSection
             eventId={id}
+            eventStatus={event.status}
             bookings={(bookings || []) as any}
             companionsByBooking={companionsByBooking}
             checkedInUserIds={checkedInUserIds}

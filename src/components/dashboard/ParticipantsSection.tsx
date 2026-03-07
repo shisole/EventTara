@@ -17,6 +17,7 @@ interface EventDistance {
 
 interface ParticipantsSectionProps {
   eventId: string;
+  eventStatus: string;
   bookings: any[];
   companionsByBooking: Record<string, any[]>;
   checkedInUserIds: Set<string>;
@@ -25,6 +26,7 @@ interface ParticipantsSectionProps {
 
 export default function ParticipantsSection({
   eventId,
+  eventStatus,
   bookings,
   companionsByBooking,
   checkedInUserIds,
@@ -32,6 +34,7 @@ export default function ParticipantsSection({
 }: ParticipantsSectionProps) {
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
+  const isCompleted = eventStatus === "completed";
 
   return (
     <>
@@ -40,7 +43,8 @@ export default function ParticipantsSection({
         companionsByBooking={companionsByBooking}
         checkedInUserIds={checkedInUserIds}
         eventId={eventId}
-        onAddParticipant={() => setShowModal(true)}
+        eventStatus={eventStatus}
+        onAddParticipant={isCompleted ? undefined : () => setShowModal(true)}
       />
       {showModal && (
         <AddParticipantModal
