@@ -2,6 +2,8 @@
 
 import { useMemo } from "react";
 
+import { seededRandom } from "./seeded-random";
+
 interface VegetationProps {
   position?: [number, number, number];
   density?: number;
@@ -21,11 +23,6 @@ interface BushConfig {
   pos: [number, number, number];
   scale: number;
   color: string;
-}
-
-function seededRandom(seed: number): number {
-  const x = Math.sin(seed * 9301 + 49297) * 49297;
-  return x - Math.floor(x);
 }
 
 export default function Vegetation({ position = [0, 0, 0], density = 12 }: VegetationProps) {

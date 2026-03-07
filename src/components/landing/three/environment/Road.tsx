@@ -2,6 +2,8 @@
 
 import { useMemo } from "react";
 
+import { seededRandom } from "./seeded-random";
+
 interface RoadProps {
   position?: [number, number, number];
   variant: "trail" | "road";
@@ -11,11 +13,6 @@ interface TrailRockConfig {
   pos: [number, number, number];
   scale: [number, number, number];
   rotation: [number, number, number];
-}
-
-function seededRandom(seed: number): number {
-  const x = Math.sin(seed * 9301 + 49297) * 49297;
-  return x - Math.floor(x);
 }
 
 function Trail({ position }: { position: [number, number, number] }) {
