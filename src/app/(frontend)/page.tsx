@@ -1,3 +1,4 @@
+import dynamic from "next/dynamic";
 import { Suspense } from "react";
 
 import BentoEventsSection from "@/components/landing/BentoEventsSection";
@@ -23,6 +24,8 @@ import {
   parseHomepageSections,
 } from "@/lib/cms/cached";
 import { type CmsHomepageSection } from "@/lib/cms/types";
+
+const OrganizerWaitlistModal = dynamic(() => import("@/components/landing/OrganizerWaitlistModal"));
 
 export const metadata = {
   title: "EventTara — Outdoor Adventure Events in Panay Island",
