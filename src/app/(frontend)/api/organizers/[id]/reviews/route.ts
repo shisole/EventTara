@@ -231,9 +231,11 @@ export async function POST(request: Request, { params }: RouteCtx) {
     await supabase.from("organizer_review_photos").insert(photoRows);
   }
 
-  // Fire-and-forget: award "First Review" badge if this is the user's first review
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  awardFirstReviewBadge(user.id, supabase).catch(() => {});
+  // Fire-and-forget: award "First Review" badge if this is the user's first non-anonymous review
+  if (!is_anonymous) {
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    awardFirstReviewBadge(user.id, supabase).catch(() => {});
+  }
 
   return NextResponse.json({ review }, { status: 201 });
 }

@@ -477,7 +477,7 @@ export default function AuthReviewModal({
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center p-4 transition-opacity duration-200 ${
+      className={`fixed inset-0 z-50 flex items-end md:items-center justify-center md:p-4 transition-opacity duration-200 ${
         isVisible ? "opacity-100 bg-black/60" : "opacity-0 bg-black/0"
       }`}
       role="dialog"
@@ -486,8 +486,10 @@ export default function AuthReviewModal({
       onClick={onClose}
     >
       <div
-        className={`relative w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8 transition-all duration-200 ${
-          isVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
+        className={`relative w-full md:max-w-md bg-white dark:bg-slate-800 rounded-t-2xl md:rounded-2xl shadow-2xl p-6 md:p-8 max-h-[95dvh] overflow-y-auto transition-all duration-200 ${
+          isVisible
+            ? "opacity-100 translate-y-0 md:scale-100"
+            : "opacity-0 translate-y-8 md:translate-y-0 md:scale-95"
         }`}
         onClick={(e) => {
           e.stopPropagation();
