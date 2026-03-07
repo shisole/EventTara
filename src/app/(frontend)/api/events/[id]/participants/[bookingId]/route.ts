@@ -16,14 +16,20 @@ export async function PATCH(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Verify user is the organizer
+  // Verify user is the organizer (organizer_id references organizer_profiles, not users)
+  const { data: orgProfile } = await supabase
+    .from("organizer_profiles")
+    .select("id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
   const { data: event } = await supabase
     .from("events")
     .select("id, organizer_id")
     .eq("id", eventId)
     .single();
 
-  if (!event?.organizer_id || event.organizer_id !== user.id) {
+  if (!event || event.organizer_id !== orgProfile?.id) {
     return NextResponse.json({ error: "Not authorized" }, { status: 403 });
   }
 
