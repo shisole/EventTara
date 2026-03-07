@@ -19,6 +19,7 @@ const r2PublicUrl = process.env.R2_PUBLIC_URL || "";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  transpilePackages: ["three"],
   eslint: {
     // CI runs lint separately; skip during build
     ignoreDuringBuilds: true,
