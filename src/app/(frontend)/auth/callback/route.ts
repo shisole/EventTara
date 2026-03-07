@@ -20,8 +20,10 @@ export async function GET(request: Request) {
         const meta = user.user_metadata;
         const preferredName: string | undefined = meta?.full_name ?? meta?.name;
 
+        console.log("[auth/callback] user:", user.id, "provider:", user.app_metadata?.provider);
+
         // Upsert user row (without username — that's handled by /setup-username)
-        await admin.from("users").upsert(
+        const { error: upsertErr } = await admin.from("users").upsert(
           {
             id: user.id,
             email: user.email ?? null,
@@ -31,6 +33,10 @@ export async function GET(request: Request) {
           },
           { onConflict: "id", ignoreDuplicates: false },
         );
+
+        if (upsertErr) {
+          console.error("[auth/callback] upsert error:", upsertErr.message);
+        }
 
         // Handle organizer signup metadata
         if (meta?.role === "organizer") {
@@ -50,13 +56,19 @@ export async function GET(request: Request) {
         }
 
         // Check if user needs to set up username
-        const { data: profile } = await admin
+        const { data: profile, error: profileErr } = await admin
           .from("users")
           .select("username")
           .eq("id", user.id)
           .maybeSingle();
 
+        console.log("[auth/callback] username check:", {
+          username: profile?.username,
+          error: profileErr?.message,
+        });
+
         if (!profile?.username) {
+          console.log("[auth/callback] redirecting to /setup-username");
           return NextResponse.redirect(`${origin}/setup-username?next=${encodeURIComponent(next)}`);
         }
       }
