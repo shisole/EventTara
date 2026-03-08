@@ -74,13 +74,13 @@ export default function BookingConfirmation({
             {isFriendMode ? (
               <>
                 Payment proof for your companions at{" "}
-                <span className="font-semibold">{eventTitle}</span> has been submitted. The
-                organizer will verify it shortly.
+                <span className="font-semibold">{eventTitle}</span> has been submitted. The club
+                admin will verify it shortly.
               </>
             ) : (
               <>
                 Your payment proof for <span className="font-semibold">{eventTitle}</span> has been
-                submitted. The organizer will verify it shortly.
+                submitted. The club admin will verify it shortly.
               </>
             )}
           </p>

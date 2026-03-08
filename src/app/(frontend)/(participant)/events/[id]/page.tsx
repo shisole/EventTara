@@ -72,10 +72,12 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
   const { id } = await params;
   const supabase = await createClient();
 
-  // Fetch event with organizer profile
+  // Fetch event with club and organizer profile
   const { data: event } = await supabase
     .from("events")
-    .select("*, organizer_profiles:organizer_id(*, users:user_id(*))")
+    .select(
+      "*, clubs(id, name, slug, logo_url), organizer_profiles:organizer_id(*, users:user_id(*))",
+    )
     .eq("id", id)
     .single();
 
@@ -103,12 +105,25 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
   });
   const bookingCount = totalParticipants || 0;
 
-  // Fetch organizer event count
-  const { count: orgEventCount } = await supabase
-    .from("events")
-    .select("*", { count: "exact", head: true })
-    .eq("organizer_id", event.organizer_id)
-    .eq("status", "published");
+  // Fetch club/organizer event count
+  const club = event.clubs as {
+    id: string;
+    name: string;
+    slug: string;
+    logo_url: string | null;
+  } | null;
+  const eventCountQuery = club
+    ? supabase
+        .from("events")
+        .select("*", { count: "exact", head: true })
+        .eq("club_id", club.id)
+        .eq("status", "published")
+    : supabase
+        .from("events")
+        .select("*", { count: "exact", head: true })
+        .eq("organizer_id", event.organizer_id)
+        .eq("status", "published");
+  const { count: orgEventCount } = await eventCountQuery;
 
   // Fetch badges for this event
   const { data: badgeData } = await supabase
@@ -338,13 +353,20 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
         }),
     },
     ...(event.cover_image_url && { image: event.cover_image_url }),
-    organizer: organizer
+    organizer: club
       ? {
           "@type": "Organization",
-          name: organizer.org_name,
-          ...(organizer.logo_url && { logo: organizer.logo_url }),
+          name: club.name,
+          ...(club.logo_url && { logo: club.logo_url }),
+          url: `${siteUrl}/clubs/${club.slug}`,
         }
-      : undefined,
+      : organizer
+        ? {
+            "@type": "Organization",
+            name: organizer.org_name,
+            ...(organizer.logo_url && { logo: organizer.logo_url }),
+          }
+        : undefined,
     offers: {
       "@type": "Offer",
       price: event.price,
@@ -553,11 +575,12 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
             </div>
           </div>
 
-          {organizer && (
+          {(club || organizer) && (
             <OrganizerCard
+              clubSlug={club?.slug}
               organizerId={event.organizer_id}
-              orgName={organizer.org_name}
-              logoUrl={organizer.logo_url}
+              orgName={club?.name ?? organizer?.org_name ?? "Organizer"}
+              logoUrl={club?.logo_url ?? organizer?.logo_url ?? null}
               eventCount={orgEventCount || 0}
             />
           )}
