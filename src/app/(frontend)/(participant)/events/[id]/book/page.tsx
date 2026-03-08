@@ -17,12 +17,16 @@ export default async function BookEventPage({
   const isFriendMode = search.for === "friend";
   const supabase = await createClient();
 
-  const { data: event } = await supabase
+  const { data: event, error: eventError } = await supabase
     .from("events")
     .select("id, title, date, end_date, price, max_participants, club_id, waiver_text")
     .eq("id", id)
     .eq("status", "published")
     .single();
+
+  if (eventError) {
+    console.error("Book page event query error:", eventError.message, eventError.code);
+  }
 
   if (!event) notFound();
 
