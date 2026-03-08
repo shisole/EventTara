@@ -1,6 +1,5 @@
 import { notFound, redirect } from "next/navigation";
 
-import ClubDashboardSidebar from "@/components/dashboard/ClubDashboardSidebar";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function ClubDashboardLayout({
@@ -38,15 +37,5 @@ export default async function ClubDashboardLayout({
 
   if (!membership) redirect("/dashboard");
 
-  return (
-    <div className="flex flex-col gap-4">
-      <ClubDashboardSidebar
-        clubSlug={club.slug}
-        clubName={club.name}
-        clubLogoUrl={club.logo_url}
-        userRole={membership.role}
-      />
-      {children}
-    </div>
-  );
+  return <>{children}</>;
 }
