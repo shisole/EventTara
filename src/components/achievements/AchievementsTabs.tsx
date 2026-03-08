@@ -1,5 +1,6 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { type ReactNode, useState } from "react";
 
 import { cn } from "@/lib/utils";
@@ -12,18 +13,30 @@ interface AchievementsTabsProps {
 
 type Tab = "badges" | "borders" | "leaderboards";
 
+const VALID_TABS = new Set<string>(["badges", "borders", "leaderboards"]);
+
 const TAB_LABELS: Record<Tab, string> = {
   badges: "Badges",
   borders: "Borders",
   leaderboards: "Leaderboards",
 };
 
+function isValidTab(value: string | null): value is Tab {
+  return value != null && VALID_TABS.has(value);
+}
+
+function getInitialTab(searchParams: ReturnType<typeof useSearchParams>): Tab {
+  const param = searchParams.get("tab");
+  return isValidTab(param) ? param : "badges";
+}
+
 export default function AchievementsTabs({
   badgesContent,
   bordersContent,
   leaderboardsContent,
 }: AchievementsTabsProps) {
-  const [activeTab, setActiveTab] = useState<Tab>("badges");
+  const searchParams = useSearchParams();
+  const [activeTab, setActiveTab] = useState<Tab>(() => getInitialTab(searchParams));
 
   return (
     <div>

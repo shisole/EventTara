@@ -9,6 +9,7 @@ import FeedShowcaseSection from "@/components/landing/FeedShowcaseSection";
 import GamificationSection from "@/components/landing/GamificationSection";
 import HeroSection from "@/components/landing/HeroSection";
 import HowItWorksSection from "@/components/landing/HowItWorksSection";
+import LeaderboardPreviewSection from "@/components/landing/LeaderboardPreviewSection";
 import OrganizersSection from "@/components/landing/OrganizersSection";
 import OrganizerWaitlistSection from "@/components/landing/OrganizerWaitlistSection";
 import ParallaxMountain from "@/components/landing/ParallaxMountain";
@@ -45,13 +46,14 @@ const DEFAULT_SECTIONS: CmsHomepageSection[] = [
   { key: "how_it_works", label: "How It Works", enabled: true, order: 3 },
   { key: "feed_showcase", label: "Activity Feed Showcase", enabled: true, order: 4 },
   { key: "gamification", label: "Badges & Gamification", enabled: true, order: 5 },
-  { key: "categories", label: "Event Categories", enabled: true, order: 6 },
-  { key: "organizers", label: "Trusted Organizers", enabled: true, order: 7 },
-  { key: "organizer_waitlist", label: "Organizer Waitlist", enabled: true, order: 8 },
-  { key: "pioneer_counter", label: "Pioneer Counter", enabled: true, order: 9 },
-  { key: "testimonials", label: "Testimonials", enabled: true, order: 10 },
-  { key: "faq", label: "FAQ", enabled: true, order: 11 },
-  { key: "contact_cta", label: "Contact CTA", enabled: true, order: 12 },
+  { key: "leaderboard_preview", label: "Leaderboard Preview", enabled: true, order: 6 },
+  { key: "categories", label: "Event Categories", enabled: true, order: 7 },
+  { key: "organizers", label: "Trusted Organizers", enabled: true, order: 8 },
+  { key: "organizer_waitlist", label: "Organizer Waitlist", enabled: true, order: 9 },
+  { key: "pioneer_counter", label: "Pioneer Counter", enabled: true, order: 10 },
+  { key: "testimonials", label: "Testimonials", enabled: true, order: 11 },
+  { key: "faq", label: "FAQ", enabled: true, order: 12 },
+  { key: "contact_cta", label: "Contact CTA", enabled: true, order: 13 },
 ];
 
 function BentoEventsSkeleton() {
@@ -160,6 +162,31 @@ function GamificationSkeleton() {
   );
 }
 
+function LeaderboardPreviewSkeleton() {
+  return (
+    <section className="bg-white py-12 dark:bg-slate-800">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto mb-4 h-9 w-56 animate-pulse rounded-lg bg-gray-200 dark:bg-slate-700" />
+        <div className="mx-auto mb-10 h-5 w-80 animate-pulse rounded bg-gray-200 dark:bg-slate-700" />
+        <div className="flex items-end justify-center gap-5">
+          {[64, 96, 64].map((size, i) => (
+            <div key={i} className={i === 1 ? "pt-0" : "pt-8"}>
+              <div className="flex flex-col items-center rounded-2xl border border-gray-100 bg-gray-50/50 p-5 dark:border-gray-800 dark:bg-gray-900/50">
+                <div
+                  className="animate-pulse rounded-full bg-gray-200 dark:bg-slate-700"
+                  style={{ width: size, height: size }}
+                />
+                <div className="mt-3 h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-slate-700" />
+                <div className="mt-2 h-3 w-14 animate-pulse rounded bg-gray-200 dark:bg-slate-700" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function StravaShowcaseSkeleton() {
   return (
     <div className="bg-gradient-to-b from-orange-50/60 to-white py-16 dark:from-orange-950/20 dark:to-gray-950 sm:py-20">
@@ -206,6 +233,13 @@ function renderSection(key: string, parallaxImageUrl: string, heroData: HeroData
       return (
         <Suspense fallback={<GamificationSkeleton />}>
           <GamificationSection />
+        </Suspense>
+      );
+    }
+    case "leaderboard_preview": {
+      return (
+        <Suspense fallback={<LeaderboardPreviewSkeleton />}>
+          <LeaderboardPreviewSection />
         </Suspense>
       );
     }
