@@ -57,60 +57,60 @@ export async function GET(request: NextRequest) {
     let metricValue = 0;
 
     switch (metric) {
-    case "most_badges": {
-      const { count } = await supabase
-        .from("user_badges")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", usr.id);
-      metricValue = count ?? 0;
-    
-    break;
-    }
-    case "most_summits": {
-      const { data: checkins } = await supabase
-        .from("event_checkins")
-        .select("event_id")
-        .eq("user_id", usr.id);
-      const eventIds = (checkins ?? []).map((c) => c.event_id);
-      if (eventIds.length > 0) {
-        const { data: eventMountains } = await supabase
-          .from("event_mountains")
-          .select("mountain_id")
-          .in("event_id", eventIds);
-        const mountains = new Set((eventMountains ?? []).map((em) => em.mountain_id));
-        metricValue = mountains.size;
+      case "most_badges": {
+        const { count } = await supabase
+          .from("user_badges")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", usr.id);
+        metricValue = count ?? 0;
+
+        break;
       }
-    
-    break;
-    }
-    case "highest_rarity": {
-      const rarityMap: Record<string, number> = {
-        legendary: 4,
-        epic: 3,
-        rare: 2,
-        common: 1,
-      };
-      const { data: badges } = await supabase
-        .from("user_badges")
-        .select("badges(rarity)")
-        .eq("user_id", usr.id);
-      for (const b of badges ?? []) {
-        const badge = b.badges as unknown as { rarity: string } | null;
-        metricValue += rarityMap[badge?.rarity ?? "common"] ?? 0;
+      case "most_summits": {
+        const { data: checkins } = await supabase
+          .from("event_checkins")
+          .select("event_id")
+          .eq("user_id", usr.id);
+        const eventIds = (checkins ?? []).map((c) => c.event_id);
+        if (eventIds.length > 0) {
+          const { data: eventMountains } = await supabase
+            .from("event_mountains")
+            .select("mountain_id")
+            .in("event_id", eventIds);
+          const mountains = new Set((eventMountains ?? []).map((em) => em.mountain_id));
+          metricValue = mountains.size;
+        }
+
+        break;
       }
-    
-    break;
-    }
-    case "most_active": {
-      const { count } = await supabase
-        .from("event_checkins")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", usr.id);
-      metricValue = count ?? 0;
-    
-    break;
-    }
-    // No default
+      case "highest_rarity": {
+        const rarityMap: Record<string, number> = {
+          legendary: 4,
+          epic: 3,
+          rare: 2,
+          common: 1,
+        };
+        const { data: badges } = await supabase
+          .from("user_badges")
+          .select("badges(rarity)")
+          .eq("user_id", usr.id);
+        for (const b of badges ?? []) {
+          const badge = b.badges as unknown as { rarity: string } | null;
+          metricValue += rarityMap[badge?.rarity ?? "common"] ?? 0;
+        }
+
+        break;
+      }
+      case "most_active": {
+        const { count } = await supabase
+          .from("event_checkins")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", usr.id);
+        metricValue = count ?? 0;
+
+        break;
+      }
+      // No default
     }
 
     if (metricValue > 0) {
