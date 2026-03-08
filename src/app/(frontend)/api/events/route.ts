@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
   // Data query
   let dataQuery = supabase
     .from("events")
-    .select("*, bookings(count), clubs!inner(id, name, slug, logo_url)")
+    .select("*, bookings(count), clubs(id, name, slug, logo_url)")
     .in("status", ["published", "completed"]);
 
   // Apply filters to both queries
