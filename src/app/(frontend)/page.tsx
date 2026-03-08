@@ -305,6 +305,19 @@ export default async function Home() {
   const cmsSections = parseHomepageSections(sectionsData);
   let sections = cmsSections.length > 0 ? cmsSections : DEFAULT_SECTIONS;
 
+  // Ensure leaderboard_preview is present (may be missing from older CMS data)
+  if (!sections.some((s) => s.key === "leaderboard_preview")) {
+    const gamificationIdx = sections.findIndex((s) => s.key === "gamification");
+    const insertOrder = gamificationIdx === -1 ? 6 : sections[gamificationIdx].order + 0.5;
+    const leaderboardSection: CmsHomepageSection = {
+      key: "leaderboard_preview",
+      label: "Leaderboard Preview",
+      enabled: true,
+      order: insertOrder,
+    };
+    sections = [...sections, leaderboardSection].sort((a, b) => a.order - b.order);
+  }
+
   // Ensure organizer_waitlist is present (may be missing from older CMS data)
   if (!sections.some((s) => s.key === "organizer_waitlist")) {
     const pioneerIdx = sections.findIndex((s) => s.key === "pioneer_counter");
