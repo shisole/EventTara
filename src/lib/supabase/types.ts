@@ -102,6 +102,7 @@ export interface Database {
           difficulty_level: number | null;
           is_featured: boolean;
           is_demo: boolean;
+          waiver_text: string | null;
           created_at: string;
         };
         Insert: {
@@ -121,6 +122,7 @@ export interface Database {
           difficulty_level?: number | null;
           is_featured?: boolean;
           is_demo?: boolean;
+          waiver_text?: string | null;
           created_at?: string;
         };
         Update: {
@@ -140,6 +142,7 @@ export interface Database {
           difficulty_level?: number | null;
           is_featured?: boolean;
           is_demo?: boolean;
+          waiver_text?: string | null;
           created_at?: string;
         };
         Relationships: [];
@@ -361,6 +364,9 @@ export interface Database {
           manual_status: "paid" | "reserved" | "pending" | null;
           manual_name: string | null;
           manual_contact: string | null;
+          participant_notes: string | null;
+          organizer_notes: string | null;
+          waiver_accepted_at: string | null;
         };
         Insert: {
           id?: string;
@@ -380,6 +386,9 @@ export interface Database {
           manual_status?: "paid" | "reserved" | "pending" | null;
           manual_name?: string | null;
           manual_contact?: string | null;
+          participant_notes?: string | null;
+          organizer_notes?: string | null;
+          waiver_accepted_at?: string | null;
         };
         Update: {
           id?: string;
@@ -399,6 +408,9 @@ export interface Database {
           manual_status?: "paid" | "reserved" | "pending" | null;
           manual_name?: string | null;
           manual_contact?: string | null;
+          participant_notes?: string | null;
+          organizer_notes?: string | null;
+          waiver_accepted_at?: string | null;
         };
         Relationships: [];
       };

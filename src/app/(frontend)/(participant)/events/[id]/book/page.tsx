@@ -19,7 +19,7 @@ export default async function BookEventPage({
 
   const { data: event } = await supabase
     .from("events")
-    .select("id, title, date, end_date, price, max_participants, organizer_id")
+    .select("id, title, date, end_date, price, max_participants, organizer_id, waiver_text")
     .eq("id", id)
     .eq("status", "published")
     .single();
@@ -156,6 +156,7 @@ export default async function BookEventPage({
           spotsLeft={spotsLeft}
           distances={distancesWithSpots}
           mode={mode}
+          waiverText={event.waiver_text}
         />
       </div>
     </div>

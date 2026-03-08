@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui";
 import PaymentStatusBadge from "@/components/ui/PaymentStatusBadge";
@@ -19,6 +19,9 @@ interface Booking {
   manual_status: "paid" | "reserved" | "pending" | null;
   manual_name: string | null;
   manual_contact: string | null;
+  participant_notes: string | null;
+  organizer_notes: string | null;
+  waiver_accepted_at: string | null;
   users: { full_name: string; email: string; avatar_url: string | null } | null;
 }
 
@@ -37,6 +40,30 @@ interface ParticipantsTableProps {
   isFull?: boolean;
   onAddParticipant?: () => void;
 }
+
+type PaymentFilter = "all" | "pending" | "paid" | "rejected" | "refunded";
+type CheckInFilter = "all" | "checked_in" | "not_checked_in";
+type WaiverFilter = "all" | "signed" | "unsigned";
+
+const PAYMENT_FILTERS: { label: string; value: PaymentFilter }[] = [
+  { label: "All", value: "all" },
+  { label: "Pending", value: "pending" },
+  { label: "Paid", value: "paid" },
+  { label: "Rejected", value: "rejected" },
+  { label: "Refunded", value: "refunded" },
+];
+
+const CHECKIN_FILTERS: { label: string; value: CheckInFilter }[] = [
+  { label: "All", value: "all" },
+  { label: "Checked in", value: "checked_in" },
+  { label: "Not checked in", value: "not_checked_in" },
+];
+
+const WAIVER_FILTERS: { label: string; value: WaiverFilter }[] = [
+  { label: "All", value: "all" },
+  { label: "Signed", value: "signed" },
+  { label: "Unsigned", value: "unsigned" },
+];
 
 const companionStatusStyle: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300",
@@ -153,6 +180,121 @@ function ManualStatusDropdown({
   );
 }
 
+function NotesPopover({
+  bookingId,
+  eventId,
+  participantNotes,
+  organizerNotes,
+  onUpdated,
+}: {
+  bookingId: string;
+  eventId: string;
+  participantNotes: string | null;
+  organizerNotes: string | null;
+  onUpdated: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState(organizerNotes || "");
+  const [saving, setSaving] = useState(false);
+
+  // Reset draft when popover opens
+  useEffect(() => {
+    if (open) {
+      setDraft(organizerNotes || "");
+    }
+  }, [open, organizerNotes]);
+
+  async function handleSave() {
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/events/${eventId}/participants/${bookingId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ organizerNotes: draft }),
+      });
+      if (!res.ok) throw new Error("Failed to save notes");
+      setOpen(false);
+      onUpdated();
+    } catch (error) {
+      console.error("Failed to save organizer notes:", error);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="relative inline-flex">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className={cn(
+          "inline-flex items-center justify-center h-6 w-6 rounded-md transition-colors",
+          "text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-500 dark:hover:text-gray-300 dark:hover:bg-gray-800",
+          open && "text-teal-600 bg-teal-50 dark:text-teal-400 dark:bg-teal-900/30",
+        )}
+        title="View notes"
+      >
+        <svg
+          className="h-4 w-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
+          />
+        </svg>
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div className="absolute z-20 mt-8 left-0 w-72 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg p-4 space-y-3">
+            {participantNotes && (
+              <div>
+                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                  Participant Notes
+                </p>
+                <p className="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-900 rounded-lg p-2">
+                  {participantNotes}
+                </p>
+              </div>
+            )}
+            <div>
+              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                Organizer Notes
+              </p>
+              <textarea
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                placeholder="Add private notes about this participant..."
+                rows={3}
+                className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 p-2 focus:outline-none focus:ring-2 focus:ring-teal-500 dark:focus:ring-teal-400 focus:border-transparent resize-none"
+              />
+              <div className="flex justify-end mt-2">
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  disabled={saving || draft === (organizerNotes || "")}
+                  className={cn(
+                    "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
+                    "bg-teal-600 text-white hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-600",
+                    "disabled:opacity-50 disabled:cursor-not-allowed",
+                  )}
+                >
+                  {saving ? "Saving..." : "Save"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 function getParticipantName(booking: Booking): string {
   if (booking.users?.full_name) return booking.users.full_name;
   if (booking.manual_name) return booking.manual_name;
@@ -176,7 +318,169 @@ export default function ParticipantsTable({
 }: ParticipantsTableProps) {
   const router = useRouter();
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [paymentFilter, setPaymentFilter] = useState<PaymentFilter>("all");
+  const [checkInFilter, setCheckInFilter] = useState<CheckInFilter>("all");
+  const [waiverFilter, setWaiverFilter] = useState<WaiverFilter>("all");
   const isCompleted = eventStatus === "completed";
+
+  // Only show waiver filter when at least one booking has waiver_accepted_at set
+  const hasWaivers = useMemo(() => bookings.some((b) => b.waiver_accepted_at !== null), [bookings]);
+
+  // Bulk selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkLoading, setBulkLoading] = useState(false);
+
+  const filteredBookings = useMemo(() => {
+    if (!bookings) return [];
+    return bookings.filter((booking) => {
+      // Search filter
+      if (searchQuery.trim()) {
+        const query = searchQuery.trim().toLowerCase();
+        const name = getParticipantName(booking).toLowerCase();
+        const email = getParticipantEmail(booking).toLowerCase();
+        if (!name.includes(query) && !email.includes(query)) return false;
+      }
+
+      // Payment status filter
+      if (paymentFilter !== "all") {
+        // For organizer-added participants, use manual_status
+        if (booking.added_by && booking.manual_status) {
+          if (booking.manual_status !== paymentFilter) return false;
+        } else if (booking.payment_status !== paymentFilter) {
+          return false;
+        }
+      }
+
+      // Check-in filter
+      if (checkInFilter !== "all" && checkedInUserIds) {
+        if (!booking.user_id) return false;
+        const isCheckedIn = checkedInUserIds.has(booking.user_id);
+        if (checkInFilter === "checked_in" && !isCheckedIn) return false;
+        if (checkInFilter === "not_checked_in" && isCheckedIn) return false;
+      }
+
+      // Waiver filter
+      if (waiverFilter !== "all") {
+        const hasSigned = booking.waiver_accepted_at !== null;
+        if (waiverFilter === "signed" && !hasSigned) return false;
+        if (waiverFilter === "unsigned" && hasSigned) return false;
+      }
+
+      return true;
+    });
+  }, [bookings, searchQuery, paymentFilter, checkInFilter, checkedInUserIds, waiverFilter]);
+
+  // Selectable bookings: filtered bookings that are not cancelled
+  const selectableBookings = useMemo(
+    () => filteredBookings.filter((b) => !b.participant_cancelled),
+    [filteredBookings],
+  );
+
+  const selectableIds = useMemo(
+    () => new Set(selectableBookings.map((b) => b.id)),
+    [selectableBookings],
+  );
+
+  // Clear selections that are no longer visible when filters change
+  useEffect(() => {
+    setSelectedIds((prev) => {
+      const next = new Set<string>();
+      for (const id of prev) {
+        if (selectableIds.has(id)) next.add(id);
+      }
+      if (next.size !== prev.size) return next;
+      return prev;
+    });
+  }, [selectableIds]);
+
+  const allSelected =
+    selectableBookings.length > 0 && selectedIds.size === selectableBookings.length;
+
+  const toggleSelectAll = useCallback(() => {
+    if (allSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(selectableBookings.map((b) => b.id)));
+    }
+  }, [allSelected, selectableBookings]);
+
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }, []);
+
+  // Bulk action handlers — process sequentially to avoid overwhelming the API
+  const handleBulkMarkPaid = useCallback(async () => {
+    setBulkLoading(true);
+    try {
+      for (const id of selectedIds) {
+        await fetch(`/api/bookings/${id}/verify`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "approve" }),
+        });
+      }
+    } catch (error) {
+      console.error("Bulk mark paid failed:", error);
+    } finally {
+      setBulkLoading(false);
+      setSelectedIds(new Set());
+      router.refresh();
+    }
+  }, [selectedIds, router]);
+
+  const handleBulkCheckIn = useCallback(async () => {
+    setBulkLoading(true);
+    try {
+      for (const id of selectedIds) {
+        const booking = bookings.find((b) => b.id === id);
+        if (booking?.user_id) {
+          await fetch("/api/checkins", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ event_id: eventId, user_id: booking.user_id }),
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Bulk check-in failed:", error);
+    } finally {
+      setBulkLoading(false);
+      setSelectedIds(new Set());
+      router.refresh();
+    }
+  }, [selectedIds, bookings, eventId, router]);
+
+  const handleBulkCancel = useCallback(async () => {
+    const confirmed = globalThis.confirm(
+      `Are you sure you want to cancel ${selectedIds.size} participant${selectedIds.size === 1 ? "" : "s"}?`,
+    );
+    if (!confirmed) return;
+    setBulkLoading(true);
+    try {
+      for (const id of selectedIds) {
+        await fetch(`/api/bookings/${id}/participant`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ cancelled: true }),
+        });
+      }
+    } catch (error) {
+      console.error("Bulk cancel failed:", error);
+    } finally {
+      setBulkLoading(false);
+      setSelectedIds(new Set());
+      router.refresh();
+    }
+  }, [selectedIds, router]);
 
   const handleBookingAction = async (bookingId: string, action: "approve" | "reject") => {
     setActionLoading(`booking-${bookingId}`);
@@ -338,9 +642,127 @@ export default function ParticipantsTable({
 
       {bookings && bookings.length > 0 && (
         <>
+          {/* Search and filter bar */}
+          <div className="mb-4 space-y-3">
+            {/* Search input */}
+            <div className="relative">
+              <svg
+                className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+                />
+              </svg>
+              <input
+                type="text"
+                placeholder="Search by name or email..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 dark:focus:ring-teal-400 focus:border-transparent"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              )}
+            </div>
+
+            {/* Filter chips */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-medium text-gray-500 dark:text-gray-400 mr-1">
+                Payment:
+              </span>
+              {PAYMENT_FILTERS.map((f) => (
+                <button
+                  key={f.value}
+                  type="button"
+                  onClick={() => setPaymentFilter(f.value)}
+                  className={cn(
+                    "inline-flex items-center px-3 py-1 rounded-full text-xs font-medium transition-colors",
+                    paymentFilter === f.value
+                      ? "bg-teal-600 text-white dark:bg-teal-500 dark:text-white"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700",
+                  )}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+
+            {checkedInUserIds && (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-medium text-gray-500 dark:text-gray-400 mr-1">
+                  Check-in:
+                </span>
+                {CHECKIN_FILTERS.map((f) => (
+                  <button
+                    key={f.value}
+                    type="button"
+                    onClick={() => setCheckInFilter(f.value)}
+                    className={cn(
+                      "inline-flex items-center px-3 py-1 rounded-full text-xs font-medium transition-colors",
+                      checkInFilter === f.value
+                        ? "bg-teal-600 text-white dark:bg-teal-500 dark:text-white"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700",
+                    )}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {hasWaivers && (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-medium text-gray-500 dark:text-gray-400 mr-1">
+                  Waiver:
+                </span>
+                {WAIVER_FILTERS.map((f) => (
+                  <button
+                    key={f.value}
+                    type="button"
+                    onClick={() => setWaiverFilter(f.value)}
+                    className={cn(
+                      "inline-flex items-center px-3 py-1 rounded-full text-xs font-medium transition-colors",
+                      waiverFilter === f.value
+                        ? "bg-teal-600 text-white dark:bg-teal-500 dark:text-white"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700",
+                    )}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* No results message */}
+          {filteredBookings.length === 0 && (
+            <p className="text-center text-gray-500 dark:text-gray-400 py-8">
+              No matching participants found.
+            </p>
+          )}
+
           {/* Mobile card layout */}
-          <div className="space-y-3 md:hidden">
-            {bookings.map((booking) => {
+          <div className={cn("space-y-3 md:hidden", filteredBookings.length === 0 && "hidden")}>
+            {filteredBookings.map((booking) => {
               const comps = companionsByBooking[booking.id] || [];
               const activeComps = comps.filter((c) => c.status !== "cancelled");
               const isBookingPaid = booking.payment_status === "paid";
@@ -353,116 +775,171 @@ export default function ParticipantsTable({
                     booking.participant_cancelled && "opacity-60",
                   )}
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="font-medium dark:text-white truncate">
-                        <span className={booking.participant_cancelled ? "line-through" : ""}>
-                          {getParticipantName(booking)}
-                        </span>
-                        {booking.participant_cancelled && (
-                          <span className="ml-2 text-xs text-red-500 font-normal">cancelled</span>
+                  <div className="flex items-start gap-3">
+                    {!isCompleted && !booking.participant_cancelled && (
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(booking.id)}
+                        onChange={() => toggleSelect(booking.id)}
+                        className="mt-1 h-4 w-4 shrink-0 rounded border-gray-300 text-teal-600 focus:ring-teal-500 dark:border-gray-600 dark:bg-gray-800 cursor-pointer"
+                      />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="font-medium dark:text-white truncate">
+                            <span className={booking.participant_cancelled ? "line-through" : ""}>
+                              {getParticipantName(booking)}
+                            </span>
+                            {booking.participant_cancelled && (
+                              <span className="ml-2 text-xs text-red-500 font-normal">
+                                cancelled
+                              </span>
+                            )}
+                            {booking.added_by && (
+                              <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+                                added
+                              </span>
+                            )}
+                            {(booking.participant_notes || booking.organizer_notes) && (
+                              <span className="ml-1 align-middle">
+                                <NotesPopover
+                                  bookingId={booking.id}
+                                  eventId={eventId}
+                                  participantNotes={booking.participant_notes}
+                                  organizerNotes={booking.organizer_notes}
+                                  onUpdated={() => router.refresh()}
+                                />
+                              </span>
+                            )}
+                          </p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                            {getParticipantEmail(booking)}
+                          </p>
+                        </div>
+                        <div className="shrink-0 flex items-center gap-2">
+                          {checkedInUserIds && booking.user_id && (
+                            <span
+                              className={cn(
+                                "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium",
+                                checkedInUserIds.has(booking.user_id)
+                                  ? "bg-teal-100 text-teal-700 dark:bg-teal-900/50 dark:text-teal-300"
+                                  : "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-500",
+                              )}
+                            >
+                              {checkedInUserIds.has(booking.user_id)
+                                ? "Checked in"
+                                : "Not checked in"}
+                            </span>
+                          )}
+                          {renderStatusBadge(booking)}
+                        </div>
+                      </div>
+
+                      <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+                        {booking.payment_method && !booking.added_by && (
+                          <span>{booking.payment_method.toUpperCase()}</span>
                         )}
-                        {booking.added_by && (
-                          <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
-                            added
+                        <span>{new Date(booking.booked_at).toLocaleDateString("en-PH")}</span>
+                        {activeComps.length > 0 && (
+                          <span>
+                            +{activeComps.length} companion{activeComps.length === 1 ? "" : "s"}
                           </span>
                         )}
-                      </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                        {getParticipantEmail(booking)}
-                      </p>
-                    </div>
-                    <div className="shrink-0 flex items-center gap-2">
-                      {checkedInUserIds && booking.user_id && (
-                        <span
-                          className={cn(
-                            "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium",
-                            checkedInUserIds.has(booking.user_id)
-                              ? "bg-teal-100 text-teal-700 dark:bg-teal-900/50 dark:text-teal-300"
-                              : "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-500",
-                          )}
-                        >
-                          {checkedInUserIds.has(booking.user_id) ? "Checked in" : "Not checked in"}
-                        </span>
-                      )}
-                      {renderStatusBadge(booking)}
-                    </div>
-                  </div>
-
-                  <div className="mt-2 flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
-                    {booking.payment_method && !booking.added_by && (
-                      <span>{booking.payment_method.toUpperCase()}</span>
-                    )}
-                    <span>{new Date(booking.booked_at).toLocaleDateString("en-PH")}</span>
-                    {activeComps.length > 0 && (
-                      <span>
-                        +{activeComps.length} companion{activeComps.length === 1 ? "" : "s"}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="mt-3 flex items-center gap-2">
-                    {renderBookingActions(booking)}
-                  </div>
-
-                  {comps.length > 0 && (
-                    <div className="mt-3 border-t border-gray-100 dark:border-gray-800 pt-3 space-y-2">
-                      {comps.map((comp) => {
-                        const isCompLoading = actionLoading === `comp-${comp.id}`;
-                        return (
-                          <div
-                            key={comp.id}
-                            className="flex items-center justify-between gap-2 pl-4 text-sm"
+                        {hasWaivers && (
+                          <span
+                            className={cn(
+                              "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium",
+                              booking.waiver_accepted_at
+                                ? "bg-forest-100 text-forest-700 dark:bg-forest-900/50 dark:text-forest-300"
+                                : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300",
+                            )}
                           >
-                            <div className="flex items-center gap-2 min-w-0">
-                              <span className="text-gray-400">↳</span>
-                              <span className="text-gray-600 dark:text-gray-400 truncate">
-                                {comp.full_name}
-                              </span>
-                              <span
-                                className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${companionStatusStyle[comp.status] || companionStatusStyle.pending}`}
+                            {booking.waiver_accepted_at ? "Waiver signed" : "Waiver pending"}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="mt-3 flex items-center gap-2">
+                        {renderBookingActions(booking)}
+                      </div>
+
+                      {comps.length > 0 && (
+                        <div className="mt-3 border-t border-gray-100 dark:border-gray-800 pt-3 space-y-2">
+                          {comps.map((comp) => {
+                            const isCompLoading = actionLoading === `comp-${comp.id}`;
+                            return (
+                              <div
+                                key={comp.id}
+                                className="flex items-center justify-between gap-2 pl-4 text-sm"
                               >
-                                {comp.status}
-                              </span>
-                            </div>
-                            <div className="shrink-0">
-                              {isBookingPaid && comp.status === "confirmed" && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleCompanionAction(comp.id, "cancel")}
-                                  disabled={isCompLoading}
-                                  className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
-                                >
-                                  {isCompLoading ? "..." : "Cancel"}
-                                </Button>
-                              )}
-                              {isBookingPaid && comp.status === "cancelled" && (
-                                <Button
-                                  variant="secondary"
-                                  size="sm"
-                                  onClick={() => handleCompanionAction(comp.id, "confirm")}
-                                  disabled={isCompLoading}
-                                >
-                                  {isCompLoading ? "..." : "Restore"}
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <span className="text-gray-400">↳</span>
+                                  <span className="text-gray-600 dark:text-gray-400 truncate">
+                                    {comp.full_name}
+                                  </span>
+                                  <span
+                                    className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${companionStatusStyle[comp.status] || companionStatusStyle.pending}`}
+                                  >
+                                    {comp.status}
+                                  </span>
+                                </div>
+                                <div className="shrink-0">
+                                  {isBookingPaid && comp.status === "confirmed" && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleCompanionAction(comp.id, "cancel")}
+                                      disabled={isCompLoading}
+                                      className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
+                                    >
+                                      {isCompLoading ? "..." : "Cancel"}
+                                    </Button>
+                                  )}
+                                  {isBookingPaid && comp.status === "cancelled" && (
+                                    <Button
+                                      variant="secondary"
+                                      size="sm"
+                                      onClick={() => handleCompanionAction(comp.id, "confirm")}
+                                      disabled={isCompLoading}
+                                    >
+                                      {isCompLoading ? "..." : "Restore"}
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
               );
             })}
           </div>
 
           {/* Desktop table layout */}
-          <div className="hidden md:block bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30">
+          <div
+            className={cn(
+              "hidden md:block bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30",
+              filteredBookings.length === 0 && "md:hidden",
+            )}
+          >
             <table className="w-full">
               <thead className="bg-gray-50 dark:bg-gray-800">
                 <tr className="first:[&>th]:rounded-tl-2xl last:[&>th]:rounded-tr-2xl">
+                  {!isCompleted && (
+                    <th className="w-10 px-3 py-3">
+                      <input
+                        type="checkbox"
+                        checked={allSelected}
+                        onChange={toggleSelectAll}
+                        disabled={selectableBookings.length === 0}
+                        className="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500 dark:border-gray-600 dark:bg-gray-800 cursor-pointer disabled:cursor-default disabled:opacity-50"
+                      />
+                    </th>
+                  )}
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
                     Name
                   </th>
@@ -477,6 +954,11 @@ export default function ParticipantsTable({
                       Check-in
                     </th>
                   )}
+                  {hasWaivers && (
+                    <th className="text-left px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
+                      Waiver
+                    </th>
+                  )}
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
                     Method
                   </th>
@@ -489,7 +971,7 @@ export default function ParticipantsTable({
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                {bookings.map((booking) => {
+                {filteredBookings.map((booking) => {
                   const comps = companionsByBooking[booking.id] || [];
                   const activeComps = comps.filter((c) => c.status !== "cancelled");
                   const isBookingPaid = booking.payment_status === "paid";
@@ -497,6 +979,18 @@ export default function ParticipantsTable({
                   return (
                     <Fragment key={booking.id}>
                       <tr className={booking.participant_cancelled ? "opacity-60" : ""}>
+                        {!isCompleted && (
+                          <td className="w-10 px-3 py-4">
+                            {!booking.participant_cancelled && (
+                              <input
+                                type="checkbox"
+                                checked={selectedIds.has(booking.id)}
+                                onChange={() => toggleSelect(booking.id)}
+                                className="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500 dark:border-gray-600 dark:bg-gray-800 cursor-pointer"
+                              />
+                            )}
+                          </td>
+                        )}
                         <td className="px-6 py-4 font-medium dark:text-white">
                           <span className={booking.participant_cancelled ? "line-through" : ""}>
                             {getParticipantName(booking)}
@@ -507,6 +1001,17 @@ export default function ParticipantsTable({
                           {booking.added_by && (
                             <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
                               added
+                            </span>
+                          )}
+                          {(booking.participant_notes || booking.organizer_notes) && (
+                            <span className="ml-1 align-middle">
+                              <NotesPopover
+                                bookingId={booking.id}
+                                eventId={eventId}
+                                participantNotes={booking.participant_notes}
+                                organizerNotes={booking.organizer_notes}
+                                onUpdated={() => router.refresh()}
+                              />
                             </span>
                           )}
                           {activeComps.length > 0 && (
@@ -538,6 +1043,27 @@ export default function ParticipantsTable({
                             )}
                           </td>
                         )}
+                        {hasWaivers && (
+                          <td className="px-6 py-4">
+                            {booking.waiver_accepted_at ? (
+                              <svg
+                                className="h-5 w-5 text-forest-500 dark:text-forest-400"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                strokeWidth={2}
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="M5 13l4 4L19 7"
+                                />
+                              </svg>
+                            ) : (
+                              <span className="text-sm text-gray-400 dark:text-gray-500">—</span>
+                            )}
+                          </td>
+                        )}
                         <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                           {booking.added_by
                             ? "Manual"
@@ -556,6 +1082,7 @@ export default function ParticipantsTable({
                         const isCompLoading = actionLoading === `comp-${comp.id}`;
                         return (
                           <tr key={comp.id} className="bg-gray-50/50 dark:bg-gray-800/50">
+                            {!isCompleted && <td className="w-10 px-3 py-3" />}
                             <td className="px-6 py-3 pl-12 text-sm text-gray-600 dark:text-gray-400">
                               ↳ {comp.full_name}{" "}
                               <span className="text-gray-400 dark:text-gray-500">(companion)</span>
@@ -571,6 +1098,11 @@ export default function ParticipantsTable({
                               </span>
                             </td>
                             {checkedInUserIds && (
+                              <td className="px-6 py-3 text-sm text-gray-400 dark:text-gray-500">
+                                —
+                              </td>
+                            )}
+                            {hasWaivers && (
                               <td className="px-6 py-3 text-sm text-gray-400 dark:text-gray-500">
                                 —
                               </td>
@@ -614,6 +1146,58 @@ export default function ParticipantsTable({
             </table>
           </div>
         </>
+      )}
+      {/* Floating bulk action bar */}
+      {selectedIds.size > 0 && !isCompleted && (
+        <div className="fixed bottom-4 left-1/2 z-30 -translate-x-1/2 flex items-center gap-3 rounded-2xl bg-slate-800/90 px-5 py-3 shadow-2xl backdrop-blur-sm">
+          <span className="text-sm font-medium text-white whitespace-nowrap">
+            {selectedIds.size} selected
+          </span>
+          <div className="h-5 w-px bg-slate-600" />
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={handleBulkMarkPaid}
+            disabled={bulkLoading}
+            className="whitespace-nowrap"
+          >
+            {bulkLoading ? "Processing..." : "Mark as Paid"}
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleBulkCheckIn}
+            disabled={bulkLoading}
+            className="whitespace-nowrap"
+          >
+            {bulkLoading ? "Processing..." : "Check In"}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleBulkCancel}
+            disabled={bulkLoading}
+            className="text-red-400 hover:text-red-300 hover:bg-red-950/50 whitespace-nowrap"
+          >
+            {bulkLoading ? "Processing..." : "Cancel"}
+          </Button>
+          <button
+            type="button"
+            onClick={() => setSelectedIds(new Set())}
+            disabled={bulkLoading}
+            className="ml-1 rounded-lg p-1.5 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors disabled:opacity-50"
+            aria-label="Clear selection"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
       )}
     </>
   );

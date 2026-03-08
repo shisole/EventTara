@@ -1,10 +1,14 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 import ParticipantsTable from "@/components/dashboard/ParticipantsTable";
+import { Download, PrinterIcon } from "@/components/icons";
+import { Button } from "@/components/ui";
+import { downloadCSV } from "@/lib/utils/export-csv";
 
 const AddParticipantModal = dynamic(() => import("@/components/dashboard/AddParticipantModal"));
 
@@ -38,8 +42,67 @@ export default function ParticipantsSection({
   const [showModal, setShowModal] = useState(false);
   const isCompleted = eventStatus === "completed";
 
+  const handleExportCSV = useCallback(() => {
+    const headers = [
+      "Name",
+      "Email/Contact",
+      "Status",
+      "Payment Status",
+      "Check-in",
+      "Waiver Signed",
+      "Participant Notes",
+      "Organizer Notes",
+      "Booked Date",
+    ];
+
+    const rows = bookings.map((booking: any) => {
+      const name: string = booking.users?.full_name || booking.manual_name || "Guest";
+      const email: string = booking.users?.email || booking.manual_contact || "";
+      const status: string = booking.participant_cancelled ? "Cancelled" : booking.status;
+      const payment: string = booking.added_by
+        ? booking.manual_status || ""
+        : booking.payment_status;
+      const checkedIn: string = booking.user_id
+        ? checkedInUserIds.has(booking.user_id)
+          ? "Yes"
+          : "No"
+        : "";
+      const waiver: string = booking.waiver_accepted_at ? "Yes" : "No";
+      const participantNotes: string = booking.participant_notes || "";
+      const organizerNotes: string = booking.organizer_notes || "";
+      const bookedDate: string = new Date(booking.booked_at).toLocaleDateString("en-PH");
+
+      return [
+        name,
+        email,
+        status,
+        payment,
+        checkedIn,
+        waiver,
+        participantNotes,
+        organizerNotes,
+        bookedDate,
+      ];
+    });
+
+    downloadCSV("participants.csv", headers, rows);
+  }, [bookings, checkedInUserIds]);
+
   return (
     <>
+      <div className="mb-4 flex items-center gap-3">
+        <Button variant="outline" onClick={handleExportCSV} className="gap-1.5 text-sm">
+          <Download className="h-4 w-4" />
+          Export CSV
+        </Button>
+        <Link href={`/dashboard/events/${eventId}/print`} target="_blank" rel="noopener noreferrer">
+          <Button variant="outline" className="gap-1.5 text-sm">
+            <PrinterIcon className="h-4 w-4" />
+            Print View
+          </Button>
+        </Link>
+      </div>
+
       <ParticipantsTable
         bookings={bookings}
         companionsByBooking={companionsByBooking}

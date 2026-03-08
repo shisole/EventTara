@@ -9,7 +9,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import DifficultyBadge from "@/components/events/DifficultyBadge";
 import { type ExistingEventMarker } from "@/components/maps/MapPicker";
 import RouteAttachmentForm from "@/components/strava/RouteAttachmentForm";
-import { Button, Input } from "@/components/ui";
+import { Button, Input, Toggle } from "@/components/ui";
 import { type EventDateInfo } from "@/components/ui/DateRangePicker";
 import { COVER_TEMPLATES } from "@/lib/constants/cover-templates";
 import { findProvinceFromLocation } from "@/lib/constants/philippine-provinces";
@@ -24,6 +24,7 @@ import PhotoUploader from "./PhotoUploader";
 const EventRouteSection = dynamic(() => import("@/components/strava/EventRouteSection"));
 const MapPicker = dynamic(() => import("@/components/maps/MapPicker"), { ssr: false });
 const DateRangePicker = dynamic(() => import("@/components/ui/DateRangePicker"));
+const RichTextEditor = dynamic(() => import("@/components/ui/RichTextEditor"));
 
 interface DistanceCategory {
   distance_km: number;
@@ -51,6 +52,7 @@ interface EventFormProps {
     initialMountains?: SelectedMountain[];
     difficulty_level?: number | null;
     initialDistances?: DistanceCategory[];
+    waiver_text?: string | null;
   };
 }
 
@@ -467,6 +469,10 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
     setDifficultyLevel(maxDifficulty);
   }, [selectedMountains]);
 
+  // Waiver state
+  const [waiverEnabled, setWaiverEnabled] = useState(!!initialData?.waiver_text);
+  const [waiverText, setWaiverText] = useState(initialData?.waiver_text ?? "");
+
   // Route attachment state (edit mode only)
   interface RouteData {
     name: string;
@@ -570,6 +576,7 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
       price,
       cover_image_url: coverImageUrl,
       difficulty_level: difficultyLevel,
+      waiver_text: waiverEnabled ? waiverText : null,
     };
 
     // Include distance categories when applicable
@@ -1027,6 +1034,29 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Waiver Section */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Participant Waiver
+            </label>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              When enabled, participants must accept the waiver before booking.
+            </p>
+          </div>
+          <Toggle checked={waiverEnabled} onChange={setWaiverEnabled} id="waiver-toggle" />
+        </div>
+
+        {waiverEnabled && (
+          <RichTextEditor
+            value={waiverText}
+            onChange={setWaiverText}
+            placeholder="Write your waiver or liability release text..."
+          />
+        )}
       </div>
 
       {type === "hiking" && (

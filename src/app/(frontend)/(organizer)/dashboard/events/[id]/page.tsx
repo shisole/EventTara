@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import BadgeAwarder from "@/components/dashboard/BadgeAwarder";
 import CompleteEventButton from "@/components/dashboard/CompleteEventButton";
+import CopyLinkButton from "@/components/dashboard/CopyLinkButton";
 import EventDashboardTabs from "@/components/dashboard/EventDashboardTabs";
 import ParticipantsSection from "@/components/dashboard/ParticipantsSection";
 import PublishButton from "@/components/dashboard/PublishButton";
@@ -57,6 +58,9 @@ export default async function ManageEventPage({ params }: { params: Promise<{ id
     0,
   );
   const activeBookings = (bookings || []).filter((b: any) => !b.participant_cancelled).length;
+  const pendingPaymentCount = (bookings || []).filter(
+    (b: any) => b.payment_status === "pending" && !b.participant_cancelled,
+  ).length;
   const totalParticipants = activeBookings + totalCompanions;
 
   // Get check-ins
@@ -162,12 +166,19 @@ export default async function ManageEventPage({ params }: { params: Promise<{ id
 
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-heading font-bold dark:text-white">{event.title}</h1>
+          <Link
+            href={`/events/${id}`}
+            target="_blank"
+            className="text-2xl font-heading font-bold dark:text-white hover:text-lime-600 dark:hover:text-lime-400 transition-colors"
+          >
+            {event.title}
+          </Link>
           <UIBadge variant={event.status === "published" ? "hiking" : "default"} className="mt-2">
             {event.status}
           </UIBadge>
         </div>
         <div className="flex flex-wrap gap-3">
+          <CopyLinkButton path={`/events/${id}`} />
           <Link href={`/dashboard/events/${id}/edit`}>
             <Button variant="outline">Edit</Button>
           </Link>
@@ -186,7 +197,12 @@ export default async function ManageEventPage({ params }: { params: Promise<{ id
         </div>
       )}
 
-      <EventDashboardTabs eventId={id} eventPrice={event.price}>
+      <EventDashboardTabs
+        eventId={id}
+        eventPrice={event.price}
+        bookingCount={activeBookings}
+        pendingPaymentCount={pendingPaymentCount}
+      >
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4">
           <div className="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm dark:shadow-gray-950/30">

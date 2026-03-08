@@ -31,6 +31,8 @@ export async function POST(request: Request) {
   let mode: "self" | "friend" = "self";
   let companions: CompanionInput[] = [];
   let eventDistanceId: string | null = null;
+  let participantNotes: string | null = null;
+  let waiverAcceptedAt: string | null = null;
 
   if (contentType.includes("multipart/form-data")) {
     const formData = await request.formData();
@@ -39,6 +41,8 @@ export async function POST(request: Request) {
     proofFile = formData.get("payment_proof") as File | null;
     mode = (formData.get("mode") as string) === "friend" ? "friend" : "self";
     eventDistanceId = (formData.get("event_distance_id") as string) || null;
+    participantNotes = (formData.get("participant_notes") as string) || null;
+    waiverAcceptedAt = (formData.get("waiver_accepted_at") as string) || null;
     const companionsStr = formData.get("companions") as string | null;
     if (companionsStr) {
       try {
@@ -54,6 +58,8 @@ export async function POST(request: Request) {
     mode = body.mode === "friend" ? "friend" : "self";
     companions = body.companions || [];
     eventDistanceId = body.event_distance_id || null;
+    participantNotes = body.participant_notes || null;
+    waiverAcceptedAt = body.waiver_accepted_at || null;
   }
 
   if (!eventId || !paymentMethod) {
@@ -248,6 +254,8 @@ export async function POST(request: Request) {
         status: bookingStatus,
         payment_status: paymentStatus,
         event_distance_id: eventDistanceId,
+        participant_notes: participantNotes,
+        waiver_accepted_at: waiverAcceptedAt,
       })
       .select()
       .single();
