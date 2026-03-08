@@ -24,7 +24,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     const eventIds = eventGuideRows.map((eg) => eg.event_id);
     const { data: eventData } = await supabase
       .from("events")
-      .select("*, bookings(count), organizer_profiles!inner(org_name)")
+      .select("*, bookings(count), clubs(name, slug)")
       .in("id", eventIds)
       .order("date", { ascending: false });
 
@@ -38,7 +38,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       cover_image_url: event.cover_image_url,
       status: event.status,
       booking_count: event.bookings?.[0]?.count || 0,
-      organizer_name: event.organizer_profiles?.org_name,
+      club_name: event.clubs?.name,
+      club_slug: event.clubs?.slug,
     }));
   }
 

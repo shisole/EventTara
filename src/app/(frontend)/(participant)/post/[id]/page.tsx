@@ -138,11 +138,10 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
 
   // Derive IDs for sub-queries
   const borderIds = user.active_border_id ? [user.active_border_id] : [];
-  const isOrganizer = user.role === "organizer";
 
   // Fetch all enrichment data in parallel
   const [
-    orgResult,
+    clubMemberResult,
     borderResult,
     topBadgeResult,
     reactionsResult,
@@ -150,9 +149,13 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
     repostsResult,
     followResult,
   ] = await Promise.all([
-    isOrganizer
-      ? supabase.from("organizer_profiles").select("id, user_id").eq("user_id", user.id).single()
-      : Promise.resolve({ data: null }),
+    supabase
+      .from("club_members")
+      .select("club_id")
+      .eq("user_id", user.id)
+      .in("role", ["owner", "admin", "moderator"])
+      .limit(1)
+      .maybeSingle(),
     borderIds.length > 0
       ? supabase
           .from("avatar_borders")
@@ -212,7 +215,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
     userUsername: user.username || null,
     userAvatarUrl: user.avatar_url || null,
     userRole: user.role || null,
-    organizerProfileId: (orgResult.data as any)?.id || null,
+    organizerProfileId: clubMemberResult.data?.club_id || null,
     borderTier: (border?.tier as BorderTier) || null,
     borderColor: border?.border_color || null,
     topBadgeTitle: topBadge?.badges?.title || null,

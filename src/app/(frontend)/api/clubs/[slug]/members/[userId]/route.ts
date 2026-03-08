@@ -88,7 +88,7 @@ export async function PATCH(
   // Update the role
   const { data: updated, error: updateError } = await supabase
     .from("club_members")
-    .update({ role: newRole })
+    .update({ role: newRole as "admin" | "moderator" | "member" })
     .eq("id", targetMember.id)
     .select()
     .single();

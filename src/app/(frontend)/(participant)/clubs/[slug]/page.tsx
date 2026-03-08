@@ -73,7 +73,7 @@ export default async function ClubProfilePage({ params }: { params: Promise<{ sl
       .limit(50),
     supabase
       .from("events")
-      .select("*, bookings(count), organizer_profiles!inner(org_name)")
+      .select("*, bookings(count), clubs(name)")
       .eq("club_id", club.id)
       .in("status", ["published", "completed"])
       .order("date", { ascending: true })

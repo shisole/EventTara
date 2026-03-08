@@ -12,18 +12,21 @@ export default async function EventsListPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: profile } = await supabase
-    .from("organizer_profiles")
-    .select("id")
+  // Find clubs where user is owner or admin
+  const { data: memberships } = await supabase
+    .from("club_members")
+    .select("club_id")
     .eq("user_id", user!.id)
-    .single();
+    .in("role", ["owner", "admin"]);
+
+  const clubIds = (memberships ?? []).map((m) => m.club_id);
 
   let events: any[] = [];
-  if (profile) {
+  if (clubIds.length > 0) {
     const { data } = await supabase
       .from("events")
       .select("*, bookings(count)")
-      .eq("organizer_id", profile.id)
+      .in("club_id", clubIds)
       .order("date", { ascending: true });
     events = data || [];
   }
