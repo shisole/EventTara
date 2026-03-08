@@ -36,10 +36,10 @@ export async function checkAndAwardPioneerBadges(
     return (data ?? []).map((o) => o.user_id).filter((id): id is string => id !== null);
   });
 
-  // --- First Review: distinct users who have at least one non-anonymous organizer review ---
+  // --- First Review: distinct users who have at least one non-anonymous club review ---
   result.reviewsAwarded = await awardBadgeForSet(supabase, "first_review", async () => {
     const { data } = await supabase
-      .from("organizer_reviews")
+      .from("club_reviews")
       .select("user_id")
       .eq("is_anonymous", false);
     const unique = [...new Set((data ?? []).map((r) => r.user_id))];

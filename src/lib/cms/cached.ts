@@ -292,12 +292,12 @@ export async function isEwalletPaymentsEnabled(): Promise<boolean> {
 }
 
 /**
- * Returns whether the organizer reviews feature flag is enabled.
+ * Returns whether the club reviews feature flag is enabled.
  */
-export async function isOrganizerReviewsEnabled(): Promise<boolean> {
+export async function isClubReviewsEnabled(): Promise<boolean> {
   try {
     const flags = await getCachedFeatureFlags();
-    return flags?.organizer_reviews === true;
+    return flags?.club_reviews === true;
   } catch {
     return false;
   }

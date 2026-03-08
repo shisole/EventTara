@@ -5,20 +5,20 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
-import type { OrganizerReviewsResponse } from "@/lib/types/organizer-reviews";
+import { type ClubReviewsResponse } from "@/lib/types/club-reviews";
 
-import OrganizerReviewForm from "./OrganizerReviewForm";
-import OrganizerReviewList from "./OrganizerReviewList";
+import ClubReviewForm from "./ClubReviewForm";
+import ClubReviewList from "./ClubReviewList";
 
 const AuthReviewModal = dynamic(() => import("./AuthReviewModal"), { ssr: false });
 
-interface OrganizerReviewSectionProps {
-  organizerId: string;
-  organizerName: string;
-  initialData: OrganizerReviewsResponse;
+interface ClubReviewSectionProps {
+  clubSlug: string;
+  clubName: string;
+  initialData: ClubReviewsResponse;
   /** Current user info — null if logged out or guest */
   currentUser: { id: string; fullName: string } | null;
-  /** Whether the current user is the organizer themselves */
+  /** Whether the current user is the club owner */
   isOwnProfile: boolean;
   /** ID of the review owned by current user, if any */
   existingReviewId: string | null;
@@ -26,16 +26,16 @@ interface OrganizerReviewSectionProps {
   reviewsPageUrl?: string;
 }
 
-export default function OrganizerReviewSection({
-  organizerId,
-  organizerName,
+export default function ClubReviewSection({
+  clubSlug,
+  clubName,
   initialData,
   currentUser,
   isOwnProfile,
   existingReviewId,
   reviewsPageUrl,
-}: OrganizerReviewSectionProps) {
-  const [data, setData] = useState<OrganizerReviewsResponse>(initialData);
+}: ClubReviewSectionProps) {
+  const [data, setData] = useState<ClubReviewsResponse>(initialData);
   const [showForm, setShowForm] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [formKey, setFormKey] = useState(0);
@@ -50,10 +50,10 @@ export default function OrganizerReviewSection({
 
   const refresh = useCallback(async () => {
     try {
-      const res = await fetch(`/api/organizers/${organizerId}/reviews?page=1&limit=10`);
+      const res = await fetch(`/api/clubs/${clubSlug}/reviews?page=1&limit=10`);
       if (res.ok) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const fresh: OrganizerReviewsResponse = await res.json();
+        const fresh: ClubReviewsResponse = await res.json();
         setData(fresh);
         // Find the current user's review in the refreshed data
         // Try by user_id first (non-anonymous), then fall back to existing myReviewId
@@ -67,7 +67,7 @@ export default function OrganizerReviewSection({
     } catch {
       // Silently fail
     }
-  }, [organizerId, activeUser, myReviewId]);
+  }, [clubSlug, activeUser, myReviewId]);
 
   const handleSuccess = useCallback(() => {
     setShowForm(false);
@@ -75,12 +75,12 @@ export default function OrganizerReviewSection({
     // Save localStorage to prevent guest spam
     if (isGuestUser) {
       localStorage.setItem(
-        `guestReview_${organizerId}`,
+        `guestReview_club_${clubSlug}`,
         JSON.stringify({ submitted: true, timestamp: Date.now() }),
       );
     }
     void refresh();
-  }, [refresh, isGuestUser, organizerId]);
+  }, [refresh, isGuestUser, clubSlug]);
 
   const canReview = !isOwnProfile;
   const hasReviewed = !!myReviewId;
@@ -88,7 +88,7 @@ export default function OrganizerReviewSection({
   return (
     <div>
       <div className="mb-4 flex items-center justify-center gap-3">
-        <h2 className="text-xl font-heading font-bold text-center">Organizer Reviews</h2>
+        <h2 className="text-xl font-heading font-bold text-center">Club Reviews</h2>
         {reviewsPageUrl && (
           <Link
             href={reviewsPageUrl}
@@ -116,9 +116,9 @@ export default function OrganizerReviewSection({
                   Cancel
                 </button>
               </div>
-              <OrganizerReviewForm
+              <ClubReviewForm
                 key={formKey}
-                organizerId={organizerId}
+                clubSlug={clubSlug}
                 existingReview={existingReview ?? undefined}
                 userName={activeUser?.fullName ?? ""}
                 isGuest={isGuestUser}
@@ -147,7 +147,7 @@ export default function OrganizerReviewSection({
 
       {/* Review list */}
       {data.totalReviews > 0 ? (
-        <OrganizerReviewList organizerId={organizerId} initialData={data} />
+        <ClubReviewList clubSlug={clubSlug} initialData={data} />
       ) : (
         <div className="text-center py-8">
           <p className="text-3xl mb-2">&#x2B50;</p>
@@ -157,8 +157,8 @@ export default function OrganizerReviewSection({
 
       {showAuthModal && (
         <AuthReviewModal
-          organizerId={organizerId}
-          organizerName={organizerName}
+          clubSlug={clubSlug}
+          clubName={clubName}
           onAuthenticated={(user) => {
             setActiveUser(user);
             setIsGuestUser(!!user.isGuest);

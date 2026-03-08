@@ -4,30 +4,30 @@ import { useCallback, useState } from "react";
 
 import { Button } from "@/components/ui";
 import { MAX_REVIEW_TEXT_LENGTH } from "@/lib/constants/review-tags";
-import type { OrganizerReviewWithUser } from "@/lib/types/organizer-reviews";
+import { type ClubReviewWithUser } from "@/lib/types/club-reviews";
 import { cn } from "@/lib/utils";
 
 import ReviewPhotoUpload from "./ReviewPhotoUpload";
 import ReviewTagSelector from "./ReviewTagSelector";
 import StarRating from "./StarRating";
 
-interface OrganizerReviewFormProps {
-  organizerId: string;
+interface ClubReviewFormProps {
+  clubSlug: string;
   /** If provided, the form is in "edit" mode. */
-  existingReview?: OrganizerReviewWithUser;
+  existingReview?: ClubReviewWithUser;
   userName: string;
   /** If true, the user is a guest (no auth session) */
   isGuest?: boolean;
   onSuccess: () => void;
 }
 
-export default function OrganizerReviewForm({
-  organizerId,
+export default function ClubReviewForm({
+  clubSlug,
   existingReview,
   userName,
   isGuest = false,
   onSuccess,
-}: OrganizerReviewFormProps) {
+}: ClubReviewFormProps) {
   const isEdit = !!existingReview;
 
   const [rating, setRating] = useState(existingReview?.rating ?? 0);
@@ -63,7 +63,7 @@ export default function OrganizerReviewForm({
           body.guest_name = userName;
         }
 
-        const res = await fetch(`/api/organizers/${organizerId}/reviews`, {
+        const res = await fetch(`/api/clubs/${clubSlug}/reviews`, {
           method: isEdit ? "PATCH" : "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
@@ -81,7 +81,7 @@ export default function OrganizerReviewForm({
         setSubmitting(false);
       }
     },
-    [rating, text, isAnonymous, isGuest, userName, tags, photos, organizerId, isEdit, onSuccess],
+    [rating, text, isAnonymous, isGuest, userName, tags, photos, clubSlug, isEdit, onSuccess],
   );
 
   return (
@@ -113,7 +113,7 @@ export default function OrganizerReviewForm({
           maxLength={MAX_REVIEW_TEXT_LENGTH}
           rows={3}
           disabled={submitting}
-          placeholder="Share your experience with this organizer..."
+          placeholder="Share your experience with this club..."
           className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-teal-500"
         />
         <p className="text-xs text-gray-400 mt-1 text-right">

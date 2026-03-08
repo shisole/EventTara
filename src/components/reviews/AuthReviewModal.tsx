@@ -38,15 +38,15 @@ async function fetchUserProfile(
 }
 
 interface AuthReviewModalProps {
-  organizerId: string;
-  organizerName: string;
+  clubSlug: string;
+  clubName: string;
   onAuthenticated: (user: { id: string; fullName: string; isGuest?: boolean }) => void;
   onClose: () => void;
 }
 
 export default function AuthReviewModal({
-  organizerId,
-  organizerName,
+  clubSlug,
+  clubName,
   onAuthenticated,
   onClose,
 }: AuthReviewModalProps) {
@@ -430,9 +430,9 @@ export default function AuthReviewModal({
     }
 
     // Check localStorage first
-    const storageKey = `guestReview_${organizerId}`;
+    const storageKey = `guestReview_club_${clubSlug}`;
     if (localStorage.getItem(storageKey)) {
-      setError("You've already reviewed this organizer.");
+      setError("You've already reviewed this club.");
       return;
     }
 
@@ -516,7 +516,7 @@ export default function AuthReviewModal({
                   ? "Create account to review"
                   : "Sign in to leave your review"}
               </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{organizerName}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{clubName}</p>
             </div>
 
             {/* OAuth buttons */}
@@ -880,7 +880,7 @@ export default function AuthReviewModal({
                 What&apos;s your name?
               </h2>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                This will be shown on your review for {organizerName}
+                This will be shown on your review for {clubName}
               </p>
             </div>
 

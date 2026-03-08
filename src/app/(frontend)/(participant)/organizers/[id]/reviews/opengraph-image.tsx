@@ -7,7 +7,7 @@ import { type Database } from "@/lib/supabase/types";
 
 export const runtime = "nodejs";
 export const revalidate = 3600;
-export const alt = "Organizer Reviews on EventTara";
+export const alt = "Club Reviews on EventTara";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -64,16 +64,45 @@ export default async function OGImage({ params }: { params: Promise<{ id: string
     );
   }
 
-  const [{ data: profile }, { data: reviewRows }] = await Promise.all([
-    supabase.from("organizer_profiles").select("org_name, logo_url").eq("id", orgId).single(),
-    supabase.from("organizer_reviews").select("rating").eq("organizer_id", orgId),
-  ]);
+  // Look up the organizer profile to find the club
+  const { data: profile } = await supabase
+    .from("organizer_profiles")
+    .select("org_name, logo_url, user_id")
+    .eq("id", orgId)
+    .single();
 
-  const orgName = profile?.org_name ?? "Organizer";
+  const orgName = profile?.org_name ?? "Club";
   const logoUrl = profile?.logo_url;
-  const totalReviews = reviewRows?.length ?? 0;
-  const avgRating =
-    totalReviews > 0 ? reviewRows!.reduce((sum, r) => sum + r.rating, 0) / totalReviews : 0;
+
+  // Find the club for this organizer via club_members
+  let totalReviews = 0;
+  let avgRating = 0;
+
+  if (profile?.user_id) {
+    const { data: ownerMembership } = await supabase
+      .from("club_members")
+      .select("club_id, clubs(id)")
+      .eq("user_id", profile.user_id)
+      .eq("role", "owner")
+      .single();
+
+    const club = ownerMembership?.clubs
+      ? Array.isArray(ownerMembership.clubs)
+        ? ownerMembership.clubs[0]
+        : ownerMembership.clubs
+      : null;
+
+    if (club) {
+      const { data: reviewRows } = await supabase
+        .from("club_reviews")
+        .select("rating")
+        .eq("club_id", club.id);
+
+      totalReviews = reviewRows?.length ?? 0;
+      avgRating =
+        totalReviews > 0 ? reviewRows!.reduce((sum, r) => sum + r.rating, 0) / totalReviews : 0;
+    }
+  }
 
   return new ImageResponse(
     <div
@@ -102,7 +131,7 @@ export default async function OGImage({ params }: { params: Promise<{ id: string
           marginBottom: 32,
         }}
       >
-        Organizer Reviews
+        Club Reviews
       </div>
 
       {/* Logo + Org name */}

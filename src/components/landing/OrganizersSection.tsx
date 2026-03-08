@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { Avatar, DemoBadge } from "@/components/ui";
-import { isOrganizerReviewsEnabled } from "@/lib/cms/cached";
+import { isClubReviewsEnabled } from "@/lib/cms/cached";
 import { REVIEW_TAGS } from "@/lib/constants/review-tags";
 import { createClient } from "@/lib/supabase/server";
 
@@ -50,7 +50,7 @@ export default async function OrganizersSection() {
   }));
 
   // Fetch review stats if feature is enabled
-  const reviewsEnabled = await isOrganizerReviewsEnabled();
+  const reviewsEnabled = await isClubReviewsEnabled();
   const reviewStatsMap: Record<
     string,
     { avgRating: number; reviewCount: number; topTag: string | null }
@@ -59,21 +59,20 @@ export default async function OrganizersSection() {
   if (reviewsEnabled) {
     const orgIds = uniqueOrganizers.map((o) => o.id);
     const { data: reviewRows } = await supabase
-      .from("organizer_reviews")
-      .select("organizer_id, rating, tags")
-      .in("organizer_id", orgIds);
+      .from("club_reviews")
+      .select("club_id, rating, tags")
+      .in("club_id", orgIds);
 
     if (reviewRows && reviewRows.length > 0) {
       const grouped: Record<string, { ratings: number[]; tagCounts: Record<string, number> }> = {};
       for (const row of reviewRows) {
-        if (!grouped[row.organizer_id]) {
-          grouped[row.organizer_id] = { ratings: [], tagCounts: {} };
+        if (!grouped[row.club_id]) {
+          grouped[row.club_id] = { ratings: [], tagCounts: {} };
         }
-        grouped[row.organizer_id].ratings.push(row.rating);
+        grouped[row.club_id].ratings.push(row.rating);
         if (Array.isArray(row.tags)) {
           for (const tag of row.tags) {
-            grouped[row.organizer_id].tagCounts[tag] =
-              (grouped[row.organizer_id].tagCounts[tag] || 0) + 1;
+            grouped[row.club_id].tagCounts[tag] = (grouped[row.club_id].tagCounts[tag] || 0) + 1;
           }
         }
       }

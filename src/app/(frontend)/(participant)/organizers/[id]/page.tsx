@@ -5,15 +5,15 @@ import BadgeGrid from "@/components/badges/BadgeGrid";
 import EventCard from "@/components/events/EventCard";
 import OrganizerProfileHeader from "@/components/organizers/OrganizerProfileHeader";
 import OrganizerStats from "@/components/organizers/OrganizerStats";
-import OrganizerReviewSection from "@/components/reviews/OrganizerReviewSection";
+import ClubReviewSection from "@/components/reviews/ClubReviewSection";
 import StarRating from "@/components/reviews/StarRating";
 import { Breadcrumbs, Button } from "@/components/ui";
-import { isOrganizerReviewsEnabled } from "@/lib/cms/cached";
+import { isClubReviewsEnabled } from "@/lib/cms/cached";
 import type { BorderTier } from "@/lib/constants/avatar-borders";
 import { BreadcrumbTitle } from "@/lib/contexts/BreadcrumbContext";
 import { resolveOrganizerProfile } from "@/lib/organizers/resolve-profile";
 import { createClient } from "@/lib/supabase/server";
-import type { OrganizerReviewsResponse } from "@/lib/types/organizer-reviews";
+import type { ClubReviewsResponse } from "@/lib/types/club-reviews";
 
 export const dynamic = "force-dynamic";
 
@@ -194,85 +194,106 @@ export default async function OrganizerProfilePage({
   } = await supabase.auth.getUser();
   const isOwnProfile = authUser?.id === profile.user_id;
 
-  // Fetch organizer reviews (if feature flag enabled)
-  const orgReviewsEnabled = await isOrganizerReviewsEnabled();
-  let orgReviewsData: OrganizerReviewsResponse | null = null;
-  let existingOrgReviewId: string | null = null;
+  // Fetch club reviews (if feature flag enabled)
+  // Look up the club associated with this organizer profile
+  const clubReviewsEnabled = await isClubReviewsEnabled();
+  let clubReviewsData: ClubReviewsResponse | null = null;
+  let existingClubReviewId: string | null = null;
+  let clubSlug: string | null = null;
 
-  if (orgReviewsEnabled) {
-    // Fetch reviews + aggregates
-    const { data: orgReviewRows } = await supabase
-      .from("organizer_reviews")
-      .select("rating, tags")
-      .eq("organizer_id", orgId);
+  if (clubReviewsEnabled && profile.user_id) {
+    // Find the club for this organizer via club_members
+    const { data: ownerMembership } = await supabase
+      .from("club_members")
+      .select("club_id, clubs(id, slug)")
+      .eq("user_id", profile.user_id)
+      .eq("role", "owner")
+      .single();
 
-    const orgTotalReviews = orgReviewRows?.length ?? 0;
-    let orgAvgRating = 0;
-    const orgTagCounts: Record<string, number> = {};
+    const club = ownerMembership?.clubs
+      ? Array.isArray(ownerMembership.clubs)
+        ? ownerMembership.clubs[0]
+        : ownerMembership.clubs
+      : null;
 
-    if (orgReviewRows && orgReviewRows.length > 0) {
-      orgAvgRating = orgReviewRows.reduce((sum, r) => sum + r.rating, 0) / orgReviewRows.length;
-      for (const review of orgReviewRows) {
-        if (Array.isArray(review.tags)) {
-          for (const tag of review.tags) {
-            orgTagCounts[tag] = (orgTagCounts[tag] || 0) + 1;
+    if (club) {
+      clubSlug = club.slug;
+
+      // Fetch reviews + aggregates
+      const { data: clubReviewRows } = await supabase
+        .from("club_reviews")
+        .select("rating, tags")
+        .eq("club_id", club.id);
+
+      const clubTotalReviews = clubReviewRows?.length ?? 0;
+      let clubAvgRating = 0;
+      const clubTagCounts: Record<string, number> = {};
+
+      if (clubReviewRows && clubReviewRows.length > 0) {
+        clubAvgRating =
+          clubReviewRows.reduce((sum, r) => sum + r.rating, 0) / clubReviewRows.length;
+        for (const review of clubReviewRows) {
+          if (Array.isArray(review.tags)) {
+            for (const tag of review.tags) {
+              clubTagCounts[tag] = (clubTagCounts[tag] || 0) + 1;
+            }
           }
         }
       }
-    }
 
-    // Fetch first page of reviews with user info + photos
-    const { data: orgReviews } = await supabase
-      .from("organizer_reviews")
-      .select(
-        "*, users:user_id(full_name, username, avatar_url, active_border_id), organizer_review_photos(id, image_url, sort_order)",
-      )
-      .eq("organizer_id", orgId)
-      .order("created_at", { ascending: false })
-      .range(0, 9);
+      // Fetch first page of reviews with user info + photos
+      const { data: clubReviews } = await supabase
+        .from("club_reviews")
+        .select(
+          "*, users:user_id(full_name, username, avatar_url, active_border_id), club_review_photos(id, image_url, sort_order)",
+        )
+        .eq("club_id", club.id)
+        .order("created_at", { ascending: false })
+        .range(0, 9);
 
-    const mappedReviews = (orgReviews || []).map((r: any) => ({
-      id: r.id,
-      organizer_id: r.organizer_id,
-      user_id: r.is_anonymous ? null : r.user_id,
-      rating: r.rating,
-      text: r.text,
-      is_anonymous: r.is_anonymous,
-      guest_name: r.guest_name ?? null,
-      tags: r.tags || [],
-      created_at: r.created_at,
-      updated_at: r.updated_at,
-      user: r.is_anonymous
-        ? null
-        : {
-            full_name: r.users?.full_name ?? "User",
-            username: r.users?.username ?? null,
-            avatar_url: r.users?.avatar_url ?? null,
-            active_border_id: r.users?.active_border_id ?? null,
-          },
-      photos: (r.organizer_review_photos || [])
-        .sort((a: any, b: any) => a.sort_order - b.sort_order)
-        .map((p: any) => ({ id: p.id, image_url: p.image_url, sort_order: p.sort_order })),
-    }));
+      const mappedReviews = (clubReviews || []).map((r: any) => ({
+        id: r.id,
+        club_id: r.club_id,
+        user_id: r.is_anonymous ? null : r.user_id,
+        rating: r.rating,
+        text: r.text,
+        is_anonymous: r.is_anonymous,
+        guest_name: r.guest_name ?? null,
+        tags: r.tags || [],
+        created_at: r.created_at,
+        updated_at: r.updated_at,
+        user: r.is_anonymous
+          ? null
+          : {
+              full_name: r.users?.full_name ?? "User",
+              username: r.users?.username ?? null,
+              avatar_url: r.users?.avatar_url ?? null,
+              active_border_id: r.users?.active_border_id ?? null,
+            },
+        photos: (r.club_review_photos || [])
+          .sort((a: any, b: any) => a.sort_order - b.sort_order)
+          .map((p: any) => ({ id: p.id, image_url: p.image_url, sort_order: p.sort_order })),
+      }));
 
-    orgReviewsData = {
-      reviews: mappedReviews,
-      averageRating: orgAvgRating,
-      totalReviews: orgTotalReviews,
-      tagCounts: orgTagCounts,
-      page: 1,
-      hasMore: orgTotalReviews > 10,
-    };
+      clubReviewsData = {
+        reviews: mappedReviews,
+        averageRating: clubAvgRating,
+        totalReviews: clubTotalReviews,
+        tagCounts: clubTagCounts,
+        page: 1,
+        hasMore: clubTotalReviews > 10,
+      };
 
-    // Check if current user already has a review
-    if (authUser) {
-      const { data: myReview } = await supabase
-        .from("organizer_reviews")
-        .select("id")
-        .eq("organizer_id", orgId)
-        .eq("user_id", authUser.id)
-        .single();
-      existingOrgReviewId = myReview?.id ?? null;
+      // Check if current user already has a review
+      if (authUser) {
+        const { data: myReview } = await supabase
+          .from("club_reviews")
+          .select("id")
+          .eq("club_id", club.id)
+          .eq("user_id", authUser.id)
+          .single();
+        existingClubReviewId = myReview?.id ?? null;
+      }
     }
   }
 
@@ -375,20 +396,20 @@ export default async function OrganizerProfilePage({
         <BadgeGrid badges={badges} />
       </div>
 
-      {/* Organizer Reviews (feature flagged) */}
-      {orgReviewsEnabled && orgReviewsData && (
-        <OrganizerReviewSection
-          organizerId={orgId}
-          organizerName={profile.org_name}
-          initialData={orgReviewsData}
+      {/* Club Reviews (feature flagged) */}
+      {clubReviewsEnabled && clubReviewsData && clubSlug && (
+        <ClubReviewSection
+          clubSlug={clubSlug}
+          clubName={profile.org_name}
+          initialData={clubReviewsData}
           currentUser={currentUserInfo}
           isOwnProfile={isOwnProfile}
-          existingReviewId={existingOrgReviewId}
+          existingReviewId={existingClubReviewId}
           reviewsPageUrl={`/organizers/${idOrUsername}/reviews`}
         />
       )}
 
-      {/* Event Reviews (legacy — shown when organizer reviews are disabled, or always as supplement) */}
+      {/* Event Reviews (legacy — shown when club reviews are disabled, or always as supplement) */}
       {totalReviews > 0 && (
         <div>
           <h2 className="text-xl font-heading font-bold mb-4 text-center">Event Reviews</h2>

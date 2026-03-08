@@ -18,6 +18,20 @@ export default async function SettingsPage() {
     .eq("user_id", user!.id)
     .single();
 
+  // Look up the club associated with this organizer via club_members
+  const { data: ownerMembership } = await supabase
+    .from("club_members")
+    .select("club_id, clubs(slug, name)")
+    .eq("user_id", user!.id)
+    .eq("role", "owner")
+    .single();
+
+  const club = ownerMembership?.clubs
+    ? Array.isArray(ownerMembership.clubs)
+      ? ownerMembership.clubs[0]
+      : ownerMembership.clubs
+    : null;
+
   return (
     <div className="space-y-10 max-w-2xl mx-auto">
       <h1 className="text-2xl font-heading font-bold mb-6 dark:text-white">Settings</h1>
@@ -64,11 +78,11 @@ export default async function SettingsPage() {
           </div>
         </section>
 
-        {profile && (
+        {club && (
           <section>
             <h2 className="text-xl font-heading font-bold mb-4 dark:text-white">Review QR Code</h2>
             <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-6">
-              <ReviewQRCode organizerId={profile.id} organizerName={profile.org_name} />
+              <ReviewQRCode clubSlug={club.slug} clubName={club.name} />
             </div>
           </section>
         )}

@@ -3,27 +3,21 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { REVIEW_TAGS } from "@/lib/constants/review-tags";
-import type {
-  OrganizerReviewsResponse,
-  OrganizerReviewWithUser,
-} from "@/lib/types/organizer-reviews";
+import { type ClubReviewsResponse, type ClubReviewWithUser } from "@/lib/types/club-reviews";
 import { cn } from "@/lib/utils";
 
-import OrganizerReviewCard from "./OrganizerReviewCard";
+import ClubReviewCard from "./ClubReviewCard";
 import StarRating from "./StarRating";
 
-interface OrganizerReviewListProps {
-  organizerId: string;
-  initialData: OrganizerReviewsResponse;
+interface ClubReviewListProps {
+  clubSlug: string;
+  initialData: ClubReviewsResponse;
 }
 
 const TAG_MAP = new Map(REVIEW_TAGS.map((t) => [t.key, t]));
 
-export default function OrganizerReviewList({
-  organizerId,
-  initialData,
-}: OrganizerReviewListProps) {
-  const [reviews, setReviews] = useState<OrganizerReviewWithUser[]>(initialData.reviews);
+export default function ClubReviewList({ clubSlug, initialData }: ClubReviewListProps) {
+  const [reviews, setReviews] = useState<ClubReviewWithUser[]>(initialData.reviews);
   const [page, setPage] = useState(initialData.page);
   const [hasMore, setHasMore] = useState(initialData.hasMore);
   const [loading, setLoading] = useState(false);
@@ -36,9 +30,9 @@ export default function OrganizerReviewList({
     setLoading(true);
 
     try {
-      const res = await fetch(`/api/organizers/${organizerId}/reviews?page=${page + 1}&limit=10`);
+      const res = await fetch(`/api/clubs/${clubSlug}/reviews?page=${page + 1}&limit=10`);
       if (!res.ok) throw new Error("Failed to load");
-      const data: OrganizerReviewsResponse = await res.json();
+      const data: ClubReviewsResponse = await res.json();
 
       setReviews((prev) => [...prev, ...data.reviews]);
       setPage(data.page);
@@ -48,7 +42,7 @@ export default function OrganizerReviewList({
     } finally {
       setLoading(false);
     }
-  }, [organizerId, page, hasMore, loading]);
+  }, [clubSlug, page, hasMore, loading]);
 
   useEffect(() => {
     const el = loaderRef.current;
@@ -112,7 +106,7 @@ export default function OrganizerReviewList({
       {/* Review cards */}
       <div className="space-y-4">
         {reviews.map((review) => (
-          <OrganizerReviewCard key={review.id} review={review} />
+          <ClubReviewCard key={review.id} review={review} />
         ))}
       </div>
 

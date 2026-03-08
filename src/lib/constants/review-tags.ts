@@ -1,4 +1,4 @@
-/** Preset tags for organizer reviews, inspired by Grab-style tag selectors. */
+/** Preset tags for club reviews, inspired by Grab-style tag selectors. */
 
 export interface ReviewTag {
   key: string;

@@ -1,21 +1,21 @@
-/** Frontend types for organizer reviews */
+/** Frontend types for club reviews */
 
-export interface OrganizerReviewPhoto {
+export interface ClubReviewPhoto {
   id: string;
   image_url: string;
   sort_order: number;
 }
 
-export interface OrganizerReviewUser {
+export interface ClubReviewUser {
   full_name: string;
   username: string | null;
   avatar_url: string | null;
   active_border_id: string | null;
 }
 
-export interface OrganizerReviewWithUser {
+export interface ClubReviewWithUser {
   id: string;
-  organizer_id: string;
+  club_id: string;
   user_id: string | null; // null when anonymous
   rating: number;
   text: string | null;
@@ -24,18 +24,18 @@ export interface OrganizerReviewWithUser {
   tags: string[];
   created_at: string;
   updated_at: string;
-  user: OrganizerReviewUser | null; // null when anonymous
-  photos: OrganizerReviewPhoto[];
+  user: ClubReviewUser | null; // null when anonymous
+  photos: ClubReviewPhoto[];
 }
 
-export interface OrganizerReviewAggregates {
+export interface ClubReviewAggregates {
   averageRating: number;
   totalReviews: number;
   tagCounts: Record<string, number>;
 }
 
-export interface OrganizerReviewsResponse extends OrganizerReviewAggregates {
-  reviews: OrganizerReviewWithUser[];
+export interface ClubReviewsResponse extends ClubReviewAggregates {
+  reviews: ClubReviewWithUser[];
   page: number;
   hasMore: boolean;
 }

@@ -6,18 +6,18 @@ import { useState } from "react";
 
 import { UserAvatar } from "@/components/ui";
 import { REVIEW_TAGS } from "@/lib/constants/review-tags";
-import type { OrganizerReviewWithUser } from "@/lib/types/organizer-reviews";
+import { type ClubReviewWithUser } from "@/lib/types/club-reviews";
 import { cn } from "@/lib/utils";
 
 import ReviewPhotoLightbox from "./ReviewPhotoLightbox";
 
-interface OrganizerReviewCardProps {
-  review: OrganizerReviewWithUser;
+interface ClubReviewCardProps {
+  review: ClubReviewWithUser;
 }
 
 const TAG_MAP = new Map(REVIEW_TAGS.map((t) => [t.key, t]));
 
-export default function OrganizerReviewCard({ review }: OrganizerReviewCardProps) {
+export default function ClubReviewCard({ review }: ClubReviewCardProps) {
   const displayName = review.is_anonymous
     ? review.guest_name || "Anonymous"
     : (review.user?.full_name ?? "User");

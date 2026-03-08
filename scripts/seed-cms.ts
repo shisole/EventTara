@@ -110,7 +110,7 @@ async function seedCMS() {
       strava_showcase_features: true,
       strava_showcase_stats: true,
       strava_showcase_route_map: true,
-      organizer_reviews: true,
+      club_reviews: true,
       events_two_col_mobile: true,
       coming_soon_strava: false,
       coming_soon_gamification: true,
