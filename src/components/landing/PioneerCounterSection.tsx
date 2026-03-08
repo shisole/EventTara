@@ -4,9 +4,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 interface PioneerStats {
   participants: number;
-  organizers: number;
+  clubs: number;
   participantCap: number;
-  organizerCap: number;
+  clubCap: number;
 }
 
 function useCountUp(target: number, duration = 1500) {
@@ -94,7 +94,7 @@ export default function PioneerCounterSection() {
   const [stats, setStats] = useState<PioneerStats | null>(null);
 
   const participantCounter = useCountUp(stats?.participants ?? 0);
-  const organizerCounter = useCountUp(stats?.organizers ?? 0);
+  const clubCounter = useCountUp(stats?.clubs ?? 0);
 
   useEffect(() => {
     fetch("/api/stats/pioneers")
@@ -123,11 +123,11 @@ export default function PioneerCounterSection() {
             onVisible={participantCounter.start}
           />
           <CounterCard
-            label="Organizers"
-            count={organizerCounter.value}
-            cap={stats.organizerCap}
+            label="Clubs"
+            count={clubCounter.value}
+            cap={stats.clubCap}
             emoji="🏔️"
-            onVisible={organizerCounter.start}
+            onVisible={clubCounter.start}
           />
         </div>
       </div>

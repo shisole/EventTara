@@ -2,6 +2,7 @@ import { Suspense } from "react";
 
 import BentoEventsSection from "@/components/landing/BentoEventsSection";
 import CategoriesSection from "@/components/landing/CategoriesSection";
+import ClubsSection from "@/components/landing/ClubsSection";
 import ContactCTASection from "@/components/landing/ContactCTASection";
 import EntryBanner from "@/components/landing/EntryBanner";
 import FAQSection from "@/components/landing/FAQSection";
@@ -10,8 +11,6 @@ import GamificationSection from "@/components/landing/GamificationSection";
 import HeroSection from "@/components/landing/HeroSection";
 import HowItWorksSection from "@/components/landing/HowItWorksSection";
 import LeaderboardPreviewSection from "@/components/landing/LeaderboardPreviewSection";
-import OrganizersSection from "@/components/landing/OrganizersSection";
-import OrganizerWaitlistSection from "@/components/landing/OrganizerWaitlistSection";
 import ParallaxMountain from "@/components/landing/ParallaxMountain";
 import PioneerCounterSection from "@/components/landing/PioneerCounterSection";
 import StravaShowcaseSection from "@/components/landing/StravaShowcaseSection";
@@ -48,12 +47,11 @@ const DEFAULT_SECTIONS: CmsHomepageSection[] = [
   { key: "gamification", label: "Badges & Gamification", enabled: true, order: 5 },
   { key: "leaderboard_preview", label: "Leaderboard Preview", enabled: true, order: 6 },
   { key: "categories", label: "Event Categories", enabled: true, order: 7 },
-  { key: "organizers", label: "Trusted Organizers", enabled: true, order: 8 },
-  { key: "organizer_waitlist", label: "Organizer Waitlist", enabled: true, order: 9 },
-  { key: "pioneer_counter", label: "Pioneer Counter", enabled: true, order: 10 },
-  { key: "testimonials", label: "Testimonials", enabled: true, order: 11 },
-  { key: "faq", label: "FAQ", enabled: true, order: 12 },
-  { key: "contact_cta", label: "Contact CTA", enabled: true, order: 13 },
+  { key: "clubs", label: "Community Clubs", enabled: true, order: 8 },
+  { key: "pioneer_counter", label: "Pioneer Counter", enabled: true, order: 9 },
+  { key: "testimonials", label: "Testimonials", enabled: true, order: 10 },
+  { key: "faq", label: "FAQ", enabled: true, order: 11 },
+  { key: "contact_cta", label: "Contact CTA", enabled: true, order: 12 },
 ];
 
 function BentoEventsSkeleton() {
@@ -91,7 +89,7 @@ function BentoEventsSkeleton() {
   );
 }
 
-function OrganizersSkeleton() {
+function ClubsSkeleton() {
   return (
     <section className="bg-white py-12 dark:bg-slate-800">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -246,18 +244,16 @@ function renderSection(key: string, parallaxImageUrl: string, heroData: HeroData
     case "categories": {
       return <CategoriesSection />;
     }
+    case "clubs":
     case "organizers": {
       return (
-        <Suspense fallback={<OrganizersSkeleton />}>
-          <OrganizersSection />
+        <Suspense fallback={<ClubsSkeleton />}>
+          <ClubsSection />
         </Suspense>
       );
     }
     case "pioneer_counter": {
       return <PioneerCounterSection />;
-    }
-    case "organizer_waitlist": {
-      return <OrganizerWaitlistSection />;
     }
     case "testimonials": {
       return (
@@ -316,19 +312,6 @@ export default async function Home() {
       order: insertOrder,
     };
     sections = [...sections, leaderboardSection].sort((a, b) => a.order - b.order);
-  }
-
-  // Ensure organizer_waitlist is present (may be missing from older CMS data)
-  if (!sections.some((s) => s.key === "organizer_waitlist")) {
-    const pioneerIdx = sections.findIndex((s) => s.key === "pioneer_counter");
-    const insertOrder = pioneerIdx === -1 ? 8 : sections[pioneerIdx].order - 0.5;
-    const waitlistSection: CmsHomepageSection = {
-      key: "organizer_waitlist",
-      label: "Organizer Waitlist",
-      enabled: true,
-      order: insertOrder,
-    };
-    sections = [...sections, waitlistSection].sort((a, b) => a.order - b.order);
   }
 
   const enabledSections = sections.filter((s) => s.enabled);

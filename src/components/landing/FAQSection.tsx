@@ -20,14 +20,14 @@ const faqs = [
       "Badges are collectible achievements you earn by participating in events and completing milestones. Check in at events to automatically earn badges. View your collection on your profile page.",
   },
   {
-    question: "How do I become an event organizer?",
+    question: "How do I create a club and host events?",
     answer:
-      "Sign up for a free account and create your first event. You will automatically become an organizer with access to the organizer dashboard for managing events, check-ins, and participants.",
+      "Sign up for a free account and create a club. Once your club is set up, you can create events, manage check-ins, and coordinate with your members from the club dashboard.",
   },
   {
     question: "Is EventTara free to use?",
     answer:
-      "Yes, creating an account and browsing events is completely free. Event prices are set by individual organizers and vary by event.",
+      "Yes, creating an account and browsing events is completely free. Event prices are set by clubs and vary by event.",
   },
 ];
 

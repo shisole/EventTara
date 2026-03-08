@@ -18,7 +18,7 @@ function ComingSoonPlaceholder() {
             Coming Soon
           </p>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Events from our organizers are on the way
+            Events from our clubs are on the way
           </p>
         </div>
       </div>
@@ -35,7 +35,7 @@ export default async function BentoEventsSection() {
   // Try featured events first
   const { data: featuredEvents } = await supabase
     .from("events")
-    .select("*, bookings(count), organizer_profiles!inner(org_name)")
+    .select("*, bookings(count), clubs(name)")
     .eq("status", "published")
     .eq("is_featured", true)
     .gte("date", now)
@@ -49,7 +49,7 @@ export default async function BentoEventsSection() {
   if (!featuredEvents || featuredEvents.length === 0) {
     const { data: upcomingEvents } = await supabase
       .from("events")
-      .select("*, bookings(count), organizer_profiles!inner(org_name)")
+      .select("*, bookings(count), clubs(name)")
       .eq("status", "published")
       .gte("date", now)
       .order("date", { ascending: true })
@@ -98,7 +98,7 @@ export default async function BentoEventsSection() {
                   Coming Soon
                 </p>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Events from our organizers are on the way
+                  Events from our clubs are on the way
                 </p>
               </div>
             </div>

@@ -18,7 +18,7 @@ export default async function UpcomingEventsSection() {
       .gte("date", now),
     supabase
       .from("events")
-      .select("*, bookings(count), organizer_profiles!inner(org_name)")
+      .select("*, bookings(count), clubs(name)")
       .eq("status", "published")
       .gte("date", now)
       .order("date", { ascending: true })
