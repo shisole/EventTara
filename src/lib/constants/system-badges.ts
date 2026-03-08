@@ -166,11 +166,11 @@ export const SYSTEM_BADGES: SystemBadge[] = [
     rarity: "legendary",
     imageUrl: "🌟",
   },
-  // Pioneer (organizer)
+  // Pioneer (club creator)
   {
     criteriaKey: "pioneer_organizer",
-    title: "Pioneer Organizer",
-    description: "Among the first 50 organizers on EventTara",
+    title: "Pioneer Club Creator",
+    description: "Among the first 50 clubs created on EventTara",
     category: "special",
     rarity: "legendary",
     imageUrl: "🏔️",
@@ -179,7 +179,7 @@ export const SYSTEM_BADGES: SystemBadge[] = [
   {
     criteriaKey: "first_review",
     title: "First Review",
-    description: "Wrote your first organizer review on EventTara",
+    description: "Wrote your first club review on EventTara",
     category: "special",
     rarity: "rare",
     imageUrl: "✍️",
@@ -254,8 +254,8 @@ export const SYSTEM_BADGE_CRITERIA_HINTS: Record<string, string> = {
   strava_connected: "Connect your Strava account",
   pioneer: "Be among the first 100 users to check in on EventTara",
   pioneer_participant: "Be among the first 250 users to join EventTara",
-  pioneer_organizer: "Be among the first 50 organizers on EventTara",
-  first_review: "Write your first organizer review",
+  pioneer_organizer: "Be among the first 50 clubs created on EventTara",
+  first_review: "Write your first club review",
   summits_1: "Complete a hiking event linked to a mountain",
   summits_3: "Summit 3 different mountains",
   summits_5: "Summit 5 different mountains",

@@ -1,4 +1,3 @@
-import OrganizerProfileForm from "@/components/dashboard/OrganizerProfileForm";
 import PaymentSettingsForm from "@/components/dashboard/PaymentSettingsForm";
 import ReviewQRCode from "@/components/dashboard/ReviewQRCode";
 import StravaConnectionCard from "@/components/strava/StravaConnectionCard";
@@ -12,58 +11,41 @@ export default async function SettingsPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: profile } = await supabase
-    .from("organizer_profiles")
-    .select("*")
-    .eq("user_id", user!.id)
-    .single();
-
-  // Look up the club associated with this organizer via club_members
-  const { data: ownerMembership } = await supabase
+  // Look up the club associated with this user via club_members
+  const { data: membership } = await supabase
     .from("club_members")
-    .select("club_id, clubs(slug, name)")
+    .select("club_id, role, clubs(slug, name)")
     .eq("user_id", user!.id)
-    .eq("role", "owner")
+    .in("role", ["owner", "admin"])
+    .limit(1)
     .single();
 
-  const club = ownerMembership?.clubs
-    ? Array.isArray(ownerMembership.clubs)
-      ? ownerMembership.clubs[0]
-      : ownerMembership.clubs
+  const club = membership?.clubs
+    ? Array.isArray(membership.clubs)
+      ? membership.clubs[0]
+      : membership.clubs
     : null;
+
+  // Fetch payment info from the club if the user is an owner/admin
+  const clubId = membership?.club_id ?? null;
+  const { data: clubData } = clubId
+    ? await supabase.from("clubs").select("id, payment_info").eq("id", clubId).single()
+    : { data: null };
 
   return (
     <div className="space-y-10 max-w-2xl mx-auto">
       <h1 className="text-2xl font-heading font-bold mb-6 dark:text-white">Settings</h1>
 
       <div className="space-y-10">
-        <section>
-          <h2 className="text-xl font-heading font-bold mb-4 dark:text-white">Organizer Profile</h2>
-          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-6">
-            <OrganizerProfileForm
-              profile={
-                profile
-                  ? {
-                      id: profile.id,
-                      org_name: profile.org_name,
-                      description: profile.description,
-                      logo_url: profile.logo_url,
-                    }
-                  : null
-              }
-            />
-          </div>
-        </section>
-
-        {profile && (
+        {clubData && (
           <section>
             <h2 className="text-xl font-heading font-bold mb-4 dark:text-white">
               Payment Settings
             </h2>
             <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-6">
               <PaymentSettingsForm
-                profileId={profile.id}
-                paymentInfo={(profile.payment_info as any) || {}}
+                profileId={clubData.id}
+                paymentInfo={(clubData.payment_info as any) || {}}
               />
             </div>
           </section>

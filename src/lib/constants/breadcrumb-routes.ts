@@ -78,14 +78,23 @@ export const BREADCRUMB_ROUTES: BreadcrumbRoute[] = [
     fallbackLabel: "Badge",
   },
 
-  // ── Organizers ──────────────────────────────────────────
+  // ── Clubs ─────────────────────────────────────────────
   {
-    pattern: "/organizers/:id",
+    pattern: "/clubs/:slug/reviews",
     segments: [
-      { label: "Organizers" },
+      { label: "Clubs" },
+      { label: null, href: "/clubs/:slug" },
+      { label: "Reviews" },
+    ],
+    fallbackLabel: "Club",
+  },
+  {
+    pattern: "/clubs/:slug",
+    segments: [
+      { label: "Clubs" },
       { label: null },
     ],
-    fallbackLabel: "Organizer",
+    fallbackLabel: "Club",
   },
 
   // ── Feed / Post ─────────────────────────────────────────

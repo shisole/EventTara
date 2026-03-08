@@ -173,20 +173,20 @@ async function sendReviewRequestEmails(
   // Fetch event details
   const { data: event } = await supabase
     .from("events")
-    .select("title, date, organizer_id")
+    .select("title, date, club_id")
     .eq("id", eventId)
     .single();
 
-  if (!event?.organizer_id) return;
+  if (!event?.club_id) return;
 
-  // Fetch organizer name
-  const { data: organizer } = await supabase
-    .from("organizer_profiles")
-    .select("org_name")
-    .eq("user_id", event.organizer_id)
+  // Fetch club name
+  const { data: club } = await supabase
+    .from("clubs")
+    .select("name, slug")
+    .eq("id", event.club_id)
     .single();
 
-  const organizerName = organizer?.org_name ?? null;
+  const clubName = club?.name ?? null;
 
   // Fetch user emails, filtering out guests
   const { data: users } = await supabase
@@ -207,8 +207,10 @@ async function sendReviewRequestEmails(
       })
     : "Date TBD";
 
-  // Build review URL
-  const reviewUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://eventtara.com"}/organizers/${event.organizer_id}/reviews`;
+  // Build review URL using the club slug
+  const reviewUrl = club?.slug
+    ? `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://eventtara.com"}/clubs/${club.slug}/reviews`
+    : `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://eventtara.com"}/events`;
 
   // Send emails to all users with non-null email
   for (const u of users) {
@@ -220,7 +222,7 @@ async function sendReviewRequestEmails(
           userName: u.full_name || "Adventurer",
           eventTitle: event.title,
           eventDate,
-          organizerName: organizerName ?? "the event organizer",
+          organizerName: clubName ?? "the event club",
           reviewUrl,
         }),
       }).catch((error_) => {
