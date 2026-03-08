@@ -106,7 +106,19 @@ async function seedCMS() {
   const { error: flagsErr } = await supabase.from("cms_feature_flags").upsert(
     {
       id: 1,
-      activity_feed: false,
+      activity_feed: true,
+      strava_showcase_features: true,
+      strava_showcase_stats: true,
+      strava_showcase_route_map: true,
+      organizer_reviews: true,
+      events_two_col_mobile: true,
+      coming_soon_strava: false,
+      coming_soon_gamification: false,
+      coming_soon_bento: false,
+      ewallet_payments: false,
+      oauth_google: true,
+      oauth_strava: true,
+      oauth_facebook: true,
     },
     { onConflict: "id" },
   );
