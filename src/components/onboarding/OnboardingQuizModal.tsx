@@ -44,6 +44,7 @@ const VALUE_PROPS = [
 
 const TOTAL_STEPS = 4;
 const STORAGE_KEY = "quiz_completed";
+const PROGRESS_KEY = "quiz_progress";
 
 /* ------------------------------------------------------------------ */
 /*  Component                                                          */
@@ -60,18 +61,54 @@ export default function OnboardingQuizModal({ featureFlags }: OnboardingQuizModa
   const [isOpen, setIsOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
 
-  /* --- quiz state ------------------------------------------------- */
-  const [currentStep, setCurrentStep] = useState(0);
-  const [activities, setActivities] = useState<string[]>([]);
-  const [experienceLevel, setExperienceLevel] = useState<string | null>(null);
-  const [firstName, setFirstName] = useState("");
-  const [ageRange, setAgeRange] = useState<string | null>(null);
-  const [location, setLocation] = useState("");
-  const [discoverySource, setDiscoverySource] = useState<string | null>(null);
+  /* --- quiz state (restore from localStorage if available) -------- */
+  const [restoredProgress] = useState<{
+    currentStep: number;
+    activities: string[];
+    experienceLevel: string | null;
+    firstName: string;
+    ageRange: string | null;
+    location: string;
+    discoverySource: string | null;
+  } | null>(() => {
+    if (typeof globalThis === "undefined") return null;
+    try {
+      const raw = localStorage.getItem(PROGRESS_KEY);
+      if (!raw) return null;
+      const parsed: unknown = JSON.parse(raw);
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null;
+      const p: Record<string, unknown> = parsed;
+      return {
+        currentStep: typeof p.currentStep === "number" ? p.currentStep : 0,
+        activities: Array.isArray(p.activities)
+          ? p.activities.filter((a): a is string => typeof a === "string")
+          : [],
+        experienceLevel: typeof p.experienceLevel === "string" ? p.experienceLevel : null,
+        firstName: typeof p.firstName === "string" ? p.firstName : "",
+        ageRange: typeof p.ageRange === "string" ? p.ageRange : null,
+        location: typeof p.location === "string" ? p.location : "",
+        discoverySource: typeof p.discoverySource === "string" ? p.discoverySource : null,
+      };
+    } catch {
+      return null;
+    }
+  });
+
+  const [currentStep, setCurrentStep] = useState(restoredProgress?.currentStep ?? 0);
+  const [activities, setActivities] = useState<string[]>(restoredProgress?.activities ?? []);
+  const [experienceLevel, setExperienceLevel] = useState<string | null>(
+    restoredProgress?.experienceLevel ?? null,
+  );
+  const [firstName, setFirstName] = useState(restoredProgress?.firstName ?? "");
+  const [ageRange, setAgeRange] = useState<string | null>(restoredProgress?.ageRange ?? null);
+  const [location, setLocation] = useState(restoredProgress?.location ?? "");
+  const [discoverySource, setDiscoverySource] = useState<string | null>(
+    restoredProgress?.discoverySource ?? null,
+  );
 
   /* --- anonymous id (generate once, persist) ---------------------- */
   const [anonymousId] = useState(() => {
-    if (globalThis.document === undefined) return "";
+    if (typeof globalThis === "undefined") return "";
     try {
       const existing = localStorage.getItem("quiz_anonymous_id");
       if (existing) return existing;
@@ -105,16 +142,34 @@ export default function OnboardingQuizModal({ featureFlags }: OnboardingQuizModa
     };
   }, []);
 
-  /* --- escape key ------------------------------------------------- */
+  /* --- escape key (temporary dismiss, not skip) ------------------- */
   useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
+    const onEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape" && isOpen) {
-        void handleSkip();
+        // Save progress to localStorage so quiz resumes on next visit
+        try {
+          localStorage.setItem(
+            PROGRESS_KEY,
+            JSON.stringify({
+              currentStep,
+              activities,
+              experienceLevel,
+              firstName,
+              ageRange,
+              location,
+              discoverySource,
+            }),
+          );
+        } catch {
+          // localStorage unavailable
+        }
+        setIsVisible(false);
+        document.body.style.overflow = "";
+        setTimeout(() => setIsOpen(false), 200);
       }
     };
-    document.addEventListener("keydown", handleEscape);
-    return () => document.removeEventListener("keydown", handleEscape);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    document.addEventListener("keydown", onEscape);
+    return () => document.removeEventListener("keydown", onEscape);
   }, [
     isOpen,
     currentStep,
@@ -139,6 +194,32 @@ export default function OnboardingQuizModal({ featureFlags }: OnboardingQuizModa
     setTimeout(() => setIsOpen(false), 200);
   };
 
+  /** Save current progress to localStorage so the quiz resumes on next visit */
+  const saveProgress = () => {
+    try {
+      localStorage.setItem(
+        PROGRESS_KEY,
+        JSON.stringify({
+          currentStep,
+          activities,
+          experienceLevel,
+          firstName,
+          ageRange,
+          location,
+          discoverySource,
+        }),
+      );
+    } catch {
+      // localStorage unavailable
+    }
+  };
+
+  /** Temporarily close (Escape / backdrop) — saves progress, reopens next visit */
+  const handleDismiss = () => {
+    saveProgress();
+    handleClose();
+  };
+
   const saveResponses = async (skippedAt?: number) => {
     const payload = {
       anonymous_id: anonymousId,
@@ -155,6 +236,7 @@ export default function OnboardingQuizModal({ featureFlags }: OnboardingQuizModa
     try {
       localStorage.setItem("quiz_responses", JSON.stringify(payload));
       localStorage.setItem(STORAGE_KEY, "true");
+      localStorage.removeItem(PROGRESS_KEY);
     } catch {
       // localStorage unavailable
     }
@@ -531,6 +613,7 @@ export default function OnboardingQuizModal({ featureFlags }: OnboardingQuizModa
       role="dialog"
       aria-modal="true"
       aria-labelledby="onboarding-quiz-title"
+      onClick={handleDismiss}
     >
       <div
         className={cn(
