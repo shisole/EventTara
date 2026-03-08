@@ -74,6 +74,7 @@ export interface CmsFeatureFlags {
   oauth_google: boolean;
   oauth_strava: boolean;
   oauth_facebook: boolean;
+  onboarding_quiz: boolean;
 }
 
 /** A single homepage section entry inside cms_homepage_sections.sections JSONB */
