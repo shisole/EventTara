@@ -2,8 +2,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import AchievementsTabs from "@/components/achievements/AchievementsTabs";
+import BordersTab from "@/components/achievements/BordersTab";
+import LeaderboardsTab from "@/components/achievements/LeaderboardsTab";
 import { CheckCircleIcon, LockIcon } from "@/components/icons";
 import { Breadcrumbs } from "@/components/ui";
+import { calculateBadgeProgress } from "@/lib/badges/calculate-progress";
 import { resolvePresetImage } from "@/lib/constants/avatars";
 import { CATEGORY_STYLES, RARITY_STYLES } from "@/lib/constants/badge-rarity";
 import { SYSTEM_BADGE_CRITERIA_HINTS } from "@/lib/constants/system-badges";
@@ -36,6 +40,20 @@ export default async function AchievementsPage() {
     .select("badge_id, awarded_at")
     .eq("user_id", user.id);
 
+  // Fetch all borders
+  const { data: allBorders } = await supabase
+    .from("avatar_borders")
+    .select("*")
+    .order("sort_order");
+
+  // Fetch user's earned borders
+  const { data: earnedBordersData } = await supabase
+    .from("user_avatar_borders")
+    .select("border_id")
+    .eq("user_id", user.id);
+
+  const earnedBorderIds = new Set((earnedBordersData ?? []).map((b) => b.border_id));
+
   // Build a map: badge_id -> awarded_at
   const earnedMap = new Map((earnedBadges ?? []).map((b) => [b.badge_id, b.awarded_at]));
 
@@ -44,37 +62,30 @@ export default async function AchievementsPage() {
   const totalCount = badges.length;
   const progressPercent = totalCount > 0 ? (earnedCount / totalCount) * 100 : 0;
 
-  return (
-    <div className="max-w-4xl mx-auto px-4 py-12">
-      <Breadcrumbs />
-      {/* Header */}
-      <div className="text-center mb-10">
-        <h1 className="text-3xl font-heading font-bold mb-2">Achievements</h1>
-        <p className="text-gray-500 dark:text-gray-400">
-          {earnedCount} / {totalCount} badges earned
-        </p>
+  // Calculate progress for locked badges
+  const badgesWithProgress = await Promise.all(
+    badges.map(async (badge) => {
+      if (earnedMap.has(badge.id)) return { ...badge, progress: null };
+      const progress = await calculateBadgeProgress(
+        user.id,
+        badge as Parameters<typeof calculateBadgeProgress>[1],
+        supabase,
+      );
+      return { ...badge, progress };
+    }),
+  );
 
-        {/* Progress bar */}
-        <div className="mt-4 max-w-md mx-auto">
-          <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-teal-500 rounded-full transition-all duration-500"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Badge grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-        {badges.map((badge) => {
+  const badgesContent = (
+    <>
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+        {badgesWithProgress.map((badge) => {
           const isEarned = earnedMap.has(badge.id);
           const awardedAt = earnedMap.get(badge.id);
           const resolved = resolvePresetImage(badge.image_url);
           const rarity = badge.rarity;
-          const category = badge.category ?? null;
+          const category = badge.category;
           const rarityStyle = RARITY_STYLES[rarity];
-          const categoryStyle = category ? CATEGORY_STYLES[category] : null;
+          const categoryStyle = CATEGORY_STYLES[category];
           const hint = badge.criteria_key ? SYSTEM_BADGE_CRITERIA_HINTS[badge.criteria_key] : null;
 
           const card = (
@@ -82,21 +93,21 @@ export default async function AchievementsPage() {
               className={cn(
                 "rounded-2xl p-4 text-center transition-shadow",
                 isEarned
-                  ? "bg-white dark:bg-gray-900 shadow-md dark:shadow-gray-950/30 hover:shadow-lg"
+                  ? "bg-white shadow-md hover:shadow-lg dark:bg-gray-900 dark:shadow-gray-950/30"
                   : "bg-gray-50 dark:bg-gray-900/50",
               )}
             >
               {/* Badge circle */}
               <div
                 className={cn(
-                  "w-20 h-20 mx-auto mb-3 rounded-full flex items-center justify-center overflow-hidden",
+                  "mx-auto mb-3 flex h-20 w-20 items-center justify-center overflow-hidden rounded-full",
                   isEarned
                     ? cn(
                         resolved?.type === "emoji" ? resolved.color : "bg-golden-100",
                         rarityStyle.ring,
                         rarityStyle.glow,
                       )
-                    : "bg-gray-200 dark:bg-gray-700 ring-2 ring-gray-300 dark:ring-gray-600",
+                    : "bg-gray-200 ring-2 ring-gray-300 dark:bg-gray-700 dark:ring-gray-600",
                 )}
               >
                 {resolved?.type === "url" ? (
@@ -117,7 +128,7 @@ export default async function AchievementsPage() {
               {/* Title */}
               <h3
                 className={cn(
-                  "font-heading font-bold text-sm",
+                  "font-heading text-sm font-bold",
                   !isEarned && "text-gray-400 dark:text-gray-500",
                 )}
               >
@@ -126,29 +137,42 @@ export default async function AchievementsPage() {
 
               {/* Description or hint */}
               {isEarned ? (
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{badge.description}</p>
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{badge.description}</p>
               ) : (
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 italic">{hint}</p>
+                <p className="mt-1 text-xs italic text-gray-400 dark:text-gray-500">{hint}</p>
+              )}
+
+              {/* Progress bar for locked badges */}
+              {!isEarned && badge.progress && (
+                <div className="mt-2 w-full">
+                  <div className="h-1 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                    <div
+                      className="h-full bg-teal-500 transition-all duration-300"
+                      style={{ width: `${String(badge.progress.percent)}%` }}
+                    />
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    {badge.progress.progressText}
+                  </p>
+                </div>
               )}
 
               {/* Category pill */}
-              {categoryStyle && (
-                <span
-                  className={cn(
-                    "inline-block text-xs px-2 py-0.5 rounded-full mt-2",
-                    isEarned
-                      ? categoryStyle.pill
-                      : "bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500",
-                  )}
-                >
-                  {categoryStyle.label}
-                </span>
-              )}
+              <span
+                className={cn(
+                  "mt-2 inline-block rounded-full px-2 py-0.5 text-xs",
+                  isEarned
+                    ? categoryStyle.pill
+                    : "bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500",
+                )}
+              >
+                {categoryStyle.label}
+              </span>
 
               {/* Earned / Locked indicator */}
               {isEarned && awardedAt ? (
-                <p className="flex items-center justify-center gap-1 text-xs text-forest-600 dark:text-forest-400 mt-2">
-                  <CheckCircleIcon className="w-3.5 h-3.5" />
+                <p className="mt-2 flex items-center justify-center gap-1 text-xs text-forest-600 dark:text-forest-400">
+                  <CheckCircleIcon className="h-3.5 w-3.5" />
                   Earned on{" "}
                   {new Date(awardedAt).toLocaleDateString("en-PH", {
                     month: "short",
@@ -156,16 +180,15 @@ export default async function AchievementsPage() {
                     year: "numeric",
                   })}
                 </p>
-              ) : (
-                <p className="flex items-center justify-center gap-1 text-xs text-gray-400 dark:text-gray-500 mt-2">
-                  <LockIcon className="w-3.5 h-3.5" />
+              ) : badge.progress ? null : (
+                <p className="mt-2 flex items-center justify-center gap-1 text-xs text-gray-400 dark:text-gray-500">
+                  <LockIcon className="h-3.5 w-3.5" />
                   Locked
                 </p>
               )}
             </div>
           );
 
-          // Earned badges link to detail page; locked badges are not clickable
           if (isEarned) {
             return (
               <Link key={badge.id} href={`/badges/${badge.id}`} className="block">
@@ -178,15 +201,43 @@ export default async function AchievementsPage() {
         })}
       </div>
 
-      {/* Empty state */}
       {badges.length === 0 && (
-        <div className="text-center py-16">
-          <p className="text-3xl mb-2">{"\u{1F3C6}"}</p>
+        <div className="py-16 text-center">
+          <p className="mb-2 text-3xl">{"\u{1F3C6}"}</p>
           <p className="text-gray-500 dark:text-gray-400">
             No system badges available yet. Check back soon!
           </p>
         </div>
       )}
+    </>
+  );
+
+  return (
+    <div className="mx-auto max-w-4xl px-4 py-12">
+      <Breadcrumbs />
+      {/* Header */}
+      <div className="mb-10 text-center">
+        <h1 className="mb-2 font-heading text-3xl font-bold">Achievements</h1>
+        <p className="text-gray-500 dark:text-gray-400">
+          {earnedCount} / {totalCount} badges earned
+        </p>
+
+        {/* Progress bar */}
+        <div className="mx-auto mt-4 max-w-md">
+          <div className="h-2 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+            <div
+              className="h-full rounded-full bg-teal-500 transition-all duration-500"
+              style={{ width: `${String(progressPercent)}%` }}
+            />
+          </div>
+        </div>
+      </div>
+
+      <AchievementsTabs
+        badgesContent={badgesContent}
+        bordersContent={<BordersTab borders={allBorders ?? []} earnedBorderIds={earnedBorderIds} />}
+        leaderboardsContent={<LeaderboardsTab />}
+      />
     </div>
   );
 }
