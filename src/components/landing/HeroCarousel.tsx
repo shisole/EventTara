@@ -36,10 +36,32 @@ export default function HeroCarousel({ slides }: HeroCarouselProps) {
                 : undefined
             }
           >
-            <picture>
-              {slide.image.mobileUrl && (
-                <source media="(max-width: 1024px)" srcSet={slide.image.mobileUrl} />
-              )}
+            {slide.image.mobileUrl ? (
+              <>
+                {/* Mobile-optimized image (hidden on desktop) */}
+                <Image
+                  src={slide.image.mobileUrl}
+                  alt={slide.image.alt || "Adventure"}
+                  fill
+                  className="object-cover lg:hidden"
+                  sizes="(max-width: 1024px) 100vw, 0px"
+                  quality={50}
+                  priority={i === 0}
+                  fetchPriority={i === 0 ? "high" : "auto"}
+                  loading={i === 0 ? "eager" : "lazy"}
+                />
+                {/* Desktop image (hidden on mobile) */}
+                <Image
+                  src={slide.image.url}
+                  alt={slide.image.alt || "Adventure"}
+                  fill
+                  className="hidden object-cover lg:block"
+                  sizes="(min-width: 1025px) 100vw, 0px"
+                  quality={50}
+                  loading={i === 0 ? "eager" : "lazy"}
+                />
+              </>
+            ) : (
               <Image
                 src={slide.image.url}
                 alt={slide.image.alt || "Adventure"}
@@ -51,7 +73,7 @@ export default function HeroCarousel({ slides }: HeroCarouselProps) {
                 fetchPriority={i === 0 ? "high" : "auto"}
                 loading={i === 0 ? "eager" : "lazy"}
               />
-            </picture>
+            )}
           </div>
         );
       })}

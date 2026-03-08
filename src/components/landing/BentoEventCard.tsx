@@ -59,6 +59,7 @@ export default function BentoEventCard({ event, variant }: BentoEventCardProps) 
               alt={event.title}
               fill
               sizes="(max-width: 768px) 92vw, (max-width: 1280px) 33vw, 400px"
+              quality={60}
               className="object-cover transition-transform duration-500 group-hover:scale-105"
             />
           )}
@@ -169,6 +170,7 @@ export default function BentoEventCard({ event, variant }: BentoEventCardProps) 
             alt={event.title}
             fill
             sizes="(max-width: 768px) 80vw, (max-width: 1280px) 22vw, 280px"
+            quality={60}
             className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
         )}
