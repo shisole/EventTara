@@ -77,7 +77,7 @@ export default function OnboardingQuizModal({ featureFlags }: OnboardingQuizModa
       if (!raw) return null;
       const parsed: unknown = JSON.parse(raw);
       if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null;
-      const p: Record<string, unknown> = parsed;
+      const p = Object.fromEntries(Object.entries(parsed));
       return {
         currentStep: typeof p.currentStep === "number" ? p.currentStep : 0,
         activities: Array.isArray(p.activities)
