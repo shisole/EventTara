@@ -102,7 +102,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     getCachedHeroCarousel(),
   ]);
   const navLayout = settings?.nav_layout || "strip";
-  const adminUserIds = (process.env.ADMIN_USER_IDS ?? "")
+  const isProduction = (process.env.VERCEL_ENV ?? process.env.NODE_ENV) === "production";
+  const adminUserIds = (
+    isProduction
+      ? (process.env.ADMIN_USER_IDS ?? "")
+      : [process.env.ADMIN_USER_IDS, process.env.ADMIN_DEV_STAGING_USER_IDS]
+          .filter(Boolean)
+          .join(",")
+  )
     .split(",")
     .map((id) => id.trim())
     .filter(Boolean);
@@ -115,9 +122,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     >
       <head>
         {process.env.NEXT_PUBLIC_SUPABASE_URL && (
-          <link rel="preconnect" href={process.env.NEXT_PUBLIC_SUPABASE_URL} />
+          <>
+            <link rel="preconnect" href={process.env.NEXT_PUBLIC_SUPABASE_URL} />
+            <link rel="dns-prefetch" href={process.env.NEXT_PUBLIC_SUPABASE_URL} />
+          </>
         )}
         <link rel="preconnect" href="https://images.unsplash.com" />
+        <link rel="dns-prefetch" href="https://images.unsplash.com" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
