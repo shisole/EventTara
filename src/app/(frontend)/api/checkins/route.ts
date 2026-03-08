@@ -193,47 +193,55 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // Trigger border and badge checks in background (non-blocking)
+  // Trigger border checks in background (non-blocking)
   checkAndAwardBorders(user_id, supabase).catch(() => null);
 
-  // Check and award system badges, then send batched email if any earned
-  checkAndAwardSystemBadges(user_id, supabase)
-    .then(async (awardedBadges) => {
-      if (awardedBadges.length === 0) return;
+  // Check and award system badges (awaited to return results to client)
+  let awardedBadges: Awaited<ReturnType<typeof checkAndAwardSystemBadges>> = [];
+  try {
+    awardedBadges = await checkAndAwardSystemBadges(user_id, supabase);
+  } catch {
+    // Badge check failure should not block check-in response
+  }
 
-      // In-app badge notifications
-      createNotifications(
-        supabase,
-        awardedBadges.map((b) => ({
-          userId: user_id,
-          type: "badge_earned" as const,
-          title: "Badge Earned",
-          body: `You earned the "${b.title}" badge!`,
-          href: "/achievements",
-        })),
-      ).catch(() => null);
+  // Send notifications and email in background (non-blocking)
+  if (awardedBadges.length > 0) {
+    createNotifications(
+      supabase,
+      awardedBadges.map((b) => ({
+        userId: user_id,
+        type: "badge_earned" as const,
+        title: "Badge Earned",
+        body: `You earned the "${b.title}" badge!`,
+        href: "/achievements",
+      })),
+    ).catch(() => null);
 
-      // Fetch user email for notification
-      const { data: participant } = await supabase
-        .from("users")
-        .select("email")
-        .eq("id", user_id)
-        .single();
+    void (async () => {
+      try {
+        const { data: participant } = await supabase
+          .from("users")
+          .select("email")
+          .eq("id", user_id)
+          .single();
 
-      if (participant?.email) {
-        const subject =
-          awardedBadges.length === 1
-            ? `You earned a new badge: ${awardedBadges[0].title}!`
-            : `You earned ${awardedBadges.length} new badges!`;
+        if (participant?.email) {
+          const subject =
+            awardedBadges.length === 1
+              ? `You earned a new badge: ${awardedBadges[0].title}!`
+              : `You earned ${String(awardedBadges.length)} new badges!`;
 
-        await sendEmail({
-          to: participant.email,
-          subject,
-          html: badgesEarnedHtml({ userName, badges: awardedBadges }),
-        });
+          await sendEmail({
+            to: participant.email,
+            subject,
+            html: badgesEarnedHtml({ userName, badges: awardedBadges }),
+          });
+        }
+      } catch {
+        // Email failure should not block check-in response
       }
-    })
-    .catch(() => null);
+    })();
+  }
 
   return NextResponse.json({
     message: `${userName} checked in!`,
@@ -242,5 +250,11 @@ export async function POST(request: Request) {
     paymentStatus,
     paymentMethod,
     alreadyCheckedIn: false,
+    awardedBadges: awardedBadges.map((b) => ({
+      title: b.title,
+      description: b.description,
+      imageUrl: b.imageUrl,
+      criteriaKey: b.criteriaKey,
+    })),
   });
 }
