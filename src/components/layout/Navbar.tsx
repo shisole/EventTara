@@ -31,7 +31,7 @@ interface ActiveBorderData {
 
 interface NavbarProps {
   user: User | null;
-  role: string | null;
+  canManage?: boolean;
   loading: boolean;
   activities: Activity[];
   navLayout: string;
@@ -45,7 +45,7 @@ interface NavbarProps {
 
 export default function Navbar({
   user,
-  role,
+  canManage = false,
   loading,
   activities,
   navLayout,
@@ -182,7 +182,7 @@ export default function Navbar({
                           Admin Panel
                         </NavLink>
                       )}
-                      {role === "organizer" && (
+                      {canManage && (
                         <NavLink
                           href="/dashboard"
                           className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"

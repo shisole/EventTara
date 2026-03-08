@@ -19,7 +19,7 @@ interface MobileDrawerProps {
   onClose: () => void;
   activities: Activity[];
   user: User | null;
-  role: string | null;
+  canManage?: boolean;
   isAdmin?: boolean;
   onLogout: () => void;
 }
@@ -29,7 +29,7 @@ export default function MobileDrawer({
   onClose,
   activities,
   user,
-  role,
+  canManage = false,
   isAdmin = false,
   onLogout,
 }: MobileDrawerProps) {
@@ -119,7 +119,7 @@ export default function MobileDrawer({
                   Admin Panel
                 </NavLink>
               )}
-              {role === "organizer" && (
+              {canManage && (
                 <NavLink
                   href="/dashboard"
                   onClick={onClose}
@@ -128,6 +128,13 @@ export default function MobileDrawer({
                   Dashboard
                 </NavLink>
               )}
+              <NavLink
+                href="/clubs"
+                onClick={onClose}
+                className="block px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium"
+              >
+                Clubs
+              </NavLink>
               <NavLink
                 href="/profile"
                 onClick={onClose}
@@ -162,11 +169,11 @@ export default function MobileDrawer({
           ) : (
             <div className="space-y-2">
               <NavLink
-                href="/signup?role=organizer"
+                href="/clubs/new"
                 onClick={onClose}
                 className="block px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium text-center"
               >
-                Host Your Event
+                Create a Club
               </NavLink>
               <NavLink
                 href="/login"

@@ -22,10 +22,11 @@ export default async function Footer() {
       ],
     },
     {
-      title: "For Organizers",
+      title: "For Clubs",
       links: [
-        { label: "Host Your Event", url: "/signup?role=organizer" },
-        { label: "Organizer Dashboard", url: "/dashboard" },
+        { label: "Start a Club", url: "/clubs/new" },
+        { label: "Browse Clubs", url: "/clubs" },
+        { label: "Club Dashboard", url: "/dashboard" },
         { label: "Contact Us", url: "/contact" },
       ],
     },
