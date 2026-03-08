@@ -35,6 +35,7 @@ interface DistanceCategory {
 
 interface EventFormProps {
   mode: "create" | "edit";
+  clubId?: string;
   initialData?: {
     id?: string;
     title: string;
@@ -254,7 +255,7 @@ function GuideCombobox({
   );
 }
 
-export default function EventForm({ mode, initialData }: EventFormProps) {
+export default function EventForm({ mode, clubId, initialData }: EventFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -578,6 +579,10 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
       difficulty_level: difficultyLevel,
       waiver_text: waiverEnabled ? waiverText : null,
     };
+
+    if (clubId) {
+      body.club_id = clubId;
+    }
 
     // Include distance categories when applicable
     if (supportsDistances && distances.length > 0) {

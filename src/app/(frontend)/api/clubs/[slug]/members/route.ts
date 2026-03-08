@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { checkClubPermissionServer, CLUB_PERMISSIONS } from "@/lib/clubs/permissions";
 import { createClient } from "@/lib/supabase/server";
 
 const ROLE_ORDER: Record<string, number> = {
@@ -161,4 +162,118 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
   }
 
   return NextResponse.json({ member }, { status: 201 });
+}
+
+export async function PATCH(request: Request, { params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { data: club } = await supabase.from("clubs").select("id").eq("slug", slug).single();
+
+  if (!club) {
+    return NextResponse.json({ error: "Club not found" }, { status: 404 });
+  }
+
+  // Only owner can change roles
+  const role = await checkClubPermissionServer(user.id, club.id, CLUB_PERMISSIONS.promote_roles);
+  if (!role) {
+    return NextResponse.json({ error: "Only the club owner can change roles" }, { status: 403 });
+  }
+
+  const body = await request.json();
+  const { user_id, role: newRole } = body;
+
+  if (!user_id || !newRole) {
+    return NextResponse.json({ error: "user_id and role are required" }, { status: 400 });
+  }
+
+  // Cannot change owner role
+  const validRoles = ["member", "moderator", "admin"];
+  if (!validRoles.includes(newRole)) {
+    return NextResponse.json({ error: "Invalid role" }, { status: 400 });
+  }
+
+  // Cannot change own role
+  if (user_id === user.id) {
+    return NextResponse.json({ error: "Cannot change your own role" }, { status: 400 });
+  }
+
+  const { error: updateError } = await supabase
+    .from("club_members")
+    .update({ role: newRole })
+    .eq("club_id", club.id)
+    .eq("user_id", user_id);
+
+  if (updateError) {
+    return NextResponse.json({ error: updateError.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true });
+}
+
+export async function DELETE(request: Request, { params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { data: club } = await supabase.from("clubs").select("id").eq("slug", slug).single();
+
+  if (!club) {
+    return NextResponse.json({ error: "Club not found" }, { status: 404 });
+  }
+
+  // Admin+ can remove members
+  const role = await checkClubPermissionServer(user.id, club.id, CLUB_PERMISSIONS.remove_members);
+  if (!role) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const body = await request.json();
+  const { user_id } = body;
+
+  if (!user_id) {
+    return NextResponse.json({ error: "user_id is required" }, { status: 400 });
+  }
+
+  // Cannot remove yourself
+  if (user_id === user.id) {
+    return NextResponse.json({ error: "Cannot remove yourself" }, { status: 400 });
+  }
+
+  // Cannot remove the owner
+  const { data: targetMember } = await supabase
+    .from("club_members")
+    .select("role")
+    .eq("club_id", club.id)
+    .eq("user_id", user_id)
+    .single();
+
+  if (targetMember?.role === "owner") {
+    return NextResponse.json({ error: "Cannot remove the club owner" }, { status: 400 });
+  }
+
+  const { error: deleteError } = await supabase
+    .from("club_members")
+    .delete()
+    .eq("club_id", club.id)
+    .eq("user_id", user_id);
+
+  if (deleteError) {
+    return NextResponse.json({ error: deleteError.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true });
 }

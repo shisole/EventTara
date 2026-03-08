@@ -130,6 +130,81 @@ export const BREADCRUMB_ROUTES: BreadcrumbRoute[] = [
     segments: [{ label: "Contact" }],
   },
 
+  // ── Club Dashboard ─────────────────────────────────────
+  {
+    pattern: "/dashboard/clubs/:slug/events/new",
+    segments: [
+      { label: "Dashboard", href: "/dashboard" },
+      { label: "Events", href: "/dashboard/clubs/:slug/events" },
+      { label: "New Event" },
+    ],
+  },
+  {
+    pattern: "/dashboard/clubs/:slug/events/:id/edit",
+    segments: [
+      { label: "Dashboard", href: "/dashboard" },
+      { label: "Events", href: "/dashboard/clubs/:slug/events" },
+      { label: null, href: "/dashboard/clubs/:slug/events/:id" },
+      { label: "Edit" },
+    ],
+    fallbackLabel: "Event",
+  },
+  {
+    pattern: "/dashboard/clubs/:slug/events/:id/checkin",
+    segments: [
+      { label: "Dashboard", href: "/dashboard" },
+      { label: "Events", href: "/dashboard/clubs/:slug/events" },
+      { label: null, href: "/dashboard/clubs/:slug/events/:id" },
+      { label: "Check-in" },
+    ],
+    fallbackLabel: "Event",
+  },
+  {
+    pattern: "/dashboard/clubs/:slug/events/:id",
+    segments: [
+      { label: "Dashboard", href: "/dashboard" },
+      { label: "Events", href: "/dashboard/clubs/:slug/events" },
+      { label: null },
+    ],
+    fallbackLabel: "Event",
+  },
+  {
+    pattern: "/dashboard/clubs/:slug/events",
+    segments: [
+      { label: "Dashboard", href: "/dashboard" },
+      { label: "Events" },
+    ],
+  },
+  {
+    pattern: "/dashboard/clubs/:slug/members",
+    segments: [
+      { label: "Dashboard", href: "/dashboard" },
+      { label: "Members" },
+    ],
+  },
+  {
+    pattern: "/dashboard/clubs/:slug/invites",
+    segments: [
+      { label: "Dashboard", href: "/dashboard" },
+      { label: "Invites" },
+    ],
+  },
+  {
+    pattern: "/dashboard/clubs/:slug/settings",
+    segments: [
+      { label: "Dashboard", href: "/dashboard" },
+      { label: "Settings" },
+    ],
+  },
+  {
+    pattern: "/dashboard/clubs/:slug",
+    segments: [
+      { label: "Dashboard", href: "/dashboard" },
+      { label: null },
+    ],
+    fallbackLabel: "Club",
+  },
+
   // ── Dashboard ───────────────────────────────────────────
   {
     pattern: "/dashboard/events/new",
