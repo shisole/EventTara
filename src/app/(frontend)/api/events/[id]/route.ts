@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { onEventCompleted } from "@/lib/badges/award-event-badge";
+import { checkClubPermissionServer, CLUB_PERMISSIONS } from "@/lib/clubs/permissions";
 import { findProvinceFromLocation } from "@/lib/constants/philippine-provinces";
 import { findOverlappingEvent, formatOverlapDate } from "@/lib/events/overlap";
 import { createClient } from "@/lib/supabase/server";
@@ -36,6 +37,27 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // Get the event to check club_id for permission
+  const { data: currentEvent } = await supabase
+    .from("events")
+    .select("club_id")
+    .eq("id", id)
+    .single();
+
+  if (!currentEvent?.club_id) {
+    return NextResponse.json({ error: "Event not found" }, { status: 404 });
+  }
+
+  // Verify user has permission to edit events in this club (moderator+)
+  const role = await checkClubPermissionServer(
+    user.id,
+    currentEvent.club_id,
+    CLUB_PERMISSIONS.edit_event,
+  );
+  if (!role) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const body = await request.json();
 
   // Use provided coordinates, or fall back to province centroid lookup
@@ -47,37 +69,28 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     }
   }
 
-  // Check for overlapping events by this organizer (when date is being changed)
+  // Check for overlapping events by this club (when date is being changed)
   if (body.date) {
-    // Get the organizer_id for this event
-    const { data: currentEvent } = await supabase
+    const { data: clubEvents } = await supabase
       .from("events")
-      .select("organizer_id")
-      .eq("id", id)
-      .single();
+      .select("id, title, date, end_date")
+      .eq("club_id", currentEvent.club_id)
+      .in("status", ["draft", "published"]);
 
-    if (currentEvent) {
-      const { data: organizerEvents } = await supabase
-        .from("events")
-        .select("id, title, date, end_date")
-        .eq("organizer_id", currentEvent.organizer_id)
-        .in("status", ["draft", "published"]);
-
-      if (organizerEvents) {
-        const overlap = findOverlappingEvent(
-          body.date,
-          body.end_date === undefined ? null : body.end_date,
-          organizerEvents,
-          id, // exclude the event being updated
+    if (clubEvents) {
+      const overlap = findOverlappingEvent(
+        body.date,
+        body.end_date === undefined ? null : body.end_date,
+        clubEvents,
+        id, // exclude the event being updated
+      );
+      if (overlap) {
+        return NextResponse.json(
+          {
+            error: `Cannot update this event — it would overlap with your club's event "${overlap.title}" on ${formatOverlapDate(overlap.date, overlap.end_date)}. Adjust the date/time or update the other event first.`,
+          },
+          { status: 409 },
         );
-        if (overlap) {
-          return NextResponse.json(
-            {
-              error: `Cannot update this event — it would overlap with your event "${overlap.title}" on ${formatOverlapDate(overlap.date, overlap.end_date)}. Adjust the date/time or update the other event first.`,
-            },
-            { status: 409 },
-          );
-        }
       }
     }
   }
@@ -174,6 +187,23 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Get the event to check club_id for permission
+  const { data: event } = await supabase.from("events").select("club_id").eq("id", id).single();
+
+  if (!event?.club_id) {
+    return NextResponse.json({ error: "Event not found" }, { status: 404 });
+  }
+
+  // Verify user has permission to delete events in this club (admin+)
+  const role = await checkClubPermissionServer(
+    user.id,
+    event.club_id,
+    CLUB_PERMISSIONS.delete_event,
+  );
+  if (!role) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const { error } = await supabase.from("events").update({ status: "cancelled" }).eq("id", id);

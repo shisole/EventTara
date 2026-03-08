@@ -17,6 +17,10 @@ export interface EventCardData {
   status: "upcoming" | "happening_now" | "past";
   organizer_name?: string;
   organizer_id?: string;
+  club_id?: string;
+  club_name?: string;
+  club_slug?: string;
+  club_logo_url?: string | null;
   coordinates?: { lat: number; lng: number } | null;
   avg_rating?: number;
   review_count?: number;
@@ -125,8 +129,12 @@ export function mapEventToCard(
     max_participants: event.max_participants,
     booking_count: event.bookings?.[0]?.count || 0,
     status: getEventStatus(event.date, today),
-    organizer_name: event.organizer_profiles?.org_name,
-    organizer_id: event.organizer_id,
+    organizer_name: event.clubs?.name ?? event.organizer_profiles?.org_name,
+    organizer_id: event.club_id ?? event.organizer_id,
+    club_id: event.club_id ?? undefined,
+    club_name: event.clubs?.name ?? undefined,
+    club_slug: event.clubs?.slug ?? undefined,
+    club_logo_url: event.clubs?.logo_url ?? undefined,
     coordinates: event.coordinates as { lat: number; lng: number } | null,
     avg_rating: stats?.avg,
     review_count: stats?.count,
