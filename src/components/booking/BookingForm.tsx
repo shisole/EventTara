@@ -1,8 +1,10 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useState } from "react";
 
 import { Button } from "@/components/ui";
+import { cn } from "@/lib/utils";
 import { formatEventDate } from "@/lib/utils/format-date";
 
 import BookingConfirmation from "./BookingConfirmation";
@@ -10,6 +12,8 @@ import CompanionFields, { type Companion } from "./CompanionFields";
 import PaymentInstructions from "./PaymentInstructions";
 import PaymentMethodPicker from "./PaymentMethodPicker";
 import PaymentProofUpload from "./PaymentProofUpload";
+
+const WaiverModal = dynamic(() => import("./WaiverModal"));
 
 export interface EventDistance {
   id: string;
@@ -33,6 +37,7 @@ interface BookingFormProps {
   spotsLeft?: number;
   distances?: EventDistance[];
   mode?: "self" | "friend";
+  waiverText?: string | null;
 }
 
 export default function BookingForm({
@@ -45,6 +50,7 @@ export default function BookingForm({
   spotsLeft = 999,
   distances,
   mode = "self",
+  waiverText,
 }: BookingFormProps) {
   const [paymentMethod, setPaymentMethod] = useState("");
   const [proofFile, setProofFile] = useState<File | null>(null);
@@ -55,6 +61,11 @@ export default function BookingForm({
     mode === "friend" ? [{ full_name: "", phone: "" }] : [],
   );
   const [selectedDistanceId, setSelectedDistanceId] = useState<string>("");
+  const [participantNotes, setParticipantNotes] = useState("");
+  const [waiverAccepted, setWaiverAccepted] = useState(false);
+  const [showWaiver, setShowWaiver] = useState(false);
+
+  const hasWaiver = !!waiverText;
 
   const hasDistances = distances && distances.length > 0;
   const selectedDistance = hasDistances
@@ -113,6 +124,11 @@ export default function BookingForm({
       return;
     }
 
+    if (hasWaiver && !waiverAccepted) {
+      setError("Please read and accept the waiver to continue");
+      return;
+    }
+
     if (!isFree && !paymentMethod) {
       setError("Please select a payment method");
       return;
@@ -146,6 +162,12 @@ export default function BookingForm({
         if (companionData.length > 0) {
           formData.append("companions", JSON.stringify(companionData));
         }
+        if (participantNotes.trim()) {
+          formData.append("participant_notes", participantNotes.trim());
+        }
+        if (waiverAccepted) {
+          formData.append("waiver_accepted_at", new Date().toISOString());
+        }
 
         res = await fetch("/api/bookings", {
           method: "POST",
@@ -161,6 +183,8 @@ export default function BookingForm({
             mode,
             event_distance_id: selectedDistanceId || undefined,
             companions: companionData.length > 0 ? companionData : undefined,
+            participant_notes: participantNotes.trim() || null,
+            waiver_accepted_at: waiverAccepted ? new Date().toISOString() : null,
           }),
         });
       }
@@ -344,9 +368,68 @@ export default function BookingForm({
         </div>
       )}
 
+      {/* Participant Notes */}
+      <div className="space-y-2">
+        <label
+          htmlFor="participant-notes"
+          className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
+        >
+          Notes / special requests{" "}
+          <span className="font-normal text-gray-400 dark:text-gray-500">(optional)</span>
+        </label>
+        <textarea
+          id="participant-notes"
+          value={participantNotes}
+          onChange={(e) => setParticipantNotes(e.target.value)}
+          placeholder="Medical conditions, dietary needs, or special requests..."
+          rows={3}
+          className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-lime-500 focus:outline-none focus:ring-1 focus:ring-lime-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder:text-gray-500 dark:focus:border-lime-400 dark:focus:ring-lime-400"
+        />
+      </div>
+
+      {/* Waiver */}
+      {hasWaiver && (
+        <div className="space-y-3">
+          {waiverAccepted ? (
+            <div className="flex items-center gap-2 rounded-xl border border-green-200 bg-green-50 px-4 py-3 dark:border-green-800 dark:bg-green-950/30">
+              <svg
+                className="h-5 w-5 shrink-0 text-green-600 dark:text-green-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+              <span className="text-sm font-medium text-green-700 dark:text-green-300">
+                Waiver accepted
+              </span>
+            </div>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={() => setShowWaiver(true)}
+                className="w-full rounded-xl border-2 border-dashed border-amber-300 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-700 transition-colors hover:border-amber-400 hover:bg-amber-100 dark:border-amber-700 dark:bg-amber-950/30 dark:text-amber-300 dark:hover:border-amber-600 dark:hover:bg-amber-950/50"
+              >
+                View & Accept Waiver
+              </button>
+              <p className="text-xs text-amber-600 dark:text-amber-400">
+                You must read and accept the event waiver before booking.
+              </p>
+            </>
+          )}
+        </div>
+      )}
+
       {error && <p className="text-sm text-red-500">{error}</p>}
 
-      <Button type="submit" className="w-full" size="lg" disabled={loading}>
+      <Button
+        type="submit"
+        className={cn("w-full", hasWaiver && !waiverAccepted && "cursor-not-allowed opacity-50")}
+        size="lg"
+        disabled={loading || (hasWaiver && !waiverAccepted)}
+      >
         {loading
           ? "Booking..."
           : isFree
@@ -357,6 +440,18 @@ export default function BookingForm({
                 ? "Submit Booking & Proof"
                 : "Confirm Booking"}
       </Button>
+
+      {/* Waiver Modal */}
+      {showWaiver && waiverText && (
+        <WaiverModal
+          waiverHtml={waiverText}
+          onAccept={() => {
+            setWaiverAccepted(true);
+            setShowWaiver(false);
+          }}
+          onClose={() => setShowWaiver(false)}
+        />
+      )}
     </form>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { UserAvatar } from "@/components/ui";
+import { Button, UserAvatar } from "@/components/ui";
 import type { BorderTier } from "@/lib/constants/avatar-borders";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -100,7 +100,38 @@ export default function CheckinList({
     };
   }, [eventId, supabase]);
 
+  const [loadingId, setLoadingId] = useState<string | null>(null);
   const checkedInCount = participants.filter((p) => p.checkedIn).length;
+
+  const handleManualCheckin = async (p: Participant) => {
+    setLoadingId(`${p.type}-${p.id}`);
+    try {
+      const body: Record<string, string> =
+        p.type === "companion"
+          ? { event_id: eventId, companion_id: p.id, force: "true" }
+          : { event_id: eventId, user_id: p.id, force: "true" };
+
+      const res = await fetch("/api/checkins", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (res.ok || res.status === 200) {
+        setParticipants((prev) =>
+          prev.map((item) =>
+            item.type === p.type && item.id === p.id
+              ? { ...item, checkedIn: true, checkedInAt: new Date().toISOString() }
+              : item,
+          ),
+        );
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setLoadingId(null);
+    }
+  };
 
   return (
     <div>
@@ -129,14 +160,18 @@ export default function CheckinList({
               />
               <span className="font-medium dark:text-white">{p.fullName}</span>
             </div>
-            <span
-              className={cn(
-                "text-sm font-medium",
-                p.checkedIn ? "text-forest-600" : "text-gray-400 dark:text-gray-500",
-              )}
-            >
-              {p.checkedIn ? "Checked In" : "Not yet"}
-            </span>
+            {p.checkedIn ? (
+              <span className="text-sm font-medium text-forest-600">Checked In</span>
+            ) : (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleManualCheckin(p)}
+                disabled={loadingId === `${p.type}-${p.id}`}
+              >
+                {loadingId === `${p.type}-${p.id}` ? "..." : "Check In"}
+              </Button>
+            )}
           </div>
         ))}
       </div>

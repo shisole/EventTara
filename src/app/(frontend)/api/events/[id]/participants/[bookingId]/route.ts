@@ -34,21 +34,37 @@ export async function PATCH(
   }
 
   const body = await request.json();
-  const { manualStatus } = body as { manualStatus: "paid" | "reserved" | "pending" };
+  const { manualStatus, organizerNotes } = body as {
+    manualStatus?: "paid" | "reserved" | "pending";
+    organizerNotes?: string;
+  };
 
-  if (!["paid", "reserved", "pending"].includes(manualStatus)) {
-    return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+  // At least one field must be provided
+  if (manualStatus === undefined && organizerNotes === undefined) {
+    return NextResponse.json({ error: "No fields to update" }, { status: 400 });
   }
 
-  const isPaid = manualStatus === "paid";
+  // Build update payload
+  const updateData: Record<string, unknown> = {};
+
+  if (manualStatus !== undefined) {
+    if (!["paid", "reserved", "pending"].includes(manualStatus)) {
+      return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+    }
+    const isPaid = manualStatus === "paid";
+    updateData.manual_status = manualStatus;
+    updateData.status = isPaid ? "confirmed" : "pending";
+    updateData.payment_status = isPaid ? "paid" : "pending";
+  }
+
+  if (organizerNotes !== undefined) {
+    // Allow empty string to clear notes, store as null
+    updateData.organizer_notes = organizerNotes.trim() || null;
+  }
 
   const { data: booking, error } = await supabase
     .from("bookings")
-    .update({
-      manual_status: manualStatus,
-      status: isPaid ? ("confirmed" as const) : ("pending" as const),
-      payment_status: isPaid ? ("paid" as const) : ("pending" as const),
-    })
+    .update(updateData)
     .eq("id", bookingId)
     .eq("event_id", eventId)
     .select("*")
