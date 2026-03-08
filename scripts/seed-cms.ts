@@ -113,7 +113,7 @@ async function seedCMS() {
       organizer_reviews: true,
       events_two_col_mobile: true,
       coming_soon_strava: false,
-      coming_soon_gamification: false,
+      coming_soon_gamification: true,
       coming_soon_bento: false,
       ewallet_payments: false,
       oauth_google: true,
