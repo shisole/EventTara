@@ -19,8 +19,15 @@ const typeLabels: Record<string, string> = {
   trail_run: "Trail Running",
 };
 
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+export async function generateMetadata({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ user?: string }>;
+}) {
   const { id } = await params;
+  const { user: sharedByUsername } = await searchParams;
   const supabase = await createClient();
 
   const { data: badge } = await supabase
@@ -32,9 +39,16 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   if (!badge) return { title: "Badge Not Found" };
 
   const event = (badge as any).events;
-  const title = `${badge.title} — EventTara Badge`;
-  const description =
+
+  // Personalized description for shared links
+  const baseDescription =
     badge.description || `Badge earned at ${event?.title || "an event"} on EventTara.`;
+  const title = sharedByUsername
+    ? `${sharedByUsername} earned "${badge.title}" — EventTara`
+    : `${badge.title} — EventTara Badge`;
+  const description = sharedByUsername
+    ? `${sharedByUsername} earned the ${badge.title} badge on EventTara! ${baseDescription}`
+    : baseDescription;
 
   const hasRealImage = badge.image_url && !badge.image_url.startsWith("preset:");
 
@@ -87,6 +101,54 @@ export default async function BadgeDetailPage({ params }: { params: Promise<{ id
   const {
     data: { user: authUser },
   } = await supabase.auth.getUser();
+
+  // Check if current user earned this badge
+  const isEarned = authUser
+    ? !!(
+        await supabase
+          .from("user_badges")
+          .select("id")
+          .eq("user_id", authUser.id)
+          .eq("badge_id", id)
+          .single()
+      ).data
+    : false;
+
+  // Fetch linked Strava activities for earned badge
+  let stravaActivities: {
+    id: string;
+    name: string;
+    distance: number;
+    date: string;
+    strava_url: string;
+  }[] = [];
+
+  if (isEarned && authUser) {
+    const { data: bookings } = await supabase
+      .from("bookings")
+      .select("id")
+      .eq("user_id", authUser.id)
+      .eq("status", "confirmed");
+
+    const bookingIds = (bookings ?? []).map((b) => b.id);
+
+    if (bookingIds.length > 0) {
+      const { data: activities } = await supabase
+        .from("strava_activities")
+        .select("id, strava_activity_id, name, distance, start_date")
+        .in("booking_id", bookingIds)
+        .order("start_date", { ascending: false })
+        .limit(5);
+
+      stravaActivities = (activities ?? []).map((act) => ({
+        id: act.id,
+        name: act.name,
+        distance: act.distance,
+        date: act.start_date,
+        strava_url: `https://www.strava.com/activities/${String(act.strava_activity_id)}`,
+      }));
+    }
+  }
 
   let canReview = false;
   let hasReviewed = false;
@@ -321,6 +383,34 @@ export default async function BadgeDetailPage({ params }: { params: Promise<{ id
         <p className="text-center text-sm text-gray-500 dark:text-gray-400">
           You&apos;ve already reviewed this event. Thanks!
         </p>
+      )}
+
+      {/* Linked Strava Activities */}
+      {stravaActivities.length > 0 && (
+        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-6">
+          <h2 className="text-lg font-heading font-bold mb-4">Linked Activities</h2>
+          <div className="space-y-3">
+            {stravaActivities.map((activity) => (
+              <a
+                key={activity.id}
+                href={activity.strava_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block p-4 bg-gray-50 dark:bg-gray-800 rounded-lg hover:shadow-md transition-shadow"
+              >
+                <p className="font-semibold">{activity.name}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {activity.distance.toFixed(1)}km &middot;{" "}
+                  {new Date(activity.date).toLocaleDateString("en-PH", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
+                </p>
+              </a>
+            ))}
+          </div>
+        </div>
       )}
 
       {/* Back link */}

@@ -713,6 +713,54 @@ export interface Database {
         };
         Relationships: [];
       };
+      user_badge_showcase: {
+        Row: {
+          id: string;
+          user_id: string;
+          badge_id: string;
+          sort_order: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          badge_id: string;
+          sort_order: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          badge_id?: string;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      badge_shares: {
+        Row: {
+          id: string;
+          badge_id: string;
+          user_id: string;
+          platform: "twitter" | "facebook" | "link_copy";
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          badge_id: string;
+          user_id: string;
+          platform: "twitter" | "facebook" | "link_copy";
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          badge_id?: string;
+          user_id?: string;
+          platform?: "twitter" | "facebook" | "link_copy";
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       user_follows: {
         Row: {
           id: string;
