@@ -1,19 +1,8 @@
-import dynamic from "next/dynamic";
 import Link from "next/link";
 
 import AnimatedLogo from "@/components/landing/AnimatedLogo";
 import HeroCarousel from "@/components/landing/HeroCarousel";
-
-const HostEventLink = dynamic(() => import("@/components/landing/HostEventLink"), {
-  loading: () => (
-    <Link
-      href="/signup?role=organizer"
-      className="inline-flex items-center justify-center font-semibold rounded-xl text-lg py-4 px-8 border-2 border-gray-300 dark:border-slate-600 text-gray-600 dark:text-gray-300 hover:border-lime-500 hover:text-lime-600 dark:hover:text-lime-400 transition-colors"
-    >
-      Host Your Event
-    </Link>
-  ),
-});
+import HostEventLink from "@/components/landing/HostEventLink";
 
 interface HeroSlide {
   image: { url: string; mobileUrl?: string; alt: string };
