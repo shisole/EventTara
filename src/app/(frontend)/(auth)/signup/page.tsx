@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useState, useEffect, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 import { CheckCircleIcon, GoogleIcon, StravaIcon } from "@/components/icons";
 import { Button, Input, OtpCodeInput } from "@/components/ui";
@@ -21,7 +21,6 @@ type AuthMethod = "password" | "otp";
 
 function SignupForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const supabase = createClient();
 
   const [state, setState] = useState<SignupState>("details");
@@ -41,8 +40,6 @@ function SignupForm() {
   // Password fields
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
-  const isOrganizerEntry = searchParams.get("role") === "organizer";
 
   useEffect(() => {
     void supabase.auth.getUser().then(({ data: { user } }) => {
@@ -89,10 +86,6 @@ function SignupForm() {
     }, 400);
   }, []);
 
-  // Organizer fields
-  const [isOrganizer, setIsOrganizer] = useState(isOrganizerEntry);
-  const [orgName, setOrgName] = useState("");
-
   // OTP code state
   const [code, setCode] = useState<string[]>(emptyCode());
   const [oauthGoogle, setOauthGoogle] = useState(false);
@@ -105,10 +98,6 @@ function SignupForm() {
 
   const buildMetadata = () => {
     const metadata: Record<string, string> = { full_name: fullName.trim() };
-    if (isOrganizer) {
-      metadata.role = "organizer";
-      metadata.org_name = orgName.trim();
-    }
     return metadata;
   };
 
@@ -139,22 +128,6 @@ function SignupForm() {
       ? supabase.from("users").update({ username: trimmedUsername }).eq("id", userId)
       : generateUsername(supabase, userId, email));
 
-    if (metadata.role === "organizer" && metadata.org_name) {
-      await supabase.from("users").update({ role: "organizer" }).eq("id", userId);
-
-      const { data: existingProfile } = await supabase
-        .from("organizer_profiles")
-        .select("id")
-        .eq("user_id", userId)
-        .single();
-
-      if (!existingProfile) {
-        await supabase
-          .from("organizer_profiles")
-          .insert({ user_id: userId, org_name: metadata.org_name, is_claimed: true });
-      }
-    }
-
     // Link onboarding quiz response to the new account
     try {
       const anonymousId = localStorage.getItem("quiz_anonymous_id");
@@ -180,11 +153,6 @@ function SignupForm() {
     }
     if (trimmedUsername && usernameStatus === "taken") {
       setError("That username is already taken.");
-      return false;
-    }
-
-    if (isOrganizer && !orgName.trim()) {
-      setError("Organization name is required.");
       return false;
     }
 
@@ -245,7 +213,7 @@ function SignupForm() {
           }
           setState("success");
           setTimeout(() => {
-            router.push(isOrganizer ? "/dashboard" : "/events");
+            router.push("/events");
             router.refresh();
           }, 2000);
         } else {
@@ -308,11 +276,7 @@ function SignupForm() {
       setState("success");
 
       setTimeout(() => {
-        if (isOrganizer) {
-          router.push("/dashboard");
-        } else {
-          router.push("/events");
-        }
+        router.push("/events");
         router.refresh();
       }, 2000);
     } catch {
@@ -410,14 +374,7 @@ function SignupForm() {
 
   return (
     <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md p-8 space-y-6">
-      <h2 className="text-2xl font-heading font-bold text-center">
-        {isOrganizerEntry ? "Host Your Events" : "Join the Adventure!"}
-      </h2>
-      {isOrganizerEntry && (
-        <p className="text-center text-sm text-gray-500 dark:text-gray-400 -mt-2">
-          Create an organizer account to start hosting outdoor adventures
-        </p>
-      )}
+      <h2 className="text-2xl font-heading font-bold text-center">Join the Adventure!</h2>
 
       {oauthGoogle ? (
         <Button
@@ -658,67 +615,13 @@ function SignupForm() {
           </button>
         </div>
 
-        {/* Organizer toggle */}
-        <label className="flex items-center gap-3 cursor-pointer select-none py-1">
-          <div className="relative">
-            <input
-              type="checkbox"
-              checked={isOrganizer}
-              onChange={(e) => {
-                setIsOrganizer(e.target.checked);
-              }}
-              className="sr-only peer"
-            />
-            <div className="w-10 h-6 bg-gray-200 dark:bg-gray-700 rounded-full peer-checked:bg-lime-500 transition-colors" />
-            <div className="absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4" />
-          </div>
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            I want to organize events
-          </span>
-        </label>
-
-        {/* Organizer fields */}
-        <div
-          className={cn(
-            "grid transition-all duration-300 ease-in-out",
-            isOrganizer ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
-          )}
-        >
-          <div className="overflow-hidden">
-            <div className="space-y-4 pt-2 pb-1">
-              <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-3">
-                  Set up your organizer profile
-                </p>
-              </div>
-
-              <Input
-                id="orgName"
-                label="Organization Name"
-                value={orgName}
-                onChange={(e) => {
-                  setOrgName(e.target.value);
-                }}
-                placeholder="e.g. Summit Trail Events"
-                required={isOrganizer}
-              />
-
-              <p className="text-xs text-gray-400 dark:text-gray-500">
-                You can add a logo and description later in your dashboard settings.
-              </p>
-            </div>
-          </div>
-        </div>
-
         {error && <p className="text-sm text-red-500">{error}</p>}
         <Button type="submit" className="w-full" size="lg" disabled={loading}>
           {loading
             ? authMethod === "password"
               ? "Creating account..."
               : "Sending code..."
-            : isOrganizer
-              ? "Create Organizer Account"
-              : "Create Account"}
+            : "Create Account"}
         </Button>
 
         {authMethod === "otp" && (
@@ -737,35 +640,10 @@ function SignupForm() {
           Sign In
         </Link>
       </p>
-      {isOrganizerEntry ? (
-        <p className="text-center text-sm text-gray-500 dark:text-gray-400">
-          Just looking for events?{" "}
-          <Link
-            href="/signup"
-            className="text-lime-600 dark:text-lime-400 hover:text-lime-600 dark:hover:text-lime-400 font-medium"
-          >
-            Sign up as a participant
-          </Link>
-        </p>
-      ) : (
-        <p className="text-center text-sm text-gray-500 dark:text-gray-400">
-          Want to host events?{" "}
-          <Link
-            href="/signup?role=organizer"
-            className="text-lime-600 dark:text-lime-400 hover:text-lime-600 dark:hover:text-lime-400 font-medium"
-          >
-            Sign up as an organizer
-          </Link>
-        </p>
-      )}
     </div>
   );
 }
 
 export default function SignupPage() {
-  return (
-    <Suspense>
-      <SignupForm />
-    </Suspense>
-  );
+  return <SignupForm />;
 }

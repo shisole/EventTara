@@ -51,16 +51,6 @@ export default function LoginPage() {
     });
   }, [supabase, router]);
 
-  const redirectByRole = async (userId: string) => {
-    const { data: profile } = await supabase.from("users").select("role").eq("id", userId).single();
-    if (profile?.role === "organizer") {
-      router.push("/dashboard");
-    } else {
-      router.push("/events");
-    }
-    router.refresh();
-  };
-
   const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -74,7 +64,7 @@ export default function LoginPage() {
     }
 
     try {
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+      const { error: signInError } = await supabase.auth.signInWithPassword({
         email: trimmed,
         password,
       });
@@ -86,12 +76,8 @@ export default function LoginPage() {
 
       setState("success");
       setTimeout(() => {
-        if (data.user) {
-          void redirectByRole(data.user.id);
-        } else {
-          router.push("/events");
-          router.refresh();
-        }
+        router.push("/events");
+        router.refresh();
       }, 2000);
     } catch {
       setError("Something went wrong. Please try again.");
@@ -165,12 +151,8 @@ export default function LoginPage() {
       setState("success");
 
       setTimeout(() => {
-        if (data.user) {
-          void redirectByRole(data.user.id);
-        } else {
-          router.push("/events");
-          router.refresh();
-        }
+        router.push("/events");
+        router.refresh();
       }, 2000);
     } catch {
       setError("Something went wrong. Please try again.");
