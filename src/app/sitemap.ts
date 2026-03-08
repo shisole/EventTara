@@ -41,7 +41,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { data: completedEvents },
     { data: users },
     { data: guides },
-    { data: organizers },
+    { data: clubs },
   ] = await Promise.all([
     // Published events
     supabase
@@ -59,10 +59,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     supabase.from("users").select("username, created_at").not("username", "is", null),
     // Guides
     supabase.from("guides").select("id, created_at").order("created_at", { ascending: false }),
-    // Organizer profiles
+    // Clubs
     supabase
-      .from("organizer_profiles")
-      .select("id, created_at")
+      .from("clubs")
+      .select("slug, created_at")
+      .eq("visibility", "public")
       .order("created_at", { ascending: false }),
   ]);
 
@@ -89,26 +90,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  const organizerPages: MetadataRoute.Sitemap = (organizers || []).map((org) => ({
-    url: `${siteUrl}/organizers/${org.id}`,
-    lastModified: new Date(org.created_at),
+  const clubPages: MetadataRoute.Sitemap = (clubs || []).map((club) => ({
+    url: `${siteUrl}/clubs/${club.slug}`,
+    lastModified: new Date(club.created_at),
     changeFrequency: "weekly" as const,
     priority: 0.7,
   }));
 
-  const organizerReviewPages: MetadataRoute.Sitemap = (organizers || []).map((org) => ({
-    url: `${siteUrl}/organizers/${org.id}/reviews`,
-    lastModified: new Date(org.created_at),
-    changeFrequency: "weekly" as const,
-    priority: 0.6,
-  }));
-
-  return [
-    ...staticPages,
-    ...eventPages,
-    ...profilePages,
-    ...guidePages,
-    ...organizerPages,
-    ...organizerReviewPages,
-  ];
+  return [...staticPages, ...eventPages, ...profilePages, ...guidePages, ...clubPages];
 }

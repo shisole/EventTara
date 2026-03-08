@@ -222,7 +222,7 @@ async function sendReviewRequestEmails(
           userName: u.full_name || "Adventurer",
           eventTitle: event.title,
           eventDate,
-          organizerName: clubName ?? "the event club",
+          clubName: clubName ?? "the event club",
           reviewUrl,
         }),
       }).catch((error_) => {

@@ -167,7 +167,7 @@ export async function POST(request: Request) {
     }
   }
 
-  // Payment warning for organizer scanning unpaid participant
+  // Payment warning for club admin scanning unpaid participant
   if (!isSelfCheckin && paymentStatus !== "paid" && !force) {
     return NextResponse.json(
       {
