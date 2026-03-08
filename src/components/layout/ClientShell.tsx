@@ -20,6 +20,7 @@ const DebugToolPanel = dynamic(() => import("@/components/debug/DebugToolPanel")
 const DemoBanner = dynamic(() => import("@/components/layout/DemoBanner"));
 const MobileDrawer = dynamic(() => import("@/components/layout/MobileDrawer"));
 const ChatBubble = dynamic(() => import("@/components/chat/ChatBubble"), { ssr: false });
+const OnboardingQuizModal = dynamic(() => import("@/components/onboarding/OnboardingQuizModal"));
 const InstallPrompt = dynamic(() => import("@/components/pwa/InstallPrompt"));
 
 const activities = [
@@ -277,6 +278,7 @@ export default function ClientShell({
           onLogout={() => void handleLogout()}
         />
 
+        <OnboardingQuizModal featureFlags={featureFlags} />
         <ChatBubble />
         <InstallPrompt />
         {showDebugPanel && user && (

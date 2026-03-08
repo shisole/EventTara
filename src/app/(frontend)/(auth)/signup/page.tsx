@@ -154,6 +154,20 @@ function SignupForm() {
           .insert({ user_id: userId, org_name: metadata.org_name, is_claimed: true });
       }
     }
+
+    // Link onboarding quiz response to the new account
+    try {
+      const anonymousId = localStorage.getItem("quiz_anonymous_id");
+      if (anonymousId) {
+        void fetch("/api/quiz", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ anonymous_id: anonymousId }),
+        });
+      }
+    } catch {
+      // localStorage unavailable in private browsing
+    }
   };
 
   const validateForm = () => {
