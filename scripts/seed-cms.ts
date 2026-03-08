@@ -10,11 +10,12 @@
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { loadEnvConfig } from "@next/env";
 import { createClient } from "@supabase/supabase-js";
 
+import { loadEnvironment } from "./load-env";
+
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-loadEnvConfig(projectRoot);
+loadEnvironment(projectRoot);
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
