@@ -2033,7 +2033,6 @@ async function createEvents(clubMap: Map<string, string>): Promise<Map<string, s
     const { data, error } = await supabase
       .from("events")
       .insert({
-        organizer_id: clubId,
         club_id: clubId,
         title: event.title,
         description: event.description,

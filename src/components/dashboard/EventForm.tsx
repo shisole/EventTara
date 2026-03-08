@@ -319,17 +319,19 @@ export default function EventForm({ mode, clubId, initialData }: EventFormProps)
       } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: profile } = await supabase
-        .from("organizer_profiles")
-        .select("id")
+      const { data: membership } = await supabase
+        .from("club_members")
+        .select("club_id")
         .eq("user_id", user.id)
+        .in("role", ["owner", "admin", "moderator"])
+        .limit(1)
         .single();
-      if (!profile) return;
+      if (!membership) return;
 
       const { data: events } = await supabase
         .from("events")
         .select("id, title, date, end_date, coordinates, status")
-        .eq("organizer_id", profile.id)
+        .eq("club_id", membership.club_id)
         .in("status", ["draft", "published", "completed"]);
 
       if (!events) return;

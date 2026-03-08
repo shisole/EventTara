@@ -19,9 +19,7 @@ export default async function BookEventPage({
 
   const { data: event } = await supabase
     .from("events")
-    .select(
-      "id, title, date, end_date, price, max_participants, organizer_id, club_id, waiver_text",
-    )
+    .select("id, title, date, end_date, price, max_participants, club_id, waiver_text")
     .eq("id", id)
     .eq("status", "published")
     .single();
@@ -120,35 +118,20 @@ export default async function BookEventPage({
   });
   const spotsLeft = event.max_participants - (totalParticipants || 0);
 
-  // Fetch payment info — prefer club payment info, fall back to organizer profile
+  // Fetch payment info from club
   const hasNonZeroPrice = event.price > 0 || (distancesWithSpots ?? []).some((d) => d.price > 0);
 
   let paymentInfo: { gcash_number?: string; maya_number?: string } | null = null;
-  if (hasNonZeroPrice) {
-    if (event.club_id) {
-      const { data: clubData } = await supabase
-        .from("clubs")
-        .select("payment_info")
-        .eq("id", event.club_id)
-        .single();
-      paymentInfo = clubData?.payment_info as {
-        gcash_number?: string;
-        maya_number?: string;
-      } | null;
-    }
-
-    // Fall back to organizer profile if club has no payment info
-    if (!paymentInfo) {
-      const { data: organizer } = await supabase
-        .from("organizer_profiles")
-        .select("payment_info")
-        .eq("id", event.organizer_id)
-        .single();
-      paymentInfo = organizer?.payment_info as {
-        gcash_number?: string;
-        maya_number?: string;
-      } | null;
-    }
+  if (hasNonZeroPrice && event.club_id) {
+    const { data: clubData } = await supabase
+      .from("clubs")
+      .select("payment_info")
+      .eq("id", event.club_id)
+      .single();
+    paymentInfo = clubData?.payment_info as {
+      gcash_number?: string;
+      maya_number?: string;
+    } | null;
   }
 
   const mode = isFriendMode && existingBooking ? "friend" : "self";

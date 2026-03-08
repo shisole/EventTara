@@ -4,8 +4,6 @@ import Link from "next/link";
 interface OrganizerCardProps {
   /** Club slug for linking to /clubs/[slug] */
   clubSlug?: string;
-  /** Falls back to organizer link if no club slug */
-  organizerId?: string;
   orgName: string;
   logoUrl: string | null;
   eventCount: number;
@@ -13,12 +11,11 @@ interface OrganizerCardProps {
 
 export default function OrganizerCard({
   clubSlug,
-  organizerId,
   orgName,
   logoUrl,
   eventCount,
 }: OrganizerCardProps) {
-  const href = clubSlug ? `/clubs/${clubSlug}` : `/organizers/${organizerId}`;
+  const href = clubSlug ? `/clubs/${clubSlug}` : "#";
   const initial = orgName.charAt(0).toUpperCase();
 
   return (

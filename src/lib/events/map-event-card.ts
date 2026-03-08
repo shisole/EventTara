@@ -16,7 +16,6 @@ export interface EventCardData {
   booking_count: number;
   status: "upcoming" | "happening_now" | "past";
   organizer_name?: string;
-  organizer_id?: string;
   club_id?: string;
   club_name?: string;
   club_slug?: string;
@@ -129,8 +128,7 @@ export function mapEventToCard(
     max_participants: event.max_participants,
     booking_count: event.bookings?.[0]?.count || 0,
     status: getEventStatus(event.date, today),
-    organizer_name: event.clubs?.name ?? event.organizer_profiles?.org_name,
-    organizer_id: event.club_id ?? event.organizer_id,
+    organizer_name: event.clubs?.name,
     club_id: event.club_id ?? undefined,
     club_name: event.clubs?.name ?? undefined,
     club_slug: event.clubs?.slug ?? undefined,

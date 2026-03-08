@@ -28,7 +28,7 @@ export default function PaymentSettingsForm({ profileId, paymentInfo }: PaymentS
     setSuccess(false);
 
     await supabase
-      .from("organizer_profiles")
+      .from("clubs")
       .update({
         payment_info: {
           gcash_number: gcashNumber,

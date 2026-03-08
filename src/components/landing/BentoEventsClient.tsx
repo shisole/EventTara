@@ -56,7 +56,6 @@ function mapApiEventToCard(e: any): EventCardData {
     booking_count: Number(e.booking_count ?? 0),
     status: e.status ?? "upcoming",
     organizer_name: e.organizer_name ?? undefined,
-    organizer_id: e.organizer_id ?? undefined,
     club_id: e.club_id ?? undefined,
     club_name: e.club_name ?? undefined,
     club_slug: e.club_slug ?? undefined,

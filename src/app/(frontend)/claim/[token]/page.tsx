@@ -9,11 +9,22 @@ export default async function ClaimPage({ params }: { params: Promise<{ token: s
   const { token } = await params;
   const supabase = await createClient();
 
-  const { data: profile } = await supabase
+  // TODO: Migrate claim feature to clubs table (add claim_token, claim_expires_at, is_claimed columns)
+  // Legacy read-only path — organizer_profiles table still exists in DB but removed from types
+  const { data: profile } = (await (supabase as any)
     .from("organizer_profiles")
     .select("id, org_name, logo_url, pending_username, claim_expires_at, is_claimed")
     .eq("claim_token", token)
-    .single();
+    .single()) as {
+    data: {
+      id: string;
+      org_name: string;
+      logo_url: string | null;
+      pending_username: string | null;
+      claim_expires_at: string | null;
+      is_claimed: boolean;
+    } | null;
+  };
 
   if (!profile) {
     notFound();

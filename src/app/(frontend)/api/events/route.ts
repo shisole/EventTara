@@ -312,7 +312,6 @@ export async function POST(request: Request) {
     .from("events")
     .insert({
       club_id: clubId,
-      organizer_id: clubId, // backward compat during migration
       title: body.title,
       description: body.description,
       type: body.type,

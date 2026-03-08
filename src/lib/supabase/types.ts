@@ -39,56 +39,10 @@ export interface Database {
         };
         Relationships: [];
       };
-      organizer_profiles: {
-        Row: {
-          id: string;
-          user_id: string | null;
-          org_name: string;
-          description: string | null;
-          logo_url: string | null;
-          payment_info: Json;
-          claim_token: string | null;
-          claim_expires_at: string | null;
-          is_claimed: boolean;
-          pending_username: string | null;
-          is_demo: boolean;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          user_id: string | null;
-          org_name: string;
-          description?: string | null;
-          logo_url?: string | null;
-          payment_info?: Json;
-          claim_token?: string | null;
-          claim_expires_at?: string | null;
-          is_claimed?: boolean;
-          pending_username?: string | null;
-          is_demo?: boolean;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          user_id?: string | null;
-          org_name?: string;
-          description?: string | null;
-          logo_url?: string | null;
-          payment_info?: Json;
-          claim_token?: string | null;
-          claim_expires_at?: string | null;
-          is_claimed?: boolean;
-          pending_username?: string | null;
-          is_demo?: boolean;
-          created_at?: string;
-        };
-        Relationships: [];
-      };
       events: {
         Row: {
           id: string;
-          organizer_id: string;
-          club_id: string | null;
+          club_id: string;
           title: string;
           description: string | null;
           type: "hiking" | "mtb" | "road_bike" | "running" | "trail_run";
@@ -108,8 +62,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
-          organizer_id: string;
-          club_id?: string | null;
+          club_id: string;
           title: string;
           description?: string | null;
           type: "hiking" | "mtb" | "road_bike" | "running" | "trail_run";
@@ -129,8 +82,7 @@ export interface Database {
         };
         Update: {
           id?: string;
-          organizer_id?: string;
-          club_id?: string | null;
+          club_id?: string;
           title?: string;
           description?: string | null;
           type?: "hiking" | "mtb" | "road_bike" | "running" | "trail_run";
