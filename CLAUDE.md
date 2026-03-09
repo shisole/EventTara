@@ -58,7 +58,6 @@ Copy `.env.local.example` to `.env.local` and fill in:
 - `ANTHROPIC_API_KEY` — for AI features
 - `STRAVA_CLIENT_ID`, `STRAVA_CLIENT_SECRET`, `NEXT_PUBLIC_STRAVA_CLIENT_ID` — for Strava integration
 - `STRAVA_WEBHOOK_VERIFY_TOKEN` — random string for Strava webhook validation
-- Confluence vars — only needed for `docs:sync`
 
 ## Architecture
 
@@ -69,13 +68,25 @@ Copy `.env.local.example` to `.env.local` and fill in:
 The app uses Next.js route groups with a nested structure:
 
 - `(frontend)` — parent route group containing all user-facing pages:
-  - `(auth)` — `/login`, `/signup`, `/guest-setup` with a shared centered layout
-  - `(participant)` — `/events`, `/events/[id]`, `/events/[id]/book`, `/my-events`, `/profile/[username]`, `/guides/[id]`, `/about`
-  - `(organizer)` — `/dashboard` and nested pages (`/events`, `/events/new`, `/events/[id]`, `/events/[id]/edit`, `/events/[id]/checkin`, `/settings`)
+  - `(auth)` — `/login`, `/signup`, `/forgot-password`, `/reset-password`, `/guest-setup`, `/setup-username`
+  - `(participant)` — public-facing pages:
+    - `/events`, `/events/[id]`, `/events/[id]/book`
+    - `/clubs`, `/clubs/new`, `/clubs/[slug]`, `/clubs/join/[code]`
+    - `/achievements`, `/badges/[id]`
+    - `/feed`, `/post/[id]`, `/notifications`
+    - `/profile`, `/profile/[username]`
+    - `/guides/[id]`, `/about`, `/contact`
+  - `(organizer)` — `/dashboard` with club-scoped management:
+    - `/dashboard` (overview)
+    - `/dashboard/clubs/[slug]` (club dashboard, events, members, invites, settings)
+    - `/dashboard/events` (legacy all-events view)
+    - `/dashboard/settings`
+- `(admin)` — admin panel at `/admin` with sub-pages: `/admin/clubs`, `/admin/feature-flags`, `/admin/hero`, `/admin/sections`
+- `/claim/[token]` — club claim page for ownership transfer
 
 SEO files (`robots.ts`, `sitemap.ts`, `opengraph-image.tsx`) remain at the `src/app/` root level.
 
-Auth callback at `/auth/callback/route.ts` handles the OAuth code exchange with Supabase.
+Auth callbacks at `/auth/callback/route.ts` (Supabase OAuth) and `/auth/strava/callback/route.ts` (Strava OAuth).
 
 ### Data Layer
 
@@ -86,39 +97,63 @@ All database access goes through Supabase. Two clients exist:
 
 The `src/middleware.ts` runs `updateSession` on every request (excluding static assets) to keep the Supabase session cookie refreshed.
 
-Database types are hand-maintained in `src/lib/supabase/types.ts` (not auto-generated). Key tables: `users`, `organizer_profiles`, `events`, `event_photos`, `bookings`, `badges`, `user_badges`, `event_checkins`, `event_reviews`, `guides`, `event_guides`, `guide_reviews`, plus CMS tables (`cms_site_settings`, `cms_navigation`, `cms_hero_carousel`, `cms_feature_flags`, `cms_pages`). Enum-like columns use strict union types (e.g., `'pending' | 'confirmed' | 'cancelled'`), not `string`.
+Database types are hand-maintained in `src/lib/supabase/types.ts` (not auto-generated). Key tables:
+
+- **Users:** `users`
+- **Clubs:** `clubs`, `club_members`, `club_invites`, `club_reviews`, `club_review_photos`
+- **Events:** `events` (has `club_id` FK), `event_photos`, `event_checkins`, `event_reviews`, `event_guides`, `event_routes`, `event_distances`, `event_mountains`, `mountains`
+- **Bookings:** `bookings`, `booking_companions`
+- **Badges & Gamification:** `badges`, `user_badges`, `badge_shares`, `user_badge_showcase`, `avatar_borders`, `user_avatar_borders`
+- **Social Feed:** `user_follows`, `feed_reactions`, `feed_comments`, `feed_comment_likes`, `feed_reposts`
+- **Notifications:** `notifications`, `push_subscriptions`
+- **Strava:** `strava_connections`, `strava_activities`, `strava_webhook_subscriptions`
+- **CMS:** `cms_site_settings`, `cms_navigation`, `cms_hero_carousel`, `cms_feature_flags`, `cms_pages`, `cms_homepage_sections`
+- **Other:** `guides`, `guide_reviews`, `quiz_responses`, `chat_queries`, `app_testimonials`, `organizer_waitlist`
+
+Enum-like columns use strict union types (e.g., `'pending' | 'confirmed' | 'cancelled'`), not `string`.
 
 ### User Roles
 
-Three roles: `organizer`, `participant`, `guest` (anonymous via Supabase `signInAnonymously`). Guests go through `/guest-setup` after sign-in. When a user first creates an event via `POST /api/events`, an `organizer_profiles` row is auto-created and their `users.role` is updated to `organizer`.
+Four roles: `user`, `participant`, `organizer`, `guest` (anonymous via Supabase `signInAnonymously`). Guests go through `/guest-setup` after sign-in. Events are managed through clubs — when a user creates a club, they become its owner.
+
+**Club roles** (in `club_members`): `owner`, `admin`, `moderator`, `member`. Permissions logic in `src/lib/clubs/permissions.ts`.
+
+### Clubs System
+
+Clubs replaced the old organizer profiles. A club is the organizational unit that owns events.
+
+- **Types & permissions:** `src/lib/clubs/types.ts`, `src/lib/clubs/permissions.ts`
+- **Components:** `src/components/clubs/` — `ClubCard`, `ClubGrid`, `ClubProfileHeader`, `ClubRoleBadge`, `ClubSelector`, `CreateClubForm`, `JoinClubButton`, `JoinViaInviteButton`
+- **Dashboard:** `src/components/dashboard/` — `ClubDashboardSidebar`, `ClubEventsTable`, `ClubMembersList`, `ClubInvitesList`, `ClubSettingsForm`, `ClubSwitcher`
+- **Claim flow:** Admin generates claim tokens → `/claim/[token]` page → user claims club ownership
+- **Invite codes:** `/clubs/join/[code]` for joining via shareable invite links
+- **Ownership transfer:** `/api/clubs/[slug]/transfer-ownership`
 
 ### API Routes
 
 Thin wrappers in `src/app/api/` that authenticate via `createClient()` server-side, then call Supabase directly:
 
-- `GET/POST /api/events` — list/create events (GET supports pagination, filters)
-- `GET/PATCH/DELETE /api/events/[id]` — manage single event
-- `GET/POST/DELETE /api/events/[id]/guides` — event-guide linking (hiking events)
-- `GET /api/guides` — list guides (supports availability check via `check_date` param)
-- `GET /api/guides/[id]` — single guide with events, reviews, and stats
-- `GET/POST /api/guides/[id]/reviews` — guide reviews (POST validates booking + completed event)
-- `POST /api/bookings` — book an event
-- `POST /api/checkins` — record a check-in (QR or manual)
-- `GET/POST /api/badges` — badge management
-- `POST /api/badges/award` — award badge to participants (triggers email via Resend)
-- `GET /api/strava/status` — check Strava connection status
-- `DELETE /api/strava/disconnect` — remove Strava connection
-- `GET /api/strava/activities` — fetch recent Strava activities
-- `POST /api/strava/activities/link` — link Strava activity to booking
-- `DELETE /api/strava/activities/[id]/unlink` — unlink activity
-- `GET/POST/DELETE /api/events/[id]/route-data` — event route management (Strava URL or GPX)
-- `GET/POST /api/webhooks/strava` — Strava webhook (validation + activity events)
-- `POST /api/chat` — AI chat assistant (Coco) powered by Anthropic Claude
-- `GET /api/feed` — activity feed with comments, @mentions, likes
-- `GET/POST /api/waitlist` — organizer waitlist signup + count
-- `GET/POST /api/notifications` — user notifications
-- `GET/POST /api/reactions` — comment reactions/likes
-- `POST /api/follows` — follow/unfollow users
+- **Events:** `GET/POST /api/events`, `GET/PATCH/DELETE /api/events/[id]`, `/api/events/[id]/guides`, `/api/events/[id]/reviews`, `/api/events/[id]/route-data`, `/api/events/[id]/participants`, `/api/events/[id]/payments`
+- **Clubs:** `GET/POST /api/clubs`, `GET/PATCH/DELETE /api/clubs/[slug]`, `/api/clubs/[slug]/members`, `/api/clubs/[slug]/invites`, `/api/clubs/[slug]/reviews`, `/api/clubs/[slug]/transfer-ownership`
+- **Bookings:** `POST /api/bookings`, `/api/bookings/[id]/verify`, `/api/bookings/[id]/participant`
+- **Check-ins:** `POST /api/checkins`
+- **Badges:** `GET/POST /api/badges`, `POST /api/badges/award`, `/api/badges/[id]/share`, `/api/badges/showcase`
+- **Guides:** `GET /api/guides`, `GET /api/guides/[id]`, `/api/guides/[id]/reviews`
+- **Feed:** `GET /api/feed`, `/api/feed/comments`, `/api/feed/reposts`, `/api/reactions`, `/api/follows`
+- **Strava:** `/api/strava/status`, `/api/strava/disconnect`, `/api/strava/activities`, `/api/strava/activities/link`, `/api/strava/activities/[id]/unlink`, `/api/webhooks/strava`
+- **Other:** `POST /api/chat`, `/api/notifications`, `/api/leaderboards`, `/api/quiz`, `/api/claim/[token]`, `/api/contact`, `/api/waitlist`
+- **Admin:** `/api/admin/clubs`, `/api/admin/clubs/[id]/claim-token`, `/api/admin/feature-flags`, `/api/admin/hero-carousel`, `/api/admin/homepage-sections`
+
+### Activity Feed
+
+Social feed (`/feed`) showing user activity. Activity types: `booking`, `checkin`, `badge`, `border`, `review`. Supports likes (`feed_reactions`), comments (`feed_comments`), reposts (`feed_reposts`), and follows (`user_follows`). Individual posts viewable at `/post/[id]`.
+
+### Gamification
+
+- **Badges:** Earned via event participation, check-ins, and milestones. Shareable via `/api/badges/[id]/share`. Badge showcase on profiles via `user_badge_showcase`.
+- **Avatar borders:** Earned via achievements. Users set active border via `/api/users/active-border`. Displayed on avatars throughout the app.
+- **Leaderboards:** Rankings via `/api/leaderboards`. Displayed in `/achievements` page.
+- **Onboarding quiz:** `OnboardingQuizModal` shown to anonymous visitors. Responses stored in `quiz_responses`.
 
 ### Strava Integration
 
@@ -130,9 +165,7 @@ Full Strava integration for activity tracking, verification, and route sharing:
 - **Profile enrichment:** `StravaStatsBar` (distance, activities, elevation) + `StravaActivityFeed` on profile page
 - **Route sharing:** Organizers attach routes via Strava URL or GPX upload, displayed with `RouteMap` (Leaflet)
 - **Client helper:** `src/lib/strava/client.ts` provides `getStravaClient(userId)` with automatic token refresh
-- **Constants/types:** `src/lib/strava/constants.ts` (URLs, scopes, type mapping), `src/lib/strava/types.ts`
 - **Database tables:** `strava_connections`, `strava_activities`, `event_routes`, `strava_webhook_subscriptions`
-- **Env vars:** `STRAVA_CLIENT_ID`, `STRAVA_CLIENT_SECRET`, `NEXT_PUBLIC_STRAVA_CLIENT_ID`, `STRAVA_WEBHOOK_VERIFY_TOKEN`
 
 ### AI Chat Assistant (Coco)
 
@@ -155,8 +188,9 @@ CMS content is stored in Supabase tables (managed via Supabase dashboard):
 - **`cms_site_settings`** — site name, tagline, SEO metadata, nav layout, parallax image
 - **`cms_navigation`** — header links (JSONB), footer tagline/sections/legal links (JSONB)
 - **`cms_hero_carousel`** — hero slides (JSONB array of `{url, alt}`)
-- **`cms_feature_flags`** — boolean toggles (e.g., activity feed)
+- **`cms_feature_flags`** — boolean toggles (e.g., activity feed, onboarding quiz)
 - **`cms_pages`** — dynamic pages (privacy policy, data deletion) with HTML content
+- **`cms_homepage_sections`** — configurable homepage content sections
 
 All singletons use `CHECK (id = 1)`. Public read via RLS. Cached queries in `src/lib/cms/cached.ts` use `unstable_cache` with staggered revalidation (30s–300s). Types in `src/lib/cms/types.ts`.
 

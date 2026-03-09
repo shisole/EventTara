@@ -15,6 +15,82 @@ Adventure event booking platform for the Philippines. Browse, book, and manage o
 - **Testing:** Vitest (unit) + Playwright (E2E)
 - **Activity Tracking:** Strava integration
 
+## Architecture
+
+### System Overview
+
+```mermaid
+graph TB
+    subgraph Client["Client (Browser)"]
+        RC["React 19<br/>Client Components"]
+    end
+
+    subgraph Next["Next.js 15 (App Router)"]
+        MW["Middleware<br/>Session Refresh"]
+        RSC["Server Components<br/>SSR + Streaming"]
+        API["API Routes<br/>/api/*"]
+    end
+
+    subgraph Supabase["Supabase"]
+        AUTH["Auth<br/>OAuth · Email · Anonymous"]
+        DB[("PostgreSQL<br/>RLS Policies")]
+        STORAGE["Storage<br/>Images · Files"]
+    end
+
+    subgraph Services["External Services"]
+        STRAVA["Strava API<br/>OAuth · Activities · Webhooks"]
+        RESEND["Resend<br/>Transactional Email"]
+        CLAUDE["Anthropic Claude<br/>AI Chat (Coco)"]
+    end
+
+    RC -- "fetch / forms" --> API
+    RC -. "client SDK" .-> AUTH
+    MW -- "refresh session" --> AUTH
+    RSC -- "server SDK" --> DB
+    RSC -- "server SDK" --> AUTH
+    API -- "server SDK" --> DB
+    API -- "server SDK" --> STORAGE
+    API -- "OAuth + Webhooks" --> STRAVA
+    API -- "send email" --> RESEND
+    API -- "chat API" --> CLAUDE
+```
+
+### User Journey
+
+```mermaid
+flowchart TD
+    A["Browse Events"] --> B["View Event Details"]
+    B --> C{"Authenticated?"}
+    C -- "No" --> D["Login / Signup / Guest"]
+    D --> E
+    C -- "Yes" --> E["Book Event"]
+    E --> F{"Free Event?"}
+    F -- "Yes" --> G["Auto-confirmed"]
+    F -- "No" --> H["Upload Payment Proof"]
+    H --> I["Organizer Confirms"]
+    G --> J["Event Day"]
+    I --> J
+    J --> K["Check-in<br/>QR Code / Manual"]
+    K --> L["Earn Badge"]
+    K --> M["Link Strava Activity"]
+    L --> N["Write Review"]
+    N --> O["Share on Feed"]
+```
+
+### Branch & Deploy Workflow
+
+```mermaid
+flowchart LR
+    A["Feature Branch"] -- "PR" --> B["Staging"]
+    B -- "CI + Vercel Preview" --> C{"Checks Pass?"}
+    C -- "No" --> A
+    C -- "Yes" --> D["Merge"]
+    D -- "Accumulate PRs" --> E["Promote Workflow<br/>(manual trigger)"]
+    E -- "Verify CI + Vercel" --> F["Fast-forward Main"]
+    F --> G["Reset Staging"]
+    G -. "next cycle" .-> A
+```
+
 ## Getting Started
 
 ### Prerequisites
