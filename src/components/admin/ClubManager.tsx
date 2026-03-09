@@ -364,6 +364,15 @@ export default function ClubManager() {
                           </button>
                         </div>
                       )}
+                      {!club.is_claimed && !club.claim_token && (
+                        <button
+                          onClick={() => handleRegenerateToken(club.id)}
+                          disabled={regeneratingId === club.id}
+                          className="rounded-md bg-teal-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-teal-700 transition-colors disabled:opacity-50"
+                        >
+                          {regeneratingId === club.id ? "..." : "Generate Claim Link"}
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
