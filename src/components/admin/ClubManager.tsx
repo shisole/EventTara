@@ -186,12 +186,15 @@ export default function ClubManager() {
       {showCreate && (
         <form
           onSubmit={handleCreate}
-          className="rounded-xl border border-gray-200 bg-white p-6 space-y-4 dark:border-gray-800 dark:bg-gray-900"
+          className="mx-auto max-w-lg rounded-2xl border border-gray-200 bg-white p-8 dark:border-gray-800 dark:bg-gray-900"
         >
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">New Club</h3>
+          {/* Header */}
+          <h3 className="text-center text-lg font-heading font-bold text-gray-900 dark:text-white mb-6">
+            Create a New Club
+          </h3>
 
-          <div className="flex gap-5">
-            {/* Logo drop zone */}
+          {/* Logo — centered, circular, large (Jakob's Law: familiar avatar pattern) */}
+          <div className="flex flex-col items-center mb-8">
             <div
               onDragOver={(e) => {
                 e.preventDefault();
@@ -201,12 +204,12 @@ export default function ClubManager() {
               onDrop={handleLogoDrop}
               onClick={() => !uploadingLogo && logoInputRef.current?.click()}
               className={cn(
-                "relative flex h-28 w-28 shrink-0 cursor-pointer items-center justify-center rounded-2xl border-2 border-dashed transition-all",
+                "relative flex h-32 w-32 cursor-pointer items-center justify-center rounded-full border-2 border-dashed transition-all",
                 newLogoUrl
-                  ? "border-transparent"
+                  ? "border-transparent shadow-lg"
                   : draggingLogo
-                    ? "border-teal-400 bg-teal-50/50 dark:border-teal-500 dark:bg-teal-950/20"
-                    : "border-gray-300 hover:border-gray-400 dark:border-gray-700 dark:hover:border-gray-600",
+                    ? "border-teal-400 bg-teal-50/50 dark:border-teal-500 dark:bg-teal-950/20 scale-105"
+                    : "border-gray-300 hover:border-teal-400 hover:bg-gray-50 dark:border-gray-700 dark:hover:border-teal-600 dark:hover:bg-gray-800/50",
                 uploadingLogo && "pointer-events-none opacity-60",
               )}
             >
@@ -215,14 +218,29 @@ export default function ClubManager() {
                   <Image
                     src={newLogoUrl}
                     alt="Logo preview"
-                    width={112}
-                    height={112}
-                    className="h-28 w-28 rounded-2xl object-cover"
+                    width={128}
+                    height={128}
+                    className="h-32 w-32 rounded-full object-cover"
                   />
-                  <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-black/0 hover:bg-black/40 transition-colors group">
-                    <span className="text-xs font-medium text-white opacity-0 hover:opacity-100 transition-opacity">
-                      Change
-                    </span>
+                  <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/0 hover:bg-black/40 transition-colors">
+                    <svg
+                      className="h-6 w-6 text-white opacity-0 hover:opacity-100 transition-opacity"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z"
+                      />
+                    </svg>
                   </div>
                   <button
                     type="button"
@@ -230,14 +248,15 @@ export default function ClubManager() {
                       e.stopPropagation();
                       setNewLogoUrl("");
                     }}
-                    className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white text-xs shadow-sm hover:bg-red-600 transition-colors"
+                    className="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white text-xs shadow-md hover:bg-red-600 transition-colors"
+                    aria-label="Remove logo"
                   >
                     &times;
                   </button>
                 </>
               ) : uploadingLogo ? (
-                <div className="flex flex-col items-center gap-1 text-gray-400">
-                  <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none">
+                <div className="flex flex-col items-center gap-1.5 text-gray-400">
+                  <svg className="h-6 w-6 animate-spin" viewBox="0 0 24 24" fill="none">
                     <circle
                       className="opacity-25"
                       cx="12"
@@ -252,12 +271,12 @@ export default function ClubManager() {
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                     />
                   </svg>
-                  <span className="text-[10px]">Uploading...</span>
+                  <span className="text-xs">Uploading...</span>
                 </div>
               ) : (
-                <div className="flex flex-col items-center gap-1.5 text-gray-400 dark:text-gray-500">
+                <div className="flex flex-col items-center gap-2 text-gray-400 dark:text-gray-500">
                   <svg
-                    className="h-6 w-6"
+                    className="h-8 w-8"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -266,14 +285,15 @@ export default function ClubManager() {
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
+                      d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z"
                     />
                   </svg>
-                  <span className="text-[10px] text-center leading-tight">
-                    Drop logo
-                    <br />
-                    or click
-                  </span>
+                  <span className="text-xs font-medium">Upload Logo</span>
                 </div>
               )}
               <input
@@ -287,87 +307,94 @@ export default function ClubManager() {
                 }}
               />
             </div>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
+              Drag &amp; drop or click to upload
+            </p>
+          </div>
 
-            {/* Name + Description stacked */}
-            <div className="flex-1 space-y-3">
-              <div>
-                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                  Name *
-                </label>
-                <input
-                  type="text"
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  required
-                  minLength={2}
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                  placeholder="Club name"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                  Description
-                </label>
-                <textarea
-                  value={newDescription}
-                  onChange={(e) => setNewDescription(e.target.value)}
-                  rows={2}
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                  placeholder="Brief description..."
-                />
-              </div>
+          {/* Identity section (Proximity: name + description grouped) */}
+          <div className="space-y-4 mb-6">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
+                Club Name <span className="text-red-400">*</span>
+              </label>
+              <input
+                type="text"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                required
+                minLength={2}
+                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-colors"
+                placeholder="e.g. Iloilo Trail Runners"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
+                Description
+              </label>
+              <textarea
+                value={newDescription}
+                onChange={(e) => setNewDescription(e.target.value)}
+                rows={2}
+                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-colors resize-none"
+                placeholder="What's your club about?"
+              />
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Activity Types
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {ACTIVITY_OPTIONS.map((activity) => (
-                <button
-                  key={activity}
-                  type="button"
-                  onClick={() => toggleActivity(activity)}
-                  className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                    newActivityTypes.includes(activity)
-                      ? "bg-lime-100 text-lime-800 dark:bg-lime-900/30 dark:text-lime-400"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"
-                  }`}
+          {/* Settings section (Common Region: grouped with divider) */}
+          <div className="border-t border-gray-100 dark:border-gray-800 pt-5 mb-6">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
+                  Activity Types
+                </label>
+                <div className="flex flex-wrap gap-1.5">
+                  {ACTIVITY_OPTIONS.map((activity) => (
+                    <button
+                      key={activity}
+                      type="button"
+                      onClick={() => toggleActivity(activity)}
+                      className={cn(
+                        "rounded-full px-3 py-1.5 text-xs font-medium transition-all",
+                        newActivityTypes.includes(activity)
+                          ? "bg-teal-100 text-teal-800 ring-1 ring-teal-200 dark:bg-teal-900/40 dark:text-teal-300 dark:ring-teal-800"
+                          : "bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700",
+                      )}
+                    >
+                      {activity.replaceAll("_", " ")}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
+                  Visibility
+                </label>
+                <select
+                  value={newVisibility}
+                  onChange={(e) => {
+                    const value: "public" | "private" =
+                      e.target.value === "private" ? "private" : "public";
+                    setNewVisibility(value);
+                  }}
+                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-colors"
                 >
-                  {activity.replaceAll("_", " ")}
-                </button>
-              ))}
+                  <option value="public">Public</option>
+                  <option value="private">Private</option>
+                </select>
+              </div>
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Visibility
-            </label>
-            <select
-              value={newVisibility}
-              onChange={(e) => {
-                const value: "public" | "private" =
-                  e.target.value === "private" ? "private" : "public";
-                setNewVisibility(value);
-              }}
-              className="rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-            >
-              <option value="public">Public</option>
-              <option value="private">Private</option>
-            </select>
-          </div>
-
-          <div className="flex justify-end">
-            <button
-              type="submit"
-              disabled={creating}
-              className="rounded-lg bg-lime-500 px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-lime-400 transition-colors disabled:opacity-50"
-            >
-              {creating ? "Creating..." : "Create & Generate Claim Link"}
-            </button>
-          </div>
+          {/* CTA — full-width, prominent (Von Restorff + Fitts's Law) */}
+          <button
+            type="submit"
+            disabled={creating}
+            className="w-full rounded-xl bg-lime-500 py-3 text-sm font-bold text-gray-900 hover:bg-lime-400 transition-colors disabled:opacity-50"
+          >
+            {creating ? "Creating..." : "Create & Generate Claim Link"}
+          </button>
         </form>
       )}
 
