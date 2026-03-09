@@ -883,7 +883,8 @@ export interface Database {
             | "feed_like"
             | "feed_repost"
             | "feed_comment_like"
-            | "feed_mention";
+            | "feed_mention"
+            | "review_request";
           title: string;
           body: string;
           href: string | null;
@@ -903,7 +904,8 @@ export interface Database {
             | "feed_like"
             | "feed_repost"
             | "feed_comment_like"
-            | "feed_mention";
+            | "feed_mention"
+            | "review_request";
           title: string;
           body: string;
           href?: string | null;
@@ -923,7 +925,8 @@ export interface Database {
             | "feed_like"
             | "feed_repost"
             | "feed_comment_like"
-            | "feed_mention";
+            | "feed_mention"
+            | "review_request";
           title?: string;
           body?: string;
           href?: string | null;
