@@ -1320,6 +1320,9 @@ export interface Database {
           payment_info: Json | null;
           location: string | null;
           is_demo: boolean;
+          claim_token: string | null;
+          claim_expires_at: string | null;
+          is_claimed: boolean;
           created_at: string;
         };
         Insert: {
@@ -1334,6 +1337,9 @@ export interface Database {
           payment_info?: Json | null;
           location?: string | null;
           is_demo?: boolean;
+          claim_token?: string | null;
+          claim_expires_at?: string | null;
+          is_claimed?: boolean;
           created_at?: string;
         };
         Update: {
@@ -1348,6 +1354,9 @@ export interface Database {
           payment_info?: Json | null;
           location?: string | null;
           is_demo?: boolean;
+          claim_token?: string | null;
+          claim_expires_at?: string | null;
+          is_claimed?: boolean;
           created_at?: string;
         };
         Relationships: [];
@@ -1521,6 +1530,10 @@ export interface Database {
       get_total_participants: {
         Args: { p_event_id: string };
         Returns: number;
+      };
+      claim_club: {
+        Args: { p_token: string; p_user_id: string };
+        Returns: Json;
       };
     };
     Enums: Record<never, never>;

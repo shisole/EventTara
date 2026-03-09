@@ -9,33 +9,22 @@ export default async function ClaimPage({ params }: { params: Promise<{ token: s
   const { token } = await params;
   const supabase = await createClient();
 
-  // TODO: Migrate claim feature to clubs table (add claim_token, claim_expires_at, is_claimed columns)
-  // Legacy read-only path — organizer_profiles table still exists in DB but removed from types
-  const { data: profile } = (await (supabase as any)
-    .from("organizer_profiles")
-    .select("id, org_name, logo_url, pending_username, claim_expires_at, is_claimed")
+  const { data: club } = await supabase
+    .from("clubs")
+    .select("id, name, slug, logo_url, claim_expires_at, is_claimed")
     .eq("claim_token", token)
-    .single()) as {
-    data: {
-      id: string;
-      org_name: string;
-      logo_url: string | null;
-      pending_username: string | null;
-      claim_expires_at: string | null;
-      is_claimed: boolean;
-    } | null;
-  };
+    .single();
 
-  if (!profile) {
+  if (!club) {
     notFound();
   }
 
-  const isExpired = profile.claim_expires_at && new Date(profile.claim_expires_at) < new Date();
+  const isExpired = club.claim_expires_at && new Date(club.claim_expires_at) < new Date();
 
   return (
     <div className="min-h-dvh flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4">
       <div className="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-md p-8">
-        {profile.is_claimed ? (
+        {club.is_claimed ? (
           <div className="text-center space-y-4">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
               <svg
@@ -50,8 +39,8 @@ export default async function ClaimPage({ params }: { params: Promise<{ token: s
             </div>
             <h1 className="text-xl font-bold text-gray-900 dark:text-white">Already Claimed</h1>
             <p className="text-gray-600 dark:text-gray-400">
-              This organizer account has already been claimed. If this is your account, you can log
-              in to access your dashboard.
+              This club has already been claimed. If this is your club, you can log in to access
+              your dashboard.
             </p>
             <Link
               href="/login"
@@ -82,9 +71,9 @@ export default async function ClaimPage({ params }: { params: Promise<{ token: s
         ) : (
           <ClaimForm
             token={token}
-            orgName={profile.org_name}
-            logoUrl={profile.logo_url}
-            pendingUsername={profile.pending_username}
+            clubName={club.name}
+            clubSlug={club.slug}
+            logoUrl={club.logo_url}
           />
         )}
       </div>
