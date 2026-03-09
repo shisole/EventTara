@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 
 export async function POST(
   request: NextRequest,
@@ -37,24 +37,26 @@ export async function POST(
       );
     }
 
-    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+    const admin = createServiceClient();
+    const { data: adminUser, error: createError } = await admin.auth.admin.createUser({
       email,
       password,
-      options: { data: { full_name } },
+      email_confirm: true,
+      user_metadata: { full_name },
     });
 
-    if (signUpError) {
-      return NextResponse.json({ error: signUpError.message }, { status: 400 });
+    if (createError) {
+      return NextResponse.json({ error: createError.message }, { status: 400 });
     }
 
-    if (!signUpData.user) {
+    if (!adminUser.user) {
       return NextResponse.json({ error: "Failed to create user" }, { status: 500 });
     }
 
-    userId = signUpData.user.id;
+    userId = adminUser.user.id;
 
-    // Upsert public users row
-    await supabase.from("users").upsert(
+    // Upsert public users row (use admin client — new user has no session yet)
+    await admin.from("users").upsert(
       {
         id: userId,
         email,
