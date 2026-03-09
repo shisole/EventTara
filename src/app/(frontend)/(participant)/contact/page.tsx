@@ -68,7 +68,7 @@ export default function ContactPage() {
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
-            <fieldset disabled={status === "submitting"} className="space-y-6">
+            <fieldset disabled={status === "submitting"} className="min-w-0 space-y-6">
               <Input
                 id="name"
                 label="Name"

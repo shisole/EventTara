@@ -335,7 +335,7 @@ function LoginForm() {
       </div>
 
       <form onSubmit={authMethod === "password" ? handlePasswordLogin : handleOtpSubmit}>
-        <fieldset disabled={loading} className="space-y-4">
+        <fieldset disabled={loading} className="min-w-0 space-y-4">
           <Input
             id="email"
             label="Email"

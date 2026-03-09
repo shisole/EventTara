@@ -503,7 +503,7 @@ export default function AuthReviewModal({
                   : handleOtpSubmit
             }
           >
-            <fieldset disabled={loading} className="space-y-5">
+            <fieldset disabled={loading} className="min-w-0 space-y-5">
               <div className="text-center">
                 <div className="w-14 h-14 bg-teal-100 dark:bg-teal-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
                   <EnvelopeIcon className="w-7 h-7 text-teal-600 dark:text-teal-400" />
@@ -873,7 +873,7 @@ export default function AuthReviewModal({
 
         {state === "guest" && (
           <form onSubmit={handleGuestSubmit}>
-            <fieldset disabled={loading} className="space-y-5">
+            <fieldset disabled={loading} className="min-w-0 space-y-5">
               <div className="text-center">
                 <div className="w-14 h-14 bg-teal-100 dark:bg-teal-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
                   <EnvelopeIcon className="w-7 h-7 text-teal-600 dark:text-teal-400" />

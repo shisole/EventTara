@@ -201,7 +201,7 @@ function SetupUsernameForm() {
       </div>
 
       <form onSubmit={handleSubmit}>
-        <fieldset disabled={loading} className="space-y-4">
+        <fieldset disabled={loading} className="min-w-0 space-y-4">
           <div className="space-y-1">
             <label
               htmlFor="username"

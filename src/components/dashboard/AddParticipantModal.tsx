@@ -252,7 +252,7 @@ export default function AddParticipantModal({
         </div>
 
         <form onSubmit={handleSubmit}>
-          <fieldset disabled={submitting} className="space-y-4">
+          <fieldset disabled={submitting} className="min-w-0 space-y-4">
             {mode === "existing" ? (
               <div ref={dropdownRef} className="relative">
                 <Input

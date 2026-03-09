@@ -692,7 +692,7 @@ export default function EventForm({ mode, clubId, initialData }: EventFormProps)
 
   return (
     <form onSubmit={handleSubmit}>
-      <fieldset disabled={loading} className="space-y-6">
+      <fieldset disabled={loading} className="min-w-0 space-y-6">
         <Input
           id="title"
           label="Event Title"

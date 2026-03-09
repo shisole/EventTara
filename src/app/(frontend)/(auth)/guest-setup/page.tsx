@@ -61,7 +61,7 @@ export default function GuestSetupPage() {
       </div>
 
       <form onSubmit={handleContinue}>
-        <fieldset disabled={loading} className="space-y-6">
+        <fieldset disabled={loading} className="min-w-0 space-y-6">
           <div className="grid grid-cols-4 gap-3">
             {PRESET_AVATARS.map((avatar) => (
               <button

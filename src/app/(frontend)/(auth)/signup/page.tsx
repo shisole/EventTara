@@ -458,7 +458,7 @@ function SignupForm() {
       </div>
 
       <form onSubmit={handleSignup}>
-        <fieldset disabled={loading} className="space-y-4">
+        <fieldset disabled={loading} className="min-w-0 space-y-4">
           <Input
             id="fullName"
             label="Full Name"

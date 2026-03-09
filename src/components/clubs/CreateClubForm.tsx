@@ -72,7 +72,7 @@ export default function CreateClubForm() {
 
   return (
     <form onSubmit={handleSubmit} className="max-w-xl">
-      <fieldset disabled={loading} className="space-y-6">
+      <fieldset disabled={loading} className="min-w-0 space-y-6">
         {error && (
           <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 text-sm">
             {error}

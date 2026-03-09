@@ -44,7 +44,7 @@ export default function PaymentSettingsForm({ profileId, paymentInfo }: PaymentS
 
   return (
     <form onSubmit={handleSubmit}>
-      <fieldset disabled={loading} className="space-y-6">
+      <fieldset disabled={loading} className="min-w-0 space-y-6">
         <Input
           id="gcash"
           label="GCash Number"

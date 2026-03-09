@@ -96,7 +96,7 @@ export default function ClubSettingsForm({ club, isOwner }: ClubSettingsFormProp
 
   return (
     <form onSubmit={handleSubmit}>
-      <fieldset disabled={saving} className="space-y-6">
+      <fieldset disabled={saving} className="min-w-0 space-y-6">
         {error && (
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 text-sm text-red-600 dark:text-red-400">
             {error}

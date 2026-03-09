@@ -243,7 +243,7 @@ export default function AuthBookingModal({
 
         {state === "form" && (
           <form onSubmit={authMethod === "password" ? handlePasswordLogin : handleOtpSubmit}>
-            <fieldset disabled={loading} className="space-y-5">
+            <fieldset disabled={loading} className="min-w-0 space-y-5">
               <div className="text-center">
                 <div className="w-14 h-14 bg-lime-100 dark:bg-lime-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
                   <EnvelopeIcon className="w-7 h-7 text-lime-600 dark:text-lime-400" />

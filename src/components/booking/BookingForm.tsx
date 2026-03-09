@@ -221,7 +221,7 @@ export default function BookingForm({
 
   return (
     <form onSubmit={handleSubmit}>
-      <fieldset disabled={loading} className="space-y-6">
+      <fieldset disabled={loading} className="min-w-0 space-y-6">
         <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
           <h3 className="font-heading font-bold">{eventTitle}</h3>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">

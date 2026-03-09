@@ -79,7 +79,7 @@ export default function ResetPasswordPage() {
       </div>
 
       <form onSubmit={handleSubmit}>
-        <fieldset disabled={loading} className="space-y-4">
+        <fieldset disabled={loading} className="min-w-0 space-y-4">
           <Input
             id="password"
             label="New Password"

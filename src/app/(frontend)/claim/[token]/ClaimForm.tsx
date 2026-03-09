@@ -122,7 +122,7 @@ export default function ClaimForm({ token, orgName, logoUrl, pendingUsername }: 
 
   return (
     <form onSubmit={handleSubmit}>
-      <fieldset disabled={loading} className="space-y-6">
+      <fieldset disabled={loading} className="min-w-0 space-y-6">
         <div className="text-center space-y-3">
           {logoUrl ? (
             <Image
