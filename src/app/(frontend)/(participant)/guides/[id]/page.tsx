@@ -25,7 +25,7 @@ interface GuideEvent {
   max_participants: number;
   booking_count: number;
   status: "upcoming" | "happening_now" | "past";
-  organizer_name?: string;
+  club_name?: string;
 }
 
 interface GuideReview {
@@ -100,7 +100,7 @@ export default async function GuideProfilePage({ params }: { params: Promise<{ i
     const eventIds = eventGuideRows.map((eg) => eg.event_id);
     const { data: eventData } = await supabase
       .from("events")
-      .select("*, bookings(count), organizer_profiles!inner(org_name)")
+      .select("*, bookings(count), clubs(name, slug)")
       .in("id", eventIds)
       .in("status", ["published", "completed"])
       .order("date", { ascending: false });
@@ -117,7 +117,7 @@ export default async function GuideProfilePage({ params }: { params: Promise<{ i
       max_participants: event.max_participants,
       booking_count: (event.bookings as any)?.[0]?.count || 0,
       status: getEventStatus(event.date, today),
-      organizer_name: (event.organizer_profiles as any)?.org_name ?? undefined,
+      club_name: (event.clubs as any)?.name ?? undefined,
     }));
 
     upcomingEvents = allEvents.filter(

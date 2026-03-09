@@ -1,3 +1,5 @@
+// DEPRECATED: Organizer waitlist is no longer needed — clubs are self-service.
+// This route is kept for backward compatibility with the existing organizer_waitlist table.
 import { NextResponse } from "next/server";
 
 import { createClient } from "@/lib/supabase/server";

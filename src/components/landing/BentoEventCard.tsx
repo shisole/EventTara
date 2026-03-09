@@ -96,8 +96,10 @@ export default function BentoEventCard({ event, variant }: BentoEventCardProps) 
             {event.title}
           </h3>
 
-          {event.organizer_name && (
-            <p className="text-sm text-gray-200 mb-1.5">by {event.organizer_name}</p>
+          {(event.club_name || event.organizer_name) && (
+            <p className="text-sm text-gray-200 mb-1.5">
+              by {event.club_name || event.organizer_name}
+            </p>
           )}
 
           {event.avg_rating != null &&

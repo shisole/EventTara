@@ -6,15 +6,15 @@ import { type ReactNode, useRef, useState } from "react";
 import { Copy, Download } from "@/components/icons";
 
 interface ReviewQRCodeProps {
-  organizerId: string;
-  organizerName: string;
+  clubSlug: string;
+  clubName: string;
 }
 
-export default function ReviewQRCode({ organizerId, organizerName }: ReviewQRCodeProps): ReactNode {
+export default function ReviewQRCode({ clubSlug, clubName }: ReviewQRCodeProps): ReactNode {
   const [copied, setCopied] = useState(false);
   const qrRef = useRef<HTMLDivElement>(null);
 
-  const reviewUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://eventtara.com"}/organizers/${organizerId}/reviews`;
+  const reviewUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://eventtara.com"}/clubs/${clubSlug}/reviews`;
 
   const handleDownload = () => {
     const canvas = qrRef.current?.querySelector("canvas");
@@ -22,7 +22,7 @@ export default function ReviewQRCode({ organizerId, organizerName }: ReviewQRCod
 
     const link = document.createElement("a");
     link.href = canvas.toDataURL("image/png");
-    link.download = `${organizerName.trim().replaceAll(/\s+/g, "-").toLowerCase()}-review-qr.png`;
+    link.download = `${clubName.trim().replaceAll(/\s+/g, "-").toLowerCase()}-review-qr.png`;
     document.body.append(link);
     link.click();
     link.remove();

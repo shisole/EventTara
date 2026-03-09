@@ -193,15 +193,7 @@ export async function GET(request: Request) {
       return NextResponse.redirect(`${origin}/login?error=strava_session_failed`);
     }
 
-    // Redirect based on role
-    const { data: profile } = await serviceClient
-      .from("users")
-      .select("role")
-      .eq("id", existingConnection.user_id)
-      .single();
-
-    const redirectUrl = profile?.role === "organizer" ? "/dashboard" : "/events";
-    return NextResponse.redirect(`${origin}${redirectUrl}`);
+    return NextResponse.redirect(`${origin}/events`);
   }
 
   // -------------------------------------------------------------------------
@@ -257,7 +249,7 @@ export async function GET(request: Request) {
         full_name: fullName,
         avatar_url: athlete.profile || athlete.profile_medium || null,
         email: generatedEmail,
-        role: "participant",
+        role: "user",
       }));
 
   // Generate username from Strava username or name

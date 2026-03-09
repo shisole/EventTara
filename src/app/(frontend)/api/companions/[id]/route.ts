@@ -21,12 +21,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     );
   }
 
-  // Get companion with booking and event info to verify organizer
+  // Get companion with booking and event info to verify club permission
   const { data: companion } = await supabase
     .from("booking_companions")
-    .select(
-      "id, full_name, booking_id, bookings:booking_id(event_id, events:event_id(organizer_id, organizer_profiles:organizer_id(user_id)))",
-    )
+    .select("id, full_name, booking_id, bookings:booking_id(event_id, events:event_id(club_id))")
     .eq("id", id)
     .single();
 
@@ -34,9 +32,21 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     return NextResponse.json({ error: "Companion not found" }, { status: 404 });
   }
 
-  // Verify the current user is the organizer
-  const organizerUserId = (companion.bookings as any)?.events?.organizer_profiles?.user_id;
-  if (organizerUserId !== user.id) {
+  // Verify the current user is owner/admin/moderator of the event's club
+  const clubId = (companion.bookings as any)?.events?.club_id;
+  if (!clubId) {
+    return NextResponse.json({ error: "Event has no club" }, { status: 400 });
+  }
+
+  const { data: membership } = await supabase
+    .from("club_members")
+    .select("role")
+    .eq("club_id", clubId)
+    .eq("user_id", user.id)
+    .in("role", ["owner", "admin", "moderator"])
+    .maybeSingle();
+
+  if (!membership) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

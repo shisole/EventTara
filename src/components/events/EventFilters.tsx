@@ -77,7 +77,7 @@ interface FilterOption {
 }
 
 interface EventFiltersProps {
-  organizers?: FilterOption[];
+  clubs?: FilterOption[];
   guides?: FilterOption[];
   onPendingChange?: (pending: boolean) => void;
 }
@@ -524,7 +524,7 @@ function isAllSelected(types: Set<string>): boolean {
 /* ------------------------------------------------------------------ */
 
 export default function EventFilters({
-  organizers = [],
+  clubs = [],
   guides = [],
   onPendingChange,
 }: EventFiltersProps) {
@@ -766,9 +766,9 @@ export default function EventFilters({
 
   const orgLabel =
     draftOrgs.size === 1
-      ? organizers.find((o) => draftOrgs.has(o.id))?.name
+      ? clubs.find((o) => draftOrgs.has(o.id))?.name
       : draftOrgs.size > 1
-        ? `${draftOrgs.size} organizers`
+        ? `${draftOrgs.size} clubs`
         : undefined;
 
   const guideLabel =
@@ -1109,11 +1109,11 @@ export default function EventFilters({
           />
         </FilterChip>
 
-        {/* ---- Organizer chip (multi-select) ---- */}
-        {organizers.length > 0 && (
+        {/* ---- Club chip (multi-select) ---- */}
+        {clubs.length > 0 && (
           <FilterChip
             id="org"
-            label="Organizer"
+            label="Club"
             activeLabel={orgLabel}
             isActive={draftOrgs.size > 0}
             isOpen={openId === "org"}
@@ -1125,7 +1125,7 @@ export default function EventFilters({
             }}
           >
             <div className="p-3 space-y-1 max-h-[200px] overflow-y-auto">
-              {organizers.map((o) => (
+              {clubs.map((o) => (
                 <button
                   key={o.id}
                   type="button"

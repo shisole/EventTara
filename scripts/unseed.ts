@@ -3,7 +3,7 @@
  *
  * Removes all test data created by the seed script.
  * Deletes auth users with @test.eventtara.com emails, which cascades
- * to public.users, organizer_profiles, events, bookings, badges, etc.
+ * to public.users, clubs, club_members, events, bookings, badges, etc.
  *
  * Usage: npm run unseed
  */
@@ -117,8 +117,14 @@ async function main() {
       console.log(`  Skipped bookings.payment_verified_by: ${pvErr.message}`);
     }
 
+    // 4b. Clean club-related tables (club_invites, club_members, clubs)
+    console.log("Cleaning club data...");
+    await supabase.from("club_invites").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    await supabase.from("club_members").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    await supabase.from("clubs").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+
     // 5. Delete each test user (cascades through FK constraints)
-    //    auth.users -> public.users -> organizer_profiles -> events -> bookings,
+    //    auth.users -> public.users -> club_members; clubs -> events -> bookings,
     //    badges, user_badges, event_checkins, event_photos, event_reviews
     console.log("Deleting test accounts and all associated data...\n");
 

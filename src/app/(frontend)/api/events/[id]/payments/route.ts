@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { checkClubPermissionServer, CLUB_PERMISSIONS } from "@/lib/clubs/permissions";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -13,14 +14,24 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Verify organizer owns this event
+  // Fetch event and verify club permission
   const { data: event } = await supabase
     .from("events")
-    .select("id, price, organizer_id, organizer_profiles:organizer_id(user_id)")
+    .select("id, price, club_id")
     .eq("id", id)
     .single();
 
-  if (!event || (event.organizer_profiles as any)?.user_id !== user.id) {
+  if (!event?.club_id) {
+    return NextResponse.json({ error: "Event not found" }, { status: 404 });
+  }
+
+  // Verify user has permission to manage bookings in this club (moderator+)
+  const role = await checkClubPermissionServer(
+    user.id,
+    event.club_id,
+    CLUB_PERMISSIONS.manage_bookings,
+  );
+  if (!role) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

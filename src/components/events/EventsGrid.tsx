@@ -18,8 +18,9 @@ interface EventData {
   max_participants: number;
   booking_count: number;
   status: "upcoming" | "happening_now" | "past";
-  organizer_name?: string;
-  organizer_id?: string;
+  club_name?: string;
+  club_slug?: string;
+  club_logo_url?: string | null;
   coordinates?: { lat: number; lng: number } | null;
   avg_rating?: number;
   review_count?: number;
@@ -90,8 +91,9 @@ export default function EventsGrid({ events, nearbyState, twoColMobile }: Events
             max_participants={event.max_participants}
             booking_count={event.booking_count}
             status={event.status}
-            organizer_name={event.organizer_name}
-            organizer_id={event.organizer_id}
+            club_name={event.club_name}
+            club_slug={event.club_slug}
+            club_logo_url={event.club_logo_url}
             distance={event.distance}
             avg_rating={event.avg_rating}
             review_count={event.review_count}

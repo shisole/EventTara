@@ -16,24 +16,24 @@ export const metadata = {
   description: "Find your next adventure. Browse hiking, biking, running, and trail events.",
 };
 
-/** Fetch organizer options: organizers that have at least one published event */
-async function fetchOrganizerOptions(
+/** Fetch club options: clubs that have at least one published event */
+async function fetchClubOptions(
   supabase: SupabaseClient<Database>,
 ): Promise<{ id: string; name: string }[]> {
   const { data } = await supabase
-    .from("organizer_profiles")
-    .select("id, org_name, events!inner(id)")
+    .from("clubs")
+    .select("id, name, events!inner(id)")
     .eq("events.status", "published");
 
   if (!data) return [];
 
-  // Inner join can return duplicate rows — dedupe by organizer id
+  // Inner join can return duplicate rows — dedupe by club id
   const seen = new Set<string>();
   const result: { id: string; name: string }[] = [];
   for (const row of data) {
     if (!seen.has(row.id)) {
       seen.add(row.id);
-      result.push({ id: row.id, name: row.org_name });
+      result.push({ id: row.id, name: row.name });
     }
   }
   return result;
@@ -94,7 +94,7 @@ export default async function EventsPage({
   // Data query for first batch
   let dataQuery = supabase
     .from("events")
-    .select("*, bookings(count), organizer_profiles!inner(org_name)")
+    .select("*, bookings(count), clubs(name, slug, logo_url)")
     .in("status", ["published", "completed"])
     .order("date", { ascending: true });
 
@@ -135,29 +135,29 @@ export default async function EventsPage({
   if (params.search) {
     const pattern = params.search.trim().replaceAll(/\s+/g, "%");
 
-    // Also match organizer names
-    const { data: matchingOrgs } = await supabase
-      .from("organizer_profiles")
+    // Also match club names
+    const { data: matchingClubs } = await supabase
+      .from("clubs")
       .select("id")
-      .ilike("org_name", `%${pattern}%`);
-    const orgIds = matchingOrgs?.map((o) => o.id) ?? [];
+      .ilike("name", `%${pattern}%`);
+    const clubIds = matchingClubs?.map((c) => c.id) ?? [];
 
     let filter = `title.ilike.%${pattern}%,location.ilike.%${pattern}%`;
-    if (orgIds.length > 0) {
-      filter += `,organizer_id.in.(${orgIds.join(",")})`;
+    if (clubIds.length > 0) {
+      filter += `,club_id.in.(${clubIds.join(",")})`;
     }
     countQuery = countQuery.or(filter);
     dataQuery = dataQuery.or(filter);
   }
 
   if (params.org) {
-    const orgs = params.org.split(",").filter(Boolean);
-    if (orgs.length === 1) {
-      countQuery = countQuery.eq("organizer_id", orgs[0]);
-      dataQuery = dataQuery.eq("organizer_id", orgs[0]);
-    } else if (orgs.length > 1) {
-      countQuery = countQuery.in("organizer_id", orgs);
-      dataQuery = dataQuery.in("organizer_id", orgs);
+    const clubs = params.org.split(",").filter(Boolean);
+    if (clubs.length === 1) {
+      countQuery = countQuery.eq("club_id", clubs[0]);
+      dataQuery = dataQuery.eq("club_id", clubs[0]);
+    } else if (clubs.length > 1) {
+      countQuery = countQuery.in("club_id", clubs);
+      dataQuery = dataQuery.in("club_id", clubs);
     }
   }
 
@@ -183,17 +183,12 @@ export default async function EventsPage({
     const eventIds = links?.map((l) => l.event_id) ?? [];
     if (eventIds.length === 0) {
       // No events linked to this guide — short-circuit with empty results
-      const organizers = await fetchOrganizerOptions(supabase);
+      const clubs = await fetchClubOptions(supabase);
       const guides = await fetchGuideOptions(supabase);
       return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Breadcrumbs />
-          <EventsPageClient
-            initialEvents={[]}
-            totalCount={0}
-            organizers={organizers}
-            guides={guides}
-          />
+          <EventsPageClient initialEvents={[]} totalCount={0} clubs={clubs} guides={guides} />
         </div>
       );
     }
@@ -212,17 +207,12 @@ export default async function EventsPage({
 
     const distEventIds = distLinks?.map((l) => l.event_id) ?? [];
     if (distEventIds.length === 0) {
-      const organizers = await fetchOrganizerOptions(supabase);
+      const clubs = await fetchClubOptions(supabase);
       const guides = await fetchGuideOptions(supabase);
       return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Breadcrumbs />
-          <EventsPageClient
-            initialEvents={[]}
-            totalCount={0}
-            organizers={organizers}
-            guides={guides}
-          />
+          <EventsPageClient initialEvents={[]} totalCount={0} clubs={clubs} guides={guides} />
         </div>
       );
     }
@@ -286,8 +276,8 @@ export default async function EventsPage({
   }
 
   // Fetch filter dropdown options + feature flags in parallel
-  const [organizers, guides, twoColMobile] = await Promise.all([
-    fetchOrganizerOptions(supabase),
+  const [clubs, guides, twoColMobile] = await Promise.all([
+    fetchClubOptions(supabase),
     fetchGuideOptions(supabase),
     isEventsTwoColMobileEnabled(),
   ]);
@@ -298,7 +288,7 @@ export default async function EventsPage({
       <EventsPageClient
         initialEvents={gridEvents}
         totalCount={totalCount}
-        organizers={organizers}
+        clubs={clubs}
         guides={guides}
         initialUsers={matchingUsers}
         twoColMobile={twoColMobile}

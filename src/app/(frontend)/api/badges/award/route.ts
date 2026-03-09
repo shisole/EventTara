@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { checkClubPermissionServer } from "@/lib/clubs/permissions";
 import { sendEmail } from "@/lib/email/send";
 import { badgeAwardedHtml } from "@/lib/email/templates/badge-awarded";
 import { createNotifications } from "@/lib/notifications/create";
@@ -109,7 +110,7 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "Missing badge_id or user_id" }, { status: 400 });
   }
 
-  // Fetch badge to verify it's an event badge and caller is the organizer
+  // Fetch badge to verify it's an event badge and caller has club permission
   const { data: badge } = await supabase
     .from("badges")
     .select("id, event_id")
@@ -124,16 +125,21 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "Cannot revoke system badges" }, { status: 403 });
   }
 
-  // Verify caller is the event organizer
+  // Get the event's club_id and verify caller has club permission
   const { data: event } = await supabase
     .from("events")
-    .select("organizer_id")
+    .select("club_id")
     .eq("id", badge.event_id)
     .single();
 
-  if (event?.organizer_id !== user.id) {
+  if (!event?.club_id) {
+    return NextResponse.json({ error: "Event not found" }, { status: 404 });
+  }
+
+  const role = await checkClubPermissionServer(user.id, event.club_id, "moderator");
+  if (!role) {
     return NextResponse.json(
-      { error: "Only the event organizer can revoke badges" },
+      { error: "You do not have permission to revoke badges for this event" },
       { status: 403 },
     );
   }

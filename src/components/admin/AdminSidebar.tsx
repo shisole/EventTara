@@ -10,7 +10,7 @@ const navItems = [
   { href: "/admin/feature-flags", label: "Feature Flags", icon: "flag" },
   { href: "/admin/hero", label: "Hero Banners", icon: "image" },
   { href: "/admin/sections", label: "Sections", icon: "layers" },
-  { href: "/admin/organizers", label: "Organizers", icon: "users" },
+  { href: "/admin/clubs", label: "Clubs", icon: "users" },
 ] as const;
 
 function NavIcon({ icon }: { icon: (typeof navItems)[number]["icon"] }) {

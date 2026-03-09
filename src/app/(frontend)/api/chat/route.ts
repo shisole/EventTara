@@ -131,12 +131,12 @@ export async function POST(request: Request) {
   if (parsed.search) {
     const pattern = parsed.search.trim().replaceAll(/\s+/g, "%");
 
-    // Also match organizer names (same pattern as /api/events)
-    const { data: matchingOrgs } = await supabase
-      .from("organizer_profiles")
+    // Also match club names (same pattern as /api/events)
+    const { data: matchingClubs } = await supabase
+      .from("clubs")
       .select("id")
-      .ilike("org_name", `%${pattern}%`);
-    const orgIds = matchingOrgs?.map((o) => o.id) ?? [];
+      .ilike("name", `%${pattern}%`);
+    const clubIds = matchingClubs?.map((c) => c.id) ?? [];
 
     // Also match guide names → get their linked event IDs
     const { data: matchingGuides } = await supabase
@@ -154,8 +154,8 @@ export async function POST(request: Request) {
     }
 
     let filter = `title.ilike.%${pattern}%,location.ilike.%${pattern}%`;
-    if (orgIds.length > 0) {
-      filter += `,organizer_id.in.(${orgIds.join(",")})`;
+    if (clubIds.length > 0) {
+      filter += `,club_id.in.(${clubIds.join(",")})`;
     }
     if (guideEventIds.length > 0) {
       filter += `,id.in.(${guideEventIds.join(",")})`;

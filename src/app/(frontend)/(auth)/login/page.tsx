@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 
 import { CheckCircleIcon, GoogleIcon, StravaIcon } from "@/components/icons";
 import { Button, Input, OtpCodeInput } from "@/components/ui";
@@ -16,8 +16,10 @@ const emptyCode = () => Array.from<string>({ length: CODE_LENGTH }).fill("");
 type LoginState = "form" | "verify-code" | "success";
 type AuthMethod = "password" | "otp";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next") || "/events";
   const supabase = createClient();
   const [state, setState] = useState<LoginState>("form");
   const [email, setEmail] = useState("");
@@ -51,16 +53,6 @@ export default function LoginPage() {
     });
   }, [supabase, router]);
 
-  const redirectByRole = async (userId: string) => {
-    const { data: profile } = await supabase.from("users").select("role").eq("id", userId).single();
-    if (profile?.role === "organizer") {
-      router.push("/dashboard");
-    } else {
-      router.push("/events");
-    }
-    router.refresh();
-  };
-
   const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -74,7 +66,7 @@ export default function LoginPage() {
     }
 
     try {
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+      const { error: signInError } = await supabase.auth.signInWithPassword({
         email: trimmed,
         password,
       });
@@ -86,12 +78,8 @@ export default function LoginPage() {
 
       setState("success");
       setTimeout(() => {
-        if (data.user) {
-          void redirectByRole(data.user.id);
-        } else {
-          router.push("/events");
-          router.refresh();
-        }
+        router.push(next);
+        router.refresh();
       }, 2000);
     } catch {
       setError("Something went wrong. Please try again.");
@@ -165,12 +153,8 @@ export default function LoginPage() {
       setState("success");
 
       setTimeout(() => {
-        if (data.user) {
-          void redirectByRole(data.user.id);
-        } else {
-          router.push("/events");
-          router.refresh();
-        }
+        router.push(next);
+        router.refresh();
       }, 2000);
     } catch {
       setError("Something went wrong. Please try again.");
@@ -218,7 +202,7 @@ export default function LoginPage() {
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${globalThis.location.origin}/auth/callback`,
+        redirectTo: `${globalThis.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
       },
     });
     if (oauthError) {
@@ -328,7 +312,7 @@ export default function LoginPage() {
               redirect_uri: `${globalThis.location.origin}/auth/strava/callback`,
               response_type: "code",
               scope: STRAVA_SCOPES.join(","),
-              state: JSON.stringify({ flow: "login", returnUrl: "/events" }),
+              state: JSON.stringify({ flow: "login", returnUrl: next }),
               approval_prompt: "auto",
             });
             globalThis.location.href = `${STRAVA_AUTH_URL}?${params.toString()}`;
@@ -427,7 +411,7 @@ export default function LoginPage() {
         <p className="text-sm text-gray-500 dark:text-gray-400">
           Don&apos;t have an account?{" "}
           <Link
-            href="/signup"
+            href={next === "/events" ? "/signup" : `/signup?next=${encodeURIComponent(next)}`}
             className="text-lime-600 dark:text-lime-400 hover:text-lime-600 dark:hover:text-lime-400 font-medium"
           >
             Sign Up
@@ -441,5 +425,13 @@ export default function LoginPage() {
         </button>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 }

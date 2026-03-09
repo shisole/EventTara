@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import { NextResponse } from "next/server";
 
+import { checkClubPermissionServer, CLUB_PERMISSIONS } from "@/lib/clubs/permissions";
 import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -15,25 +16,25 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Verify user is the organizer (organizer_id references organizer_profiles, not users)
-  const { data: orgProfile } = await supabase
-    .from("organizer_profiles")
-    .select("id")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
+  // Fetch event and verify club permission
   const { data: event } = await supabase
     .from("events")
-    .select("id, organizer_id, max_participants, price")
+    .select("id, club_id, max_participants, price")
     .eq("id", eventId)
     .single();
 
-  if (!event) {
+  if (!event?.club_id) {
     return NextResponse.json({ error: "Event not found" }, { status: 404 });
   }
 
-  if (event.organizer_id !== orgProfile?.id) {
-    return NextResponse.json({ error: "Not authorized" }, { status: 403 });
+  // Verify user has permission to manage bookings in this club (moderator+)
+  const role = await checkClubPermissionServer(
+    user.id,
+    event.club_id,
+    CLUB_PERMISSIONS.manage_bookings,
+  );
+  if (!role) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const body = await request.json();

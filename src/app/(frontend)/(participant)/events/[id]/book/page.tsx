@@ -17,12 +17,16 @@ export default async function BookEventPage({
   const isFriendMode = search.for === "friend";
   const supabase = await createClient();
 
-  const { data: event } = await supabase
+  const { data: event, error: eventError } = await supabase
     .from("events")
-    .select("id, title, date, end_date, price, max_participants, organizer_id, waiver_text")
+    .select("id, title, date, end_date, price, max_participants, club_id, waiver_text")
     .eq("id", id)
     .eq("status", "published")
     .single();
+
+  if (eventError) {
+    console.error("Book page event query error:", eventError.message, eventError.code);
+  }
 
   if (!event) notFound();
 
@@ -118,18 +122,17 @@ export default async function BookEventPage({
   });
   const spotsLeft = event.max_participants - (totalParticipants || 0);
 
-  // Fetch organizer payment info — check if any distance has a non-zero price too
+  // Fetch payment info from club
   const hasNonZeroPrice = event.price > 0 || (distancesWithSpots ?? []).some((d) => d.price > 0);
 
-  let organizerPaymentInfo = null;
-  if (hasNonZeroPrice) {
-    const { data: organizer } = await supabase
-      .from("organizer_profiles")
+  let paymentInfo: { gcash_number?: string; maya_number?: string } | null = null;
+  if (hasNonZeroPrice && event.club_id) {
+    const { data: clubData } = await supabase
+      .from("clubs")
       .select("payment_info")
-      .eq("id", event.organizer_id)
+      .eq("id", event.club_id)
       .single();
-
-    organizerPaymentInfo = organizer?.payment_info as {
+    paymentInfo = clubData?.payment_info as {
       gcash_number?: string;
       maya_number?: string;
     } | null;
@@ -152,7 +155,7 @@ export default async function BookEventPage({
           eventDate={event.date}
           eventEndDate={event.end_date}
           price={event.price}
-          organizerPaymentInfo={organizerPaymentInfo}
+          paymentInfo={paymentInfo}
           spotsLeft={spotsLeft}
           distances={distancesWithSpots}
           mode={mode}

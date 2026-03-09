@@ -78,7 +78,7 @@ interface TestUser {
   password: string;
   full_name: string;
   username: string;
-  role: "organizer" | "participant" | "guest";
+  role: "user" | "guest";
   is_guest?: boolean;
   avatar_url?: string | null;
 }
@@ -89,7 +89,7 @@ const TEST_USERS: TestUser[] = [
     password: DEFAULT_PASSWORD,
     full_name: "Marco Santos",
     username: "marco_trails",
-    role: "organizer",
+    role: "user",
     avatar_url:
       "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
   },
@@ -98,7 +98,7 @@ const TEST_USERS: TestUser[] = [
     password: DEFAULT_PASSWORD,
     full_name: "Ana Reyes",
     username: "ana_pedal",
-    role: "organizer",
+    role: "user",
     avatar_url:
       "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=face",
   },
@@ -107,21 +107,21 @@ const TEST_USERS: TestUser[] = [
     password: DEFAULT_PASSWORD,
     full_name: "Jake Mendoza",
     username: "jake_adventure",
-    role: "participant",
+    role: "user",
   },
   {
     email: `participant2${TEST_EMAIL_DOMAIN}`,
     password: DEFAULT_PASSWORD,
     full_name: "Maria Cruz",
     username: "maria_explorer",
-    role: "participant",
+    role: "user",
   },
   {
     email: `participant3${TEST_EMAIL_DOMAIN}`,
     password: DEFAULT_PASSWORD,
     full_name: "Carlos Rivera",
     username: "carlos_hiker",
-    role: "participant",
+    role: "user",
   },
   {
     email: `guest${TEST_EMAIL_DOMAIN}`,
@@ -137,7 +137,7 @@ const TEST_USERS: TestUser[] = [
     password: DEFAULT_PASSWORD,
     full_name: "Jay Tablatin",
     username: "jtt_trails",
-    role: "organizer",
+    role: "user",
     avatar_url:
       "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face",
   },
@@ -146,7 +146,7 @@ const TEST_USERS: TestUser[] = [
     password: DEFAULT_PASSWORD,
     full_name: "Teri Magbanua",
     username: "ftt_treks",
-    role: "organizer",
+    role: "user",
     avatar_url:
       "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop&crop=face",
   },
@@ -155,7 +155,7 @@ const TEST_USERS: TestUser[] = [
     password: DEFAULT_PASSWORD,
     full_name: "Yen Casimiro",
     username: "yenergy_out",
-    role: "organizer",
+    role: "user",
     avatar_url:
       "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop&crop=face",
   },
@@ -164,61 +164,75 @@ const TEST_USERS: TestUser[] = [
     password: DEFAULT_PASSWORD,
     full_name: "Ruben Torres",
     username: "ruborubo",
-    role: "organizer",
+    role: "user",
     avatar_url:
       "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop&crop=face",
   },
 ];
 
-interface OrgProfile {
+interface ClubDef {
   ownerEmail: string;
-  org_name: string;
+  name: string;
+  slug: string;
   description: string;
   logo_url: string;
+  visibility: "public";
 }
 
-const ORGANIZER_PROFILES: OrgProfile[] = [
+const CLUBS: ClubDef[] = [
   {
     ownerEmail: `organizer1${TEST_EMAIL_DOMAIN}`,
-    org_name: "Panay Trail Collective",
+    name: "Panay Trail Collective",
+    slug: "panay-trail-collective",
     description:
       "Exploring the mountains and trails of Panay Island — from the highlands of Igbaras and Tubungan to the summit of Mt. Madja-as. We organize hiking, trail running, and outdoor adventures across Iloilo, Antique, and beyond.",
     logo_url: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=200&h=200&fit=crop",
+    visibility: "public",
   },
   {
     ownerEmail: `organizer2${TEST_EMAIL_DOMAIN}`,
-    org_name: "Iloilo Pedal Club",
+    name: "Iloilo Pedal Club",
+    slug: "iloilo-pedal-club",
     description:
       "Road cycling and mountain biking events across Panay Island. From the coastal roads of Iloilo-Antique to the highland trails of Tubungan and Guimaras, we bring the Western Visayas cycling community together.",
     logo_url: "https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=200&h=200&fit=crop",
+    visibility: "public",
   },
   {
     ownerEmail: `organizer3${TEST_EMAIL_DOMAIN}`,
-    org_name: "JTT (Journey Through Trails)",
+    name: "JTT (Journey Through Trails)",
+    slug: "jtt-journey-through-trails",
     description:
       "Journey Through Trails — discovering the hidden paths of Panay Island one trail at a time. We organize weekend hikes, multi-day treks, and trail exploration events across Iloilo, Antique, and Capiz.",
     logo_url: "https://images.unsplash.com/photo-1501555088652-021faa106b9b?w=200&h=200&fit=crop",
+    visibility: "public",
   },
   {
     ownerEmail: `organizer4${TEST_EMAIL_DOMAIN}`,
-    org_name: "Five Tersty Trekkers",
+    name: "Five Tersty Trekkers",
+    slug: "five-tersty-trekkers",
     description:
       "Five friends turned trail community — Five Tersty Trekkers brings the fun to every mountain adventure. From Igbaras to Antique, we hike with energy, laughter, and lots of water (we're always thirsty!).",
     logo_url: "https://images.unsplash.com/photo-1522163182402-834f871fd851?w=200&h=200&fit=crop",
+    visibility: "public",
   },
   {
     ownerEmail: `organizer5${TEST_EMAIL_DOMAIN}`,
-    org_name: "Yenergy Outdoors",
+    name: "Yenergy Outdoors",
+    slug: "yenergy-outdoors",
     description:
       "Fueled by positive energy! Yenergy Outdoors organizes hiking, trail running, and outdoor fitness events across Western Visayas. We believe every mountain is a chance to recharge your soul.",
     logo_url: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=200&h=200&fit=crop",
+    visibility: "public",
   },
   {
     ownerEmail: `organizer6${TEST_EMAIL_DOMAIN}`,
-    org_name: "Rubo-rubo Lang",
+    name: "Rubo-rubo Lang",
+    slug: "rubo-rubo-lang",
     description:
       "Rubo-rubo lang — just wandering! A laid-back hiking community that explores the trails of Panay at our own pace. No pressure, no rush. Just good vibes, good views, and good company.",
     logo_url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=200&h=200&fit=crop",
+    visibility: "public",
   },
 ];
 
@@ -300,7 +314,7 @@ const HIKING_EVENT_MOUNTAINS: Record<string, string[]> = {
 };
 
 interface TestEvent {
-  orgProfileName: string;
+  clubName: string;
   title: string;
   description: string;
   type: "hiking" | "mtb" | "road_bike" | "running" | "trail_run";
@@ -315,9 +329,9 @@ interface TestEvent {
 }
 
 const TEST_EVENTS: TestEvent[] = [
-  // ---- Organizer 1: Panay Trail Collective ----
+  // ---- Club 1: Panay Trail Collective ----
   {
-    orgProfileName: "Panay Trail Collective",
+    clubName: "Panay Trail Collective",
     title: "Mt. Madja-as Summit Trek",
     description:
       "Conquer the highest peak on Panay Island! This 2-day guided trek to the summit of Mt. Madja-as (2,117m) in Antique takes you through mossy forest, cloud forest, and exposed ridgelines with panoramic views of the Visayan Sea. Includes guide, porter, campsite fee, and meals. Bring cold-weather gear — summit temperatures can drop to single digits!",
@@ -331,7 +345,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.hiking,
   },
   {
-    orgProfileName: "Panay Trail Collective",
+    clubName: "Panay Trail Collective",
     title: "Bucari Pine Forest Trail Run",
     description:
       "Run through the pine-covered highlands of Bucari in Leon, Iloilo. This scenic 15K trail run winds through rolling hills of Benguet pine trees at 900m elevation — a cool escape from the Iloilo heat. Includes hydration stations, finisher medal, and a post-run bonfire. One of the most unique trail running experiences in the Visayas.",
@@ -349,7 +363,7 @@ const TEST_EVENTS: TestEvent[] = [
     ],
   },
   {
-    orgProfileName: "Panay Trail Collective",
+    clubName: "Panay Trail Collective",
     title: "Igbaras Mountain Day Hike",
     description:
       "Explore the lush mountains of Igbaras, the hiking capital of Iloilo. This beginner-friendly day hike takes you past Nadsadan Falls and through dense tropical forest to a scenic ridge overlooking the town and the Panay Gulf. Perfect for first-timers. Includes guide, lunch, and river dip at the falls.",
@@ -363,7 +377,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.hiking_alt,
   },
   {
-    orgProfileName: "Panay Trail Collective",
+    clubName: "Panay Trail Collective",
     title: "Mt. Nangtud Expedition",
     description:
       "Attempt the second highest peak in Panay — Mt. Nangtud (2,073m) in the deep mountains of Antique. This 3-day expedition through virgin forest and steep ridges is strictly for experienced mountaineers. All-inclusive: guides, porters, camping gear, and all meals from basecamp to summit.",
@@ -376,9 +390,9 @@ const TEST_EVENTS: TestEvent[] = [
     status: "draft",
     cover_image_url: COVER_IMAGES.trail_run_alt,
   },
-  // ---- Organizer 2: Iloilo Pedal Club ----
+  // ---- Club 2: Iloilo Pedal Club ----
   {
-    orgProfileName: "Iloilo Pedal Club",
+    clubName: "Iloilo Pedal Club",
     title: "Iloilo-Antique Coastal Road Ride",
     description:
       "Ride the stunning coastal road from Iloilo City to San Jose de Buenavista, Antique. This 120km road cycling event hugs the coastline through Miag-ao, San Joaquin, and the scenic mountain passes of southern Iloilo. Includes SAG support vehicle, hydration stops every 25km, and a seafood feast in Antique. Road bikes recommended.",
@@ -396,7 +410,7 @@ const TEST_EVENTS: TestEvent[] = [
     ],
   },
   {
-    orgProfileName: "Iloilo Pedal Club",
+    clubName: "Iloilo Pedal Club",
     title: "Tubungan Highlands MTB",
     description:
       "Take on the highland trails of Tubungan, Iloilo on a mountain bike. Rolling single tracks through farmlands, river crossings, and steep climbs with rewarding views of the surrounding mountains. This intermediate-level MTB event includes mechanical support, local lunch, and a cold spring dip. Hardtail or full-suspension recommended.",
@@ -410,7 +424,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.mtb,
   },
   {
-    orgProfileName: "Iloilo Pedal Club",
+    clubName: "Iloilo Pedal Club",
     title: "Iloilo Esplanade Night Run 10K",
     description:
       "Run the iconic Iloilo Esplanade at night! This 10K night run takes you along the beautifully lit riverside boardwalk, through the streets of Mandurriao, and past the Iloilo Business Park. Open to all fitness levels. Includes race kit, LED armband, finisher medal, and post-run street food festival. The best way to experience Iloilo City after dark.",
@@ -429,7 +443,7 @@ const TEST_EVENTS: TestEvent[] = [
     ],
   },
   {
-    orgProfileName: "Iloilo Pedal Club",
+    clubName: "Iloilo Pedal Club",
     title: "Guimaras Island MTB Adventure",
     description:
       "Cross the Iloilo Strait by boat and explore Guimaras Island on mountain bikes. Scenic coastal trails, mango plantation roads, and rolling hills make this a unique island MTB experience. Includes boat transfer, park entrance, lunch, and mechanical support. Don't miss the fresh mangoes at the finish!",
@@ -445,7 +459,7 @@ const TEST_EVENTS: TestEvent[] = [
   // ---- Past / Completed Events ----
   // Panay Trail Collective
   {
-    orgProfileName: "Panay Trail Collective",
+    clubName: "Panay Trail Collective",
     title: "Nadsadan Falls Day Hike",
     description:
       "A refreshing day hike to the multi-tiered Nadsadan Falls in Igbaras, Iloilo. Trek through bamboo groves and river trails to reach the stunning cascade. Includes guide, packed lunch, and plenty of time for swimming in the crystal-clear pools. A perfect weekend escape from the city.",
@@ -459,7 +473,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.hiking_alt2,
   },
   {
-    orgProfileName: "Panay Trail Collective",
+    clubName: "Panay Trail Collective",
     title: "Miag-ao Heritage Trail Run",
     description:
       "A scenic 21K trail run starting from the UNESCO World Heritage Miag-ao Church, through coastal paths, rice paddies, and the rolling hills of southern Iloilo. Experience history and nature combined. Includes finisher medal, hydration stations, and a heritage town tour post-race.",
@@ -477,7 +491,7 @@ const TEST_EVENTS: TestEvent[] = [
     ],
   },
   {
-    orgProfileName: "Panay Trail Collective",
+    clubName: "Panay Trail Collective",
     title: "Mt. Malinao Summit Hike",
     description:
       "Trek to the summit of Mt. Malinao (1,610m) in Aklan, the sacred mountain of the Ati people. This challenging day hike passes through old-growth forest and mossy trails. On a clear day, the summit offers views of Boracay Island, the Sibuyan Sea, and the Antique mountain range. Guide and packed meals included.",
@@ -492,7 +506,7 @@ const TEST_EVENTS: TestEvent[] = [
   },
   // Iloilo Pedal Club
   {
-    orgProfileName: "Iloilo Pedal Club",
+    clubName: "Iloilo Pedal Club",
     title: "Panay Circumferential Road Ride",
     description:
       "The ultimate Panay cycling challenge — a 2-day 300km road ride around the entire island. Day 1: Iloilo to Roxas City via Capiz coast. Day 2: Roxas to Kalibo to Antique and back to Iloilo. Fully supported with SAG wagons, aid stations, overnight accommodation, and meals. For serious cyclists only.",
@@ -510,7 +524,7 @@ const TEST_EVENTS: TestEvent[] = [
     ],
   },
   {
-    orgProfileName: "Iloilo Pedal Club",
+    clubName: "Iloilo Pedal Club",
     title: "Malalison Island Trail Ride",
     description:
       "Take a boat to the remote Malalison Island off the coast of Culasi, Antique, and explore its rugged trails on mountain bikes. Coastal cliffs, white sand coves, and challenging rocky terrain make this a one-of-a-kind MTB experience. Includes boat transfer, island guide, lunch, and beach time.",
@@ -524,7 +538,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.mtb,
   },
   {
-    orgProfileName: "Iloilo Pedal Club",
+    clubName: "Iloilo Pedal Club",
     title: "Iloilo City Fun Run 5K",
     description:
       "A beginner-friendly 5K fun run through the streets of Iloilo City. Starting at the Iloilo Esplanade, the route passes by the iconic Molo Church, through the tree-lined streets of Jaro, and finishes at SM City Iloilo. Perfect for first-time runners and families. Includes race bib, finisher medal, and free La Paz batchoy at the finish!",
@@ -541,9 +555,9 @@ const TEST_EVENTS: TestEvent[] = [
       { distance_km: 5, price: 250, max_participants: 100 },
     ],
   },
-  // ---- Organizer 3: JTT (Journey Through Trails) ----
+  // ---- Club 3: JTT (Journey Through Trails) ----
   {
-    orgProfileName: "JTT (Journey Through Trails)",
+    clubName: "JTT (Journey Through Trails)",
     title: "Igbaras-Tubungan Traverse",
     description:
       "A challenging day traverse connecting the mountain trails of Igbaras and Tubungan. Start from Brgy. Passi in Igbaras, cross the ridgeline, and descend into the highlands of Tubungan. Roughly 18km of trail through farmland, forest, and river valleys. For experienced hikers. Guide and lunch included.",
@@ -557,7 +571,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.hiking,
   },
   {
-    orgProfileName: "JTT (Journey Through Trails)",
+    clubName: "JTT (Journey Through Trails)",
     title: "Bacolod de Tubungan Heritage Hike",
     description:
       "Discover the old Spanish-era ruins and mountain trails around Bacolod de Tubungan. This easy-to-moderate hike explores the historical sites and natural springs of one of Iloilo's hidden gems. Guide, snacks, and local history briefing included.",
@@ -570,9 +584,9 @@ const TEST_EVENTS: TestEvent[] = [
     status: "completed",
     cover_image_url: COVER_IMAGES.hiking_alt2,
   },
-  // ---- Organizer 4: Five Tersty Trekkers ----
+  // ---- Club 4: Five Tersty Trekkers ----
   {
-    orgProfileName: "Five Tersty Trekkers",
+    clubName: "Five Tersty Trekkers",
     title: "Pan de Azucar Island Day Trek",
     description:
       "Trek to the summit of Pan de Azucar (Sugar Loaf) island off the coast of Concepcion, Iloilo. A boat ride across turquoise waters leads to a steep but rewarding climb with 360-degree views of the Visayan Sea. Includes boat transfer, guide, and island picnic lunch.",
@@ -586,7 +600,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.hiking_alt,
   },
   {
-    orgProfileName: "Five Tersty Trekkers",
+    clubName: "Five Tersty Trekkers",
     title: "Baloy Falls Adventure Hike",
     description:
       "Trek through the jungles of San Joaquin to reach the stunning Baloy Falls — a multi-tiered cascade hidden deep in the mountains of southern Iloilo. River crossings, rope sections, and jungle trails make this an exciting adventure for intermediate hikers. Guide and packed lunch included.",
@@ -599,9 +613,9 @@ const TEST_EVENTS: TestEvent[] = [
     status: "completed",
     cover_image_url: COVER_IMAGES.hiking,
   },
-  // ---- Organizer 5: Yenergy Outdoors ----
+  // ---- Club 5: Yenergy Outdoors ----
   {
-    orgProfileName: "Yenergy Outdoors",
+    clubName: "Yenergy Outdoors",
     title: "Mt. Napulak Sunrise Hike",
     description:
       "Catch the sunrise from the summit of Mt. Napulak in Igbaras, one of the most accessible peaks in Iloilo. Start the pre-dawn hike at 3 AM and reach the summit just in time for golden hour. Includes guide, headlamps, and breakfast at the summit. Perfect for all fitness levels.",
@@ -615,7 +629,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.hiking_alt2,
   },
   {
-    orgProfileName: "Yenergy Outdoors",
+    clubName: "Yenergy Outdoors",
     title: "Calinog Highland Trail Run 15K",
     description:
       "A 15K trail run through the rolling highlands of Calinog, Iloilo. Pass through coffee plantations, river crossings, and open grasslands with views of the central Panay mountain range. Includes finisher medal, hydration stations, and a post-run recovery meal. Moderate difficulty.",
@@ -632,9 +646,9 @@ const TEST_EVENTS: TestEvent[] = [
       { distance_km: 15, price: 500, max_participants: 25 },
     ],
   },
-  // ---- Organizer 6: Rubo-rubo Lang ----
+  // ---- Club 6: Rubo-rubo Lang ----
   {
-    orgProfileName: "Rubo-rubo Lang",
+    clubName: "Rubo-rubo Lang",
     title: "Garin Farm Hilltop Hike",
     description:
       "A relaxed day hike to the famous Garin Farm hilltop in San Joaquin, Iloilo. Climb the 456 steps to the heavenly garden replica with views of the coastline and surrounding mountains. Perfect for families and casual hikers. Includes farm entrance, guide, and organic lunch.",
@@ -648,7 +662,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.hiking_alt,
   },
   {
-    orgProfileName: "Rubo-rubo Lang",
+    clubName: "Rubo-rubo Lang",
     title: "Anini-y Coastal Trail Walk",
     description:
       "A chill coastal trail walk along the cliffs and beaches of Anini-y, Antique. No rush, no pressure — just a relaxing 8km walk with ocean views, tide pools, and a seafood lunch by the beach. The rubo-rubo (wandering) way of hiking.",
@@ -666,7 +680,7 @@ const TEST_EVENTS: TestEvent[] = [
   // ====================================================================
   // ---- Panay Trail Collective ----
   {
-    orgProfileName: "Panay Trail Collective",
+    clubName: "Panay Trail Collective",
     title: "Mt. Baloy Ridge Traverse",
     description:
       "A full-day ridge traverse across Mt. Baloy in San Joaquin, Iloilo. Exposed ridgeline hiking with views of the Panay Gulf and surrounding farmlands. Intermediate difficulty.",
@@ -680,7 +694,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.hiking,
   },
   {
-    orgProfileName: "Panay Trail Collective",
+    clubName: "Panay Trail Collective",
     title: "Cabatuan River Trail Run 10K",
     description:
       "A scenic 10K trail run following the river systems of Cabatuan, Iloilo. Flat-to-rolling terrain through rice paddies and riverside paths. Beginner-friendly.",
@@ -698,7 +712,7 @@ const TEST_EVENTS: TestEvent[] = [
     ],
   },
   {
-    orgProfileName: "Panay Trail Collective",
+    clubName: "Panay Trail Collective",
     title: "Janiuay Highlands Day Hike",
     description:
       "Explore the rolling highlands of Janiuay with panoramic views of central Panay. Easy-to-moderate day hike through farmlands and forest patches.",
@@ -712,7 +726,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.hiking_alt2,
   },
   {
-    orgProfileName: "Panay Trail Collective",
+    clubName: "Panay Trail Collective",
     title: "Lambunao Waterfall Trek",
     description:
       "Trek to the hidden waterfalls of Lambunao in the interior mountains of Iloilo. Multiple cascades, jungle trails, and natural swimming pools.",
@@ -726,7 +740,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.hiking_alt,
   },
   {
-    orgProfileName: "Panay Trail Collective",
+    clubName: "Panay Trail Collective",
     title: "Passi City River Run 5K",
     description:
       "A quick 5K fun run through the streets and riverbanks of Passi City. Great for beginners and families. Post-run pancit molo feast included!",
@@ -741,7 +755,7 @@ const TEST_EVENTS: TestEvent[] = [
   },
   // ---- Iloilo Pedal Club ----
   {
-    orgProfileName: "Iloilo Pedal Club",
+    clubName: "Iloilo Pedal Club",
     title: "Oton-Tigbauan Coastal Ride",
     description:
       "A beginner-friendly 40km coastal road ride from Oton to Tigbauan and back. Flat terrain, ocean views, and a seafood lunch stop in Tigbauan.",
@@ -759,7 +773,7 @@ const TEST_EVENTS: TestEvent[] = [
     ],
   },
   {
-    orgProfileName: "Iloilo Pedal Club",
+    clubName: "Iloilo Pedal Club",
     title: "Santa Barbara Farm MTB",
     description:
       "Mountain biking through the agricultural flatlands and gentle hills of Santa Barbara. Easy trails perfect for MTB beginners. Includes farm tour and fresh produce snacks.",
@@ -773,7 +787,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.mtb,
   },
   {
-    orgProfileName: "Iloilo Pedal Club",
+    clubName: "Iloilo Pedal Club",
     title: "Dumangas Century Ride",
     description:
       "A 100km endurance road ride from Iloilo City to Dumangas and back via the national highway. For intermediate to advanced riders. SAG support provided.",
@@ -787,7 +801,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.road_bike_alt,
   },
   {
-    orgProfileName: "Iloilo Pedal Club",
+    clubName: "Iloilo Pedal Club",
     title: "Jaro Heritage Night Ride",
     description:
       "An evening bike ride through the heritage district of Jaro, Iloilo. Visit the Jaro Cathedral, old mansions, and the Jaro belfry illuminated at night. Casual pace, all bike types welcome.",
@@ -801,7 +815,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.road_bike,
   },
   {
-    orgProfileName: "Iloilo Pedal Club",
+    clubName: "Iloilo Pedal Club",
     title: "Pavia Sprint Duathlon",
     description:
       "Run 5K, bike 20K, run 2.5K! A beginner-friendly sprint duathlon in the flat roads of Pavia, Iloilo. Transition area and timing chip provided.",
@@ -816,7 +830,7 @@ const TEST_EVENTS: TestEvent[] = [
   },
   // ---- JTT (Journey Through Trails) ----
   {
-    orgProfileName: "JTT (Journey Through Trails)",
+    clubName: "JTT (Journey Through Trails)",
     title: "Capiz River Valley Trail",
     description:
       "Explore the lush river valleys of Capiz province. A moderate day hike following the Panay River through dense forest and traditional farming communities.",
@@ -830,7 +844,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.hiking,
   },
   {
-    orgProfileName: "JTT (Journey Through Trails)",
+    clubName: "JTT (Journey Through Trails)",
     title: "Maasin Watershed Trail Hike",
     description:
       "Hike through the protected Maasin Watershed in Iloilo. Dense canopy, bird-watching, and pristine streams in one of the last remaining lowland forests of Panay.",
@@ -844,7 +858,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.hiking_alt,
   },
   {
-    orgProfileName: "JTT (Journey Through Trails)",
+    clubName: "JTT (Journey Through Trails)",
     title: "Aklan Mountain Loop Trail Run",
     description:
       "A challenging 25K trail loop through the mountains of Aklan. River crossings, steep ascents, and jungle trails through Ati ancestral lands.",
@@ -862,7 +876,7 @@ const TEST_EVENTS: TestEvent[] = [
     ],
   },
   {
-    orgProfileName: "JTT (Journey Through Trails)",
+    clubName: "JTT (Journey Through Trails)",
     title: "Leon River Trail Walk",
     description:
       "A relaxed river trail walk through Leon, Iloilo. Follow the cool mountain streams past small waterfalls and swimming holes. Perfect for families.",
@@ -877,7 +891,7 @@ const TEST_EVENTS: TestEvent[] = [
   },
   // ---- Five Tersty Trekkers ----
   {
-    orgProfileName: "Five Tersty Trekkers",
+    clubName: "Five Tersty Trekkers",
     title: "Concepcion Island Hop & Hike",
     description:
       "Island hop across the Concepcion archipelago and hike the island peaks. Visit Agho, Malangaban, and Bulubadiangan islands. Snorkeling, hiking, and beach camping combo.",
@@ -891,7 +905,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.hiking_alt,
   },
   {
-    orgProfileName: "Five Tersty Trekkers",
+    clubName: "Five Tersty Trekkers",
     title: "Sicogon Island Beach Run",
     description:
       "A barefoot 10K beach run on the white sands of Sicogon Island, Concepcion. Run along pristine coastline with turquoise waters. Includes boat transfer and beach lunch.",
@@ -909,7 +923,7 @@ const TEST_EVENTS: TestEvent[] = [
     ],
   },
   {
-    orgProfileName: "Five Tersty Trekkers",
+    clubName: "Five Tersty Trekkers",
     title: "Dingle Forest Trail Hike",
     description:
       "A shaded forest hike through the hills of Dingle, Iloilo. Cool temperatures, bird sounds, and a hidden spring at the turnaround point.",
@@ -923,7 +937,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.hiking,
   },
   {
-    orgProfileName: "Five Tersty Trekkers",
+    clubName: "Five Tersty Trekkers",
     title: "Tigbauan Coastal Trail Run 12K",
     description:
       "A 12K coastal trail run from Tigbauan to Guimbal along rocky shoreline paths and fishing village trails. Ocean spray and sea breeze included!",
@@ -938,7 +952,7 @@ const TEST_EVENTS: TestEvent[] = [
   },
   // ---- Yenergy Outdoors ----
   {
-    orgProfileName: "Yenergy Outdoors",
+    clubName: "Yenergy Outdoors",
     title: "Alimodian Sunrise Trail Run",
     description:
       "Chase the sunrise on the trails of Alimodian! A 10K morning trail run through rolling hills and open grasslands with views of Mt. Napulak.",
@@ -956,7 +970,7 @@ const TEST_EVENTS: TestEvent[] = [
     ],
   },
   {
-    orgProfileName: "Yenergy Outdoors",
+    clubName: "Yenergy Outdoors",
     title: "SM City to Esplanade Fun Run",
     description:
       "A feel-good 5K fun run from SM City Iloilo to the Esplanade and back. Music, energy drinks, and good vibes. Open to all ages and fitness levels.",
@@ -974,7 +988,7 @@ const TEST_EVENTS: TestEvent[] = [
     ],
   },
   {
-    orgProfileName: "Yenergy Outdoors",
+    clubName: "Yenergy Outdoors",
     title: "Pototan Highland Hike",
     description:
       "Discover the hidden highlands of Pototan, Iloilo. A moderate day hike through sugarcane fields and forest patches to a scenic overlook.",
@@ -988,7 +1002,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.hiking_alt2,
   },
   {
-    orgProfileName: "Yenergy Outdoors",
+    clubName: "Yenergy Outdoors",
     title: "Barotac Viejo Mountain Bike Tour",
     description:
       "A scenic MTB tour through the mountains of Barotac Viejo. Intermediate trails through bamboo forest, river crossings, and hillside farmlands.",
@@ -1002,7 +1016,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.mtb,
   },
   {
-    orgProfileName: "Yenergy Outdoors",
+    clubName: "Yenergy Outdoors",
     title: "Mandurriao Fitness Run 5K",
     description:
       "A high-energy 5K run through Mandurriao district and Iloilo Business Park. DJ at the finish line, free energy drinks, and fun activities.",
@@ -1017,7 +1031,7 @@ const TEST_EVENTS: TestEvent[] = [
   },
   // ---- Rubo-rubo Lang ----
   {
-    orgProfileName: "Rubo-rubo Lang",
+    clubName: "Rubo-rubo Lang",
     title: "Guimbal Lighthouse Walk",
     description:
       "A chill coastal walk from Guimbal town proper to the old lighthouse ruins. Scenic cliffs, tide pools, and a seafood lunch at a local carinderia. Zero rush.",
@@ -1031,7 +1045,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.hiking_alt,
   },
   {
-    orgProfileName: "Rubo-rubo Lang",
+    clubName: "Rubo-rubo Lang",
     title: "Miag-ao River & Rice Paddy Walk",
     description:
       "Wander through the iconic rice terraces and river trails of Miag-ao. A slow-paced community walk with stops for local snacks and storytelling.",
@@ -1045,7 +1059,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.hiking_alt2,
   },
   {
-    orgProfileName: "Rubo-rubo Lang",
+    clubName: "Rubo-rubo Lang",
     title: "San Joaquin Sunset Beach Walk",
     description:
       "A leisurely 5km sunset beach walk along the shores of San Joaquin. Watch the sun set over the Panay Gulf with good company and cold drinks.",
@@ -1059,7 +1073,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.hiking,
   },
   {
-    orgProfileName: "Rubo-rubo Lang",
+    clubName: "Rubo-rubo Lang",
     title: "Cabugao Islet Snorkel & Walk",
     description:
       "Boat to Cabugao Islet near Carles and combine a short island walk with snorkeling in the marine sanctuary. Pure island vibes, no agenda.",
@@ -1073,7 +1087,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.hiking_alt,
   },
   {
-    orgProfileName: "Rubo-rubo Lang",
+    clubName: "Rubo-rubo Lang",
     title: "Iloilo Riverside Morning Walk",
     description:
       "A peaceful morning walk along the Iloilo River esplanade. Stop for coffee, watch the boats, and enjoy the sunrise over the city. The most chill event on the calendar.",
@@ -1086,9 +1100,9 @@ const TEST_EVENTS: TestEvent[] = [
     status: "completed",
     cover_image_url: COVER_IMAGES.running,
   },
-  // ---- More variety across organizers ----
+  // ---- More variety across clubs ----
   {
-    orgProfileName: "Panay Trail Collective",
+    clubName: "Panay Trail Collective",
     title: "Dumarao Caves Exploration",
     description:
       "Explore the cave systems of Dumarao, Capiz. A unique spelunking and hiking combo through limestone formations and underground rivers.",
@@ -1102,7 +1116,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.hiking,
   },
   {
-    orgProfileName: "Iloilo Pedal Club",
+    clubName: "Iloilo Pedal Club",
     title: "Roxas City Coastal Ride",
     description:
       "A scenic 60km road ride exploring the coastal roads of Roxas City, Capiz. Flat terrain, fresh seafood stops, and views of the Sibuyan Sea.",
@@ -1120,7 +1134,7 @@ const TEST_EVENTS: TestEvent[] = [
     ],
   },
   {
-    orgProfileName: "JTT (Journey Through Trails)",
+    clubName: "JTT (Journey Through Trails)",
     title: "Hamtic River Gorge Trek",
     description:
       "A thrilling gorge trek through the narrow river valleys of Hamtic, Antique. Waist-deep river crossings, rock scrambling, and jungle canopy. For adventurous hikers only.",
@@ -1134,7 +1148,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.hiking_alt,
   },
   {
-    orgProfileName: "Five Tersty Trekkers",
+    clubName: "Five Tersty Trekkers",
     title: "Badiangan Sunrise MTB",
     description:
       "An early morning MTB ride through the quiet roads and trails of Badiangan at sunrise. Gentle terrain, misty mornings, and local coffee at the turnaround.",
@@ -1148,7 +1162,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.mtb_alt,
   },
   {
-    orgProfileName: "Yenergy Outdoors",
+    clubName: "Yenergy Outdoors",
     title: "Iloilo Marathon Relay",
     description:
       "Form a team of 4 and relay a full marathon distance across Iloilo City! Each runner covers ~10.5km. Fun, fast, and team-spirited.",
@@ -1167,7 +1181,7 @@ const TEST_EVENTS: TestEvent[] = [
     ],
   },
   {
-    orgProfileName: "Rubo-rubo Lang",
+    clubName: "Rubo-rubo Lang",
     title: "Sibalom Natural Park Wander",
     description:
       "A leisurely walk through Sibalom Natural Park in Antique. Old-growth forest, rare bird species, and the gentle pace of a rubo-rubo walk.",
@@ -1182,7 +1196,7 @@ const TEST_EVENTS: TestEvent[] = [
   },
   // ---- Mt. Opao events ----
   {
-    orgProfileName: "Iloilo Pedal Club",
+    clubName: "Iloilo Pedal Club",
     title: "Mt. Opao Day Hike",
     description:
       "A scenic day hike up Mt. Opao in Igbaras, Iloilo. Enjoy lush tropical forest, river crossings, and panoramic views of the Iloilo coastline from the summit. Beginner-friendly with local guide included.",
@@ -1196,7 +1210,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.hiking,
   },
   {
-    orgProfileName: "Yenergy Outdoors",
+    clubName: "Yenergy Outdoors",
     title: "Mt. Opao Sunrise Trek",
     description:
       "Start before dawn and catch the sunrise from the Mt. Opao summit. The pre-dawn trail through fog-covered forest adds a magical atmosphere. Headlamp required — hot coffee at the top!",
@@ -1210,7 +1224,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.hiking_alt,
   },
   {
-    orgProfileName: "Panay Trail Collective",
+    clubName: "Panay Trail Collective",
     title: "Mt. Opao Trail Run 8K",
     description:
       "A fast 8K trail run from the Igbaras trailhead up Mt. Opao and back. Technical single-track, roots, rocks, and a 400m elevation gain make this a challenging but rewarding race.",
@@ -1225,7 +1239,7 @@ const TEST_EVENTS: TestEvent[] = [
   },
   // ---- Mt. Lingguhob events ----
   {
-    orgProfileName: "JTT (Journey Through Trails)",
+    clubName: "JTT (Journey Through Trails)",
     title: "Mt. Lingguhob Summit Hike",
     description:
       "Tackle Mt. Lingguhob in Leon, one of Iloilo's most rewarding mid-altitude hikes. Dense forest gives way to exposed ridgelines with sweeping views of the Panay highlands. Moderate difficulty.",
@@ -1239,7 +1253,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.hiking_alt2,
   },
   {
-    orgProfileName: "Five Tersty Trekkers",
+    clubName: "Five Tersty Trekkers",
     title: "Mt. Lingguhob Ridge Trail",
     description:
       "A ridge-to-ridge traverse of Mt. Lingguhob's dramatic ridgeline. Exposed sections with 360-degree views, bamboo forest, and a lunch stop at a local spring. For experienced hikers.",
@@ -1253,7 +1267,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.hiking,
   },
   {
-    orgProfileName: "Rubo-rubo Lang",
+    clubName: "Rubo-rubo Lang",
     title: "Mt. Lingguhob Night Hike",
     description:
       "An after-dark ascent of Mt. Lingguhob under the stars. Headlamps light the trail as you climb through the quiet forest. Summit arrival timed for moonrise — a unique mountain experience.",
@@ -1267,7 +1281,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.hiking_alt,
   },
   {
-    orgProfileName: "Panay Trail Collective",
+    clubName: "Panay Trail Collective",
     title: "Mt. Lingguhob Waterfall Loop",
     description:
       "A loop trail combining Mt. Lingguhob's lower slopes with a hidden waterfall in Tubungan. Swim at the falls, then ascend through bamboo groves to a viewpoint overlooking the Jalaur River valley.",
@@ -1281,7 +1295,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.hiking_alt2,
   },
   {
-    orgProfileName: "Iloilo Pedal Club",
+    clubName: "Iloilo Pedal Club",
     title: "Mt. Lingguhob Sunrise Assault",
     description:
       "A pre-dawn push to catch sunrise from the Mt. Lingguhob summit. Depart Leon at 3 AM with headlamps blazing. The reward: golden light spilling over the Panay highlands as far as Guimaras Strait.",
@@ -1295,7 +1309,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.hiking,
   },
   {
-    orgProfileName: "Yenergy Outdoors",
+    clubName: "Yenergy Outdoors",
     title: "Mt. Lingguhob Trail Cleanup Hike",
     description:
       "Hike with a purpose! Join a combined summit hike and trail cleanup on Mt. Lingguhob. Bring gloves and a trash bag — we climb, we clean, we protect. Free eco-bag and lunch included.",
@@ -1309,7 +1323,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.hiking_alt,
   },
   {
-    orgProfileName: "Panay Trail Collective",
+    clubName: "Panay Trail Collective",
     title: "Mt. Lingguhob Full Moon Hike",
     description:
       "A special full-moon edition of the Lingguhob night hike. No headlamps needed — the moonlit trail through open ridgelines is surreal. Hot champorado at the summit. Limited slots.",
@@ -1323,7 +1337,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.hiking_alt2,
   },
   {
-    orgProfileName: "Iloilo Pedal Club",
+    clubName: "Iloilo Pedal Club",
     title: "Mt. Lingguhob Beginner Day Hike",
     description:
       "A beginner-friendly day hike on Mt. Lingguhob's easiest route. Gentle grades, shaded forest, and a scenic lunch spot at the halfway viewpoint. Perfect first mountain for new hikers.",
@@ -1338,7 +1352,7 @@ const TEST_EVENTS: TestEvent[] = [
   },
   // ---- Mt. Igatmon events ----
   {
-    orgProfileName: "Panay Trail Collective",
+    clubName: "Panay Trail Collective",
     title: "Mt. Igatmon Expedition",
     description:
       "A challenging expedition to Mt. Igatmon in Barbaza, Antique. Remote trails through old-growth forest, river valley crossings, and a demanding final push to the 900m summit. Two-day itinerary with overnight camp.",
@@ -1352,7 +1366,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.hiking_alt2,
   },
   {
-    orgProfileName: "JTT (Journey Through Trails)",
+    clubName: "JTT (Journey Through Trails)",
     title: "Mt. Igatmon Summit Day Hike",
     description:
       "A single-day push to the summit of Mt. Igatmon for fit hikers. Early start, fast pace, and a stunning payoff — views stretching from Antique's coast to the Panay central range.",
@@ -1366,7 +1380,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.hiking,
   },
   {
-    orgProfileName: "Five Tersty Trekkers",
+    clubName: "Five Tersty Trekkers",
     title: "Mt. Igatmon Traverse",
     description:
       "A point-to-point traverse of Mt. Igatmon, descending via the lesser-known eastern trail into the Barbaza river valley. Technical terrain, river crossings, and jungle bushwhacking.",
@@ -1381,7 +1395,7 @@ const TEST_EVENTS: TestEvent[] = [
   },
   // ---- Free events ----
   {
-    orgProfileName: "Panay Trail Collective",
+    clubName: "Panay Trail Collective",
     title: "Iloilo River Esplanade Community Walk",
     description:
       "A free community walk along the Iloilo River Esplanade open to everyone — families, solo walkers, and dogs welcome. Meet new people, enjoy the morning breeze, and kick off your weekend with good vibes. No registration fee, just show up and walk!",
@@ -1395,7 +1409,7 @@ const TEST_EVENTS: TestEvent[] = [
     cover_image_url: COVER_IMAGES.running,
   },
   {
-    orgProfileName: "Yenergy Outdoors",
+    clubName: "Yenergy Outdoors",
     title: "Jaro Plaza Yoga & Stretch Session",
     description:
       "Start your Sunday right with a free outdoor yoga and stretching session at Jaro Plaza. Suitable for all fitness levels — bring a mat or towel and join the community for an hour of mindful movement under the trees.",
@@ -1871,10 +1885,10 @@ async function cleanExistingTestData() {
   log("🗑️", `Found ${testUsers.length} existing test users. Removing...`);
 
   // Deleting auth users cascades to public.users, which cascades to bookings,
-  // checkins, user_badges etc. We need to also clean up organizer_profiles,
-  // events, badges etc. that are linked through organizer_profiles.
-  // Because events FK to organizer_profiles (which FK to public.users),
-  // deleting public.users cascades everything.
+  // checkins, user_badges etc. We need to also clean up clubs, club_members,
+  // events, badges etc. that are linked through clubs.
+  // Because events FK to clubs (which FK to public.users via club_members),
+  // we clean clubs explicitly before deleting users.
 
   // Clean event_routes and event_mountains (before events, due to FK)
   await supabase.from("event_routes").delete().neq("id", "00000000-0000-0000-0000-000000000000");
@@ -1949,26 +1963,27 @@ async function createUsers(): Promise<Map<string, string>> {
   return userMap;
 }
 
-/** Create organizer profiles. Returns map of org_name -> profile id. */
-async function createOrganizerProfiles(userMap: Map<string, string>): Promise<Map<string, string>> {
-  log("🏢", "Creating organizer profiles...");
+/** Create clubs and club_members. Returns map of club name -> club id. */
+async function createClubs(userMap: Map<string, string>): Promise<Map<string, string>> {
+  log("🏢", "Creating clubs...");
 
-  const orgMap = new Map<string, string>();
+  const clubMap = new Map<string, string>();
 
-  for (const profile of ORGANIZER_PROFILES) {
-    const userId = userMap.get(profile.ownerEmail);
+  for (const club of CLUBS) {
+    const userId = userMap.get(club.ownerEmail);
     if (!userId) {
-      console.error(`  User not found for ${profile.ownerEmail}`);
+      console.error(`  User not found for ${club.ownerEmail}`);
       continue;
     }
 
     const { data, error } = await supabase
-      .from("organizer_profiles")
+      .from("clubs")
       .insert({
-        user_id: userId,
-        org_name: profile.org_name,
-        description: profile.description,
-        logo_url: profile.logo_url,
+        name: club.name,
+        slug: club.slug,
+        description: club.description,
+        logo_url: club.logo_url,
+        visibility: club.visibility,
         payment_info: {
           gcash_number: "09171234567",
           maya_number: "09181234567",
@@ -1979,33 +1994,46 @@ async function createOrganizerProfiles(userMap: Map<string, string>): Promise<Ma
       .single();
 
     if (error) {
-      console.error(`  Failed to create org profile "${profile.org_name}": ${error.message}`);
+      console.error(`  Failed to create club "${club.name}": ${error.message}`);
+      continue;
+    }
+
+    clubMap.set(club.name, data.id);
+
+    // Create club_members entry with role "owner"
+    const { error: memberError } = await supabase.from("club_members").insert({
+      club_id: data.id,
+      user_id: userId,
+      role: "owner",
+    });
+
+    if (memberError) {
+      console.error(`  Failed to add owner to club "${club.name}": ${memberError.message}`);
     } else {
-      orgMap.set(profile.org_name, data.id);
-      log("  ✅", `${profile.org_name}`);
+      log("  ✅", `${club.name} (owner: ${club.ownerEmail})`);
     }
   }
 
-  return orgMap;
+  return clubMap;
 }
 
 /** Create events. Returns map of event title -> event id. */
-async function createEvents(orgMap: Map<string, string>): Promise<Map<string, string>> {
+async function createEvents(clubMap: Map<string, string>): Promise<Map<string, string>> {
   log("📅", "Creating events...");
 
   const eventMap = new Map<string, string>();
 
   for (const event of TEST_EVENTS) {
-    const organizerId = orgMap.get(event.orgProfileName);
-    if (!organizerId) {
-      console.error(`  Org profile not found: ${event.orgProfileName}`);
+    const clubId = clubMap.get(event.clubName);
+    if (!clubId) {
+      console.error(`  Club not found: ${event.clubName}`);
       continue;
     }
 
     const { data, error } = await supabase
       .from("events")
       .insert({
-        organizer_id: organizerId,
+        club_id: clubId,
         title: event.title,
         description: event.description,
         type: event.type,
@@ -2387,7 +2415,7 @@ interface BadgeDef {
 }
 
 const BADGE_DEFS: BadgeDef[] = [
-  // Published events — pre-created by organizers
+  // Published events — pre-created by clubs
   {
     eventTitle: "Mt. Madja-as Summit Trek",
     title: "Madja-as Summiteer",
@@ -2864,11 +2892,11 @@ const SYSTEM_BADGE_DEFS: SystemBadgeDef[] = [
     rarity: "legendary",
     imageUrl: "\u{1F31F}",
   },
-  // Pioneer (organizer)
+  // Pioneer (club creator)
   {
     criteriaKey: "pioneer_organizer",
-    title: "Pioneer Organizer",
-    description: "Among the first 50 organizers on EventTara",
+    title: "Pioneer Club Creator",
+    description: "Among the first 50 clubs created on EventTara",
     category: "special",
     rarity: "legendary",
     imageUrl: "\u{1F3D4}\uFE0F",
@@ -2877,7 +2905,7 @@ const SYSTEM_BADGE_DEFS: SystemBadgeDef[] = [
   {
     criteriaKey: "first_review",
     title: "First Review",
-    description: "Wrote your first organizer review on EventTara",
+    description: "Wrote your first event review on EventTara",
     category: "special",
     rarity: "rare",
     imageUrl: "\u270D\uFE0F",
@@ -3083,7 +3111,7 @@ const APP_TESTIMONIALS = [
   {
     name: "Rina Aquino",
     role: "Mountain Biker",
-    text: "As someone new to MTB, I was nervous about joining group rides. EventTara's booking system was seamless, and the Iloilo Pedal Club organizers were so welcoming.",
+    text: "As someone new to MTB, I was nervous about joining group rides. EventTara's booking system was seamless, and the Iloilo Pedal Club community was so welcoming.",
     avatar_url: null,
     display_order: 2,
   },
@@ -3097,7 +3125,7 @@ const APP_TESTIMONIALS = [
   {
     name: "Camille Tan",
     role: "Road Cyclist",
-    text: "Finally a platform that brings the Western Visayas cycling community together. The QR check-in system is super convenient for organizers and participants alike.",
+    text: "Finally a platform that brings the Western Visayas cycling community together. The QR check-in system is super convenient for clubs and participants alike.",
     avatar_url: null,
     display_order: 4,
   },
@@ -3496,7 +3524,7 @@ async function linkEventMountains(
 }
 
 // ---------------------------------------------------------------------------
-// Award Organizer Borders
+// Award Club Owner Borders
 // ---------------------------------------------------------------------------
 
 const TIER_RANK: Record<string, number> = {
@@ -3506,10 +3534,10 @@ const TIER_RANK: Record<string, number> = {
   legendary: 4,
 };
 
-async function awardOrganizerBorders(userMap: Map<string, string>, orgMap: Map<string, string>) {
-  log("🖼️", "Awarding organizer borders...");
+async function awardClubOwnerBorders(userMap: Map<string, string>, clubMap: Map<string, string>) {
+  log("🖼️", "Awarding club owner borders...");
 
-  // 1. Fetch all borders relevant to organizers
+  // 1. Fetch all borders relevant to club owners
   const { data: borders, error: bordersError } = await supabase
     .from("avatar_borders")
     .select("*")
@@ -3520,26 +3548,26 @@ async function awardOrganizerBorders(userMap: Map<string, string>, orgMap: Map<s
     return;
   }
 
-  // 2. Build email -> org_profile_id mapping from ORGANIZER_PROFILES
-  const emailToOrg = new Map<string, string>();
-  for (const profile of ORGANIZER_PROFILES) {
-    const orgId = orgMap.get(profile.org_name);
-    if (orgId) emailToOrg.set(profile.ownerEmail, orgId);
+  // 2. Build email -> club_id mapping from CLUBS
+  const emailToClub = new Map<string, string>();
+  for (const club of CLUBS) {
+    const clubId = clubMap.get(club.name);
+    if (clubId) emailToClub.set(club.ownerEmail, clubId);
   }
 
-  // 3. For each organizer user, count events and award borders
-  const organizerEmails = TEST_USERS.filter((u) => u.role === "organizer").map((u) => u.email);
+  // 3. For each club owner, count events and award borders
+  const ownerEmails = CLUBS.map((c) => c.ownerEmail);
 
-  for (const email of organizerEmails) {
+  for (const email of ownerEmails) {
     const userId = userMap.get(email);
-    const orgProfileId = emailToOrg.get(email);
-    if (!userId || !orgProfileId) continue;
+    const clubId = emailToClub.get(email);
+    if (!userId || !clubId) continue;
 
-    // Count published/completed events for this organizer
+    // Count published/completed events for this club
     const { count } = await supabase
       .from("events")
       .select("id", { count: "exact", head: true })
-      .eq("organizer_id", orgProfileId)
+      .eq("club_id", clubId)
       .in("status", ["published", "completed"]);
 
     const eventCount = count ?? 0;
@@ -3609,12 +3637,12 @@ async function main() {
     const userMap = await createUsers();
     console.log();
 
-    // Step 3: Create organizer profiles
-    const orgMap = await createOrganizerProfiles(userMap);
+    // Step 3: Create clubs and club members
+    const clubMap = await createClubs(userMap);
     console.log();
 
     // Step 4: Create events
-    const eventMap = await createEvents(orgMap);
+    const eventMap = await createEvents(clubMap);
     console.log();
 
     // Step 4a: Seed event routes (map polylines)
@@ -3677,8 +3705,8 @@ async function main() {
     await seedGuideReviews(guideMap, userMap, eventMap);
     console.log();
 
-    // Step 12: Award organizer borders
-    await awardOrganizerBorders(userMap, orgMap);
+    // Step 12: Award club owner borders
+    await awardClubOwnerBorders(userMap, clubMap);
     console.log();
 
     // Summary

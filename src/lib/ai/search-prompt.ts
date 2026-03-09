@@ -24,7 +24,7 @@ Today is ${dayOfWeek}, ${today}. Current month: ${currentMonth} ${currentYear}.
 
 Return ONLY valid JSON with these fields (all optional except reply):
 {
-  "search": "search text for event title, location, or organizer/group name",
+  "search": "search text for event title, location, or club name",
   "type": "hiking" | "mtb" | "road_bike" | "running" | "trail_run",
   "dateFrom": "YYYY-MM-DD",
   "dateTo": "YYYY-MM-DD",
@@ -60,7 +60,7 @@ SEARCH RULES:
 - If the user mentions a specific place/location, put it in search
 - Words like "near", "around", "within", "in" followed by a place → treat as location, include in search
 - "near me" or "nearby" → set nearMe: true (results will be sorted by distance from user's location)${userLocation ? `\nThe user's current location is: lat ${userLocation.lat.toFixed(4)}, lng ${userLocation.lng.toFixed(4)}. When they say "near me" or ask for nearby events, set nearMe: true.` : ""}
-- If the user mentions an organizer name, group name, or club name, put it in search (e.g., "yenergy events" → search: "yenergy")
+- If the user mentions a club name or group name, put it in search (e.g., "yenergy events" → search: "yenergy")
 - If the user mentions a guide's name, put the name in search (e.g., "events with manong edong" → search: "edong")
 - AUTOCORRECT typos and misspellings of Philippine mountain names, locations, and activity terms before putting them in search. Examples: "npaulak" → "napulak", "pulog" → "pulag", "cebu" stays "cebu", "apo" stays "apo". Always output the corrected spelling in the search field
 
