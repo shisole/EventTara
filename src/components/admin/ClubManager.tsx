@@ -1,7 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { type FormEvent, useCallback, useEffect, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
+
+import { uploadImage } from "@/lib/upload";
 
 interface ClubRow {
   id: string;
@@ -37,6 +39,8 @@ export default function ClubManager() {
   const [newName, setNewName] = useState("");
   const [newDescription, setNewDescription] = useState("");
   const [newLogoUrl, setNewLogoUrl] = useState("");
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
   const [newActivityTypes, setNewActivityTypes] = useState<string[]>([]);
   const [newVisibility, setNewVisibility] = useState<"public" | "private">("public");
 
@@ -177,14 +181,59 @@ export default function ClubManager() {
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                Logo URL
+                Logo
               </label>
+              <div className="flex items-center gap-3">
+                {newLogoUrl ? (
+                  <Image
+                    src={newLogoUrl}
+                    alt="Logo preview"
+                    width={40}
+                    height={40}
+                    className="h-10 w-10 rounded-lg object-cover"
+                  />
+                ) : (
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 text-xs text-gray-400 dark:bg-gray-800">
+                    —
+                  </div>
+                )}
+                <button
+                  type="button"
+                  disabled={uploadingLogo}
+                  onClick={() => logoInputRef.current?.click()}
+                  className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+                >
+                  {uploadingLogo ? "Uploading..." : newLogoUrl ? "Change" : "Upload"}
+                </button>
+                {newLogoUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setNewLogoUrl("")}
+                    className="text-xs text-red-500 hover:text-red-600"
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
               <input
-                type="url"
-                value={newLogoUrl}
-                onChange={(e) => setNewLogoUrl(e.target.value)}
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                placeholder="https://..."
+                ref={logoInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  setUploadingLogo(true);
+                  try {
+                    const url = await uploadImage(file, "clubs/logos");
+                    setNewLogoUrl(url);
+                  } catch {
+                    setError("Failed to upload logo");
+                  } finally {
+                    setUploadingLogo(false);
+                    if (logoInputRef.current) logoInputRef.current.value = "";
+                  }
+                }}
               />
             </div>
           </div>
