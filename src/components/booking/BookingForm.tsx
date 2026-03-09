@@ -222,6 +222,35 @@ export default function BookingForm({
   return (
     <form onSubmit={handleSubmit}>
       <fieldset disabled={loading} className="min-w-0 space-y-6">
+        {/* Progress indicator */}
+        {(() => {
+          const steps = [
+            { label: "Event", done: true },
+            ...(hasDistances ? [{ label: "Distance", done: !!selectedDistanceId }] : []),
+            ...(isFree ? [] : [{ label: "Payment", done: !!paymentMethod }]),
+            ...(isEwallet ? [{ label: "Proof", done: !!proofFile }] : []),
+            ...(hasWaiver ? [{ label: "Waiver", done: waiverAccepted }] : []),
+          ];
+          const completed = steps.filter((s) => s.done).length;
+          const pct = Math.round((completed / steps.length) * 100);
+          return (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                <span>
+                  {completed}/{steps.length} completed
+                </span>
+                <span>{pct}%</span>
+              </div>
+              <div className="h-1.5 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-lime-500 transition-all duration-300"
+                  style={{ width: `${String(pct)}%` }}
+                />
+              </div>
+            </div>
+          );
+        })()}
+
         <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
           <h3 className="font-heading font-bold">{eventTitle}</h3>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">

@@ -22,7 +22,17 @@ import MountainCombobox, { type SelectedMountain } from "./MountainCombobox";
 import PhotoUploader from "./PhotoUploader";
 
 const EventRouteSection = dynamic(() => import("@/components/strava/EventRouteSection"));
-const MapPicker = dynamic(() => import("@/components/maps/MapPicker"), { ssr: false });
+const MapPicker = dynamic(() => import("@/components/maps/MapPicker"), {
+  ssr: false,
+  loading: () => (
+    <div
+      className="animate-pulse rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center"
+      style={{ height: 300 }}
+    >
+      <span className="text-sm text-gray-400 dark:text-gray-500">Loading map...</span>
+    </div>
+  ),
+});
 const DateRangePicker = dynamic(() => import("@/components/ui/DateRangePicker"));
 const RichTextEditor = dynamic(() => import("@/components/ui/RichTextEditor"));
 
@@ -693,464 +703,525 @@ export default function EventForm({ mode, clubId, initialData }: EventFormProps)
   return (
     <form onSubmit={handleSubmit}>
       <fieldset disabled={loading} className="min-w-0 space-y-6">
-        <Input
-          id="title"
-          label="Event Title"
-          value={title}
-          onChange={(e) => {
-            setTitle(e.target.value);
-          }}
-          placeholder="Mountain Hike at Mt. Pulag"
-          required
-        />
+        {/* Step indicator */}
+        <div className="flex items-center gap-2">
+          {["Basics", "Pricing", "Media & Extras"].map((step, i) => (
+            <div key={step} className="flex items-center gap-2 flex-1">
+              <div className="flex items-center gap-1.5 flex-1">
+                <span
+                  className={cn(
+                    "flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold shrink-0",
+                    i === 0
+                      ? "bg-lime-500 text-white"
+                      : "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400",
+                  )}
+                >
+                  {i + 1}
+                </span>
+                <span className="text-xs font-medium text-gray-600 dark:text-gray-400 hidden sm:inline">
+                  {step}
+                </span>
+              </div>
+              {i < 2 && (
+                <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700 hidden sm:block" />
+              )}
+            </div>
+          ))}
+        </div>
 
-        <div className="space-y-1">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Description
-          </label>
-          <textarea
-            value={description}
+        {/* ── Step 1: Basics ── */}
+        <div className="border-l-2 border-lime-400 pl-4 space-y-6">
+          <h3 className="text-sm font-semibold text-lime-600 dark:text-lime-400 uppercase tracking-wide">
+            Event Basics
+          </h3>
+
+          <Input
+            id="title"
+            label="Event Title"
+            value={title}
             onChange={(e) => {
-              setDescription(e.target.value);
+              setTitle(e.target.value);
             }}
-            rows={4}
-            className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600"
-            placeholder="Describe your event..."
+            placeholder="Mountain Hike at Mt. Pulag"
+            required
           />
-        </div>
 
-        <div className="space-y-1">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Event Type
-          </label>
-          <select
-            value={type}
-            onChange={(e) => {
-              setType(e.target.value);
-            }}
-            className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600"
-          >
-            {EVENT_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>
-                {t.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <DateRangePicker
-          startDate={startDate}
-          endDate={endDate}
-          startTime={startTime}
-          endTime={endTime}
-          onStartDateChange={setStartDate}
-          onEndDateChange={setEndDate}
-          onStartTimeChange={setStartTime}
-          onEndTimeChange={setEndTime}
-          eventDates={eventDatesForPicker}
-        />
-
-        <Input
-          id="location"
-          label="Location"
-          value={location}
-          onChange={(e) => {
-            const val = e.target.value;
-            setLocation(val);
-            // Try to recenter map based on province lookup
-            const province = findProvinceFromLocation(val);
-            if (province) {
-              setMapCenter({ lat: province.lat, lng: province.lng });
-            }
-          }}
-          placeholder="Mt. Pulag, Benguet"
-          required
-        />
-
-        {/* Optional map pin section */}
-        <div className="space-y-2">
-          <button
-            type="button"
-            onClick={() => {
-              setShowMap(!showMap);
-            }}
-            className="flex items-center gap-2 text-sm font-medium text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 transition-colors"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="w-4 h-4"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
-              />
-            </svg>
-            {showMap ? "Hide map" : "Pin on map (optional)"}
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              className={`w-3 h-3 transition-transform ${showMap ? "rotate-180" : ""}`}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-            </svg>
-          </button>
-          {showMap && (
-            <MapPicker
-              value={coordinates}
-              onChange={setCoordinates}
-              center={mapCenter}
-              existingEvents={existingEventsForMap}
+          <div className="space-y-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Description
+            </label>
+            <textarea
+              value={description}
+              onChange={(e) => {
+                setDescription(e.target.value);
+              }}
+              rows={4}
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600"
+              placeholder="Describe your event..."
             />
-          )}
+          </div>
+
+          <div className="space-y-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Event Type
+            </label>
+            <select
+              value={type}
+              onChange={(e) => {
+                setType(e.target.value);
+              }}
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600"
+            >
+              {EVENT_TYPES.map((t) => (
+                <option key={t.value} value={t.value}>
+                  {t.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <DateRangePicker
+            startDate={startDate}
+            endDate={endDate}
+            startTime={startTime}
+            endTime={endTime}
+            onStartDateChange={setStartDate}
+            onEndDateChange={setEndDate}
+            onStartTimeChange={setStartTime}
+            onEndTimeChange={setEndTime}
+            eventDates={eventDatesForPicker}
+          />
+
+          <Input
+            id="location"
+            label="Location"
+            value={location}
+            onChange={(e) => {
+              const val = e.target.value;
+              setLocation(val);
+              // Try to recenter map based on province lookup
+              const province = findProvinceFromLocation(val);
+              if (province) {
+                setMapCenter({ lat: province.lat, lng: province.lng });
+              }
+            }}
+            placeholder="Mt. Pulag, Benguet"
+            required
+          />
+
+          {/* Optional map pin section */}
+          <div className="space-y-2">
+            <button
+              type="button"
+              onClick={() => {
+                setShowMap(!showMap);
+              }}
+              className="flex items-center gap-2 text-sm font-medium text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 transition-colors"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-4 h-4"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
+                />
+              </svg>
+              {showMap ? "Hide map" : "Pin on map (optional)"}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className={`w-3 h-3 transition-transform ${showMap ? "rotate-180" : ""}`}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+              </svg>
+            </button>
+            {showMap && (
+              <MapPicker
+                value={coordinates}
+                onChange={setCoordinates}
+                center={mapCenter}
+                existingEvents={existingEventsForMap}
+              />
+            )}
+          </div>
         </div>
+        {/* ── End Step 1 ── */}
 
-        {/* Distance Categories (running, trail_run, road_bike only) */}
-        {supportsDistances && (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Distance Categories{" "}
-                <span className="text-gray-400 dark:text-gray-500 font-normal">(optional)</span>
-              </label>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
-                Add distance categories to offer multiple race distances. Each category can have its
-                own price and participant limit.
-              </p>
+        {/* ── Step 2: Pricing & Capacity ── */}
+        <div className="border-l-2 border-gray-300 dark:border-gray-600 pl-4 space-y-6">
+          <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+            Pricing & Capacity
+          </h3>
 
-              {/* Preset quick-pick chips */}
-              <div className="flex flex-wrap gap-2 mb-3">
-                {PRESET_DISTANCES.map((km) => {
-                  const alreadyAdded = distances.some((d) => d.distance_km === km);
-                  return (
-                    <button
-                      key={km}
-                      type="button"
-                      disabled={alreadyAdded}
-                      onClick={() => {
-                        addDistance(km);
+          {/* Distance Categories (running, trail_run, road_bike only) */}
+          {supportsDistances && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Distance Categories{" "}
+                  <span className="text-gray-400 dark:text-gray-500 font-normal">(optional)</span>
+                </label>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                  Add distance categories to offer multiple race distances. Each category can have
+                  its own price and participant limit.
+                </p>
+
+                {/* Preset quick-pick chips */}
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {PRESET_DISTANCES.map((km) => {
+                    const alreadyAdded = distances.some((d) => d.distance_km === km);
+                    return (
+                      <button
+                        key={km}
+                        type="button"
+                        disabled={alreadyAdded}
+                        onClick={() => {
+                          addDistance(km);
+                        }}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                          alreadyAdded
+                            ? "bg-lime-100 dark:bg-lime-900 text-lime-700 dark:text-lime-300 cursor-default"
+                            : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-lime-100 dark:hover:bg-lime-900 hover:text-lime-700 dark:hover:text-lime-300 cursor-pointer"
+                        }`}
+                      >
+                        {km} km
+                        {alreadyAdded && (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                            className="w-3.5 h-3.5 inline ml-1"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Custom distance input */}
+                <div className="flex items-end gap-2">
+                  <div className="flex-1 max-w-[160px]">
+                    <Input
+                      id="customDistance"
+                      label="Custom (km)"
+                      type="number"
+                      value={customDistanceInput}
+                      onChange={(e) => {
+                        setCustomDistanceInput(e.target.value);
                       }}
-                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                        alreadyAdded
-                          ? "bg-lime-100 dark:bg-lime-900 text-lime-700 dark:text-lime-300 cursor-default"
-                          : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-lime-100 dark:hover:bg-lime-900 hover:text-lime-700 dark:hover:text-lime-300 cursor-pointer"
-                      }`}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleAddCustomDistance();
+                        }
+                      }}
+                      min="0.1"
+                      step="0.1"
+                      placeholder="e.g. 15"
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAddCustomDistance}
+                  >
+                    Add
+                  </Button>
+                </div>
+              </div>
+
+              {/* Distance rows */}
+              {distances.length > 0 && (
+                <div className="space-y-3">
+                  <div className="hidden sm:grid sm:grid-cols-[80px_1fr_1fr_1fr_40px] gap-2 text-xs font-medium text-gray-500 dark:text-gray-400 px-1">
+                    <span>Distance</span>
+                    <span>Label</span>
+                    <span>Price (PHP)</span>
+                    <span>Max Participants</span>
+                    <span />
+                  </div>
+                  {distances.map((d) => (
+                    <div
+                      key={d.distance_km}
+                      className="flex flex-col sm:grid sm:grid-cols-[80px_1fr_1fr_1fr_40px] gap-2 items-start sm:items-center p-3 sm:p-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50"
                     >
-                      {km} km
-                      {alreadyAdded && (
+                      {/* Distance (read-only) */}
+                      <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                        {d.distance_km} km
+                      </span>
+
+                      {/* Label (editable) */}
+                      <input
+                        type="text"
+                        value={d.label}
+                        onChange={(e) => {
+                          updateDistance(d.distance_km, "label", e.target.value);
+                        }}
+                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:border-lime-500 focus:ring-1 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors"
+                        placeholder="Label"
+                      />
+
+                      {/* Price */}
+                      <input
+                        type="number"
+                        value={d.price}
+                        onChange={(e) => {
+                          updateDistance(d.distance_km, "price", Number(e.target.value));
+                        }}
+                        min="0"
+                        step="0.01"
+                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:border-lime-500 focus:ring-1 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors"
+                        placeholder="Price"
+                      />
+
+                      {/* Max participants */}
+                      <input
+                        type="number"
+                        value={d.max_participants}
+                        onChange={(e) => {
+                          updateDistance(d.distance_km, "max_participants", Number(e.target.value));
+                        }}
+                        min="1"
+                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:border-lime-500 focus:ring-1 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors"
+                        placeholder="Max"
+                      />
+
+                      {/* Remove button */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          removeDistance(d.distance_km);
+                        }}
+                        className="self-center text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                        aria-label={`Remove ${d.label}`}
+                      >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           viewBox="0 0 20 20"
                           fill="currentColor"
-                          className="w-3.5 h-3.5 inline ml-1"
+                          className="w-5 h-5"
                         >
                           <path
                             fillRule="evenodd"
-                            d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
+                            d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.519.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z"
                             clipRule="evenodd"
                           />
                         </svg>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Custom distance input */}
-              <div className="flex items-end gap-2">
-                <div className="flex-1 max-w-[160px]">
-                  <Input
-                    id="customDistance"
-                    label="Custom (km)"
-                    type="number"
-                    value={customDistanceInput}
-                    onChange={(e) => {
-                      setCustomDistanceInput(e.target.value);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleAddCustomDistance();
-                      }
-                    }}
-                    min="0.1"
-                    step="0.1"
-                    placeholder="e.g. 15"
-                  />
+                      </button>
+                    </div>
+                  ))}
                 </div>
-                <Button type="button" variant="outline" size="sm" onClick={handleAddCustomDistance}>
-                  Add
-                </Button>
-              </div>
+              )}
             </div>
+          )}
 
-            {/* Distance rows */}
-            {distances.length > 0 && (
-              <div className="space-y-3">
-                <div className="hidden sm:grid sm:grid-cols-[80px_1fr_1fr_1fr_40px] gap-2 text-xs font-medium text-gray-500 dark:text-gray-400 px-1">
-                  <span>Distance</span>
-                  <span>Label</span>
-                  <span>Price (PHP)</span>
-                  <span>Max Participants</span>
-                  <span />
-                </div>
-                {distances.map((d) => (
-                  <div
-                    key={d.distance_km}
-                    className="flex flex-col sm:grid sm:grid-cols-[80px_1fr_1fr_1fr_40px] gap-2 items-start sm:items-center p-3 sm:p-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50"
-                  >
-                    {/* Distance (read-only) */}
-                    <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                      {d.distance_km} km
-                    </span>
-
-                    {/* Label (editable) */}
-                    <input
-                      type="text"
-                      value={d.label}
-                      onChange={(e) => {
-                        updateDistance(d.distance_km, "label", e.target.value);
-                      }}
-                      className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:border-lime-500 focus:ring-1 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors"
-                      placeholder="Label"
-                    />
-
-                    {/* Price */}
-                    <input
-                      type="number"
-                      value={d.price}
-                      onChange={(e) => {
-                        updateDistance(d.distance_km, "price", Number(e.target.value));
-                      }}
-                      min="0"
-                      step="0.01"
-                      className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:border-lime-500 focus:ring-1 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors"
-                      placeholder="Price"
-                    />
-
-                    {/* Max participants */}
-                    <input
-                      type="number"
-                      value={d.max_participants}
-                      onChange={(e) => {
-                        updateDistance(d.distance_km, "max_participants", Number(e.target.value));
-                      }}
-                      min="1"
-                      className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:border-lime-500 focus:ring-1 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors"
-                      placeholder="Max"
-                    />
-
-                    {/* Remove button */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        removeDistance(d.distance_km);
-                      }}
-                      className="self-center text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
-                      aria-label={`Remove ${d.label}`}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                        className="w-5 h-5"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.519.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Event-level price & max participants (hidden when distance categories are set) */}
-        {!(supportsDistances && distances.length > 0) && (
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              id="maxParticipants"
-              label="Max Participants"
-              type="number"
-              value={String(maxParticipants)}
-              onChange={(e) => {
-                setMaxParticipants(Number(e.target.value));
-              }}
-              min="1"
-              required
-            />
-            <Input
-              id="price"
-              label="Price (PHP)"
-              type="number"
-              value={String(price)}
-              onChange={(e) => {
-                setPrice(Number(e.target.value));
-              }}
-              min="0"
-              step="0.01"
-              required
-            />
-          </div>
-        )}
-
-        <PhotoUploader
-          value={coverImage}
-          onChange={(file) => {
-            setCoverImage(file);
-          }}
-          label="Cover Image"
-        />
-
-        {/* Template cover banners */}
-        <div className="space-y-2">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Or choose a template</p>
-          <div className="flex gap-2 overflow-x-auto pb-2">
-            {COVER_TEMPLATES.map((tpl) => (
-              <button
-                key={tpl.url}
-                type="button"
-                aria-pressed={coverImage === tpl.url}
-                onClick={() => setCoverImage(tpl.url)}
-                className={cn(
-                  "relative h-20 w-32 shrink-0 overflow-hidden rounded-lg border-2 transition-all focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2",
-                  coverImage === tpl.url
-                    ? "border-teal-500 ring-2 ring-teal-500/30"
-                    : "border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600",
-                )}
-              >
-                <Image src={tpl.url} alt={tpl.label} fill sizes="128px" className="object-cover" />
-                <span className="absolute inset-x-0 bottom-0 bg-black/50 px-1.5 py-0.5 text-[10px] font-medium text-white">
-                  {tpl.label}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Waiver Section */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Participant Waiver
-              </label>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                When enabled, participants must accept the waiver before booking.
-              </p>
+          {/* Event-level price & max participants (hidden when distance categories are set) */}
+          {!(supportsDistances && distances.length > 0) && (
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                id="maxParticipants"
+                label="Max Participants"
+                type="number"
+                value={String(maxParticipants)}
+                onChange={(e) => {
+                  setMaxParticipants(Number(e.target.value));
+                }}
+                min="1"
+                required
+              />
+              <Input
+                id="price"
+                label="Price (PHP)"
+                type="number"
+                value={String(price)}
+                onChange={(e) => {
+                  setPrice(Number(e.target.value));
+                }}
+                min="0"
+                step="0.01"
+                required
+              />
             </div>
-            <Toggle checked={waiverEnabled} onChange={setWaiverEnabled} id="waiver-toggle" />
-          </div>
-
-          {waiverEnabled && (
-            <RichTextEditor
-              value={waiverText}
-              onChange={setWaiverText}
-              placeholder="Write your waiver or liability release text..."
-            />
           )}
         </div>
+        {/* ── End Step 2 ── */}
 
-        {type === "hiking" && (
-          <>
-            <MountainCombobox
-              selectedMountains={selectedMountains}
-              onChange={setSelectedMountains}
-            />
-            {selectedMountains.length > 0 && (
-              <div className="space-y-2">
+        {/* ── Step 3: Media & Extras ── */}
+        <div className="border-l-2 border-gray-300 dark:border-gray-600 pl-4 space-y-6">
+          <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+            Media & Extras
+          </h3>
+
+          <PhotoUploader
+            value={coverImage}
+            onChange={(file) => {
+              setCoverImage(file);
+            }}
+            label="Cover Image"
+          />
+
+          {/* Template cover banners */}
+          <div className="space-y-2">
+            <p className="text-sm text-gray-500 dark:text-gray-400">Or choose a template</p>
+            <div className="flex gap-2 overflow-x-auto pb-2">
+              {COVER_TEMPLATES.map((tpl) => (
+                <button
+                  key={tpl.url}
+                  type="button"
+                  aria-pressed={coverImage === tpl.url}
+                  onClick={() => setCoverImage(tpl.url)}
+                  className={cn(
+                    "relative h-20 w-32 shrink-0 overflow-hidden rounded-lg border-2 transition-all focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2",
+                    coverImage === tpl.url
+                      ? "border-teal-500 ring-2 ring-teal-500/30"
+                      : "border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600",
+                  )}
+                >
+                  <Image
+                    src={tpl.url}
+                    alt={tpl.label}
+                    fill
+                    sizes="128px"
+                    className="object-cover"
+                  />
+                  <span className="absolute inset-x-0 bottom-0 bg-black/50 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                    {tpl.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Waiver Section */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Overall Event Difficulty
+                  Participant Waiver
                 </label>
-                <div className="flex items-center gap-3">
-                  <select
-                    value={difficultyLevel ?? ""}
-                    onChange={(e) =>
-                      setDifficultyLevel(e.target.value ? Number(e.target.value) : null)
-                    }
-                    className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"
-                  >
-                    {Array.from({ length: 9 }, (_, i) => i + 1).map((n) => (
-                      <option key={n} value={n}>
-                        {n}/9
-                      </option>
-                    ))}
-                  </select>
-                  {difficultyLevel && <DifficultyBadge level={difficultyLevel} />}
-                </div>
-                <p className="text-xs text-gray-500">
-                  Auto-set to highest peak difficulty. Override if the traverse is harder.
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                  When enabled, participants must accept the waiver before booking.
                 </p>
               </div>
-            )}
-          </>
-        )}
-
-        {type === "hiking" && startDate && (
-          <GuideCombobox
-            guides={availableGuides}
-            selectedIds={selectedGuideIds}
-            onChange={setSelectedGuideIds}
-            loading={loadingGuides}
-          />
-        )}
-
-        {/* Event Route section */}
-        <div className="space-y-3">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Event Route{" "}
-            <span className="text-gray-400 dark:text-gray-500 font-normal">(optional)</span>
-          </label>
-
-          {mode === "create" ? (
-            <p className="text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/50 rounded-xl px-4 py-3">
-              Save the event first, then attach a route via Strava URL or GPX file in edit mode.
-            </p>
-          ) : routeLoading ? (
-            <div className="animate-pulse rounded-xl bg-gray-100 dark:bg-gray-800 h-12" />
-          ) : routeData?.summary_polyline ? (
-            <div className="space-y-3">
-              <EventRouteSection
-                name={routeData.name}
-                polyline={routeData.summary_polyline}
-                distance={routeData.distance}
-                elevationGain={routeData.elevation_gain}
-                source={routeData.source}
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                disabled={deletingRoute}
-                onClick={() => void handleDeleteRoute()}
-                className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-              >
-                {deletingRoute ? "Removing..." : "Remove Route"}
-              </Button>
+              <Toggle checked={waiverEnabled} onChange={setWaiverEnabled} id="waiver-toggle" />
             </div>
-          ) : initialData?.id ? (
-            <RouteAttachmentForm
-              eventId={initialData.id}
-              onRouteAttached={() => void fetchRouteData()}
+
+            {waiverEnabled && (
+              <RichTextEditor
+                value={waiverText}
+                onChange={setWaiverText}
+                placeholder="Write your waiver or liability release text..."
+              />
+            )}
+          </div>
+
+          {type === "hiking" && (
+            <>
+              <MountainCombobox
+                selectedMountains={selectedMountains}
+                onChange={setSelectedMountains}
+              />
+              {selectedMountains.length > 0 && (
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Overall Event Difficulty
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <select
+                      value={difficultyLevel ?? ""}
+                      onChange={(e) =>
+                        setDifficultyLevel(e.target.value ? Number(e.target.value) : null)
+                      }
+                      className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"
+                    >
+                      {Array.from({ length: 9 }, (_, i) => i + 1).map((n) => (
+                        <option key={n} value={n}>
+                          {n}/9
+                        </option>
+                      ))}
+                    </select>
+                    {difficultyLevel && <DifficultyBadge level={difficultyLevel} />}
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Auto-set to highest peak difficulty. Override if the traverse is harder.
+                  </p>
+                </div>
+              )}
+            </>
+          )}
+
+          {type === "hiking" && startDate && (
+            <GuideCombobox
+              guides={availableGuides}
+              selectedIds={selectedGuideIds}
+              onChange={setSelectedGuideIds}
+              loading={loadingGuides}
             />
-          ) : null}
+          )}
+
+          {/* Event Route section */}
+          <div className="space-y-3">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Event Route{" "}
+              <span className="text-gray-400 dark:text-gray-500 font-normal">(optional)</span>
+            </label>
+
+            {mode === "create" ? (
+              <p className="text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/50 rounded-xl px-4 py-3">
+                Save the event first, then attach a route via Strava URL or GPX file in edit mode.
+              </p>
+            ) : routeLoading ? (
+              <div className="animate-pulse rounded-xl bg-gray-100 dark:bg-gray-800 h-12" />
+            ) : routeData?.summary_polyline ? (
+              <div className="space-y-3">
+                <EventRouteSection
+                  name={routeData.name}
+                  polyline={routeData.summary_polyline}
+                  distance={routeData.distance}
+                  elevationGain={routeData.elevation_gain}
+                  source={routeData.source}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  disabled={deletingRoute}
+                  onClick={() => void handleDeleteRoute()}
+                  className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                >
+                  {deletingRoute ? "Removing..." : "Remove Route"}
+                </Button>
+              </div>
+            ) : initialData?.id ? (
+              <RouteAttachmentForm
+                eventId={initialData.id}
+                onRouteAttached={() => void fetchRouteData()}
+              />
+            ) : null}
+          </div>
         </div>
+        {/* ── End Step 3 ── */}
 
         {error && <p className="text-sm text-red-500">{error}</p>}
 

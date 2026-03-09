@@ -385,13 +385,13 @@ export default function AboutPage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/events"
-              className="inline-flex items-center justify-center rounded-xl bg-gray-900 px-8 py-3 text-base font-semibold text-white shadow-lg hover:bg-gray-800 transition-colors"
+              className="inline-flex items-center justify-center rounded-xl bg-gray-900 px-8 py-3 text-base font-semibold text-white shadow-lg hover:bg-gray-800 transition-colors w-full sm:w-auto"
             >
               Browse Events
             </Link>
             <Link
               href="/contact"
-              className="inline-flex items-center justify-center rounded-xl bg-white px-8 py-3 text-base font-semibold text-gray-900 shadow-lg hover:bg-gray-100 transition-colors"
+              className="inline-flex items-center justify-center rounded-xl bg-white px-8 py-3 text-base font-semibold text-gray-900 shadow-lg hover:bg-gray-100 transition-colors w-full sm:w-auto"
             >
               Get in Touch
             </Link>
