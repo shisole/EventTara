@@ -22,21 +22,6 @@ jobs:
             const merged = context.payload.pull_request;
             const newEntry = `- #${merged.number} — ${merged.title}`;
 
-            // Check for migration files in the merged PR
-            const { data: files } = await github.rest.pulls.listFiles({
-              owner,
-              repo,
-              pull_number: merged.number,
-            });
-
-            const migrations = files
-              .filter(f => f.filename.startsWith('supabase/migrations/') && f.status === 'added')
-              .map(f => f.filename.split('/').pop());
-
-            const migrationEntries = migrations.map(
-              m => `- \`${m}\` (#${merged.number})`
-            );
-
             // Find open staging → main PR
             const { data: prs } = await github.rest.pulls.list({
               owner,
@@ -48,25 +33,20 @@ jobs:
 
             if (prs.length === 0) {
               // Create the staging → main PR
-              let body = `## Changes\n${newEntry}\n`;
-              if (migrationEntries.length > 0) {
-                body += `\n## Migrations\n${migrationEntries.join('\n')}\n`;
-              }
-
               const { data: created } = await github.rest.pulls.create({
                 owner,
                 repo,
                 head: 'staging',
                 base: 'main',
                 title: 'Staging → Main',
-                body,
+                body: `## Changes\n${newEntry}\n`,
               });
               core.info(`Created staging PR #${created.number}`);
               return;
             }
 
             const pr = prs[0];
-            let body = pr.body || '';
+            const body = pr.body || '';
 
             // Avoid duplicate entries
             if (body.includes(`#${merged.number}`)) {
@@ -75,32 +55,18 @@ jobs:
             }
 
             // Append under ## Changes heading
+            let newBody;
             if (body.includes('## Changes')) {
-              body = body.replace('## Changes\n', `## Changes\n${newEntry}\n`);
+              newBody = body.replace('## Changes\n', `## Changes\n${newEntry}\n`);
             } else {
-              body = `## Changes\n${newEntry}\n${body ? '\n' + body : ''}`;
-            }
-
-            // Append migrations under ## Migrations heading
-            if (migrationEntries.length > 0) {
-              if (body.includes('## Migrations')) {
-                body = body.replace(
-                  '## Migrations\n',
-                  `## Migrations\n${migrationEntries.join('\n')}\n`
-                );
-              } else {
-                body += `\n## Migrations\n${migrationEntries.join('\n')}\n`;
-              }
+              newBody = `## Changes\n${newEntry}\n${body ? '\n' + body : ''}`;
             }
 
             await github.rest.pulls.update({
               owner,
               repo,
               pull_number: pr.number,
-              body,
+              body: newBody,
             });
 
             core.info(`Updated PR #${pr.number} with entry for #${merged.number}`);
-            if (migrations.length > 0) {
-              core.info(`Added ${migrations.length} migration(s): ${migrations.join(', ')}`);
-            }
