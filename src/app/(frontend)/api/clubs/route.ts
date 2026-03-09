@@ -96,37 +96,41 @@ export async function POST(request: Request) {
     slug = `${slug}-${Date.now()}`.slice(0, 60);
   }
 
-  const { data: club, error } = await supabase
-    .from("clubs")
-    .insert({
-      name: body.name.trim(),
-      slug,
-      description: body.description ?? null,
-      logo_url: body.logo_url ?? null,
-      cover_url: body.cover_url ?? null,
-      activity_types: body.activity_types ?? [],
-      visibility: body.visibility ?? "public",
-      location: body.location ?? null,
-    })
-    .select()
-    .single();
+  const clubId = crypto.randomUUID();
+
+  const { error } = await supabase.from("clubs").insert({
+    id: clubId,
+    name: body.name.trim(),
+    slug,
+    description: body.description ?? null,
+    logo_url: body.logo_url ?? null,
+    cover_url: body.cover_url ?? null,
+    activity_types: body.activity_types ?? [],
+    visibility: body.visibility ?? "public",
+    location: body.location ?? null,
+  });
 
   if (error) {
+    console.error("Club insert error:", error.message, error.code);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
   // Add the creator as owner
   const { error: memberError } = await supabase.from("club_members").insert({
-    club_id: club.id,
+    club_id: clubId,
     user_id: user.id,
     role: "owner",
   });
 
   if (memberError) {
     // Rollback: delete the club if member creation failed
-    await supabase.from("clubs").delete().eq("id", club.id);
+    console.error("Club member insert error:", memberError.message, memberError.code);
+    await supabase.from("clubs").delete().eq("id", clubId);
     return NextResponse.json({ error: memberError.message }, { status: 500 });
   }
+
+  // SELECT after owner is added so the SELECT policy passes (private clubs need membership)
+  const { data: club } = await supabase.from("clubs").select().eq("id", clubId).single();
 
   return NextResponse.json({ club }, { status: 201 });
 }
