@@ -38,6 +38,7 @@ export default async function ClubProfilePage({ params }: { params: Promise<{ sl
   const { data: club, error } = await supabase.from("clubs").select("*").eq("slug", slug).single();
 
   if (error || !club) {
+    console.error("Club page query error:", error?.message, error?.code, "slug:", slug);
     notFound();
   }
 
@@ -50,10 +51,10 @@ export default async function ClubProfilePage({ params }: { params: Promise<{ sl
   const today = new Date().toISOString().split("T")[0];
 
   const [
-    { count: memberCount },
-    { count: eventCount },
-    { data: members },
-    { data: events },
+    memberCountResult,
+    eventCountResult,
+    membersResult,
+    eventsResult,
     currentMembershipResult,
   ] = await Promise.all([
     supabase
@@ -87,6 +88,19 @@ export default async function ClubProfilePage({ params }: { params: Promise<{ sl
           .maybeSingle()
       : Promise.resolve({ data: null }),
   ]);
+
+  // Debug: log any query errors
+  if (memberCountResult.error)
+    console.error("Club page memberCount error:", memberCountResult.error.message);
+  if (eventCountResult.error)
+    console.error("Club page eventCount error:", eventCountResult.error.message);
+  if (membersResult.error) console.error("Club page members error:", membersResult.error.message);
+  if (eventsResult.error) console.error("Club page events error:", eventsResult.error.message);
+
+  const { count: memberCount } = memberCountResult;
+  const { count: eventCount } = eventCountResult;
+  const { data: members } = membersResult;
+  const { data: events } = eventsResult;
 
   // Build current membership
   const currentMembership: { role: ClubRole; userId: string } | null =
