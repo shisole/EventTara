@@ -532,6 +532,7 @@ export default function EventForm({ mode, clubId, initialData }: EventFormProps)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (currentStep < 2) return;
     setLoading(true);
     setError("");
 
@@ -1280,6 +1281,7 @@ export default function EventForm({ mode, clubId, initialData }: EventFormProps)
           <div className="flex-1" />
           {currentStep < 2 ? (
             <Button
+              key="next"
               type="button"
               onClick={() => {
                 setCurrentStep((s) => s + 1);
@@ -1288,7 +1290,7 @@ export default function EventForm({ mode, clubId, initialData }: EventFormProps)
               Next
             </Button>
           ) : (
-            <Button type="submit" disabled={loading}>
+            <Button key="submit" type="submit" disabled={loading}>
               {loading ? "Saving..." : mode === "create" ? "Create Event" : "Save Changes"}
             </Button>
           )}
