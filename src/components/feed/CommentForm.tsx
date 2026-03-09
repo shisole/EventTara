@@ -206,6 +206,7 @@ export default function CommentForm({
           value={text}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
+          disabled={submitting}
           placeholder="Add a comment..."
           maxLength={MAX_LENGTH}
           className="w-full text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full pl-3.5 pr-16 py-1.5 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-lime-500 dark:focus:ring-lime-400"

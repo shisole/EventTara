@@ -61,29 +61,31 @@ export default function ReviewForm({ eventId, onSubmitted }: ReviewFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          How was your experience?
-        </label>
-        <StarRating value={rating} onChange={setRating} size="lg" />
-      </div>
-      <div>
-        <textarea
-          value={text}
-          onChange={(e) => {
-            setText(e.target.value);
-          }}
-          placeholder="Share your experience (optional)"
-          rows={3}
-          maxLength={500}
-          className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-lime-500 dark:focus:ring-lime-400"
-        />
-      </div>
-      {error && <p className="text-sm text-red-500">{error}</p>}
-      <Button type="submit" disabled={loading || rating === 0} size="sm">
-        {loading ? "Submitting..." : "Submit Review"}
-      </Button>
+    <form onSubmit={handleSubmit}>
+      <fieldset disabled={loading} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            How was your experience?
+          </label>
+          <StarRating value={rating} onChange={setRating} size="lg" />
+        </div>
+        <div>
+          <textarea
+            value={text}
+            onChange={(e) => {
+              setText(e.target.value);
+            }}
+            placeholder="Share your experience (optional)"
+            rows={3}
+            maxLength={500}
+            className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-lime-500 dark:focus:ring-lime-400"
+          />
+        </div>
+        {error && <p className="text-sm text-red-500">{error}</p>}
+        <Button type="submit" disabled={loading || rating === 0} size="sm">
+          {loading ? "Submitting..." : "Submit Review"}
+        </Button>
+      </fieldset>
     </form>
   );
 }

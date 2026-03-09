@@ -242,108 +242,107 @@ export default function AuthBookingModal({
         )}
 
         {state === "form" && (
-          <form
-            onSubmit={authMethod === "password" ? handlePasswordLogin : handleOtpSubmit}
-            className="space-y-5"
-          >
-            <div className="text-center">
-              <div className="w-14 h-14 bg-lime-100 dark:bg-lime-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                <EnvelopeIcon className="w-7 h-7 text-lime-600 dark:text-lime-400" />
+          <form onSubmit={authMethod === "password" ? handlePasswordLogin : handleOtpSubmit}>
+            <fieldset disabled={loading} className="space-y-5">
+              <div className="text-center">
+                <div className="w-14 h-14 bg-lime-100 dark:bg-lime-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <EnvelopeIcon className="w-7 h-7 text-lime-600 dark:text-lime-400" />
+                </div>
+                <h2
+                  id="auth-modal-title"
+                  className="text-xl font-heading font-bold text-gray-900 dark:text-white"
+                >
+                  Sign in to continue booking
+                </h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{eventName}</p>
               </div>
-              <h2
-                id="auth-modal-title"
-                className="text-xl font-heading font-bold text-gray-900 dark:text-white"
-              >
-                Sign in to continue booking
-              </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{eventName}</p>
-            </div>
 
-            <div>
-              <label
-                htmlFor="auth-email"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
-              >
-                Email address
-              </label>
-              <input
-                id="auth-email"
-                type="email"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                }}
-                placeholder="you@example.com"
-                autoFocus
-                className={inputClassName}
-              />
-            </div>
-
-            {authMethod === "password" && (
               <div>
                 <label
-                  htmlFor="auth-password"
+                  htmlFor="auth-email"
                   className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
                 >
-                  Password
+                  Email address
                 </label>
                 <input
-                  id="auth-password"
-                  type="password"
-                  value={password}
+                  id="auth-email"
+                  type="email"
+                  value={email}
                   onChange={(e) => {
-                    setPassword(e.target.value);
+                    setEmail(e.target.value);
                   }}
-                  placeholder="Enter your password"
+                  placeholder="you@example.com"
+                  autoFocus
                   className={inputClassName}
                 />
-                <div className="flex justify-end mt-1.5">
-                  <Link
-                    href="/forgot-password"
-                    className="text-sm text-lime-600 dark:text-lime-400 hover:text-lime-700 dark:hover:text-lime-300 font-medium"
-                  >
-                    Forgot password?
-                  </Link>
-                </div>
               </div>
-            )}
 
-            {error && (
-              <p className="text-sm text-red-500" role="alert">
-                {error}
-              </p>
-            )}
+              {authMethod === "password" && (
+                <div>
+                  <label
+                    htmlFor="auth-password"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
+                  >
+                    Password
+                  </label>
+                  <input
+                    id="auth-password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                    }}
+                    placeholder="Enter your password"
+                    className={inputClassName}
+                  />
+                  <div className="flex justify-end mt-1.5">
+                    <Link
+                      href="/forgot-password"
+                      className="text-sm text-lime-600 dark:text-lime-400 hover:text-lime-700 dark:hover:text-lime-300 font-medium"
+                    >
+                      Forgot password?
+                    </Link>
+                  </div>
+                </div>
+              )}
 
-            <Button type="submit" className="w-full" size="lg" disabled={loading}>
-              {loading
-                ? authMethod === "password"
-                  ? "Signing in..."
-                  : "Sending code..."
-                : authMethod === "password"
-                  ? "Sign In"
-                  : "Send Code"}
-            </Button>
+              {error && (
+                <p className="text-sm text-red-500" role="alert">
+                  {error}
+                </p>
+              )}
 
-            <div className="text-center">
-              <button
-                type="button"
-                onClick={() => {
-                  setAuthMethod(authMethod === "password" ? "otp" : "password");
-                  setError("");
-                }}
-                className="text-sm text-lime-600 dark:text-lime-400 hover:text-lime-700 dark:hover:text-lime-300 font-medium"
-              >
-                {authMethod === "password"
-                  ? "Use a one-time code instead"
-                  : "Sign in with password instead"}
-              </button>
-            </div>
+              <Button type="submit" className="w-full" size="lg" disabled={loading}>
+                {loading
+                  ? authMethod === "password"
+                    ? "Signing in..."
+                    : "Sending code..."
+                  : authMethod === "password"
+                    ? "Sign In"
+                    : "Send Code"}
+              </Button>
 
-            {authMethod === "otp" && (
-              <p className="text-xs text-center text-gray-400 dark:text-gray-500">
-                We&apos;ll send a 6-digit code to your email. Works for new and existing accounts.
-              </p>
-            )}
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthMethod(authMethod === "password" ? "otp" : "password");
+                    setError("");
+                  }}
+                  className="text-sm text-lime-600 dark:text-lime-400 hover:text-lime-700 dark:hover:text-lime-300 font-medium"
+                >
+                  {authMethod === "password"
+                    ? "Use a one-time code instead"
+                    : "Sign in with password instead"}
+                </button>
+              </div>
+
+              {authMethod === "otp" && (
+                <p className="text-xs text-center text-gray-400 dark:text-gray-500">
+                  We&apos;ll send a 6-digit code to your email. Works for new and existing accounts.
+                </p>
+              )}
+            </fieldset>
           </form>
         )}
 

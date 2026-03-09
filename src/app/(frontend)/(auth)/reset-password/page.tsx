@@ -78,34 +78,36 @@ export default function ResetPasswordPage() {
         <p className="text-sm text-gray-500 dark:text-gray-400">Enter your new password below.</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <Input
-          id="password"
-          label="New Password"
-          type="password"
-          value={password}
-          onChange={(e) => {
-            setPassword(e.target.value);
-          }}
-          placeholder="At least 6 characters"
-          required
-          minLength={6}
-        />
-        <Input
-          id="confirmPassword"
-          label="Confirm New Password"
-          type="password"
-          value={confirmPassword}
-          onChange={(e) => {
-            setConfirmPassword(e.target.value);
-          }}
-          placeholder="Re-enter your new password"
-          required
-        />
-        {error && <p className="text-sm text-red-500">{error}</p>}
-        <Button type="submit" className="w-full" size="lg" disabled={loading}>
-          {loading ? "Updating..." : "Update Password"}
-        </Button>
+      <form onSubmit={handleSubmit}>
+        <fieldset disabled={loading} className="space-y-4">
+          <Input
+            id="password"
+            label="New Password"
+            type="password"
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+            }}
+            placeholder="At least 6 characters"
+            required
+            minLength={6}
+          />
+          <Input
+            id="confirmPassword"
+            label="Confirm New Password"
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => {
+              setConfirmPassword(e.target.value);
+            }}
+            placeholder="Re-enter your new password"
+            required
+          />
+          {error && <p className="text-sm text-red-500">{error}</p>}
+          <Button type="submit" className="w-full" size="lg" disabled={loading}>
+            {loading ? "Updating..." : "Update Password"}
+          </Button>
+        </fieldset>
       </form>
 
       <p className="text-center text-sm text-gray-500 dark:text-gray-400">

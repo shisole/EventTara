@@ -457,180 +457,188 @@ function SignupForm() {
         </div>
       </div>
 
-      <form onSubmit={handleSignup} className="space-y-4">
-        <Input
-          id="fullName"
-          label="Full Name"
-          value={fullName}
-          onChange={(e) => {
-            setFullName(e.target.value);
-          }}
-          placeholder="Juan Dela Cruz"
-          required
-        />
-        <div className="space-y-1">
-          <label
-            htmlFor="username"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-          >
-            Username
-          </label>
-          <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm select-none pointer-events-none">
-              @
-            </span>
-            <input
-              id="username"
-              type="text"
-              value={username}
-              onChange={(e) => {
-                const val = e.target.value.toLowerCase().replaceAll(/[^a-z0-9._-]/g, "");
-                setUsername(val);
-                checkUsername(val);
-              }}
-              placeholder="your.username"
-              maxLength={30}
-              className={cn(
-                "w-full pl-8 pr-10 py-3 rounded-xl border bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 outline-none transition-colors",
-                usernameStatus === "available"
-                  ? "border-green-500 focus:border-green-500 focus:ring-2 focus:ring-green-200 dark:focus:ring-green-800"
-                  : usernameStatus === "taken" || usernameStatus === "invalid"
-                    ? "border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-800"
-                    : "border-gray-300 dark:border-gray-600 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800",
-              )}
-            />
-            <div className="absolute right-3 top-1/2 -translate-y-1/2">
-              {usernameStatus === "checking" && (
-                <svg className="h-4 w-4 animate-spin text-gray-400" viewBox="0 0 24 24" fill="none">
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="3"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M12 2a10 10 0 0 1 10 10h-3a7 7 0 0 0-7-7V2z"
-                  />
-                </svg>
-              )}
-              {usernameStatus === "available" && (
-                <svg className="h-4 w-4 text-green-500" viewBox="0 0 20 20" fill="currentColor">
-                  <path
-                    fillRule="evenodd"
-                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              )}
-              {usernameStatus === "taken" && (
-                <svg className="h-4 w-4 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                  <path
-                    fillRule="evenodd"
-                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              )}
-            </div>
-          </div>
-          {usernameStatus === "taken" && (
-            <p className="text-xs text-red-500">This username is already taken</p>
-          )}
-          {usernameStatus === "invalid" && username.length > 0 && (
-            <p className="text-xs text-red-500">
-              3-30 characters: letters, numbers, dots, underscores, hyphens
-            </p>
-          )}
-          {usernameStatus === "available" && (
-            <p className="text-xs text-green-600 dark:text-green-400">Username available!</p>
-          )}
-          {usernameStatus === "idle" && username.length === 0 && (
-            <p className="text-xs text-gray-400 dark:text-gray-500">
-              Optional — one will be generated if left blank
-            </p>
-          )}
-        </div>
-
-        <Input
-          id="email"
-          label="Email"
-          type="email"
-          value={email}
-          onChange={(e) => {
-            setEmail(e.target.value);
-          }}
-          placeholder="you@example.com"
-          required
-        />
-
-        {/* Password fields (shown when password method is selected) */}
-        <div
-          className={cn(
-            "grid transition-all duration-300 ease-in-out",
-            authMethod === "password" ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
-          )}
-        >
-          <div className="overflow-hidden">
-            <div className="space-y-4">
-              <Input
-                id="password"
-                label="Password"
-                type="password"
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                }}
-                placeholder="At least 6 characters"
-                required={authMethod === "password"}
-                minLength={6}
-              />
-              <Input
-                id="confirmPassword"
-                label="Confirm Password"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => {
-                  setConfirmPassword(e.target.value);
-                }}
-                placeholder="Re-enter your password"
-                required={authMethod === "password"}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Auth method toggle */}
-        <div className="text-center">
-          <button
-            type="button"
-            onClick={() => {
-              setAuthMethod(authMethod === "password" ? "otp" : "password");
-              setError("");
+      <form onSubmit={handleSignup}>
+        <fieldset disabled={loading} className="space-y-4">
+          <Input
+            id="fullName"
+            label="Full Name"
+            value={fullName}
+            onChange={(e) => {
+              setFullName(e.target.value);
             }}
-            className="text-sm text-lime-600 dark:text-lime-400 hover:text-lime-700 dark:hover:text-lime-300 font-medium"
+            placeholder="Juan Dela Cruz"
+            required
+          />
+          <div className="space-y-1">
+            <label
+              htmlFor="username"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
+              Username
+            </label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm select-none pointer-events-none">
+                @
+              </span>
+              <input
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => {
+                  const val = e.target.value.toLowerCase().replaceAll(/[^a-z0-9._-]/g, "");
+                  setUsername(val);
+                  checkUsername(val);
+                }}
+                placeholder="your.username"
+                maxLength={30}
+                className={cn(
+                  "w-full pl-8 pr-10 py-3 rounded-xl border bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 outline-none transition-colors",
+                  usernameStatus === "available"
+                    ? "border-green-500 focus:border-green-500 focus:ring-2 focus:ring-green-200 dark:focus:ring-green-800"
+                    : usernameStatus === "taken" || usernameStatus === "invalid"
+                      ? "border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-800"
+                      : "border-gray-300 dark:border-gray-600 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800",
+                )}
+              />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                {usernameStatus === "checking" && (
+                  <svg
+                    className="h-4 w-4 animate-spin text-gray-400"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M12 2a10 10 0 0 1 10 10h-3a7 7 0 0 0-7-7V2z"
+                    />
+                  </svg>
+                )}
+                {usernameStatus === "available" && (
+                  <svg className="h-4 w-4 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                )}
+                {usernameStatus === "taken" && (
+                  <svg className="h-4 w-4 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                    <path
+                      fillRule="evenodd"
+                      d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                )}
+              </div>
+            </div>
+            {usernameStatus === "taken" && (
+              <p className="text-xs text-red-500">This username is already taken</p>
+            )}
+            {usernameStatus === "invalid" && username.length > 0 && (
+              <p className="text-xs text-red-500">
+                3-30 characters: letters, numbers, dots, underscores, hyphens
+              </p>
+            )}
+            {usernameStatus === "available" && (
+              <p className="text-xs text-green-600 dark:text-green-400">Username available!</p>
+            )}
+            {usernameStatus === "idle" && username.length === 0 && (
+              <p className="text-xs text-gray-400 dark:text-gray-500">
+                Optional — one will be generated if left blank
+              </p>
+            )}
+          </div>
+
+          <Input
+            id="email"
+            label="Email"
+            type="email"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+            }}
+            placeholder="you@example.com"
+            required
+          />
+
+          {/* Password fields (shown when password method is selected) */}
+          <div
+            className={cn(
+              "grid transition-all duration-300 ease-in-out",
+              authMethod === "password"
+                ? "grid-rows-[1fr] opacity-100"
+                : "grid-rows-[0fr] opacity-0",
+            )}
           >
-            {authMethod === "password" ? "Use code instead" : "Use password instead"}
-          </button>
-        </div>
+            <div className="overflow-hidden">
+              <div className="space-y-4">
+                <Input
+                  id="password"
+                  label="Password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                  }}
+                  placeholder="At least 6 characters"
+                  required={authMethod === "password"}
+                  minLength={6}
+                />
+                <Input
+                  id="confirmPassword"
+                  label="Confirm Password"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => {
+                    setConfirmPassword(e.target.value);
+                  }}
+                  placeholder="Re-enter your password"
+                  required={authMethod === "password"}
+                />
+              </div>
+            </div>
+          </div>
 
-        {error && <p className="text-sm text-red-500">{error}</p>}
-        <Button type="submit" className="w-full" size="lg" disabled={loading}>
-          {loading
-            ? authMethod === "password"
-              ? "Creating account..."
-              : "Sending code..."
-            : "Create Account"}
-        </Button>
+          {/* Auth method toggle */}
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={() => {
+                setAuthMethod(authMethod === "password" ? "otp" : "password");
+                setError("");
+              }}
+              className="text-sm text-lime-600 dark:text-lime-400 hover:text-lime-700 dark:hover:text-lime-300 font-medium"
+            >
+              {authMethod === "password" ? "Use code instead" : "Use password instead"}
+            </button>
+          </div>
 
-        {authMethod === "otp" && (
-          <p className="text-xs text-center text-gray-400 dark:text-gray-500">
-            We&apos;ll send a 6-digit code to your email to verify your account.
-          </p>
-        )}
+          {error && <p className="text-sm text-red-500">{error}</p>}
+          <Button type="submit" className="w-full" size="lg" disabled={loading}>
+            {loading
+              ? authMethod === "password"
+                ? "Creating account..."
+                : "Sending code..."
+              : "Create Account"}
+          </Button>
+
+          {authMethod === "otp" && (
+            <p className="text-xs text-center text-gray-400 dark:text-gray-500">
+              We&apos;ll send a 6-digit code to your email to verify your account.
+            </p>
+          )}
+        </fieldset>
       </form>
 
       <p className="text-center text-sm text-gray-500 dark:text-gray-400">

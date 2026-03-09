@@ -251,133 +251,135 @@ export default function AddParticipantModal({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {mode === "existing" ? (
-            <div ref={dropdownRef} className="relative">
-              <Input
-                label="Search user"
-                placeholder="Type a name or email..."
-                value={searchQuery}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                autoFocus
-              />
-              {selectedUser && (
-                <p className="mt-1 text-xs text-forest-600 dark:text-forest-400">
-                  Selected: {selectedUser.full_name} ({selectedUser.email})
-                </p>
-              )}
-              {showDropdown && searchResults.length > 0 && (
-                <div className="absolute z-10 mt-1 w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg max-h-48 overflow-y-auto">
-                  {searchResults.map((u) => (
-                    <button
-                      key={u.id}
-                      type="button"
-                      onClick={() => selectUser(u)}
-                      className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors first:rounded-t-xl last:rounded-b-xl"
-                    >
-                      <p className="text-sm font-medium dark:text-white">{u.full_name}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">{u.email}</p>
-                    </button>
-                  ))}
-                </div>
-              )}
-              {showDropdown &&
-                searchResults.length === 0 &&
-                !searching &&
-                searchQuery.length >= 2 && (
-                  <div className="absolute z-10 mt-1 w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg px-4 py-3">
-                    <p className="text-sm text-gray-500 dark:text-gray-400">No users found</p>
+        <form onSubmit={handleSubmit}>
+          <fieldset disabled={submitting} className="space-y-4">
+            {mode === "existing" ? (
+              <div ref={dropdownRef} className="relative">
+                <Input
+                  label="Search user"
+                  placeholder="Type a name or email..."
+                  value={searchQuery}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  autoFocus
+                />
+                {selectedUser && (
+                  <p className="mt-1 text-xs text-forest-600 dark:text-forest-400">
+                    Selected: {selectedUser.full_name} ({selectedUser.email})
+                  </p>
+                )}
+                {showDropdown && searchResults.length > 0 && (
+                  <div className="absolute z-10 mt-1 w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg max-h-48 overflow-y-auto">
+                    {searchResults.map((u) => (
+                      <button
+                        key={u.id}
+                        type="button"
+                        onClick={() => selectUser(u)}
+                        className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors first:rounded-t-xl last:rounded-b-xl"
+                      >
+                        <p className="text-sm font-medium dark:text-white">{u.full_name}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{u.email}</p>
+                      </button>
+                    ))}
                   </div>
                 )}
-              {searching && (
-                <div className="absolute z-10 mt-1 w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg px-4 py-3">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Searching...</p>
-                </div>
-              )}
-            </div>
-          ) : (
-            <>
-              <Input
-                label="Full name"
-                placeholder="Juan Dela Cruz"
-                value={manualName}
-                onChange={(e) => {
-                  setManualName(e.target.value);
-                  setError("");
-                }}
-                required
-                autoFocus
-              />
-              <Input
-                label="Contact (phone or email)"
-                placeholder="Optional"
-                value={manualContact}
-                onChange={(e) => setManualContact(e.target.value)}
-              />
-            </>
-          )}
+                {showDropdown &&
+                  searchResults.length === 0 &&
+                  !searching &&
+                  searchQuery.length >= 2 && (
+                    <div className="absolute z-10 mt-1 w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg px-4 py-3">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">No users found</p>
+                    </div>
+                  )}
+                {searching && (
+                  <div className="absolute z-10 mt-1 w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg px-4 py-3">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Searching...</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
+                <Input
+                  label="Full name"
+                  placeholder="Juan Dela Cruz"
+                  value={manualName}
+                  onChange={(e) => {
+                    setManualName(e.target.value);
+                    setError("");
+                  }}
+                  required
+                  autoFocus
+                />
+                <Input
+                  label="Contact (phone or email)"
+                  placeholder="Optional"
+                  value={manualContact}
+                  onChange={(e) => setManualContact(e.target.value)}
+                />
+              </>
+            )}
 
-          {/* Distance picker */}
-          {distances.length > 0 && (
+            {/* Distance picker */}
+            {distances.length > 0 && (
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Distance
+                </label>
+                <select
+                  value={distanceId}
+                  onChange={(e) => setDistanceId(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors"
+                >
+                  {distances.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.label || `${d.distance_km}km`} — PHP {d.price}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Status selector */}
             <div className="space-y-1">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Distance
+                Status
               </label>
-              <select
-                value={distanceId}
-                onChange={(e) => setDistanceId(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors"
-              >
-                {distances.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.label || `${d.distance_km}km`} — PHP {d.price}
-                  </option>
+              <div className="grid grid-cols-3 gap-2">
+                {statusOptions.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setStatus(opt.value)}
+                    className={cn(
+                      "rounded-xl border-2 py-2.5 px-3 text-sm font-medium transition-all",
+                      status === opt.value
+                        ? opt.value === "paid"
+                          ? "border-forest-500 bg-forest-50 text-forest-700 dark:bg-forest-900/30 dark:text-forest-300 dark:border-forest-500"
+                          : opt.value === "reserved"
+                            ? "border-teal-500 bg-teal-50 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300 dark:border-teal-500"
+                            : "border-yellow-500 bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-500"
+                        : "border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600",
+                    )}
+                  >
+                    {opt.label}
+                  </button>
                 ))}
-              </select>
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {statusOptions.find((o) => o.value === status)?.description}
+              </p>
             </div>
-          )}
 
-          {/* Status selector */}
-          <div className="space-y-1">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Status
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {statusOptions.map((opt) => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => setStatus(opt.value)}
-                  className={cn(
-                    "rounded-xl border-2 py-2.5 px-3 text-sm font-medium transition-all",
-                    status === opt.value
-                      ? opt.value === "paid"
-                        ? "border-forest-500 bg-forest-50 text-forest-700 dark:bg-forest-900/30 dark:text-forest-300 dark:border-forest-500"
-                        : opt.value === "reserved"
-                          ? "border-teal-500 bg-teal-50 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300 dark:border-teal-500"
-                          : "border-yellow-500 bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-500"
-                      : "border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600",
-                  )}
-                >
-                  {opt.label}
-                </button>
-              ))}
+            {error && <p className="text-sm text-red-600 dark:text-red-400 font-medium">{error}</p>}
+
+            <div className="flex gap-3 pt-2">
+              <Button type="button" variant="outline" onClick={handleClose} className="flex-1">
+                Cancel
+              </Button>
+              <Button type="submit" variant="primary" disabled={submitting} className="flex-1">
+                {submitting ? "Adding..." : "Add Participant"}
+              </Button>
             </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              {statusOptions.find((o) => o.value === status)?.description}
-            </p>
-          </div>
-
-          {error && <p className="text-sm text-red-600 dark:text-red-400 font-medium">{error}</p>}
-
-          <div className="flex gap-3 pt-2">
-            <Button type="button" variant="outline" onClick={handleClose} className="flex-1">
-              Cancel
-            </Button>
-            <Button type="submit" variant="primary" disabled={submitting} className="flex-1">
-              {submitting ? "Adding..." : "Add Participant"}
-            </Button>
-          </div>
+          </fieldset>
         </form>
       </div>
     </div>

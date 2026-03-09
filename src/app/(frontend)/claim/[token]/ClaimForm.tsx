@@ -121,97 +121,101 @@ export default function ClaimForm({ token, orgName, logoUrl, pendingUsername }: 
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="text-center space-y-3">
-        {logoUrl ? (
-          <Image
-            src={logoUrl}
-            alt={orgName}
-            width={64}
-            height={64}
-            className="mx-auto rounded-full object-cover"
-          />
-        ) : (
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-lime-100 dark:bg-lime-900/30">
-            <span className="text-2xl font-bold text-lime-700 dark:text-lime-400">
-              {orgName.charAt(0).toUpperCase()}
-            </span>
-          </div>
-        )}
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-          Claim Your Organizer Account
-        </h1>
-        {existingUserId && (
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Signed in as{" "}
-            <span className="font-medium text-gray-700 dark:text-gray-300">{existingUserName}</span>
-          </p>
-        )}
-      </div>
-
-      <div className="space-y-4">
-        <Input
-          id="org-name"
-          label="Organization Name"
-          value={editedOrgName}
-          onChange={(e) => setEditedOrgName(e.target.value)}
-          required
-        />
-
-        {!existingUserId && pendingUsername && (
-          <div className="space-y-1">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Username
-            </label>
-            <div className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
-              @{pendingUsername}
+    <form onSubmit={handleSubmit}>
+      <fieldset disabled={loading} className="space-y-6">
+        <div className="text-center space-y-3">
+          {logoUrl ? (
+            <Image
+              src={logoUrl}
+              alt={orgName}
+              width={64}
+              height={64}
+              className="mx-auto rounded-full object-cover"
+            />
+          ) : (
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-lime-100 dark:bg-lime-900/30">
+              <span className="text-2xl font-bold text-lime-700 dark:text-lime-400">
+                {orgName.charAt(0).toUpperCase()}
+              </span>
             </div>
+          )}
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+            Claim Your Organizer Account
+          </h1>
+          {existingUserId && (
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Signed in as{" "}
+              <span className="font-medium text-gray-700 dark:text-gray-300">
+                {existingUserName}
+              </span>
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-4">
+          <Input
+            id="org-name"
+            label="Organization Name"
+            value={editedOrgName}
+            onChange={(e) => setEditedOrgName(e.target.value)}
+            required
+          />
+
+          {!existingUserId && pendingUsername && (
+            <div className="space-y-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Username
+              </label>
+              <div className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+                @{pendingUsername}
+              </div>
+            </div>
+          )}
+
+          {!existingUserId && (
+            <>
+              <Input
+                id="full-name"
+                label="Full Name"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Your full name"
+                required
+              />
+
+              <Input
+                id="email"
+                label="Email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                required
+              />
+
+              <Input
+                id="password"
+                label="Password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Min. 6 characters"
+                required
+              />
+            </>
+          )}
+        </div>
+
+        {error && (
+          <div className="rounded-xl bg-red-50 dark:bg-red-900/20 p-3 text-sm text-red-600 dark:text-red-400">
+            {error}
           </div>
         )}
 
-        {!existingUserId && (
-          <>
-            <Input
-              id="full-name"
-              label="Full Name"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              placeholder="Your full name"
-              required
-            />
-
-            <Input
-              id="email"
-              label="Email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              required
-            />
-
-            <Input
-              id="password"
-              label="Password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Min. 6 characters"
-              required
-            />
-          </>
-        )}
-      </div>
-
-      {error && (
-        <div className="rounded-xl bg-red-50 dark:bg-red-900/20 p-3 text-sm text-red-600 dark:text-red-400">
-          {error}
-        </div>
-      )}
-
-      <Button type="submit" disabled={loading} className="w-full">
-        {loading ? "Claiming..." : existingUserId ? "Link to My Account" : "Claim Account"}
-      </Button>
+        <Button type="submit" disabled={loading} className="w-full">
+          {loading ? "Claiming..." : existingUserId ? "Link to My Account" : "Claim Account"}
+        </Button>
+      </fieldset>
     </form>
   );
 }

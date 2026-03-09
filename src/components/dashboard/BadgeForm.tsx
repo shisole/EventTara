@@ -95,90 +95,92 @@ export default function BadgeForm({ eventId, existingBadge }: BadgeFormProps) {
         />
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <Input
-          id="badgeTitle"
-          label="Badge Title"
-          value={title}
-          onChange={(e) => {
-            setTitle(e.target.value);
-          }}
-          placeholder="Summit Conqueror"
-          required
-        />
+      <form onSubmit={handleSubmit}>
+        <fieldset disabled={loading} className="space-y-4">
+          <Input
+            id="badgeTitle"
+            label="Badge Title"
+            value={title}
+            onChange={(e) => {
+              setTitle(e.target.value);
+            }}
+            placeholder="Summit Conqueror"
+            required
+          />
 
-        <Input
-          id="badgeDesc"
-          label="Description"
-          value={description}
-          onChange={(e) => {
-            setDescription(e.target.value);
-          }}
-          placeholder="Awarded to those who reached the summit"
-        />
+          <Input
+            id="badgeDesc"
+            label="Description"
+            value={description}
+            onChange={(e) => {
+              setDescription(e.target.value);
+            }}
+            placeholder="Awarded to those who reached the summit"
+          />
 
-        <PhotoUploader
-          value={imageUrl}
-          onChange={(file) => {
-            setImageUrl(file);
-          }}
-          label="Badge Image"
-        />
+          <PhotoUploader
+            value={imageUrl}
+            onChange={(file) => {
+              setImageUrl(file);
+            }}
+            label="Badge Image"
+          />
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <label
-              htmlFor="badgeCategory"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
-              Category
-            </label>
-            <select
-              id="badgeCategory"
-              value={category}
-              onChange={(e) => {
-                setCategory(e.target.value);
-              }}
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors"
-            >
-              {BADGE_CATEGORIES.map((cat) => (
-                <option key={cat.value} value={cat.value}>
-                  {cat.label}
-                </option>
-              ))}
-            </select>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label
+                htmlFor="badgeCategory"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Category
+              </label>
+              <select
+                id="badgeCategory"
+                value={category}
+                onChange={(e) => {
+                  setCategory(e.target.value);
+                }}
+                className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors"
+              >
+                {BADGE_CATEGORIES.map((cat) => (
+                  <option key={cat.value} value={cat.value}>
+                    {cat.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-1">
+              <label
+                htmlFor="badgeRarity"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Rarity
+              </label>
+              <select
+                id="badgeRarity"
+                value={rarity}
+                onChange={(e) => {
+                  setRarity(e.target.value);
+                }}
+                className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors"
+              >
+                {BADGE_RARITIES.map((r) => (
+                  <option key={r.value} value={r.value}>
+                    {r.label}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
-          <div className="space-y-1">
-            <label
-              htmlFor="badgeRarity"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
-              Rarity
-            </label>
-            <select
-              id="badgeRarity"
-              value={rarity}
-              onChange={(e) => {
-                setRarity(e.target.value);
-              }}
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors"
-            >
-              {BADGE_RARITIES.map((r) => (
-                <option key={r.value} value={r.value}>
-                  {r.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
+          {error && <p className="text-sm text-red-500">{error}</p>}
+          {success && <p className="text-sm text-forest-500">Badge saved!</p>}
 
-        {error && <p className="text-sm text-red-500">{error}</p>}
-        {success && <p className="text-sm text-forest-500">Badge saved!</p>}
-
-        <Button type="submit" size="sm" disabled={loading}>
-          {loading ? "Saving..." : existingBadge ? "Update Badge" : "Create Badge"}
-        </Button>
+          <Button type="submit" size="sm" disabled={loading}>
+            {loading ? "Saving..." : existingBadge ? "Update Badge" : "Create Badge"}
+          </Button>
+        </fieldset>
       </form>
     </div>
   );

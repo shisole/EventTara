@@ -502,351 +502,352 @@ export default function AuthReviewModal({
                   ? handlePasswordLogin
                   : handleOtpSubmit
             }
-            className="space-y-5"
           >
-            <div className="text-center">
-              <div className="w-14 h-14 bg-teal-100 dark:bg-teal-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                <EnvelopeIcon className="w-7 h-7 text-teal-600 dark:text-teal-400" />
-              </div>
-              <h2
-                id="auth-review-modal-title"
-                className="text-xl font-heading font-bold text-gray-900 dark:text-white"
-              >
-                {authMode === "signup"
-                  ? "Create account to review"
-                  : "Sign in to leave your review"}
-              </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{clubName}</p>
-            </div>
-
-            {/* OAuth buttons */}
-            {oauthGoogle ? (
-              <Button
-                type="button"
-                disabled
-                className="w-full bg-white/60 cursor-not-allowed border border-gray-300"
-                size="lg"
-              >
-                <GoogleIcon className="w-5 h-5 mr-2" />
-                Continue with Google
-                <span className="ml-2 rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium">
-                  Coming Soon
-                </span>
-              </Button>
-            ) : (
-              <Button
-                type="button"
-                className="w-full bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
-                size="lg"
-                onClick={handleGoogleLogin}
-                disabled={googleLoading}
-              >
-                <GoogleIcon className="w-5 h-5 mr-2" />
-                {googleLoading ? "Redirecting..." : "Continue with Google"}
-              </Button>
-            )}
-
-            {oauthFacebook ? (
-              <Button
-                type="button"
-                disabled
-                className="w-full bg-[#1877F2]/60 cursor-not-allowed"
-                size="lg"
-              >
-                Continue with Facebook
-                <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium">
-                  Coming Soon
-                </span>
-              </Button>
-            ) : (
-              <Button
-                type="button"
-                className="w-full bg-[#1877F2] hover:bg-[#1565C0] text-white"
-                size="lg"
-                disabled
-              >
-                Continue with Facebook
-              </Button>
-            )}
-
-            {oauthStrava ? (
-              <Button
-                type="button"
-                disabled
-                className="w-full bg-[#FC4C02]/60 cursor-not-allowed"
-                size="lg"
-              >
-                <StravaIcon className="w-5 h-5 mr-2" />
-                Continue with Strava
-                <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium">
-                  Coming Soon
-                </span>
-              </Button>
-            ) : (
-              <Button
-                type="button"
-                className="w-full bg-[#FC4C02] hover:bg-[#E34402] text-white"
-                size="lg"
-                onClick={() => {
-                  const clientId = process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID;
-                  if (!clientId) return;
-                  const params = new URLSearchParams({
-                    client_id: clientId,
-                    redirect_uri: `${globalThis.location.origin}/auth/strava/callback`,
-                    response_type: "code",
-                    scope: STRAVA_SCOPES.join(","),
-                    state: JSON.stringify({ flow: "login", returnUrl: "/events" }),
-                    approval_prompt: "auto",
-                  });
-                  globalThis.location.href = `${STRAVA_AUTH_URL}?${params.toString()}`;
-                }}
-              >
-                <StravaIcon className="w-5 h-5 mr-2" />
-                Continue with Strava
-              </Button>
-            )}
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200 dark:border-gray-700" />
-              </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="bg-white dark:bg-slate-800 px-2 text-gray-400 dark:text-gray-500">
-                  or
-                </span>
-              </div>
-            </div>
-
-            {authMode === "signup" && authMethod === "password" && (
-              <>
-                <div>
-                  <label
-                    htmlFor="auth-review-fullname"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
-                  >
-                    Full name
-                  </label>
-                  <input
-                    id="auth-review-fullname"
-                    type="text"
-                    value={fullName}
-                    onChange={(e) => {
-                      setFullName(e.target.value);
-                    }}
-                    placeholder="Your name"
-                    autoFocus
-                    className={inputClassName}
-                  />
+            <fieldset disabled={loading} className="space-y-5">
+              <div className="text-center">
+                <div className="w-14 h-14 bg-teal-100 dark:bg-teal-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <EnvelopeIcon className="w-7 h-7 text-teal-600 dark:text-teal-400" />
                 </div>
+                <h2
+                  id="auth-review-modal-title"
+                  className="text-xl font-heading font-bold text-gray-900 dark:text-white"
+                >
+                  {authMode === "signup"
+                    ? "Create account to review"
+                    : "Sign in to leave your review"}
+                </h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{clubName}</p>
+              </div>
 
-                <div>
-                  <label
-                    htmlFor="auth-review-username"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
-                  >
-                    Username
-                    {usernameStatus === "checking" && (
-                      <span className="ml-2 text-sm font-normal text-gray-500">Checking...</span>
-                    )}
-                    {usernameStatus === "available" && (
-                      <span className="ml-2 text-sm font-normal text-green-600 dark:text-green-400">
-                        ✓ Available
-                      </span>
-                    )}
-                    {usernameStatus === "taken" && (
-                      <span className="ml-2 text-sm font-normal text-red-600 dark:text-red-400">
-                        ✗ Taken
-                      </span>
-                    )}
-                    {usernameStatus === "invalid" && (
-                      <span className="ml-2 text-sm font-normal text-red-600 dark:text-red-400">
-                        ✗ Invalid
-                      </span>
-                    )}
-                  </label>
-                  <input
-                    id="auth-review-username"
-                    type="text"
-                    value={username}
-                    onChange={(e) => {
-                      setUsername(e.target.value);
-                      checkUsername(e.target.value);
-                    }}
-                    placeholder="3-30 characters, lowercase, letters/numbers/._-"
-                    className={inputClassName}
-                  />
+              {/* OAuth buttons */}
+              {oauthGoogle ? (
+                <Button
+                  type="button"
+                  disabled
+                  className="w-full bg-white/60 cursor-not-allowed border border-gray-300"
+                  size="lg"
+                >
+                  <GoogleIcon className="w-5 h-5 mr-2" />
+                  Continue with Google
+                  <span className="ml-2 rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium">
+                    Coming Soon
+                  </span>
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  className="w-full bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
+                  size="lg"
+                  onClick={handleGoogleLogin}
+                  disabled={googleLoading}
+                >
+                  <GoogleIcon className="w-5 h-5 mr-2" />
+                  {googleLoading ? "Redirecting..." : "Continue with Google"}
+                </Button>
+              )}
+
+              {oauthFacebook ? (
+                <Button
+                  type="button"
+                  disabled
+                  className="w-full bg-[#1877F2]/60 cursor-not-allowed"
+                  size="lg"
+                >
+                  Continue with Facebook
+                  <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium">
+                    Coming Soon
+                  </span>
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  className="w-full bg-[#1877F2] hover:bg-[#1565C0] text-white"
+                  size="lg"
+                  disabled
+                >
+                  Continue with Facebook
+                </Button>
+              )}
+
+              {oauthStrava ? (
+                <Button
+                  type="button"
+                  disabled
+                  className="w-full bg-[#FC4C02]/60 cursor-not-allowed"
+                  size="lg"
+                >
+                  <StravaIcon className="w-5 h-5 mr-2" />
+                  Continue with Strava
+                  <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium">
+                    Coming Soon
+                  </span>
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  className="w-full bg-[#FC4C02] hover:bg-[#E34402] text-white"
+                  size="lg"
+                  onClick={() => {
+                    const clientId = process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID;
+                    if (!clientId) return;
+                    const params = new URLSearchParams({
+                      client_id: clientId,
+                      redirect_uri: `${globalThis.location.origin}/auth/strava/callback`,
+                      response_type: "code",
+                      scope: STRAVA_SCOPES.join(","),
+                      state: JSON.stringify({ flow: "login", returnUrl: "/events" }),
+                      approval_prompt: "auto",
+                    });
+                    globalThis.location.href = `${STRAVA_AUTH_URL}?${params.toString()}`;
+                  }}
+                >
+                  <StravaIcon className="w-5 h-5 mr-2" />
+                  Continue with Strava
+                </Button>
+              )}
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-200 dark:border-gray-700" />
                 </div>
-              </>
-            )}
-
-            <div>
-              <label
-                htmlFor="auth-review-email"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
-              >
-                Email address
-              </label>
-              <input
-                id="auth-review-email"
-                type="email"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                }}
-                placeholder="you@example.com"
-                autoFocus={authMode === "login"}
-                className={inputClassName}
-              />
-            </div>
-
-            {authMethod === "password" && (
-              <>
-                <div>
-                  <label
-                    htmlFor="auth-review-password"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
-                  >
-                    Password
-                  </label>
-                  <input
-                    id="auth-review-password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => {
-                      setPassword(e.target.value);
-                    }}
-                    placeholder={
-                      authMode === "signup" ? "At least 8 characters" : "Enter your password"
-                    }
-                    className={inputClassName}
-                  />
-                  {authMode === "login" && (
-                    <div className="flex justify-end mt-1.5">
-                      <Link
-                        href="/forgot-password"
-                        className="text-sm text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 font-medium"
-                      >
-                        Forgot password?
-                      </Link>
-                    </div>
-                  )}
+                <div className="relative flex justify-center text-xs">
+                  <span className="bg-white dark:bg-slate-800 px-2 text-gray-400 dark:text-gray-500">
+                    or
+                  </span>
                 </div>
-                {authMode === "signup" && (
+              </div>
+
+              {authMode === "signup" && authMethod === "password" && (
+                <>
                   <div>
                     <label
-                      htmlFor="auth-review-confirm-password"
+                      htmlFor="auth-review-fullname"
                       className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
                     >
-                      Confirm password
+                      Full name
                     </label>
                     <input
-                      id="auth-review-confirm-password"
-                      type="password"
-                      value={confirmPassword}
+                      id="auth-review-fullname"
+                      type="text"
+                      value={fullName}
                       onChange={(e) => {
-                        setConfirmPassword(e.target.value);
+                        setFullName(e.target.value);
                       }}
-                      placeholder="Confirm your password"
+                      placeholder="Your name"
+                      autoFocus
                       className={inputClassName}
                     />
                   </div>
-                )}
-              </>
-            )}
 
-            {error && (
-              <p className="text-sm text-red-500" role="alert">
-                {error}
-              </p>
-            )}
+                  <div>
+                    <label
+                      htmlFor="auth-review-username"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
+                    >
+                      Username
+                      {usernameStatus === "checking" && (
+                        <span className="ml-2 text-sm font-normal text-gray-500">Checking...</span>
+                      )}
+                      {usernameStatus === "available" && (
+                        <span className="ml-2 text-sm font-normal text-green-600 dark:text-green-400">
+                          ✓ Available
+                        </span>
+                      )}
+                      {usernameStatus === "taken" && (
+                        <span className="ml-2 text-sm font-normal text-red-600 dark:text-red-400">
+                          ✗ Taken
+                        </span>
+                      )}
+                      {usernameStatus === "invalid" && (
+                        <span className="ml-2 text-sm font-normal text-red-600 dark:text-red-400">
+                          ✗ Invalid
+                        </span>
+                      )}
+                    </label>
+                    <input
+                      id="auth-review-username"
+                      type="text"
+                      value={username}
+                      onChange={(e) => {
+                        setUsername(e.target.value);
+                        checkUsername(e.target.value);
+                      }}
+                      placeholder="3-30 characters, lowercase, letters/numbers/._-"
+                      className={inputClassName}
+                    />
+                  </div>
+                </>
+              )}
 
-            <Button type="submit" className="w-full" size="lg" disabled={loading}>
-              {loading
-                ? authMode === "signup"
-                  ? authMethod === "password"
-                    ? "Creating account..."
-                    : "Sending code..."
-                  : authMethod === "password"
-                    ? "Signing in..."
-                    : "Sending code..."
-                : authMode === "signup"
-                  ? authMethod === "password"
-                    ? "Create Account"
-                    : "Send Code"
-                  : authMethod === "password"
-                    ? "Sign In"
-                    : "Send Code"}
-            </Button>
+              <div>
+                <label
+                  htmlFor="auth-review-email"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
+                >
+                  Email address
+                </label>
+                <input
+                  id="auth-review-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                  }}
+                  placeholder="you@example.com"
+                  autoFocus={authMode === "login"}
+                  className={inputClassName}
+                />
+              </div>
 
-            <div className="space-y-2 text-center">
-              <button
-                type="button"
-                onClick={() => {
-                  setAuthMethod(authMethod === "password" ? "otp" : "password");
-                  setError("");
-                  setFullName("");
-                  setUsername("");
-                  setUsernameStatus("idle");
-                  setConfirmPassword("");
-                }}
-                className="block w-full text-sm text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 font-medium"
-              >
-                {authMethod === "password"
+              {authMethod === "password" && (
+                <>
+                  <div>
+                    <label
+                      htmlFor="auth-review-password"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
+                    >
+                      Password
+                    </label>
+                    <input
+                      id="auth-review-password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                      }}
+                      placeholder={
+                        authMode === "signup" ? "At least 8 characters" : "Enter your password"
+                      }
+                      className={inputClassName}
+                    />
+                    {authMode === "login" && (
+                      <div className="flex justify-end mt-1.5">
+                        <Link
+                          href="/forgot-password"
+                          className="text-sm text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 font-medium"
+                        >
+                          Forgot password?
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                  {authMode === "signup" && (
+                    <div>
+                      <label
+                        htmlFor="auth-review-confirm-password"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
+                      >
+                        Confirm password
+                      </label>
+                      <input
+                        id="auth-review-confirm-password"
+                        type="password"
+                        value={confirmPassword}
+                        onChange={(e) => {
+                          setConfirmPassword(e.target.value);
+                        }}
+                        placeholder="Confirm your password"
+                        className={inputClassName}
+                      />
+                    </div>
+                  )}
+                </>
+              )}
+
+              {error && (
+                <p className="text-sm text-red-500" role="alert">
+                  {error}
+                </p>
+              )}
+
+              <Button type="submit" className="w-full" size="lg" disabled={loading}>
+                {loading
                   ? authMode === "signup"
-                    ? "Use email code instead"
-                    : "Use a one-time code instead"
+                    ? authMethod === "password"
+                      ? "Creating account..."
+                      : "Sending code..."
+                    : authMethod === "password"
+                      ? "Signing in..."
+                      : "Sending code..."
                   : authMode === "signup"
-                    ? "Use password instead"
-                    : "Sign in with password instead"}
-              </button>
+                    ? authMethod === "password"
+                      ? "Create Account"
+                      : "Send Code"
+                    : authMethod === "password"
+                      ? "Sign In"
+                      : "Send Code"}
+              </Button>
+
+              <div className="space-y-2 text-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthMethod(authMethod === "password" ? "otp" : "password");
+                    setError("");
+                    setFullName("");
+                    setUsername("");
+                    setUsernameStatus("idle");
+                    setConfirmPassword("");
+                  }}
+                  className="block w-full text-sm text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 font-medium"
+                >
+                  {authMethod === "password"
+                    ? authMode === "signup"
+                      ? "Use email code instead"
+                      : "Use a one-time code instead"
+                    : authMode === "signup"
+                      ? "Use password instead"
+                      : "Sign in with password instead"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthMode(authMode === "login" ? "signup" : "login");
+                    setError("");
+                    setEmail("");
+                    setPassword("");
+                    setConfirmPassword("");
+                    setFullName("");
+                    setUsername("");
+                    setUsernameStatus("idle");
+                  }}
+                  className="block w-full text-sm text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                >
+                  {authMode === "login"
+                    ? "Don't have an account? Sign up"
+                    : "Already have an account? Sign in"}
+                </button>
+              </div>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-200 dark:border-gray-700" />
+                </div>
+                <div className="relative flex justify-center text-xs">
+                  <span className="bg-white dark:bg-slate-800 px-2 text-gray-400 dark:text-gray-500">
+                    or
+                  </span>
+                </div>
+              </div>
+
               <button
                 type="button"
                 onClick={() => {
-                  setAuthMode(authMode === "login" ? "signup" : "login");
                   setError("");
-                  setEmail("");
-                  setPassword("");
-                  setConfirmPassword("");
-                  setFullName("");
-                  setUsername("");
-                  setUsernameStatus("idle");
+                  setState("guest");
                 }}
-                className="block w-full text-sm text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                className="w-full rounded-xl border border-gray-300 dark:border-gray-600 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
               >
-                {authMode === "login"
-                  ? "Don't have an account? Sign up"
-                  : "Already have an account? Sign in"}
+                Continue as Guest
               </button>
-            </div>
 
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200 dark:border-gray-700" />
-              </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="bg-white dark:bg-slate-800 px-2 text-gray-400 dark:text-gray-500">
-                  or
-                </span>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => {
-                setError("");
-                setState("guest");
-              }}
-              className="w-full rounded-xl border border-gray-300 dark:border-gray-600 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
-            >
-              Continue as Guest
-            </button>
-
-            {authMethod === "otp" && (
-              <p className="text-xs text-center text-gray-400 dark:text-gray-500">
-                We&apos;ll send a 6-digit code to your email.
-                {authMode === "signup" && " Works for new and existing accounts."}
-              </p>
-            )}
+              {authMethod === "otp" && (
+                <p className="text-xs text-center text-gray-400 dark:text-gray-500">
+                  We&apos;ll send a 6-digit code to your email.
+                  {authMode === "signup" && " Works for new and existing accounts."}
+                </p>
+              )}
+            </fieldset>
           </form>
         )}
 
@@ -871,58 +872,60 @@ export default function AuthReviewModal({
         )}
 
         {state === "guest" && (
-          <form onSubmit={handleGuestSubmit} className="space-y-5">
-            <div className="text-center">
-              <div className="w-14 h-14 bg-teal-100 dark:bg-teal-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                <EnvelopeIcon className="w-7 h-7 text-teal-600 dark:text-teal-400" />
+          <form onSubmit={handleGuestSubmit}>
+            <fieldset disabled={loading} className="space-y-5">
+              <div className="text-center">
+                <div className="w-14 h-14 bg-teal-100 dark:bg-teal-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <EnvelopeIcon className="w-7 h-7 text-teal-600 dark:text-teal-400" />
+                </div>
+                <h2 className="text-xl font-heading font-bold text-gray-900 dark:text-white">
+                  What&apos;s your name?
+                </h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  This will be shown on your review for {clubName}
+                </p>
               </div>
-              <h2 className="text-xl font-heading font-bold text-gray-900 dark:text-white">
-                What&apos;s your name?
-              </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                This will be shown on your review for {clubName}
-              </p>
-            </div>
 
-            <div>
-              <label
-                htmlFor="guest-review-name"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
+              <div>
+                <label
+                  htmlFor="guest-review-name"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
+                >
+                  Your name
+                </label>
+                <input
+                  id="guest-review-name"
+                  type="text"
+                  value={guestName}
+                  onChange={(e) => setGuestName(e.target.value)}
+                  placeholder="Enter your name"
+                  autoFocus
+                  className={inputClassName}
+                />
+              </div>
+
+              {error && (
+                <p className="text-sm text-red-500" role="alert">
+                  {error}
+                </p>
+              )}
+
+              <Button type="submit" className="w-full" size="lg" disabled={loading}>
+                {loading ? "Setting up..." : "Continue"}
+              </Button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setError("");
+                  setGuestName("");
+                  setState("form");
+                }}
+                className="block w-full text-sm text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-center"
               >
-                Your name
-              </label>
-              <input
-                id="guest-review-name"
-                type="text"
-                value={guestName}
-                onChange={(e) => setGuestName(e.target.value)}
-                placeholder="Enter your name"
-                autoFocus
-                className={inputClassName}
-              />
-            </div>
-
-            {error && (
-              <p className="text-sm text-red-500" role="alert">
-                {error}
-              </p>
-            )}
-
-            <Button type="submit" className="w-full" size="lg" disabled={loading}>
-              {loading ? "Setting up..." : "Continue"}
-            </Button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setError("");
-                setGuestName("");
-                setState("form");
-              }}
-              className="block w-full text-sm text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-center"
-            >
-              Back to sign in
-            </button>
+                Back to sign in
+              </button>
+            </fieldset>
           </form>
         )}
 
