@@ -18,6 +18,8 @@ interface RawActivity {
   badgeImageUrl: string | null;
   badgeRarity: BadgeRarity | null;
   badgeCategory: BadgeCategory | null;
+  reviewRating: number | null;
+  reviewText: string | null;
   timestamp: string;
   repostedBy?: { userId: string; createdAt: string };
 }
@@ -42,6 +44,7 @@ export async function GET(request: Request) {
     { data: checkins },
     { data: userBadges },
     { data: userBorders },
+    { data: reviews },
     { data: reposts },
   ] = await Promise.all([
     supabase
@@ -74,6 +77,14 @@ export async function GET(request: Request) {
       .order("awarded_at", { ascending: false })
       .limit(fetchLimit),
     supabase
+      .from("event_reviews")
+      .select(
+        "id, user_id, rating, text, created_at, events(title, cover_image_url), users!inner(is_guest)",
+      )
+      .eq("users.is_guest", false)
+      .order("created_at", { ascending: false })
+      .limit(fetchLimit),
+    supabase
       .from("feed_reposts")
       .select("id, user_id, activity_type, activity_id, created_at")
       .order("created_at", { ascending: false })
@@ -91,6 +102,11 @@ export async function GET(request: Request) {
     badgeCategory: null,
   } as const;
 
+  const nullReview = {
+    reviewRating: null,
+    reviewText: null,
+  } as const;
+
   for (const b of bookings || []) {
     const event = b.events as any;
     activities.push({
@@ -100,6 +116,7 @@ export async function GET(request: Request) {
       text: `is joining ${event?.title || "an event"}`,
       contextImageUrl: event?.cover_image_url || null,
       ...nullBadge,
+      ...nullReview,
       timestamp: b.booked_at,
     });
   }
@@ -113,6 +130,7 @@ export async function GET(request: Request) {
       text: `completed ${event?.title || "an event"}`,
       contextImageUrl: event?.cover_image_url || null,
       ...nullBadge,
+      ...nullReview,
       timestamp: c.checked_in_at,
     });
   }
@@ -130,6 +148,7 @@ export async function GET(request: Request) {
       badgeImageUrl: badge?.image_url || null,
       badgeRarity: badge?.rarity || null,
       badgeCategory: badge?.category || null,
+      ...nullReview,
       timestamp: ub.awarded_at,
     });
   }
@@ -143,7 +162,23 @@ export async function GET(request: Request) {
       text: `unlocked ${border?.tier || ""} ${border?.name || "border"}`,
       contextImageUrl: null,
       ...nullBadge,
+      ...nullReview,
       timestamp: ab.awarded_at,
+    });
+  }
+
+  for (const r of reviews || []) {
+    const event = r.events as any;
+    activities.push({
+      id: r.id,
+      activityType: "review",
+      userId: r.user_id,
+      text: `reviewed ${event?.title || "an event"}`,
+      contextImageUrl: event?.cover_image_url || null,
+      ...nullBadge,
+      reviewRating: r.rating,
+      reviewText: r.text || null,
+      timestamp: r.created_at,
     });
   }
 
@@ -352,6 +387,8 @@ export async function GET(request: Request) {
       badgeImageUrl: a.badgeImageUrl,
       badgeRarity: a.badgeRarity,
       badgeCategory: a.badgeCategory,
+      reviewRating: a.reviewRating,
+      reviewText: a.reviewText,
       timestamp: a.timestamp,
       isFollowing: followingSet.has(a.userId),
       likeCount: like?.count || 0,

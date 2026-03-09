@@ -24,6 +24,8 @@ interface RawActivity {
   badgeImageUrl: string | null;
   badgeRarity: BadgeRarity | null;
   badgeCategory: BadgeCategory | null;
+  reviewRating: number | null;
+  reviewText: string | null;
   timestamp: string;
 }
 
@@ -38,31 +40,41 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
     data: { user: authUser },
   } = await supabase.auth.getUser();
 
-  // Look up the activity across all 4 tables in parallel
-  const [{ data: booking }, { data: checkin }, { data: userBadge }, { data: userBorder }] =
-    await Promise.all([
-      supabase
-        .from("bookings")
-        .select("id, user_id, booked_at, status, events(title, cover_image_url)")
-        .eq("id", id)
-        .in("status", ["pending", "confirmed"])
-        .maybeSingle(),
-      supabase
-        .from("event_checkins")
-        .select("id, user_id, checked_in_at, events(title, cover_image_url)")
-        .eq("id", id)
-        .maybeSingle(),
-      supabase
-        .from("user_badges")
-        .select("id, user_id, awarded_at, badges(id, title, image_url, rarity, category)")
-        .eq("id", id)
-        .maybeSingle(),
-      supabase
-        .from("user_avatar_borders")
-        .select("id, user_id, awarded_at, avatar_borders(name, tier)")
-        .eq("id", id)
-        .maybeSingle(),
-    ]);
+  // Look up the activity across all 5 tables in parallel
+  const [
+    { data: booking },
+    { data: checkin },
+    { data: userBadge },
+    { data: userBorder },
+    { data: review },
+  ] = await Promise.all([
+    supabase
+      .from("bookings")
+      .select("id, user_id, booked_at, status, events(title, cover_image_url)")
+      .eq("id", id)
+      .in("status", ["pending", "confirmed"])
+      .maybeSingle(),
+    supabase
+      .from("event_checkins")
+      .select("id, user_id, checked_in_at, events(title, cover_image_url)")
+      .eq("id", id)
+      .maybeSingle(),
+    supabase
+      .from("user_badges")
+      .select("id, user_id, awarded_at, badges(id, title, image_url, rarity, category)")
+      .eq("id", id)
+      .maybeSingle(),
+    supabase
+      .from("user_avatar_borders")
+      .select("id, user_id, awarded_at, avatar_borders(name, tier)")
+      .eq("id", id)
+      .maybeSingle(),
+    supabase
+      .from("event_reviews")
+      .select("id, user_id, rating, text, created_at, events(title, cover_image_url)")
+      .eq("id", id)
+      .maybeSingle(),
+  ]);
 
   // Determine which table matched
   let activity: RawActivity | null = null;
@@ -75,6 +87,11 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
     badgeCategory: null,
   } as const;
 
+  const nullReview = {
+    reviewRating: null,
+    reviewText: null,
+  } as const;
+
   if (booking) {
     const event = booking.events as any;
     activity = {
@@ -84,6 +101,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
       text: `is joining ${event?.title || "an event"}`,
       contextImageUrl: event?.cover_image_url || null,
       ...nullBadge,
+      ...nullReview,
       timestamp: booking.booked_at,
     };
   } else if (checkin) {
@@ -95,6 +113,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
       text: `completed ${event?.title || "an event"}`,
       contextImageUrl: event?.cover_image_url || null,
       ...nullBadge,
+      ...nullReview,
       timestamp: checkin.checked_in_at,
     };
   } else if (userBadge) {
@@ -110,6 +129,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
       badgeImageUrl: badge?.image_url || null,
       badgeRarity: badge?.rarity || null,
       badgeCategory: badge?.category || null,
+      ...nullReview,
       timestamp: userBadge.awarded_at,
     };
   } else if (userBorder) {
@@ -121,7 +141,21 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
       text: `unlocked ${border?.tier || ""} ${border?.name || "border"}`,
       contextImageUrl: null,
       ...nullBadge,
+      ...nullReview,
       timestamp: userBorder.awarded_at,
+    };
+  } else if (review) {
+    const event = review.events as any;
+    activity = {
+      id: review.id,
+      activityType: "review",
+      userId: review.user_id,
+      text: `reviewed ${event?.title || "an event"}`,
+      contextImageUrl: event?.cover_image_url || null,
+      ...nullBadge,
+      reviewRating: review.rating,
+      reviewText: review.text || null,
+      timestamp: review.created_at,
     };
   }
 
@@ -226,6 +260,8 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
     badgeImageUrl: activity.badgeImageUrl,
     badgeRarity: activity.badgeRarity,
     badgeCategory: activity.badgeCategory,
+    reviewRating: activity.reviewRating,
+    reviewText: activity.reviewText,
     timestamp: activity.timestamp,
     isFollowing: !!followResult.data,
     likeCount,

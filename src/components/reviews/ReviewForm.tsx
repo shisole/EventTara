@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Button } from "@/components/ui";
@@ -12,6 +13,7 @@ interface ReviewFormProps {
 }
 
 export default function ReviewForm({ eventId, onSubmitted }: ReviewFormProps) {
+  const router = useRouter();
   const [rating, setRating] = useState(0);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
@@ -39,6 +41,7 @@ export default function ReviewForm({ eventId, onSubmitted }: ReviewFormProps) {
       if (res.ok) {
         setSubmitted(true);
         onSubmitted?.();
+        router.refresh();
       } else {
         setError(data.error);
       }
@@ -82,9 +85,12 @@ export default function ReviewForm({ eventId, onSubmitted }: ReviewFormProps) {
           />
         </div>
         {error && <p className="text-sm text-red-500">{error}</p>}
-        <Button type="submit" disabled={loading || rating === 0} size="sm">
-          {loading ? "Submitting..." : "Submit Review"}
-        </Button>
+        <div className="flex items-center justify-between">
+          <Button type="submit" disabled={loading || rating === 0} size="md">
+            {loading ? "Submitting..." : "Submit Review"}
+          </Button>
+          {text.length > 0 && <span className="text-xs text-gray-400">{text.length}/500</span>}
+        </div>
       </fieldset>
     </form>
   );
