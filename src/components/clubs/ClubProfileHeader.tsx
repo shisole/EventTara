@@ -73,7 +73,7 @@ export default function ClubProfileHeader({
   return (
     <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 overflow-hidden">
       {/* Cover image */}
-      <div className="relative h-40 sm:h-56 bg-gradient-to-br from-teal-400 to-forest-500 dark:from-teal-700 dark:to-forest-800">
+      <div className="relative h-44 sm:h-60 bg-gradient-to-br from-teal-400 to-forest-500 dark:from-teal-700 dark:to-forest-800">
         {cover_url && (
           <Image
             src={cover_url}
@@ -88,22 +88,21 @@ export default function ClubProfileHeader({
 
       {/* Content below cover */}
       <div className="px-5 pb-6 sm:px-8">
-        {/* Logo + Name row */}
-        <div className="flex flex-col sm:flex-row sm:items-end gap-4 -mt-10 sm:-mt-12">
-          {/* Logo */}
+        {/* Logo row — overlaps cover */}
+        <div className="flex items-end justify-between -mt-14 sm:-mt-16 mb-4">
           <div className="shrink-0">
             {logo_url ? (
               <Image
                 src={logo_url}
                 alt={name}
-                width={96}
-                height={96}
-                className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border-4 border-white dark:border-gray-900 shadow-md"
+                width={112}
+                height={112}
+                className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover border-4 border-white dark:border-gray-900 shadow-lg"
               />
             ) : (
               <div
                 className={cn(
-                  "w-20 h-20 sm:w-24 sm:h-24 rounded-2xl flex items-center justify-center text-white font-bold text-3xl sm:text-4xl border-4 border-white dark:border-gray-900 shadow-md",
+                  "w-24 h-24 sm:w-28 sm:h-28 rounded-2xl flex items-center justify-center text-white font-bold text-4xl sm:text-5xl border-4 border-white dark:border-gray-900 shadow-lg",
                   getLogoColor(name),
                 )}
               >
@@ -112,36 +111,32 @@ export default function ClubProfileHeader({
             )}
           </div>
 
-          {/* Name + Join button */}
-          <div className="flex-1 min-w-0 sm:pb-1">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <h1 className="font-heading text-2xl sm:text-3xl font-bold truncate">{name}</h1>
-                  {currentMembership && <ClubRoleBadge role={currentMembership.role} />}
-                </div>
-              </div>
-              <div className="shrink-0">
-                <JoinClubButton
-                  clubSlug={slug}
-                  visibility={visibility}
-                  initialMembership={currentMembership}
-                  currentUserId={currentUserId}
-                />
-              </div>
-            </div>
+          {/* Join button — aligned with logo on the right */}
+          <div className="shrink-0 pb-1">
+            <JoinClubButton
+              clubSlug={slug}
+              visibility={visibility}
+              initialMembership={currentMembership}
+              currentUserId={currentUserId}
+            />
           </div>
+        </div>
+
+        {/* Name + role badge */}
+        <div className="flex items-center gap-2.5">
+          <h1 className="font-heading text-2xl sm:text-3xl font-bold truncate">{name}</h1>
+          {currentMembership && <ClubRoleBadge role={currentMembership.role} />}
         </div>
 
         {/* Description */}
         {description && (
-          <p className="mt-4 text-gray-600 dark:text-gray-400 text-sm sm:text-base leading-relaxed">
+          <p className="mt-2.5 text-gray-600 dark:text-gray-400 text-sm sm:text-base leading-relaxed">
             {description}
           </p>
         )}
 
         {/* Meta info row */}
-        <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-gray-500 dark:text-gray-400">
+        <div className="mt-3.5 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-gray-500 dark:text-gray-400">
           {/* Location */}
           {location && (
             <div className="flex items-center gap-1.5">
@@ -217,7 +212,7 @@ export default function ClubProfileHeader({
 
         {/* Activity type badges */}
         {activity_types.length > 0 && (
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="mt-3.5 flex flex-wrap gap-2">
             {activity_types.map((type) => (
               <span
                 key={type}
