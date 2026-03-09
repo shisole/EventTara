@@ -20,7 +20,12 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const supabase = await createClient();
   const { data: event } = await supabase.from("events").select("title").eq("id", id).single();
 
-  return { title: event ? `Review ${event.title}` : "Review Event" };
+  return {
+    title: event ? `Review ${event.title}` : "Review Event",
+    description: event
+      ? `Share your experience at ${event.title} on EventTara.`
+      : "Share your experience at this event.",
+  };
 }
 
 export default async function EventReviewPage({ params }: { params: Promise<{ id: string }> }) {

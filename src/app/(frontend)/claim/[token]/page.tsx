@@ -1,9 +1,31 @@
+import { type Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
 
 import ClaimForm from "./ClaimForm";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ token: string }>;
+}): Promise<Metadata> {
+  const { token } = await params;
+  const supabase = await createClient();
+  const { data: club } = await supabase
+    .from("clubs")
+    .select("name")
+    .eq("claim_token", token)
+    .single();
+
+  return {
+    title: club ? `Claim ${club.name}` : "Claim Club",
+    description: club
+      ? `Claim ownership of ${club.name} on EventTara.`
+      : "Claim your club on EventTara.",
+  };
+}
 
 export default async function ClaimPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
