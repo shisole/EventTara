@@ -270,6 +270,7 @@ export default function EventForm({ mode, clubId, initialData }: EventFormProps)
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [currentStep, setCurrentStep] = useState(0);
+  const stepTopRef = useRef<HTMLDivElement>(null);
 
   const [title, setTitle] = useState(initialData?.title || "");
   const [description, setDescription] = useState(initialData?.description || "");
@@ -706,13 +707,16 @@ export default function EventForm({ mode, clubId, initialData }: EventFormProps)
     <form onSubmit={handleSubmit}>
       <fieldset disabled={loading} className="min-w-0 space-y-6">
         {/* Step indicator */}
-        <div className="flex items-center gap-2">
+        <div ref={stepTopRef} className="flex items-center gap-2">
           {["Basics", "Pricing", "Media & Extras"].map((step, i) => (
             <div key={step} className="flex items-center gap-2 flex-1">
               <button
                 type="button"
                 onClick={() => {
-                  if (i < currentStep) setCurrentStep(i);
+                  if (i < currentStep) {
+                    setCurrentStep(i);
+                    stepTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }
                 }}
                 className={cn(
                   "flex items-center gap-1.5 flex-1",
@@ -1273,6 +1277,7 @@ export default function EventForm({ mode, clubId, initialData }: EventFormProps)
               variant="outline"
               onClick={() => {
                 setCurrentStep((s) => s - 1);
+                stepTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
               }}
             >
               Back
@@ -1285,6 +1290,7 @@ export default function EventForm({ mode, clubId, initialData }: EventFormProps)
               type="button"
               onClick={() => {
                 setCurrentStep((s) => s + 1);
+                stepTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
               }}
             >
               Next
