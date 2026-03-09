@@ -67,47 +67,49 @@ export default function ContactPage() {
             </button>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <Input
-              id="name"
-              label="Name"
-              placeholder="Your name"
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-            <Input
-              id="email"
-              label="Email"
-              type="email"
-              placeholder="you@example.com"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <div className="space-y-1">
-              <label
-                htmlFor="message"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                Message
-              </label>
-              <textarea
-                id="message"
-                rows={5}
-                placeholder="How can we help?"
+          <form onSubmit={handleSubmit}>
+            <fieldset disabled={status === "submitting"} className="min-w-0 space-y-6">
+              <Input
+                id="name"
+                label="Name"
+                placeholder="Your name"
                 required
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors resize-vertical"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
               />
-            </div>
+              <Input
+                id="email"
+                label="Email"
+                type="email"
+                placeholder="you@example.com"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <div className="space-y-1">
+                <label
+                  htmlFor="message"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Message
+                </label>
+                <textarea
+                  id="message"
+                  rows={5}
+                  placeholder="How can we help?"
+                  required
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors resize-vertical"
+                />
+              </div>
 
-            {status === "error" && <p className="text-sm text-red-500">{errorMsg}</p>}
+              {status === "error" && <p className="text-sm text-red-500">{errorMsg}</p>}
 
-            <Button type="submit" size="lg" disabled={status === "submitting"}>
-              {status === "submitting" ? "Sending..." : "Send Message"}
-            </Button>
+              <Button type="submit" size="lg" disabled={status === "submitting"}>
+                {status === "submitting" ? "Sending..." : "Send Message"}
+              </Button>
+            </fieldset>
           </form>
         )}
       </div>

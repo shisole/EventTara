@@ -120,78 +120,82 @@ export default function ClaimForm({ token, clubName, clubSlug, logoUrl }: ClaimF
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="text-center space-y-3">
-        {logoUrl ? (
-          <Image
-            src={logoUrl}
-            alt={clubName}
-            width={64}
-            height={64}
-            className="mx-auto rounded-full object-cover"
-          />
-        ) : (
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-lime-100 dark:bg-lime-900/30">
-            <span className="text-2xl font-bold text-lime-700 dark:text-lime-400">
-              {clubName.charAt(0).toUpperCase()}
-            </span>
+    <form onSubmit={handleSubmit}>
+      <fieldset disabled={loading} className="min-w-0 space-y-6">
+        <div className="text-center space-y-3">
+          {logoUrl ? (
+            <Image
+              src={logoUrl}
+              alt={clubName}
+              width={64}
+              height={64}
+              className="mx-auto rounded-full object-cover"
+            />
+          ) : (
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-lime-100 dark:bg-lime-900/30">
+              <span className="text-2xl font-bold text-lime-700 dark:text-lime-400">
+                {clubName.charAt(0).toUpperCase()}
+              </span>
+            </div>
+          )}
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">Claim Your Club</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            You&apos;ve been invited to claim{" "}
+            <span className="font-semibold text-gray-700 dark:text-gray-300">{clubName}</span>
+          </p>
+          {existingUserId && (
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Signed in as{" "}
+              <span className="font-medium text-gray-700 dark:text-gray-300">
+                {existingUserName}
+              </span>
+            </p>
+          )}
+        </div>
+
+        {!existingUserId && (
+          <div className="space-y-4">
+            <Input
+              id="full-name"
+              label="Full Name"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              placeholder="Your full name"
+              required
+            />
+
+            <Input
+              id="email"
+              label="Email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              required
+            />
+
+            <Input
+              id="password"
+              label="Password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Min. 6 characters"
+              required
+            />
           </div>
         )}
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white">Claim Your Club</h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          You&apos;ve been invited to claim{" "}
-          <span className="font-semibold text-gray-700 dark:text-gray-300">{clubName}</span>
-        </p>
-        {existingUserId && (
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Signed in as{" "}
-            <span className="font-medium text-gray-700 dark:text-gray-300">{existingUserName}</span>
-          </p>
+
+        {error && (
+          <div className="rounded-xl bg-red-50 dark:bg-red-900/20 p-3 text-sm text-red-600 dark:text-red-400">
+            {error}
+          </div>
         )}
-      </div>
 
-      {!existingUserId && (
-        <div className="space-y-4">
-          <Input
-            id="full-name"
-            label="Full Name"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            placeholder="Your full name"
-            required
-          />
-
-          <Input
-            id="email"
-            label="Email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
-            required
-          />
-
-          <Input
-            id="password"
-            label="Password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Min. 6 characters"
-            required
-          />
-        </div>
-      )}
-
-      {error && (
-        <div className="rounded-xl bg-red-50 dark:bg-red-900/20 p-3 text-sm text-red-600 dark:text-red-400">
-          {error}
-        </div>
-      )}
-
-      <Button type="submit" disabled={loading} className="w-full">
-        {loading ? "Claiming..." : existingUserId ? "Claim Club" : "Create Account & Claim Club"}
-      </Button>
+        <Button type="submit" disabled={loading} className="w-full">
+          {loading ? "Claiming..." : existingUserId ? "Claim Club" : "Create Account & Claim Club"}
+        </Button>
+      </fieldset>
     </form>
   );
 }
