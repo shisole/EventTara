@@ -34,6 +34,7 @@ function LoginForm() {
   const [oauthStrava, setOauthStrava] = useState(false);
   const [oauthFacebook, setOauthFacebook] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [showMoreAuth, setShowMoreAuth] = useState(false);
 
   useEffect(() => {
     void fetch("/api/feature-flags")
@@ -279,48 +280,66 @@ function LoginForm() {
         </Button>
       )}
 
-      {oauthFacebook ? (
-        <Button disabled className="w-full bg-[#1877F2]/60 cursor-not-allowed" size="lg">
-          Continue with Facebook
-          <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium">
-            Coming Soon
-          </span>
-        </Button>
-      ) : (
-        <Button className="w-full bg-[#1877F2] hover:bg-[#1565C0] text-white" size="lg" disabled>
-          Continue with Facebook
-        </Button>
+      {showMoreAuth && (
+        <div className="space-y-3">
+          {oauthFacebook ? (
+            <Button disabled className="w-full bg-[#1877F2]/60 cursor-not-allowed" size="lg">
+              Continue with Facebook
+              <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium">
+                Coming Soon
+              </span>
+            </Button>
+          ) : (
+            <Button
+              className="w-full bg-[#1877F2] hover:bg-[#1565C0] text-white"
+              size="lg"
+              disabled
+            >
+              Continue with Facebook
+            </Button>
+          )}
+
+          {oauthStrava ? (
+            <Button disabled className="w-full bg-[#FC4C02]/60 cursor-not-allowed" size="lg">
+              <StravaIcon className="w-5 h-5 mr-2" />
+              Continue with Strava
+              <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium">
+                Coming Soon
+              </span>
+            </Button>
+          ) : (
+            <Button
+              className="w-full bg-[#FC4C02] hover:bg-[#E34402] text-white"
+              size="lg"
+              onClick={() => {
+                const clientId = process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID;
+                if (!clientId) return;
+                const params = new URLSearchParams({
+                  client_id: clientId,
+                  redirect_uri: `${globalThis.location.origin}/auth/strava/callback`,
+                  response_type: "code",
+                  scope: STRAVA_SCOPES.join(","),
+                  state: JSON.stringify({ flow: "login", returnUrl: next }),
+                  approval_prompt: "auto",
+                });
+                globalThis.location.href = `${STRAVA_AUTH_URL}?${params.toString()}`;
+              }}
+            >
+              <StravaIcon className="w-5 h-5 mr-2" />
+              Continue with Strava
+            </Button>
+          )}
+        </div>
       )}
 
-      {oauthStrava ? (
-        <Button disabled className="w-full bg-[#FC4C02]/60 cursor-not-allowed" size="lg">
-          <StravaIcon className="w-5 h-5 mr-2" />
-          Continue with Strava
-          <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium">
-            Coming Soon
-          </span>
-        </Button>
-      ) : (
-        <Button
-          className="w-full bg-[#FC4C02] hover:bg-[#E34402] text-white"
-          size="lg"
-          onClick={() => {
-            const clientId = process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID;
-            if (!clientId) return;
-            const params = new URLSearchParams({
-              client_id: clientId,
-              redirect_uri: `${globalThis.location.origin}/auth/strava/callback`,
-              response_type: "code",
-              scope: STRAVA_SCOPES.join(","),
-              state: JSON.stringify({ flow: "login", returnUrl: next }),
-              approval_prompt: "auto",
-            });
-            globalThis.location.href = `${STRAVA_AUTH_URL}?${params.toString()}`;
-          }}
+      {!showMoreAuth && (
+        <button
+          type="button"
+          onClick={() => setShowMoreAuth(true)}
+          className="w-full text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
         >
-          <StravaIcon className="w-5 h-5 mr-2" />
-          Continue with Strava
-        </Button>
+          More sign-in options
+        </button>
       )}
 
       <div className="relative">

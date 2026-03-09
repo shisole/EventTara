@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import FeedCard from "@/components/feed/FeedCard";
@@ -132,10 +133,25 @@ export default function FeedList({
         />
       ))}
 
-      {hasMore && (
+      {hasMore ? (
         <div ref={sentinelRef} className="flex justify-center py-4">
           {isLoading && <SpinnerIcon className="w-6 h-6 text-lime-500 animate-spin" />}
         </div>
+      ) : (
+        items.length > 0 && (
+          <div className="text-center py-10 space-y-3">
+            <p className="text-2xl">&#x1F3D4;&#xFE0F;</p>
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              You&apos;re all caught up!
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Check back later or{" "}
+              <Link href="/events" className="text-lime-600 dark:text-lime-400 hover:underline">
+                browse upcoming events
+              </Link>
+            </p>
+          </div>
+        )
       )}
     </div>
   );

@@ -2,7 +2,17 @@
 
 import dynamic from "next/dynamic";
 
-const MapDisplay = dynamic(() => import("./MapDisplay"), { ssr: false });
+const MapDisplay = dynamic(() => import("./MapDisplay"), {
+  ssr: false,
+  loading: () => (
+    <div
+      className="animate-pulse rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center"
+      style={{ height: 300 }}
+    >
+      <span className="text-sm text-gray-400 dark:text-gray-500">Loading map...</span>
+    </div>
+  ),
+});
 
 interface EventLocationMapProps {
   lat: number;

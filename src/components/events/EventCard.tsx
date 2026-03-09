@@ -153,7 +153,7 @@ export default function EventCard({
             {difficulty_level != null && (
               <span
                 className={cn(
-                  "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold shadow-sm",
+                  "hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold shadow-sm",
                   solidDifficultyBadge(difficulty_level),
                 )}
               >
@@ -171,13 +171,13 @@ export default function EventCard({
                     {visible.map((km) => (
                       <span
                         key={km}
-                        className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500 text-white shadow-sm"
+                        className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500 text-white shadow-sm"
                       >
                         {km} km
                       </span>
                     ))}
                     {overflow > 0 && (
-                      <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/70 text-white shadow-sm">
+                      <span className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/70 text-white shadow-sm">
                         +{overflow}
                       </span>
                     )}
@@ -185,7 +185,7 @@ export default function EventCard({
                 );
               })()}
             {hasRoute && (
-              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#FC4C02] text-white shadow-sm">
+              <span className="hidden sm:inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#FC4C02] text-white shadow-sm">
                 <svg
                   className="h-2.5 w-2.5"
                   viewBox="0 0 24 24"
@@ -313,7 +313,7 @@ export default function EventCard({
             </div>
 
             {/* Row 2: Rating | Spots */}
-            <div className="flex items-center gap-1 min-w-0">
+            <div className="hidden sm:flex items-center gap-1 min-w-0">
               {avg_rating != null && avg_rating > 0 && review_count != null && review_count > 0 ? (
                 <>
                   <span className="text-yellow-400">&#9733;</span>

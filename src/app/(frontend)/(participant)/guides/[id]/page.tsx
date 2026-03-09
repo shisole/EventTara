@@ -227,18 +227,18 @@ export default async function GuideProfilePage({ params }: { params: Promise<{ i
 
       {/* Stats Row */}
       <div className="grid grid-cols-3 gap-4 mb-8">
-        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm dark:shadow-gray-950/20 p-4 text-center">
+        <div className="bg-lime-50 dark:bg-lime-950/30 border border-lime-200 dark:border-lime-800 rounded-2xl p-4 text-center">
           <p className="text-2xl font-bold text-lime-600 dark:text-lime-400">{totalEventsGuided}</p>
           <p className="text-sm text-gray-500 dark:text-gray-400">Events Guided</p>
         </div>
-        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm dark:shadow-gray-950/20 p-4 text-center">
+        <div className="bg-golden-50 dark:bg-golden-950/30 border border-golden-200 dark:border-golden-800 rounded-2xl p-4 text-center">
           <p className="text-2xl font-bold text-golden-500">
             {avgRating > 0 ? avgRating.toFixed(1) : "--"}
           </p>
           <p className="text-sm text-gray-500 dark:text-gray-400">Avg Rating</p>
         </div>
-        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm dark:shadow-gray-950/20 p-4 text-center">
-          <p className="text-2xl font-bold text-lime-600 dark:text-lime-400">{reviewList.length}</p>
+        <div className="bg-teal-50 dark:bg-teal-950/30 border border-teal-200 dark:border-teal-800 rounded-2xl p-4 text-center">
+          <p className="text-2xl font-bold text-teal-600 dark:text-teal-400">{reviewList.length}</p>
           <p className="text-sm text-gray-500 dark:text-gray-400">Reviews</p>
         </div>
       </div>

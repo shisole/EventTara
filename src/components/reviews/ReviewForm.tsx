@@ -85,9 +85,12 @@ export default function ReviewForm({ eventId, onSubmitted }: ReviewFormProps) {
           />
         </div>
         {error && <p className="text-sm text-red-500">{error}</p>}
-        <Button type="submit" disabled={loading || rating === 0} size="sm">
-          {loading ? "Submitting..." : "Submit Review"}
-        </Button>
+        <div className="flex items-center justify-between">
+          <Button type="submit" disabled={loading || rating === 0} size="md">
+            {loading ? "Submitting..." : "Submit Review"}
+          </Button>
+          {text.length > 0 && <span className="text-xs text-gray-400">{text.length}/500</span>}
+        </div>
       </fieldset>
     </form>
   );
