@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { Suspense, useState, useEffect, useRef, useCallback } from "react";
 
 import { CheckCircleIcon, GoogleIcon, StravaIcon } from "@/components/icons";
 import { Button, Input, OtpCodeInput } from "@/components/ui";
@@ -647,5 +647,9 @@ function SignupForm() {
 }
 
 export default function SignupPage() {
-  return <SignupForm />;
+  return (
+    <Suspense>
+      <SignupForm />
+    </Suspense>
+  );
 }
