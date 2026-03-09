@@ -38,6 +38,9 @@ export async function onEventCompleted(
     // Fire-and-forget: review request emails
     sendReviewRequestEmails(eventId, checkedInUserIds, supabase).catch(() => null);
 
+    // Fire-and-forget: in-app review request notifications
+    sendReviewRequestNotifications(eventId, checkedInUserIds, supabase).catch(() => null);
+
     return { awarded: eventBadgeResult };
   } catch (error) {
     console.error("[onEventCompleted] unexpected error:", error);
@@ -230,4 +233,69 @@ async function sendReviewRequestEmails(
       });
     }
   }
+}
+
+/**
+ * Fire-and-forget: create in-app review request notifications for checked-in participants.
+ * Filters out guests and users who already reviewed the event.
+ */
+async function sendReviewRequestNotifications(
+  eventId: string,
+  userIds: string[],
+  supabase: SupabaseClient<Database>,
+) {
+  if (userIds.length === 0) return;
+
+  // Fetch event title and club_id
+  const { data: event } = await supabase
+    .from("events")
+    .select("title, club_id")
+    .eq("id", eventId)
+    .single();
+
+  if (!event) return;
+
+  // Fetch club owner as the actor for the notification
+  const { data: clubOwner } = await supabase
+    .from("club_members")
+    .select("user_id")
+    .eq("club_id", event.club_id)
+    .eq("role", "owner")
+    .single();
+
+  // Filter out guests
+  const { data: nonGuestUsers } = await supabase
+    .from("users")
+    .select("id")
+    .in("id", userIds)
+    .eq("is_guest", false);
+
+  if (!nonGuestUsers || nonGuestUsers.length === 0) return;
+
+  const nonGuestIds = nonGuestUsers.map((u) => u.id);
+
+  // Filter out users who already reviewed
+  const { data: existingReviews } = await supabase
+    .from("event_reviews")
+    .select("user_id")
+    .eq("event_id", eventId)
+    .in("user_id", nonGuestIds);
+
+  const reviewedSet = new Set((existingReviews ?? []).map((r) => r.user_id));
+  const eligibleIds = nonGuestIds.filter((id) => !reviewedSet.has(id));
+
+  if (eligibleIds.length === 0) return;
+
+  createNotifications(
+    supabase,
+    eligibleIds.map((uid) => ({
+      userId: uid,
+      type: "review_request" as const,
+      title: `How was ${event.title}?`,
+      body: "Share your experience and help other adventurers!",
+      href: `/events/${eventId}/review`,
+      actorId: clubOwner?.user_id ?? undefined,
+      metadata: { event_id: eventId },
+    })),
+  ).catch(() => null);
 }

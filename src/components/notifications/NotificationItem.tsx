@@ -23,6 +23,7 @@ const TYPE_ICONS: Record<NotificationRow["type"], string> = {
   feed_repost: "🔁",
   feed_comment_like: "💬",
   feed_mention: "📣",
+  review_request: "⭐",
 };
 
 export default function NotificationItem({ notification, onMarkRead }: NotificationItemProps) {
