@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, useRef, useCallback } from "react";
 
 import { CheckCircleIcon, GoogleIcon, StravaIcon } from "@/components/icons";
@@ -21,6 +21,8 @@ type AuthMethod = "password" | "otp";
 
 function SignupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next") || "/events";
   const supabase = createClient();
 
   const [state, setState] = useState<SignupState>("details");
@@ -107,7 +109,7 @@ function SignupForm() {
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${globalThis.location.origin}/auth/callback`,
+        redirectTo: `${globalThis.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
       },
     });
     if (oauthError) {
@@ -213,7 +215,7 @@ function SignupForm() {
           }
           setState("success");
           setTimeout(() => {
-            router.push("/events");
+            router.push(next);
             router.refresh();
           }, 2000);
         } else {
@@ -276,7 +278,7 @@ function SignupForm() {
       setState("success");
 
       setTimeout(() => {
-        router.push("/events");
+        router.push(next);
         router.refresh();
       }, 2000);
     } catch {
@@ -433,7 +435,7 @@ function SignupForm() {
               redirect_uri: `${globalThis.location.origin}/auth/strava/callback`,
               response_type: "code",
               scope: STRAVA_SCOPES.join(","),
-              state: JSON.stringify({ flow: "login", returnUrl: "/events" }),
+              state: JSON.stringify({ flow: "login", returnUrl: next }),
               approval_prompt: "auto",
             });
             globalThis.location.href = `${STRAVA_AUTH_URL}?${params.toString()}`;
@@ -634,7 +636,7 @@ function SignupForm() {
       <p className="text-center text-sm text-gray-500 dark:text-gray-400">
         Already have an account?{" "}
         <Link
-          href="/login"
+          href={next === "/events" ? "/login" : `/login?next=${encodeURIComponent(next)}`}
           className="text-lime-600 dark:text-lime-400 hover:text-lime-600 dark:hover:text-lime-400 font-medium"
         >
           Sign In

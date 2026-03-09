@@ -16,7 +16,7 @@ export default async function CreateClubPage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login");
+    redirect("/login?next=/clubs/new");
   }
 
   return (

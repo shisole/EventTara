@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { CheckCircleIcon, GoogleIcon, StravaIcon } from "@/components/icons";
@@ -18,6 +18,8 @@ type AuthMethod = "password" | "otp";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next") || "/events";
   const supabase = createClient();
   const [state, setState] = useState<LoginState>("form");
   const [email, setEmail] = useState("");
@@ -76,7 +78,7 @@ export default function LoginPage() {
 
       setState("success");
       setTimeout(() => {
-        router.push("/events");
+        router.push(next);
         router.refresh();
       }, 2000);
     } catch {
@@ -151,7 +153,7 @@ export default function LoginPage() {
       setState("success");
 
       setTimeout(() => {
-        router.push("/events");
+        router.push(next);
         router.refresh();
       }, 2000);
     } catch {
@@ -200,7 +202,7 @@ export default function LoginPage() {
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${globalThis.location.origin}/auth/callback`,
+        redirectTo: `${globalThis.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
       },
     });
     if (oauthError) {
@@ -310,7 +312,7 @@ export default function LoginPage() {
               redirect_uri: `${globalThis.location.origin}/auth/strava/callback`,
               response_type: "code",
               scope: STRAVA_SCOPES.join(","),
-              state: JSON.stringify({ flow: "login", returnUrl: "/events" }),
+              state: JSON.stringify({ flow: "login", returnUrl: next }),
               approval_prompt: "auto",
             });
             globalThis.location.href = `${STRAVA_AUTH_URL}?${params.toString()}`;
@@ -409,7 +411,7 @@ export default function LoginPage() {
         <p className="text-sm text-gray-500 dark:text-gray-400">
           Don&apos;t have an account?{" "}
           <Link
-            href="/signup"
+            href={next === "/events" ? "/signup" : `/signup?next=${encodeURIComponent(next)}`}
             className="text-lime-600 dark:text-lime-400 hover:text-lime-600 dark:hover:text-lime-400 font-medium"
           >
             Sign Up
