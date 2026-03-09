@@ -11,6 +11,7 @@ import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "Post",
+  description: "View activity on EventTara.",
 };
 
 interface RawActivity {

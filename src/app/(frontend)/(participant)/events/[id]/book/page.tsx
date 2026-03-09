@@ -1,9 +1,27 @@
+import { type Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
 import BookingPageClient from "@/components/booking/BookingPageClient";
 import { Breadcrumbs } from "@/components/ui";
 import { BreadcrumbTitle } from "@/lib/contexts/BreadcrumbContext";
 import { createClient } from "@/lib/supabase/server";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const supabase = await createClient();
+  const { data: event } = await supabase.from("events").select("title").eq("id", id).single();
+
+  return {
+    title: event ? `Book ${event.title}` : "Book Event",
+    description: event
+      ? `Reserve your spot for ${event.title} on EventTara.`
+      : "Reserve your spot for this outdoor adventure event.",
+  };
+}
 
 export default async function BookEventPage({
   params,
