@@ -11,6 +11,7 @@ import {
   StravaIcon,
 } from "@/components/icons";
 import { Button, OtpCodeInput } from "@/components/ui";
+import { isReservedUsername } from "@/lib/constants/reserved-usernames";
 import { STRAVA_AUTH_URL, STRAVA_SCOPES } from "@/lib/strava/constants";
 import { createClient } from "@/lib/supabase/client";
 import { generateUsername } from "@/lib/utils/generate-username";
@@ -18,7 +19,7 @@ import { generateUsername } from "@/lib/utils/generate-username";
 type ModalState = "form" | "verify-code" | "guest" | "success";
 type AuthMethod = "password" | "otp";
 type AuthMode = "login" | "signup";
-type UsernameStatus = "idle" | "checking" | "available" | "taken" | "invalid";
+type UsernameStatus = "idle" | "checking" | "available" | "taken" | "invalid" | "reserved";
 
 const CODE_LENGTH = 6;
 const USERNAME_REGEX = /^[a-z0-9._-]{3,30}$/;
@@ -131,6 +132,10 @@ export default function AuthReviewModal({
     }
     if (!USERNAME_REGEX.test(normalized)) {
       setUsernameStatus("invalid");
+      return;
+    }
+    if (isReservedUsername(normalized)) {
+      setUsernameStatus("reserved");
       return;
     }
 
@@ -656,6 +661,11 @@ export default function AuthReviewModal({
                       {usernameStatus === "taken" && (
                         <span className="ml-2 text-sm font-normal text-red-600 dark:text-red-400">
                           ✗ Taken
+                        </span>
+                      )}
+                      {usernameStatus === "reserved" && (
+                        <span className="ml-2 text-sm font-normal text-red-600 dark:text-red-400">
+                          ✗ Reserved
                         </span>
                       )}
                       {usernameStatus === "invalid" && (
