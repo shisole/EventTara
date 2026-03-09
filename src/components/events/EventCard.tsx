@@ -162,14 +162,28 @@ export default function EventCard({
             )}
             {race_distances &&
               race_distances.length > 0 &&
-              race_distances.map((km) => (
-                <span
-                  key={km}
-                  className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500 text-white shadow-sm"
-                >
-                  {km} km
-                </span>
-              ))}
+              (() => {
+                const maxShow = compact ? 2 : race_distances.length;
+                const visible = race_distances.slice(0, maxShow);
+                const overflow = race_distances.length - maxShow;
+                return (
+                  <>
+                    {visible.map((km) => (
+                      <span
+                        key={km}
+                        className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500 text-white shadow-sm"
+                      >
+                        {km} km
+                      </span>
+                    ))}
+                    {overflow > 0 && (
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/70 text-white shadow-sm">
+                        +{overflow}
+                      </span>
+                    )}
+                  </>
+                );
+              })()}
             {hasRoute && (
               <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#FC4C02] text-white shadow-sm">
                 <svg
