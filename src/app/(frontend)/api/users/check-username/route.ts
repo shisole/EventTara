@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 
+import { isReservedUsername } from "@/lib/constants/reserved-usernames";
 import { createClient } from "@/lib/supabase/server";
 
 const USERNAME_REGEX = /^[a-z0-9._-]{3,30}$/;
@@ -20,6 +21,10 @@ export async function GET(request: NextRequest) {
       },
       { status: 400 },
     );
+  }
+
+  if (isReservedUsername(username)) {
+    return NextResponse.json({ available: false, error: "This username is reserved" });
   }
 
   const supabase = await createClient();

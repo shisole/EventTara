@@ -6,6 +6,7 @@ import { Suspense, useState, useEffect, useRef, useCallback } from "react";
 
 import { CheckCircleIcon, GoogleIcon, StravaIcon } from "@/components/icons";
 import { Button, Input, OtpCodeInput } from "@/components/ui";
+import { isReservedUsername } from "@/lib/constants/reserved-usernames";
 import { STRAVA_AUTH_URL, STRAVA_SCOPES } from "@/lib/strava/constants";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -35,7 +36,7 @@ function SignupForm() {
   // Username field
   const [username, setUsername] = useState("");
   const [usernameStatus, setUsernameStatus] = useState<
-    "idle" | "checking" | "available" | "taken" | "invalid"
+    "idle" | "checking" | "available" | "taken" | "invalid" | "reserved"
   >("idle");
   const usernameTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -71,6 +72,10 @@ function SignupForm() {
     }
     if (!USERNAME_REGEX.test(normalized)) {
       setUsernameStatus("invalid");
+      return;
+    }
+    if (isReservedUsername(normalized)) {
+      setUsernameStatus("reserved");
       return;
     }
 
@@ -514,7 +519,9 @@ function SignupForm() {
                   "w-full pl-8 pr-10 py-3 rounded-xl border bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 outline-none transition-colors",
                   usernameStatus === "available"
                     ? "border-green-500 focus:border-green-500 focus:ring-2 focus:ring-green-200 dark:focus:ring-green-800"
-                    : usernameStatus === "taken" || usernameStatus === "invalid"
+                    : usernameStatus === "taken" ||
+                        usernameStatus === "invalid" ||
+                        usernameStatus === "reserved"
                       ? "border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-800"
                       : "border-gray-300 dark:border-gray-600 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800",
                 )}
@@ -550,7 +557,7 @@ function SignupForm() {
                     />
                   </svg>
                 )}
-                {usernameStatus === "taken" && (
+                {(usernameStatus === "taken" || usernameStatus === "reserved") && (
                   <svg className="h-4 w-4 text-red-500" viewBox="0 0 20 20" fill="currentColor">
                     <path
                       fillRule="evenodd"
@@ -563,6 +570,9 @@ function SignupForm() {
             </div>
             {usernameStatus === "taken" && (
               <p className="text-xs text-red-500">This username is already taken</p>
+            )}
+            {usernameStatus === "reserved" && (
+              <p className="text-xs text-red-500">This username is reserved</p>
             )}
             {usernameStatus === "invalid" && username.length > 0 && (
               <p className="text-xs text-red-500">

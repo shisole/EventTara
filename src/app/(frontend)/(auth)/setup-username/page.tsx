@@ -5,6 +5,7 @@ import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 
 import { CheckCircleIcon } from "@/components/icons";
 import { Button } from "@/components/ui";
+import { isReservedUsername } from "@/lib/constants/reserved-usernames";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -35,7 +36,7 @@ function SetupUsernameForm() {
 
   const [username, setUsername] = useState("");
   const [usernameStatus, setUsernameStatus] = useState<
-    "idle" | "checking" | "available" | "taken" | "invalid"
+    "idle" | "checking" | "available" | "taken" | "invalid" | "reserved"
   >("idle");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -84,6 +85,10 @@ function SetupUsernameForm() {
     }
     if (!USERNAME_REGEX.test(normalized)) {
       setUsernameStatus("invalid");
+      return;
+    }
+    if (isReservedUsername(normalized)) {
+      setUsernameStatus("reserved");
       return;
     }
 
@@ -229,7 +234,9 @@ function SetupUsernameForm() {
                   "w-full pl-8 pr-10 py-3 rounded-xl border bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 outline-none transition-colors",
                   usernameStatus === "available"
                     ? "border-green-500 focus:border-green-500 focus:ring-2 focus:ring-green-200 dark:focus:ring-green-800"
-                    : usernameStatus === "taken" || usernameStatus === "invalid"
+                    : usernameStatus === "taken" ||
+                        usernameStatus === "invalid" ||
+                        usernameStatus === "reserved"
                       ? "border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-800"
                       : "border-gray-300 dark:border-gray-600 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800",
                 )}
@@ -265,7 +272,7 @@ function SetupUsernameForm() {
                     />
                   </svg>
                 )}
-                {usernameStatus === "taken" && (
+                {(usernameStatus === "taken" || usernameStatus === "reserved") && (
                   <svg className="h-4 w-4 text-red-500" viewBox="0 0 20 20" fill="currentColor">
                     <path
                       fillRule="evenodd"
@@ -278,6 +285,9 @@ function SetupUsernameForm() {
             </div>
             {usernameStatus === "taken" && (
               <p className="text-xs text-red-500">This username is already taken</p>
+            )}
+            {usernameStatus === "reserved" && (
+              <p className="text-xs text-red-500">This username is reserved</p>
             )}
             {usernameStatus === "invalid" && username.length > 0 && (
               <p className="text-xs text-red-500">
@@ -295,7 +305,12 @@ function SetupUsernameForm() {
             type="submit"
             className="w-full"
             size="lg"
-            disabled={loading || usernameStatus === "taken" || usernameStatus === "invalid"}
+            disabled={
+              loading ||
+              usernameStatus === "taken" ||
+              usernameStatus === "invalid" ||
+              usernameStatus === "reserved"
+            }
           >
             {loading ? "Setting up..." : "Continue"}
           </Button>
