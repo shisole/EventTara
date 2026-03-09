@@ -131,7 +131,7 @@ export default async function ClubProfilePage({ params }: { params: Promise<{ sl
         description={club.description}
         logo_url={club.logo_url}
         cover_url={club.cover_url}
-        activity_types={club.activity_types}
+        activity_types={club.activity_types ?? []}
         visibility={club.visibility}
         location={club.location}
         member_count={memberCount ?? 0}
