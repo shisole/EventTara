@@ -1,9 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import { type DragEvent, type FormEvent, useCallback, useEffect, useRef, useState } from "react";
 
 import { uploadImage } from "@/lib/upload";
+import { cn } from "@/lib/utils";
 
 interface ClubRow {
   id: string;
@@ -40,6 +41,7 @@ export default function ClubManager() {
   const [newDescription, setNewDescription] = useState("");
   const [newLogoUrl, setNewLogoUrl] = useState("");
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [draggingLogo, setDraggingLogo] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const [newActivityTypes, setNewActivityTypes] = useState<string[]>([]);
   const [newVisibility, setNewVisibility] = useState<"public" | "private">("public");
@@ -125,6 +127,30 @@ export default function ClubManager() {
     }
   }
 
+  async function handleLogoFile(file: File) {
+    if (!file.type.startsWith("image/")) {
+      setError("Please upload an image file");
+      return;
+    }
+    setUploadingLogo(true);
+    try {
+      const url = await uploadImage(file, "clubs/logos");
+      setNewLogoUrl(url);
+    } catch {
+      setError("Failed to upload logo");
+    } finally {
+      setUploadingLogo(false);
+      if (logoInputRef.current) logoInputRef.current.value = "";
+    }
+  }
+
+  function handleLogoDrop(e: DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    setDraggingLogo(false);
+    const file = e.dataTransfer.files[0];
+    if (file) void handleLogoFile(file);
+  }
+
   function toggleActivity(activity: string) {
     setNewActivityTypes((prev) =>
       prev.includes(activity) ? prev.filter((a) => a !== activity) : [...prev, activity],
@@ -164,91 +190,133 @@ export default function ClubManager() {
         >
           <h3 className="text-sm font-semibold text-gray-900 dark:text-white">New Club</h3>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                Name *
-              </label>
-              <input
-                type="text"
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                required
-                minLength={2}
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                placeholder="Club name"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                Logo
-              </label>
-              <div className="flex items-center gap-3">
-                {newLogoUrl ? (
+          <div className="flex gap-5">
+            {/* Logo drop zone */}
+            <div
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDraggingLogo(true);
+              }}
+              onDragLeave={() => setDraggingLogo(false)}
+              onDrop={handleLogoDrop}
+              onClick={() => !uploadingLogo && logoInputRef.current?.click()}
+              className={cn(
+                "relative flex h-28 w-28 shrink-0 cursor-pointer items-center justify-center rounded-2xl border-2 border-dashed transition-all",
+                newLogoUrl
+                  ? "border-transparent"
+                  : draggingLogo
+                    ? "border-teal-400 bg-teal-50/50 dark:border-teal-500 dark:bg-teal-950/20"
+                    : "border-gray-300 hover:border-gray-400 dark:border-gray-700 dark:hover:border-gray-600",
+                uploadingLogo && "pointer-events-none opacity-60",
+              )}
+            >
+              {newLogoUrl ? (
+                <>
                   <Image
                     src={newLogoUrl}
                     alt="Logo preview"
-                    width={40}
-                    height={40}
-                    className="h-10 w-10 rounded-lg object-cover"
+                    width={112}
+                    height={112}
+                    className="h-28 w-28 rounded-2xl object-cover"
                   />
-                ) : (
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 text-xs text-gray-400 dark:bg-gray-800">
-                    —
+                  <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-black/0 hover:bg-black/40 transition-colors group">
+                    <span className="text-xs font-medium text-white opacity-0 hover:opacity-100 transition-opacity">
+                      Change
+                    </span>
                   </div>
-                )}
-                <button
-                  type="button"
-                  disabled={uploadingLogo}
-                  onClick={() => logoInputRef.current?.click()}
-                  className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
-                >
-                  {uploadingLogo ? "Uploading..." : newLogoUrl ? "Change" : "Upload"}
-                </button>
-                {newLogoUrl && (
                   <button
                     type="button"
-                    onClick={() => setNewLogoUrl("")}
-                    className="text-xs text-red-500 hover:text-red-600"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setNewLogoUrl("");
+                    }}
+                    className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white text-xs shadow-sm hover:bg-red-600 transition-colors"
                   >
-                    Remove
+                    &times;
                   </button>
-                )}
-              </div>
+                </>
+              ) : uploadingLogo ? (
+                <div className="flex flex-col items-center gap-1 text-gray-400">
+                  <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none">
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                    />
+                  </svg>
+                  <span className="text-[10px]">Uploading...</span>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-1.5 text-gray-400 dark:text-gray-500">
+                  <svg
+                    className="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={1.5}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
+                    />
+                  </svg>
+                  <span className="text-[10px] text-center leading-tight">
+                    Drop logo
+                    <br />
+                    or click
+                  </span>
+                </div>
+              )}
               <input
                 ref={logoInputRef}
                 type="file"
                 accept="image/*"
                 className="hidden"
-                onChange={async (e) => {
+                onChange={(e) => {
                   const file = e.target.files?.[0];
-                  if (!file) return;
-                  setUploadingLogo(true);
-                  try {
-                    const url = await uploadImage(file, "clubs/logos");
-                    setNewLogoUrl(url);
-                  } catch {
-                    setError("Failed to upload logo");
-                  } finally {
-                    setUploadingLogo(false);
-                    if (logoInputRef.current) logoInputRef.current.value = "";
-                  }
+                  if (file) void handleLogoFile(file);
                 }}
               />
             </div>
-          </div>
 
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Description
-            </label>
-            <textarea
-              value={newDescription}
-              onChange={(e) => setNewDescription(e.target.value)}
-              rows={2}
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-              placeholder="Brief description..."
-            />
+            {/* Name + Description stacked */}
+            <div className="flex-1 space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                  Name *
+                </label>
+                <input
+                  type="text"
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  required
+                  minLength={2}
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  placeholder="Club name"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                  Description
+                </label>
+                <textarea
+                  value={newDescription}
+                  onChange={(e) => setNewDescription(e.target.value)}
+                  rows={2}
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  placeholder="Brief description..."
+                />
+              </div>
+            </div>
           </div>
 
           <div>
