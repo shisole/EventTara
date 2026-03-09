@@ -18,7 +18,7 @@ interface FilterOption {
 interface EventsPageClientProps {
   initialEvents: EventData[];
   totalCount: number;
-  organizers: FilterOption[];
+  clubs: FilterOption[];
   guides: FilterOption[];
   initialUsers?: UserResult[];
   twoColMobile?: boolean;
@@ -27,7 +27,7 @@ interface EventsPageClientProps {
 export default function EventsPageClient({
   initialEvents,
   totalCount,
-  organizers,
+  clubs,
   guides,
   initialUsers = [],
   twoColMobile,
@@ -46,7 +46,7 @@ export default function EventsPageClient({
       {/* Sticky filter bar on mobile — no backdrop-blur (it creates a containing
            block that breaks fixed-position bottom sheets inside FilterChips) */}
       <div className="sticky top-0 z-[55] -mx-4 px-4 sm:mx-0 sm:px-0 sm:static sm:z-auto bg-white dark:bg-gray-900 sm:bg-transparent sm:dark:bg-transparent pb-3 sm:pb-0 mb-4 sm:mb-8">
-        <EventFilters organizers={organizers} guides={guides} onPendingChange={setIsFiltering} />
+        <EventFilters clubs={clubs} guides={guides} onPendingChange={setIsFiltering} />
       </div>
 
       <div className="flex items-center justify-between mb-4">

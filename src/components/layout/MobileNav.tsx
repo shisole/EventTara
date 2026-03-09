@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils";
 
 interface MobileNavProps {
   user: User | null;
-  role: string | null;
+  canManage?: boolean;
   activityFeedEnabled?: boolean;
 }
 
@@ -32,12 +32,12 @@ interface NavItem {
 
 function getNavItems(
   user: User | null,
-  role: string | null,
+  canManage: boolean,
   pathname: string,
   activityFeedEnabled: boolean,
 ): NavItem[] {
   // Dashboard-specific nav items when on /dashboard
-  if (user && role === "organizer" && pathname.startsWith("/dashboard")) {
+  if (user && canManage && pathname.startsWith("/dashboard")) {
     return [
       {
         href: "/dashboard",
@@ -86,7 +86,7 @@ function getNavItems(
   ];
 
   if (user) {
-    if (role === "organizer") {
+    if (canManage) {
       items.push({
         href: "/dashboard",
         label: "Dashboard",
@@ -121,7 +121,11 @@ function getNavItems(
   return items;
 }
 
-export default function MobileNav({ user, role, activityFeedEnabled = false }: MobileNavProps) {
+export default function MobileNav({
+  user,
+  canManage = false,
+  activityFeedEnabled = false,
+}: MobileNavProps) {
   const pathname = usePathname();
   const { keyboardHeight } = useKeyboardHeight();
   const keyboardOpen = keyboardHeight > 0;
@@ -132,7 +136,7 @@ export default function MobileNav({ user, role, activityFeedEnabled = false }: M
   )
     return null;
 
-  const navItems = getNavItems(user, role, pathname, activityFeedEnabled);
+  const navItems = getNavItems(user, canManage, pathname, activityFeedEnabled);
 
   return (
     <nav

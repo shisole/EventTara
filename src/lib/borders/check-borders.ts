@@ -12,8 +12,8 @@ interface UserStats {
   totalCheckins: number;
   /** Distinct mountains by province (from checked-in hiking events) */
   mountainsByProvince: Record<string, number>;
-  /** Count of events organized (published/completed) */
-  organizedEventCount: number;
+  /** Count of events organized by user's clubs (published/completed) */
+  clubEventCount: number;
 }
 
 /**
@@ -76,12 +76,21 @@ async function getUserStats(
     // 2. Check-ins with event type
     supabase.from("event_checkins").select("event_id, events:event_id(type)").eq("user_id", userId),
 
-    // 3. Organized events count
-    supabase
-      .from("events")
-      .select("id", { count: "exact", head: true })
-      .eq("organizer_id", userId)
-      .in("status", ["published", "completed"]),
+    // 3. Club events count (events from clubs the user is owner/admin of)
+    (async () => {
+      const { data: memberships } = await supabase
+        .from("club_members")
+        .select("club_id")
+        .eq("user_id", userId)
+        .in("role", ["owner", "admin"]);
+      const clubIds = (memberships ?? []).map((m) => m.club_id);
+      if (clubIds.length === 0) return { count: 0 };
+      return supabase
+        .from("events")
+        .select("id", { count: "exact", head: true })
+        .in("club_id", clubIds)
+        .in("status", ["published", "completed"]);
+    })(),
 
     // 4. Mountains from checked-in hiking events
     supabase
@@ -129,7 +138,7 @@ async function getUserStats(
     eventCountByType,
     totalCheckins,
     mountainsByProvince,
-    organizedEventCount: organizedResult.count ?? 0,
+    clubEventCount: organizedResult.count ?? 0,
   };
 }
 
@@ -164,9 +173,9 @@ function checkCriteria(border: AvatarBorderRow, stats: UserStats): boolean {
       return (stats.mountainsByProvince[province] ?? 0) >= mountainCount;
     }
 
-    case "organizer_event_count": {
+    case "club_event_count": {
       const minEvents = criteria.min_events as number;
-      return stats.organizedEventCount >= minEvents;
+      return stats.clubEventCount >= minEvents;
     }
 
     default: {

@@ -1,6 +1,7 @@
 import { encode } from "@mapbox/polyline";
 import { type NextRequest, NextResponse } from "next/server";
 
+import { checkClubPermissionServer, CLUB_PERMISSIONS } from "@/lib/clubs/permissions";
 import { getStravaClient } from "@/lib/strava/client";
 import { parseGPX } from "@/lib/strava/gpx";
 import { createClient } from "@/lib/supabase/server";
@@ -66,22 +67,20 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Verify user is the event organizer
+  // Verify user has permission to edit this event's routes
   const { data: event, error: eventError } = await supabase
     .from("events")
-    .select("organizer_id")
+    .select("club_id")
     .eq("id", eventId)
     .single();
 
-  if (eventError || !event) {
+  if (eventError || !event?.club_id) {
     return NextResponse.json({ error: "Event not found" }, { status: 404 });
   }
 
-  if (event.organizer_id !== user.id) {
-    return NextResponse.json(
-      { error: "Only the event organizer can manage routes" },
-      { status: 403 },
-    );
+  const role = await checkClubPermissionServer(user.id, event.club_id, CLUB_PERMISSIONS.edit_event);
+  if (!role) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const body = (await request.json()) as PostBody;
@@ -210,22 +209,20 @@ export async function DELETE(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Verify user is the event organizer
+  // Verify user has permission to edit this event's routes
   const { data: event, error: eventError } = await supabase
     .from("events")
-    .select("organizer_id")
+    .select("club_id")
     .eq("id", eventId)
     .single();
 
-  if (eventError || !event) {
+  if (eventError || !event?.club_id) {
     return NextResponse.json({ error: "Event not found" }, { status: 404 });
   }
 
-  if (event.organizer_id !== user.id) {
-    return NextResponse.json(
-      { error: "Only the event organizer can manage routes" },
-      { status: 403 },
-    );
+  const role = await checkClubPermissionServer(user.id, event.club_id, CLUB_PERMISSIONS.edit_event);
+  if (!role) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const { error } = await supabase.from("event_routes").delete().eq("event_id", eventId);

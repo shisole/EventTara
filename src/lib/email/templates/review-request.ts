@@ -2,7 +2,7 @@ interface ReviewRequestProps {
   userName: string;
   eventTitle: string;
   eventDate: string;
-  organizerName: string;
+  clubName: string;
   reviewUrl: string;
 }
 
@@ -10,7 +10,7 @@ export function reviewRequestHtml({
   userName,
   eventTitle,
   eventDate,
-  organizerName,
+  clubName,
   reviewUrl,
 }: ReviewRequestProps): string {
   return `
@@ -38,7 +38,7 @@ export function reviewRequestHtml({
             <td style="padding:32px;">
               <h2 style="color:#2D5A3D;margin:0 0 8px;font-size:20px;">Thanks for Joining!</h2>
               <p style="color:#555;margin:0 0 24px;font-size:15px;line-height:1.5;">
-                Hey ${userName}, thanks for joining ${eventTitle}! Your feedback helps ${organizerName} improve and helps other adventurers decide.
+                Hey ${userName}, thanks for joining ${eventTitle}! Your feedback helps ${clubName} improve and helps other adventurers decide.
               </p>
               <!-- Event details card -->
               <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f8f4ef;border-radius:8px;padding:20px;margin-bottom:24px;">

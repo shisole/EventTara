@@ -30,7 +30,7 @@ interface BookingFormProps {
   eventDate: string;
   eventEndDate?: string | null;
   price: number;
-  organizerPaymentInfo?: {
+  paymentInfo?: {
     gcash_number?: string;
     maya_number?: string;
   } | null;
@@ -46,7 +46,7 @@ export default function BookingForm({
   eventDate,
   eventEndDate,
   price,
-  organizerPaymentInfo,
+  paymentInfo,
   spotsLeft = 999,
   distances,
   mode = "self",
@@ -349,12 +349,8 @@ export default function BookingForm({
 
       {!isFree && <PaymentMethodPicker selected={paymentMethod} onSelect={setPaymentMethod} />}
 
-      {isEwallet && organizerPaymentInfo && (
-        <PaymentInstructions
-          method={paymentMethod}
-          paymentInfo={organizerPaymentInfo}
-          amount={totalPrice}
-        />
+      {isEwallet && paymentInfo && (
+        <PaymentInstructions method={paymentMethod} paymentInfo={paymentInfo} amount={totalPrice} />
       )}
 
       {isEwallet && <PaymentProofUpload file={proofFile} onFileChange={setProofFile} />}

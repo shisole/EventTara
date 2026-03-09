@@ -25,8 +25,7 @@ export default function PaymentInstructions({
     return (
       <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4">
         <p className="text-sm text-yellow-700 dark:text-yellow-300">
-          The organizer hasn&apos;t set up their {label} number yet. Please try another payment
-          method.
+          The club hasn&apos;t set up their {label} number yet. Please try another payment method.
         </p>
       </div>
     );

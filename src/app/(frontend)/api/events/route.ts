@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 
+import { checkClubPermissionServer, CLUB_PERMISSIONS } from "@/lib/clubs/permissions";
 import { findProvinceFromLocation } from "@/lib/constants/philippine-provinces";
 import { fetchEventEnrichments, mapEventToCard } from "@/lib/events/map-event-card";
 import { findOverlappingEvent, formatOverlapDate } from "@/lib/events/overlap";
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest) {
   // Data query
   let dataQuery = supabase
     .from("events")
-    .select("*, bookings(count), organizer_profiles!inner(org_name)")
+    .select("*, bookings(count), clubs(id, name, slug, logo_url)")
     .in("status", ["published", "completed"]);
 
   // Apply filters to both queries
@@ -80,16 +81,16 @@ export async function GET(request: NextRequest) {
   if (search) {
     const pattern = search.trim().replaceAll(/\s+/g, "%");
 
-    // Also match organizer names
-    const { data: matchingOrgs } = await supabase
-      .from("organizer_profiles")
+    // Also match club names
+    const { data: matchingClubs } = await supabase
+      .from("clubs")
       .select("id")
-      .ilike("org_name", `%${pattern}%`);
-    const orgIds = matchingOrgs?.map((o) => o.id) ?? [];
+      .ilike("name", `%${pattern}%`);
+    const clubIds = matchingClubs?.map((c) => c.id) ?? [];
 
     let filter = `title.ilike.%${pattern}%,location.ilike.%${pattern}%`;
-    if (orgIds.length > 0) {
-      filter += `,organizer_id.in.(${orgIds.join(",")})`;
+    if (clubIds.length > 0) {
+      filter += `,club_id.in.(${clubIds.join(",")})`;
     }
     countQuery = countQuery.or(filter);
     dataQuery = dataQuery.or(filter);
@@ -98,11 +99,11 @@ export async function GET(request: NextRequest) {
   if (org) {
     const orgs = org.split(",").filter(Boolean);
     if (orgs.length === 1) {
-      countQuery = countQuery.eq("organizer_id", orgs[0]);
-      dataQuery = dataQuery.eq("organizer_id", orgs[0]);
+      countQuery = countQuery.eq("club_id", orgs[0]);
+      dataQuery = dataQuery.eq("club_id", orgs[0]);
     } else if (orgs.length > 1) {
-      countQuery = countQuery.in("organizer_id", orgs);
-      dataQuery = dataQuery.in("organizer_id", orgs);
+      countQuery = countQuery.in("club_id", orgs);
+      dataQuery = dataQuery.in("club_id", orgs);
     }
   }
 
@@ -265,35 +266,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Get or create organizer profile
-  let { data: profile } = await supabase
-    .from("organizer_profiles")
-    .select("id")
-    .eq("user_id", user.id)
-    .single();
+  const body = await request.json();
 
-  if (!profile) {
-    // Auto-create organizer profile
-    const { data: newProfile, error: profileError } = await supabase
-      .from("organizer_profiles")
-      .insert({
-        user_id: user.id,
-        org_name: user.user_metadata?.full_name || "My Organization",
-        is_claimed: true,
-      })
-      .select()
-      .single();
-
-    if (profileError) {
-      return NextResponse.json({ error: profileError.message }, { status: 500 });
-    }
-    profile = newProfile;
-
-    // Update user role to organizer
-    await supabase.from("users").update({ role: "organizer" }).eq("id", user.id);
+  // Require club_id
+  const clubId: string | undefined = body.club_id;
+  if (!clubId) {
+    return NextResponse.json({ error: "club_id is required" }, { status: 400 });
   }
 
-  const body = await request.json();
+  // Verify user has permission to create events in this club (admin+)
+  const role = await checkClubPermissionServer(user.id, clubId, CLUB_PERMISSIONS.create_event);
+  if (!role) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   // Use provided coordinates, or fall back to province centroid lookup
   let coordinates = body.coordinates || null;
@@ -304,19 +289,19 @@ export async function POST(request: Request) {
     }
   }
 
-  // Check for overlapping events by this organizer
-  const { data: organizerEvents } = await supabase
+  // Check for overlapping events by this club
+  const { data: clubEvents } = await supabase
     .from("events")
     .select("id, title, date, end_date")
-    .eq("organizer_id", profile.id)
+    .eq("club_id", clubId)
     .in("status", ["draft", "published"]);
 
-  if (organizerEvents) {
-    const overlap = findOverlappingEvent(body.date, body.end_date || null, organizerEvents);
+  if (clubEvents) {
+    const overlap = findOverlappingEvent(body.date, body.end_date || null, clubEvents);
     if (overlap) {
       return NextResponse.json(
         {
-          error: `Cannot create this event — it overlaps with your event "${overlap.title}" on ${formatOverlapDate(overlap.date, overlap.end_date)}. Adjust the date/time or update the other event first.`,
+          error: `Cannot create this event — it overlaps with your club's event "${overlap.title}" on ${formatOverlapDate(overlap.date, overlap.end_date)}. Adjust the date/time or update the other event first.`,
         },
         { status: 409 },
       );
@@ -326,7 +311,7 @@ export async function POST(request: Request) {
   const { data: event, error } = await supabase
     .from("events")
     .insert({
-      organizer_id: profile.id,
+      club_id: clubId,
       title: body.title,
       description: body.description,
       type: body.type,

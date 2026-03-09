@@ -190,7 +190,7 @@ export async function GET(request: Request) {
   const userIds = [...userIdSet];
   const activityIds = paged.map((a) => a.id);
 
-  // Phase 2: Fetch user profiles (needed for organizer/border lookups)
+  // Phase 2: Fetch user profiles (needed for border lookups)
   const { data: users } = await supabase
     .from("users")
     .select("id, full_name, username, avatar_url, active_border_id, role")
@@ -199,14 +199,9 @@ export async function GET(request: Request) {
   const userMap = new Map((users || []).map((u) => [u.id, u]));
 
   // Derive IDs needed for sub-queries
-  const organizerUserIds = (users || []).filter((u) => u.role === "organizer").map((u) => u.id);
   const borderIds = (users || []).filter((u) => u.active_border_id).map((u) => u.active_border_id!);
 
   // Phase 3: Fetch all enrichment data in parallel
-  interface OrgProfile {
-    id: string;
-    user_id: string;
-  }
   interface BorderRow {
     id: string;
     tier: string;
@@ -230,7 +225,6 @@ export async function GET(request: Request) {
   }
 
   const [
-    orgResult,
     borderResult,
     topBadgeResult,
     reactionsResult,
@@ -238,10 +232,6 @@ export async function GET(request: Request) {
     repostsResult,
     followsResult,
   ] = await Promise.all([
-    // Organizer profiles
-    organizerUserIds.length > 0
-      ? supabase.from("organizer_profiles").select("id, user_id").in("user_id", organizerUserIds)
-      : Promise.resolve({ data: [] as OrgProfile[] }),
     // Avatar borders
     borderIds.length > 0
       ? supabase.from("avatar_borders").select("id, tier, border_color").in("id", borderIds)
@@ -276,12 +266,6 @@ export async function GET(request: Request) {
           .in("following_id", userIds)
       : Promise.resolve({ data: [] as FollowRow[] }),
   ]);
-
-  // Build organizer map
-  const organizerMap = new Map<string, string>();
-  for (const op of (orgResult.data as OrgProfile[]) || []) {
-    organizerMap.set(op.user_id, op.id);
-  }
 
   // Build border map
   const borderMap = new Map<string, { tier: BorderTier; color: string | null }>();
@@ -357,7 +341,7 @@ export async function GET(request: Request) {
       userUsername: user?.username || null,
       userAvatarUrl: user?.avatar_url || null,
       userRole: user?.role || null,
-      organizerProfileId: organizerMap.get(a.userId) || null,
+      organizerProfileId: null,
       borderTier: border?.tier || null,
       borderColor: border?.color || null,
       topBadgeTitle: topBadgeMap.get(a.userId) || null,

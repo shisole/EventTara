@@ -10,7 +10,7 @@ export interface Database {
           full_name: string;
           username: string | null;
           avatar_url: string | null;
-          role: "organizer" | "participant" | "guest";
+          role: "user" | "guest" | "organizer" | "participant";
           is_guest: boolean;
           active_border_id: string | null;
           created_at: string;
@@ -21,7 +21,7 @@ export interface Database {
           full_name: string;
           username?: string | null;
           avatar_url?: string | null;
-          role?: "organizer" | "participant" | "guest";
+          role?: "user" | "guest" | "organizer" | "participant";
           is_guest?: boolean;
           active_border_id?: string | null;
           created_at?: string;
@@ -32,54 +32,9 @@ export interface Database {
           full_name?: string;
           username?: string | null;
           avatar_url?: string | null;
-          role?: "organizer" | "participant" | "guest";
+          role?: "user" | "guest" | "organizer" | "participant";
           is_guest?: boolean;
           active_border_id?: string | null;
-          created_at?: string;
-        };
-        Relationships: [];
-      };
-      organizer_profiles: {
-        Row: {
-          id: string;
-          user_id: string | null;
-          org_name: string;
-          description: string | null;
-          logo_url: string | null;
-          payment_info: Json;
-          claim_token: string | null;
-          claim_expires_at: string | null;
-          is_claimed: boolean;
-          pending_username: string | null;
-          is_demo: boolean;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          user_id: string | null;
-          org_name: string;
-          description?: string | null;
-          logo_url?: string | null;
-          payment_info?: Json;
-          claim_token?: string | null;
-          claim_expires_at?: string | null;
-          is_claimed?: boolean;
-          pending_username?: string | null;
-          is_demo?: boolean;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          user_id?: string | null;
-          org_name?: string;
-          description?: string | null;
-          logo_url?: string | null;
-          payment_info?: Json;
-          claim_token?: string | null;
-          claim_expires_at?: string | null;
-          is_claimed?: boolean;
-          pending_username?: string | null;
-          is_demo?: boolean;
           created_at?: string;
         };
         Relationships: [];
@@ -87,7 +42,7 @@ export interface Database {
       events: {
         Row: {
           id: string;
-          organizer_id: string;
+          club_id: string;
           title: string;
           description: string | null;
           type: "hiking" | "mtb" | "road_bike" | "running" | "trail_run";
@@ -107,7 +62,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
-          organizer_id: string;
+          club_id: string;
           title: string;
           description?: string | null;
           type: "hiking" | "mtb" | "road_bike" | "running" | "trail_run";
@@ -127,7 +82,7 @@ export interface Database {
         };
         Update: {
           id?: string;
-          organizer_id?: string;
+          club_id?: string;
           title?: string;
           description?: string | null;
           type?: "hiking" | "mtb" | "road_bike" | "running" | "trail_run";
@@ -145,7 +100,15 @@ export interface Database {
           waiver_text?: string | null;
           created_at?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "events_club_id_fkey";
+            columns: ["club_id"];
+            isOneToOne: false;
+            referencedRelation: "clubs";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       mountains: {
         Row: {
@@ -648,7 +611,7 @@ export interface Database {
             | "event_type_count"
             | "all_activities"
             | "mountain_region"
-            | "organizer_event_count";
+            | "club_event_count";
           criteria_value: Json;
           border_color: string | null;
           sort_order: number;
@@ -666,7 +629,7 @@ export interface Database {
             | "event_type_count"
             | "all_activities"
             | "mountain_region"
-            | "organizer_event_count";
+            | "club_event_count";
           criteria_value?: Json;
           border_color?: string | null;
           sort_order?: number;
@@ -684,7 +647,7 @@ export interface Database {
             | "event_type_count"
             | "all_activities"
             | "mountain_region"
-            | "organizer_event_count";
+            | "club_event_count";
           criteria_value?: Json;
           border_color?: string | null;
           sort_order?: number;
@@ -1062,7 +1025,7 @@ export interface Database {
           strava_showcase_features: boolean;
           strava_showcase_stats: boolean;
           strava_showcase_route_map: boolean;
-          organizer_reviews: boolean;
+          club_reviews: boolean;
           events_two_col_mobile: boolean;
           coming_soon_strava: boolean;
           coming_soon_gamification: boolean;
@@ -1079,7 +1042,7 @@ export interface Database {
           strava_showcase_features?: boolean;
           strava_showcase_stats?: boolean;
           strava_showcase_route_map?: boolean;
-          organizer_reviews?: boolean;
+          club_reviews?: boolean;
           events_two_col_mobile?: boolean;
           coming_soon_strava?: boolean;
           coming_soon_gamification?: boolean;
@@ -1096,7 +1059,7 @@ export interface Database {
           strava_showcase_features?: boolean;
           strava_showcase_stats?: boolean;
           strava_showcase_route_map?: boolean;
-          organizer_reviews?: boolean;
+          club_reviews?: boolean;
           events_two_col_mobile?: boolean;
           coming_soon_strava?: boolean;
           coming_soon_gamification?: boolean;
@@ -1344,10 +1307,112 @@ export interface Database {
         };
         Relationships: [];
       };
-      organizer_reviews: {
+      clubs: {
         Row: {
           id: string;
-          organizer_id: string;
+          name: string;
+          slug: string;
+          description: string | null;
+          logo_url: string | null;
+          cover_url: string | null;
+          activity_types: string[];
+          visibility: "public" | "private";
+          payment_info: Json | null;
+          location: string | null;
+          is_demo: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          slug: string;
+          description?: string | null;
+          logo_url?: string | null;
+          cover_url?: string | null;
+          activity_types?: string[];
+          visibility?: "public" | "private";
+          payment_info?: Json | null;
+          location?: string | null;
+          is_demo?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          slug?: string;
+          description?: string | null;
+          logo_url?: string | null;
+          cover_url?: string | null;
+          activity_types?: string[];
+          visibility?: "public" | "private";
+          payment_info?: Json | null;
+          location?: string | null;
+          is_demo?: boolean;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      club_members: {
+        Row: {
+          id: string;
+          club_id: string;
+          user_id: string;
+          role: "owner" | "admin" | "moderator" | "member";
+          joined_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          user_id: string;
+          role?: "owner" | "admin" | "moderator" | "member";
+          joined_at?: string;
+        };
+        Update: {
+          id?: string;
+          club_id?: string;
+          user_id?: string;
+          role?: "owner" | "admin" | "moderator" | "member";
+          joined_at?: string;
+        };
+        Relationships: [];
+      };
+      club_invites: {
+        Row: {
+          id: string;
+          club_id: string;
+          invited_by: string;
+          invite_code: string;
+          max_uses: number | null;
+          uses: number;
+          expires_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          invited_by: string;
+          invite_code: string;
+          max_uses?: number | null;
+          uses?: number;
+          expires_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          club_id?: string;
+          invited_by?: string;
+          invite_code?: string;
+          max_uses?: number | null;
+          uses?: number;
+          expires_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      club_reviews: {
+        Row: {
+          id: string;
+          club_id: string;
           user_id: string;
           rating: number;
           text: string | null;
@@ -1359,7 +1424,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
-          organizer_id: string;
+          club_id: string;
           user_id: string;
           rating: number;
           text?: string | null;
@@ -1371,7 +1436,7 @@ export interface Database {
         };
         Update: {
           id?: string;
-          organizer_id?: string;
+          club_id?: string;
           user_id?: string;
           rating?: number;
           text?: string | null;
@@ -1383,7 +1448,7 @@ export interface Database {
         };
         Relationships: [];
       };
-      organizer_review_photos: {
+      club_review_photos: {
         Row: {
           id: string;
           review_id: string;

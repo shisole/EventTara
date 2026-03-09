@@ -35,6 +35,7 @@ interface DistanceCategory {
 
 interface EventFormProps {
   mode: "create" | "edit";
+  clubId?: string;
   initialData?: {
     id?: string;
     title: string;
@@ -254,7 +255,7 @@ function GuideCombobox({
   );
 }
 
-export default function EventForm({ mode, initialData }: EventFormProps) {
+export default function EventForm({ mode, clubId, initialData }: EventFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -318,17 +319,19 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
       } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: profile } = await supabase
-        .from("organizer_profiles")
-        .select("id")
+      const { data: membership } = await supabase
+        .from("club_members")
+        .select("club_id")
         .eq("user_id", user.id)
+        .in("role", ["owner", "admin", "moderator"])
+        .limit(1)
         .single();
-      if (!profile) return;
+      if (!membership) return;
 
       const { data: events } = await supabase
         .from("events")
         .select("id, title, date, end_date, coordinates, status")
-        .eq("organizer_id", profile.id)
+        .eq("club_id", membership.club_id)
         .in("status", ["draft", "published", "completed"]);
 
       if (!events) return;
@@ -578,6 +581,10 @@ export default function EventForm({ mode, initialData }: EventFormProps) {
       difficulty_level: difficultyLevel,
       waiver_text: waiverEnabled ? waiverText : null,
     };
+
+    if (clubId) {
+      body.club_id = clubId;
+    }
 
     // Include distance categories when applicable
     if (supportsDistances && distances.length > 0) {

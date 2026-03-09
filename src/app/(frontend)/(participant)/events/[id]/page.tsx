@@ -72,10 +72,10 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
   const { id } = await params;
   const supabase = await createClient();
 
-  // Fetch event with organizer profile
+  // Fetch event with club
   const { data: event } = await supabase
     .from("events")
-    .select("*, organizer_profiles:organizer_id(*, users:user_id(*))")
+    .select("*, clubs(id, name, slug, logo_url)")
     .eq("id", id)
     .single();
 
@@ -103,11 +103,17 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
   });
   const bookingCount = totalParticipants || 0;
 
-  // Fetch organizer event count
+  // Fetch club event count
+  const club = event.clubs as {
+    id: string;
+    name: string;
+    slug: string;
+    logo_url: string | null;
+  } | null;
   const { count: orgEventCount } = await supabase
     .from("events")
     .select("*", { count: "exact", head: true })
-    .eq("organizer_id", event.organizer_id)
+    .eq("club_id", event.club_id)
     .eq("status", "published");
 
   // Fetch badges for this event
@@ -310,8 +316,6 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
     includeYear: true,
   });
 
-  const organizer = event.organizer_profiles as any;
-
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://eventtara.com";
 
   // JSON-LD Event structured data
@@ -338,11 +342,12 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
         }),
     },
     ...(event.cover_image_url && { image: event.cover_image_url }),
-    organizer: organizer
+    organizer: club
       ? {
           "@type": "Organization",
-          name: organizer.org_name,
-          ...(organizer.logo_url && { logo: organizer.logo_url }),
+          name: club.name,
+          ...(club.logo_url && { logo: club.logo_url }),
+          url: `${siteUrl}/clubs/${club.slug}`,
         }
       : undefined,
     offers: {
@@ -553,11 +558,11 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
             </div>
           </div>
 
-          {organizer && (
+          {club && (
             <OrganizerCard
-              organizerId={event.organizer_id}
-              orgName={organizer.org_name}
-              logoUrl={organizer.logo_url}
+              clubSlug={club.slug}
+              orgName={club.name}
+              logoUrl={club.logo_url ?? null}
               eventCount={orgEventCount || 0}
             />
           )}

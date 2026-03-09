@@ -93,6 +93,7 @@ export default function ClientShell({
   const supabase = createClient();
   const [user, setUser] = useState<User | null>(null);
   const [role, setRole] = useState<string | null>(null);
+  const [canManage, setCanManage] = useState(false);
   const [activeBorder, setActiveBorder] = useState<{
     id: string | null;
     tier: BorderTier | null;
@@ -116,6 +117,16 @@ export default function ClientShell({
         .single();
 
       setRole(data?.role ?? null);
+
+      // Check if user has management role in any club
+      const { data: managementMemberships } = await supabase
+        .from("club_members")
+        .select("id")
+        .eq("user_id", userId)
+        .in("role", ["owner", "admin", "moderator"])
+        .limit(1);
+
+      setCanManage(managementMemberships !== null && managementMemberships.length > 0);
 
       if (data?.active_border_id) {
         const { data: borderData } = await supabase
@@ -178,6 +189,7 @@ export default function ClientShell({
         void fetchRole(session.user.id);
       } else {
         setRole(null);
+        setCanManage(false);
       }
     });
 
@@ -249,7 +261,7 @@ export default function ClientShell({
           {!isLighthouse && <DemoBanner isLoggedIn={!loading && !!user && !user.is_anonymous} />}
           <Navbar
             user={user}
-            role={role}
+            canManage={canManage}
             loading={loading}
             activities={activities}
             navLayout={navLayout}
@@ -265,7 +277,7 @@ export default function ClientShell({
           <BreadcrumbProvider>
             <div className="flex-1 pb-16 md:pb-0">{children}</div>
           </BreadcrumbProvider>
-          <MobileNav user={user} role={role} activityFeedEnabled={activityFeedEnabled} />
+          <MobileNav user={user} canManage={canManage} activityFeedEnabled={activityFeedEnabled} />
         </div>
 
         <MobileDrawer
@@ -273,7 +285,7 @@ export default function ClientShell({
           onClose={handleDrawerClose}
           activities={activities}
           user={user}
-          role={role}
+          canManage={canManage}
           isAdmin={isAdmin}
           onLogout={() => void handleLogout()}
         />

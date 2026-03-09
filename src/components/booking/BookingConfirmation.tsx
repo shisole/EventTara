@@ -1,7 +1,9 @@
 "use client";
 
+import confetti from "canvas-confetti";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
+import { useEffect, useRef } from "react";
 
 import { Button } from "@/components/ui";
 import { formatEventDate } from "@/lib/utils/format-date";
@@ -37,6 +39,47 @@ export default function BookingConfirmation({
   const isPendingEwallet = paymentStatus === "pending" && paymentMethod !== "cash";
   const isPendingCash = paymentStatus === "pending" && paymentMethod === "cash";
   const isFriendMode = mode === "friend";
+  const hasFired = useRef(false);
+
+  useEffect(() => {
+    if (hasFired.current) return;
+    hasFired.current = true;
+
+    const duration = 2500;
+    const end = Date.now() + duration;
+
+    const frame = () => {
+      void confetti({
+        particleCount: 3,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0, y: 0.6 },
+        colors: ["#a3e635", "#22d3ee", "#f59e0b", "#ec4899", "#8b5cf6"],
+      });
+      void confetti({
+        particleCount: 3,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1, y: 0.6 },
+        colors: ["#a3e635", "#22d3ee", "#f59e0b", "#ec4899", "#8b5cf6"],
+      });
+
+      if (Date.now() < end) {
+        requestAnimationFrame(frame);
+      }
+    };
+
+    // Initial burst
+    void confetti({
+      particleCount: 100,
+      spread: 80,
+      origin: { y: 0.6 },
+      colors: ["#a3e635", "#22d3ee", "#f59e0b", "#ec4899", "#8b5cf6"],
+    });
+
+    // Continuous side cannons
+    requestAnimationFrame(frame);
+  }, []);
 
   const companionQRSection = companions.length > 0 && (
     <div className="space-y-4">
@@ -74,13 +117,13 @@ export default function BookingConfirmation({
             {isFriendMode ? (
               <>
                 Payment proof for your companions at{" "}
-                <span className="font-semibold">{eventTitle}</span> has been submitted. The
-                organizer will verify it shortly.
+                <span className="font-semibold">{eventTitle}</span> has been submitted. The club
+                admin will verify it shortly.
               </>
             ) : (
               <>
                 Your payment proof for <span className="font-semibold">{eventTitle}</span> has been
-                submitted. The organizer will verify it shortly.
+                submitted. The club admin will verify it shortly.
               </>
             )}
           </p>

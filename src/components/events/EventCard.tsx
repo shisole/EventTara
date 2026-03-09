@@ -5,7 +5,7 @@ import { Card, DemoBadge } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { formatEventDate } from "@/lib/utils/format-date";
 
-import OrganizerLink from "./OrganizerLink";
+import ClubLink from "./ClubLink";
 
 type EventStatus = "upcoming" | "happening_now" | "past";
 
@@ -21,8 +21,9 @@ interface EventCardProps {
   max_participants: number;
   booking_count: number;
   status?: EventStatus;
-  organizer_name?: string;
-  organizer_id?: string;
+  club_name?: string;
+  club_slug?: string;
+  club_logo_url?: string | null;
   distance?: number;
   avg_rating?: number;
   review_count?: number;
@@ -67,8 +68,9 @@ export default function EventCard({
   max_participants,
   booking_count,
   status,
-  organizer_name,
-  organizer_id,
+  club_name,
+  club_slug,
+  club_logo_url,
   distance,
   avg_rating,
   review_count,
@@ -160,14 +162,28 @@ export default function EventCard({
             )}
             {race_distances &&
               race_distances.length > 0 &&
-              race_distances.map((km) => (
-                <span
-                  key={km}
-                  className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500 text-white shadow-sm"
-                >
-                  {km} km
-                </span>
-              ))}
+              (() => {
+                const maxShow = compact ? 2 : race_distances.length;
+                const visible = race_distances.slice(0, maxShow);
+                const overflow = race_distances.length - maxShow;
+                return (
+                  <>
+                    {visible.map((km) => (
+                      <span
+                        key={km}
+                        className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500 text-white shadow-sm"
+                      >
+                        {km} km
+                      </span>
+                    ))}
+                    {overflow > 0 && (
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/70 text-white shadow-sm">
+                        +{overflow}
+                      </span>
+                    )}
+                  </>
+                );
+              })()}
             {hasRoute && (
               <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#FC4C02] text-white shadow-sm">
                 <svg
@@ -209,11 +225,11 @@ export default function EventCard({
             </span>
           </div>
 
-          {/* Organizer */}
-          {organizer_name && organizer_id ? (
-            <OrganizerLink organizerId={organizer_id} name={organizer_name} />
-          ) : organizer_name ? (
-            <p className="text-xs text-gray-400 dark:text-gray-500">by {organizer_name}</p>
+          {/* Club */}
+          {club_name && club_slug ? (
+            <ClubLink clubSlug={club_slug} clubName={club_name} clubLogoUrl={club_logo_url} />
+          ) : club_name ? (
+            <p className="text-xs text-gray-400 dark:text-gray-500">{club_name}</p>
           ) : null}
 
           {/* Info — stacked when compact, 2-col grid otherwise */}

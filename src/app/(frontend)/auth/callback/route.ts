@@ -29,30 +29,13 @@ export async function GET(request: Request) {
             email: user.email ?? null,
             full_name: preferredName ?? "User",
             avatar_url: meta?.avatar_url ?? meta?.picture ?? null,
-            role: "participant",
+            role: "user",
           },
           { onConflict: "id", ignoreDuplicates: false },
         );
 
         if (upsertErr) {
           console.error("[auth/callback] upsert error:", upsertErr.message);
-        }
-
-        // Handle organizer signup metadata
-        if (meta?.role === "organizer") {
-          await admin.from("organizer_profiles").upsert(
-            {
-              user_id: user.id,
-              org_name: meta.org_name,
-              description: meta.org_description ?? null,
-              logo_url: meta.org_logo_url ?? null,
-            },
-            { onConflict: "user_id" },
-          );
-
-          await admin.from("users").update({ role: "organizer" }).eq("id", user.id);
-
-          return NextResponse.redirect(`${origin}/dashboard`);
         }
 
         // Check if user needs to set up username

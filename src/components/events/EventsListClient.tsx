@@ -24,8 +24,9 @@ export interface EventData {
   max_participants: number;
   booking_count: number;
   status: "upcoming" | "happening_now" | "past";
-  organizer_name?: string;
-  organizer_id?: string;
+  club_name?: string;
+  club_slug?: string;
+  club_logo_url?: string | null;
   coordinates?: { lat: number; lng: number } | null;
   avg_rating?: number;
   review_count?: number;

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { checkClubPermissionServer } from "@/lib/clubs/permissions";
 import { sendEmail } from "@/lib/email/send";
 import { bookingConfirmationHtml } from "@/lib/email/templates/booking-confirmation";
 import { paymentRejectedHtml } from "@/lib/email/templates/payment-rejected";
@@ -25,9 +26,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   // Get booking with event and user info
   const { data: booking } = await supabase
     .from("bookings")
-    .select(
-      "*, events:event_id(title, date, location, organizer_id, organizer_profiles:organizer_id(user_id)), users:user_id(full_name, email)",
-    )
+    .select("*, events:event_id(title, date, location, club_id), users:user_id(full_name, email)")
     .eq("id", id)
     .single();
 
@@ -35,9 +34,14 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     return NextResponse.json({ error: "Booking not found" }, { status: 404 });
   }
 
-  // Verify the current user is the organizer
-  const organizerUserId = (booking.events as any)?.organizer_profiles?.user_id;
-  if (organizerUserId !== user.id) {
+  // Verify the current user has club permission for this event
+  const clubId = (booking.events as any)?.club_id;
+  if (!clubId) {
+    return NextResponse.json({ error: "Event not associated with a club" }, { status: 400 });
+  }
+
+  const role = await checkClubPermissionServer(user.id, clubId, "moderator");
+  if (!role) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

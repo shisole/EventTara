@@ -26,20 +26,21 @@ export async function checkAndAwardPioneerBadges(
     return (data ?? []).map((u) => u.id);
   });
 
-  // --- Pioneer Organizer: first 50 organizer profiles by created_at ---
+  // --- Pioneer Organizer: first 50 club owners by joined_at ---
   result.organizersAwarded = await awardBadgeForSet(supabase, "pioneer_organizer", async () => {
     const { data } = await supabase
-      .from("organizer_profiles")
+      .from("club_members")
       .select("user_id")
-      .order("created_at", { ascending: true })
+      .eq("role", "owner")
+      .order("joined_at", { ascending: true })
       .limit(PIONEER_ORGANIZER_CAP);
     return (data ?? []).map((o) => o.user_id).filter((id): id is string => id !== null);
   });
 
-  // --- First Review: distinct users who have at least one non-anonymous organizer review ---
+  // --- First Review: distinct users who have at least one non-anonymous club review ---
   result.reviewsAwarded = await awardBadgeForSet(supabase, "first_review", async () => {
     const { data } = await supabase
-      .from("organizer_reviews")
+      .from("club_reviews")
       .select("user_id")
       .eq("is_anonymous", false);
     const unique = [...new Set((data ?? []).map((r) => r.user_id))];

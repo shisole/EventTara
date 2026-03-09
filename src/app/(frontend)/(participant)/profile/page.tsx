@@ -17,7 +17,7 @@ export default async function ProfileRedirectPage() {
   // Fetch user record
   const { data: user } = await supabase
     .from("users")
-    .select("role, username")
+    .select("username")
     .eq("id", authUser.id)
     .single();
 
@@ -25,20 +25,7 @@ export default async function ProfileRedirectPage() {
     redirect("/login");
   }
 
-  // Organizer → their organizer profile page
-  if (user.role === "organizer") {
-    const { data: profile } = await supabase
-      .from("organizer_profiles")
-      .select("id")
-      .eq("user_id", authUser.id)
-      .single();
-
-    if (profile) {
-      redirect(`/organizers/${profile.id}`);
-    }
-  }
-
-  // Participant → their profile page (fall back to /events if no username)
+  // Redirect to the user's public profile page (fall back to /events if no username)
   if (user.username) {
     redirect(`/profile/${user.username}`);
   }

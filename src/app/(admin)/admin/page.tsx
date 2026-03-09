@@ -20,10 +20,10 @@ const cards = [
     count: "11 sections",
   },
   {
-    title: "Organizers",
-    description: "Create organizer profiles and manage claim links.",
-    href: "/admin/organizers",
-    count: "Profiles",
+    title: "Clubs",
+    description: "View and manage all clubs on the platform.",
+    href: "/admin/clubs",
+    count: "Clubs",
   },
 ];
 
