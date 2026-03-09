@@ -87,32 +87,44 @@ export default function ClubProfileHeader({
       </div>
 
       {/* Content below cover */}
-      <div className="px-5 pb-6 sm:px-8">
-        {/* Logo row — overlaps cover */}
-        <div className="flex items-end justify-between -mt-14 sm:-mt-16 mb-4">
-          <div className="shrink-0">
-            {logo_url ? (
-              <Image
-                src={logo_url}
-                alt={name}
-                width={112}
-                height={112}
-                className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover border-4 border-white dark:border-gray-900 shadow-lg"
-              />
-            ) : (
-              <div
-                className={cn(
-                  "w-24 h-24 sm:w-28 sm:h-28 rounded-2xl flex items-center justify-center text-white font-bold text-4xl sm:text-5xl border-4 border-white dark:border-gray-900 shadow-lg",
-                  getLogoColor(name),
-                )}
-              >
-                {initial}
-              </div>
+      <div className="relative px-5 pb-6 sm:px-8">
+        {/* Logo — overlaps cover */}
+        <div className="-mt-16 sm:-mt-20 mb-4">
+          {logo_url ? (
+            <Image
+              src={logo_url}
+              alt={name}
+              width={128}
+              height={128}
+              className="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl object-cover ring-4 ring-white dark:ring-gray-900 shadow-lg"
+            />
+          ) : (
+            <div
+              className={cn(
+                "w-28 h-28 sm:w-32 sm:h-32 rounded-2xl flex items-center justify-center text-white font-bold text-4xl sm:text-5xl ring-4 ring-white dark:ring-gray-900 shadow-lg",
+                getLogoColor(name),
+              )}
+            >
+              {initial}
+            </div>
+          )}
+        </div>
+
+        {/* Name + Join button */}
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2.5">
+              <h1 className="font-heading text-2xl sm:text-3xl font-bold truncate">{name}</h1>
+              {currentMembership && <ClubRoleBadge role={currentMembership.role} />}
+            </div>
+            {/* Description */}
+            {description && (
+              <p className="mt-2 text-gray-600 dark:text-gray-400 text-sm sm:text-base leading-relaxed">
+                {description}
+              </p>
             )}
           </div>
-
-          {/* Join button — aligned with logo on the right */}
-          <div className="shrink-0 pb-1">
+          <div className="shrink-0 mt-1">
             <JoinClubButton
               clubSlug={slug}
               visibility={visibility}
@@ -121,19 +133,6 @@ export default function ClubProfileHeader({
             />
           </div>
         </div>
-
-        {/* Name + role badge */}
-        <div className="flex items-center gap-2.5">
-          <h1 className="font-heading text-2xl sm:text-3xl font-bold truncate">{name}</h1>
-          {currentMembership && <ClubRoleBadge role={currentMembership.role} />}
-        </div>
-
-        {/* Description */}
-        {description && (
-          <p className="mt-2.5 text-gray-600 dark:text-gray-400 text-sm sm:text-base leading-relaxed">
-            {description}
-          </p>
-        )}
 
         {/* Meta info row */}
         <div className="mt-3.5 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-gray-500 dark:text-gray-400">
