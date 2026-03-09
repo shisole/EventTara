@@ -1,3 +1,4 @@
+import { type Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -7,6 +8,20 @@ import { ChevronLeftIcon } from "@/components/icons";
 import type { BorderTier } from "@/lib/constants/avatar-borders";
 import { BreadcrumbTitle } from "@/lib/contexts/BreadcrumbContext";
 import { createClient } from "@/lib/supabase/server";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const supabase = await createClient();
+  const { data: event } = await supabase.from("events").select("title").eq("id", id).single();
+
+  return {
+    title: event ? `Check-in · ${event.title}` : "Check-in",
+  };
+}
 
 export default async function CheckinPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
