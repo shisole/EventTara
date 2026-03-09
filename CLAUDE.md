@@ -173,9 +173,43 @@ Floating chat bubble on every page (`src/components/chat/`). Powered by Anthropi
 
 ### Testing
 
-- **Unit tests** (Vitest 4): `src/lib/**/__tests__/*.test.ts`. Config at `vitest.config.mts`. Globals enabled (`describe`, `test`, `expect`, `vi` available without import).
-- **E2E tests** (Playwright): `e2e/*.spec.ts`. Config at `playwright.config.ts`. Uses chromium only, port 3001.
-- **CI**: GitHub Actions (`.github/workflows/ci.yml`). Unit tests on every PR + push. E2E only on push to main with Supabase secrets.
+**Every new feature or bugfix must include tests.** Unit tests for business logic and utility functions; E2E tests for user-facing workflows.
+
+#### Unit Tests (Vitest 4)
+
+- **Location:** `src/lib/<module>/__tests__/<module>.test.ts` — colocated with the code they test.
+- **Config:** `vitest.config.mts`. Globals enabled (`describe`, `test`, `expect`, `vi` available without import). Environment: `node`. Path alias `@/*` works.
+- **What to test:** Pure functions, utility helpers, validation logic, constants, normalization logic. Extract testable logic from API routes into `src/lib/` when possible.
+- **What NOT to unit test:** React components (use E2E instead), Supabase queries that just delegate to the client.
+
+**Supabase mock pattern:**
+
+```typescript
+function createMockSupabase(overrides: Record<string, unknown> = {}) {
+  const chainable = {
+    select: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    in: vi.fn().mockReturnThis(),
+    single: vi.fn().mockReturnThis(),
+    order: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockReturnThis(),
+    ...overrides,
+  };
+  return { from: vi.fn().mockReturnValue(chainable), _chain: chainable } as any;
+}
+```
+
+#### E2E Tests (Playwright)
+
+- **Location:** `e2e/*.spec.ts`. Config at `playwright.config.ts`. Chromium only, port 3001.
+- **Auth:** Setup in `e2e/auth.setup.ts` saves organizer + participant state to `e2e/.auth/`. Tests reuse via `storageState`.
+- **Patterns:** Use `test.step()` for multi-step flows. Prefer accessible selectors (`getByRole`, `getByLabel`) over CSS. Timeouts at 10s for async UI.
+
+#### CI
+
+GitHub Actions (`.github/workflows/ci.yml`). Unit tests on every PR + push. E2E only on push to main/staging with Supabase secrets.
+
+**Run before creating PRs:** `pnpm typecheck && pnpm lint && pnpm test`
 
 ### State Management
 
