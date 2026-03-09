@@ -8,6 +8,7 @@ import LikeButton from "@/components/feed/LikeButton";
 import RepostButton from "@/components/feed/RepostButton";
 import ShareButton from "@/components/feed/ShareButton";
 import { RepostIcon } from "@/components/icons";
+import StarRating from "@/components/reviews/StarRating";
 import { UserAvatar } from "@/components/ui";
 import { resolvePresetImage } from "@/lib/constants/avatars";
 import { CATEGORY_STYLES, RARITY_STYLES } from "@/lib/constants/badge-rarity";
@@ -94,6 +95,18 @@ export default function FeedCard({ item, isAuthenticated, currentUserId }: FeedC
             {formatRelativeTime(item.timestamp)}
           </span>
         </div>
+
+        {/* Review rating + text */}
+        {item.activityType === "review" && item.reviewRating && (
+          <div className="space-y-2">
+            <StarRating value={item.reviewRating} readonly size="sm" />
+            {item.reviewText && (
+              <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3">
+                {item.reviewText}
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Badge showcase */}
         {item.activityType === "badge" && item.badgeImageUrl && <BadgeShowcase item={item} />}
