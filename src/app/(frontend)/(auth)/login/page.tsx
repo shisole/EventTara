@@ -334,77 +334,76 @@ function LoginForm() {
         </div>
       </div>
 
-      <form
-        onSubmit={authMethod === "password" ? handlePasswordLogin : handleOtpSubmit}
-        className="space-y-4"
-      >
-        <Input
-          id="email"
-          label="Email"
-          type="email"
-          value={email}
-          onChange={(e) => {
-            setEmail(e.target.value);
-          }}
-          placeholder="you@example.com"
-          required
-        />
-
-        {authMethod === "password" && (
-          <>
-            <Input
-              id="password"
-              label="Password"
-              type="password"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-              }}
-              placeholder="Enter your password"
-              required
-            />
-            <div className="flex justify-end -mt-2">
-              <Link
-                href="/forgot-password"
-                className="text-sm text-lime-600 dark:text-lime-400 hover:text-lime-700 dark:hover:text-lime-300 font-medium"
-              >
-                Forgot password?
-              </Link>
-            </div>
-          </>
-        )}
-
-        {error && <p className="text-sm text-red-500">{error}</p>}
-        <Button type="submit" className="w-full" size="lg" disabled={loading}>
-          {loading
-            ? authMethod === "password"
-              ? "Signing in..."
-              : "Sending code..."
-            : authMethod === "password"
-              ? "Sign In"
-              : "Send Code"}
-        </Button>
-
-        <div className="text-center">
-          <button
-            type="button"
-            onClick={() => {
-              setAuthMethod(authMethod === "password" ? "otp" : "password");
-              setError("");
+      <form onSubmit={authMethod === "password" ? handlePasswordLogin : handleOtpSubmit}>
+        <fieldset disabled={loading} className="min-w-0 space-y-4">
+          <Input
+            id="email"
+            label="Email"
+            type="email"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
             }}
-            className="text-sm text-lime-600 dark:text-lime-400 hover:text-lime-700 dark:hover:text-lime-300 font-medium"
-          >
-            {authMethod === "password"
-              ? "Sign in with code instead"
-              : "Sign in with password instead"}
-          </button>
-        </div>
+            placeholder="you@example.com"
+            required
+          />
 
-        {authMethod === "otp" && (
-          <p className="text-xs text-center text-gray-400 dark:text-gray-500">
-            We&apos;ll send a 6-digit code to your email.
-          </p>
-        )}
+          {authMethod === "password" && (
+            <>
+              <Input
+                id="password"
+                label="Password"
+                type="password"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                }}
+                placeholder="Enter your password"
+                required
+              />
+              <div className="flex justify-end -mt-2">
+                <Link
+                  href="/forgot-password"
+                  className="text-sm text-lime-600 dark:text-lime-400 hover:text-lime-700 dark:hover:text-lime-300 font-medium"
+                >
+                  Forgot password?
+                </Link>
+              </div>
+            </>
+          )}
+
+          {error && <p className="text-sm text-red-500">{error}</p>}
+          <Button type="submit" className="w-full" size="lg" disabled={loading}>
+            {loading
+              ? authMethod === "password"
+                ? "Signing in..."
+                : "Sending code..."
+              : authMethod === "password"
+                ? "Sign In"
+                : "Send Code"}
+          </Button>
+
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={() => {
+                setAuthMethod(authMethod === "password" ? "otp" : "password");
+                setError("");
+              }}
+              className="text-sm text-lime-600 dark:text-lime-400 hover:text-lime-700 dark:hover:text-lime-300 font-medium"
+            >
+              {authMethod === "password"
+                ? "Sign in with code instead"
+                : "Sign in with password instead"}
+            </button>
+          </div>
+
+          {authMethod === "otp" && (
+            <p className="text-xs text-center text-gray-400 dark:text-gray-500">
+              We&apos;ll send a 6-digit code to your email.
+            </p>
+          )}
+        </fieldset>
       </form>
 
       <div className="text-center space-y-3">

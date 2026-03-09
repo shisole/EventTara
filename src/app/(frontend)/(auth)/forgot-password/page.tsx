@@ -81,22 +81,24 @@ export default function ForgotPasswordPage() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <Input
-          id="email"
-          label="Email"
-          type="email"
-          value={email}
-          onChange={(e) => {
-            setEmail(e.target.value);
-          }}
-          placeholder="you@example.com"
-          required
-        />
-        {error && <p className="text-sm text-red-500">{error}</p>}
-        <Button type="submit" className="w-full" size="lg" disabled={loading}>
-          {loading ? "Sending..." : "Send Reset Link"}
-        </Button>
+      <form onSubmit={handleSubmit}>
+        <fieldset disabled={loading} className="min-w-0 space-y-4">
+          <Input
+            id="email"
+            label="Email"
+            type="email"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+            }}
+            placeholder="you@example.com"
+            required
+          />
+          {error && <p className="text-sm text-red-500">{error}</p>}
+          <Button type="submit" className="w-full" size="lg" disabled={loading}>
+            {loading ? "Sending..." : "Send Reset Link"}
+          </Button>
+        </fieldset>
       </form>
 
       <p className="text-center text-sm text-gray-500 dark:text-gray-400">

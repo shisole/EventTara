@@ -9,14 +9,13 @@ import { createClient } from "@/lib/supabase/client";
 
 interface ClaimFormProps {
   token: string;
-  orgName: string;
+  clubName: string;
+  clubSlug: string;
   logoUrl: string | null;
-  pendingUsername: string | null;
 }
 
-export default function ClaimForm({ token, orgName, logoUrl, pendingUsername }: ClaimFormProps) {
+export default function ClaimForm({ token, clubName, clubSlug, logoUrl }: ClaimFormProps) {
   const router = useRouter();
-  const [editedOrgName, setEditedOrgName] = useState(orgName);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -49,8 +48,8 @@ export default function ClaimForm({ token, orgName, logoUrl, pendingUsername }: 
 
     try {
       const payload = existingUserId
-        ? { org_name: editedOrgName, existing_user_id: existingUserId }
-        : { email, password, full_name: fullName, org_name: editedOrgName };
+        ? { existing_user_id: existingUserId }
+        : { email, password, full_name: fullName };
 
       const res = await fetch(`/api/claim/${token}`, {
         method: "POST",
@@ -83,7 +82,7 @@ export default function ClaimForm({ token, orgName, logoUrl, pendingUsername }: 
 
       setSuccess(true);
       setTimeout(() => {
-        router.push("/dashboard");
+        router.push(`/dashboard/clubs/${clubSlug}`);
         router.refresh();
       }, 2000);
     } catch {
@@ -106,8 +105,8 @@ export default function ClaimForm({ token, orgName, logoUrl, pendingUsername }: 
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white">Account Claimed!</h1>
-        <p className="text-gray-600 dark:text-gray-400">Redirecting to your dashboard...</p>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white">Club Claimed!</h1>
+        <p className="text-gray-600 dark:text-gray-400">Redirecting to your club dashboard...</p>
       </div>
     );
   }
@@ -121,56 +120,41 @@ export default function ClaimForm({ token, orgName, logoUrl, pendingUsername }: 
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="text-center space-y-3">
-        {logoUrl ? (
-          <Image
-            src={logoUrl}
-            alt={orgName}
-            width={64}
-            height={64}
-            className="mx-auto rounded-full object-cover"
-          />
-        ) : (
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-lime-100 dark:bg-lime-900/30">
-            <span className="text-2xl font-bold text-lime-700 dark:text-lime-400">
-              {orgName.charAt(0).toUpperCase()}
-            </span>
-          </div>
-        )}
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-          Claim Your Organizer Account
-        </h1>
-        {existingUserId && (
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Signed in as{" "}
-            <span className="font-medium text-gray-700 dark:text-gray-300">{existingUserName}</span>
-          </p>
-        )}
-      </div>
-
-      <div className="space-y-4">
-        <Input
-          id="org-name"
-          label="Organization Name"
-          value={editedOrgName}
-          onChange={(e) => setEditedOrgName(e.target.value)}
-          required
-        />
-
-        {!existingUserId && pendingUsername && (
-          <div className="space-y-1">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Username
-            </label>
-            <div className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
-              @{pendingUsername}
+    <form onSubmit={handleSubmit}>
+      <fieldset disabled={loading} className="min-w-0 space-y-6">
+        <div className="text-center space-y-3">
+          {logoUrl ? (
+            <Image
+              src={logoUrl}
+              alt={clubName}
+              width={64}
+              height={64}
+              className="mx-auto rounded-full object-cover"
+            />
+          ) : (
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-lime-100 dark:bg-lime-900/30">
+              <span className="text-2xl font-bold text-lime-700 dark:text-lime-400">
+                {clubName.charAt(0).toUpperCase()}
+              </span>
             </div>
-          </div>
-        )}
+          )}
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">Claim Your Club</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            You&apos;ve been invited to claim{" "}
+            <span className="font-semibold text-gray-700 dark:text-gray-300">{clubName}</span>
+          </p>
+          {existingUserId && (
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Signed in as{" "}
+              <span className="font-medium text-gray-700 dark:text-gray-300">
+                {existingUserName}
+              </span>
+            </p>
+          )}
+        </div>
 
         {!existingUserId && (
-          <>
+          <div className="space-y-4">
             <Input
               id="full-name"
               label="Full Name"
@@ -199,19 +183,19 @@ export default function ClaimForm({ token, orgName, logoUrl, pendingUsername }: 
               placeholder="Min. 6 characters"
               required
             />
-          </>
+          </div>
         )}
-      </div>
 
-      {error && (
-        <div className="rounded-xl bg-red-50 dark:bg-red-900/20 p-3 text-sm text-red-600 dark:text-red-400">
-          {error}
-        </div>
-      )}
+        {error && (
+          <div className="rounded-xl bg-red-50 dark:bg-red-900/20 p-3 text-sm text-red-600 dark:text-red-400">
+            {error}
+          </div>
+        )}
 
-      <Button type="submit" disabled={loading} className="w-full">
-        {loading ? "Claiming..." : existingUserId ? "Link to My Account" : "Claim Account"}
-      </Button>
+        <Button type="submit" disabled={loading} className="w-full">
+          {loading ? "Claiming..." : existingUserId ? "Claim Club" : "Create Account & Claim Club"}
+        </Button>
+      </fieldset>
     </form>
   );
 }
