@@ -1,5 +1,4 @@
 {
-  "root": true,
   "extends": [
     "next/core-web-vitals",
     "plugin:@typescript-eslint/strict-type-checked",
