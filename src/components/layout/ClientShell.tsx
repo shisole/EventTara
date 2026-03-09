@@ -290,7 +290,7 @@ export default function ClientShell({
           onLogout={() => void handleLogout()}
         />
 
-        <OnboardingQuizModal featureFlags={featureFlags} />
+        {!user && <OnboardingQuizModal featureFlags={featureFlags} />}
         <ChatBubble />
         <InstallPrompt />
         {showDebugPanel && user && (
