@@ -13,6 +13,9 @@ export interface Club {
   payment_info: Record<string, unknown> | null;
   location: string | null;
   is_demo: boolean;
+  claim_token: string | null;
+  claim_expires_at: string | null;
+  is_claimed: boolean;
   created_at: string;
 }
 
