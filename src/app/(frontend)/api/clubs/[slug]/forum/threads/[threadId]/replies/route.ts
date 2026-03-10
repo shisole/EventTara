@@ -4,7 +4,9 @@ import { checkClubPermissionServer } from "@/lib/clubs/permissions";
 import { createNotifications } from "@/lib/notifications/create";
 import { createClient } from "@/lib/supabase/server";
 
-type RouteContext = { params: Promise<{ slug: string; threadId: string }> };
+interface RouteContext {
+  params: Promise<{ slug: string; threadId: string }>;
+}
 
 export async function GET(_req: Request, { params }: RouteContext) {
   const { slug, threadId } = await params;
@@ -31,9 +33,10 @@ export async function GET(_req: Request, { params }: RouteContext) {
 
   // Fetch author profiles separately (FK references auth.users, not public.users)
   const userIds = [...new Set((replies ?? []).map((r) => r.user_id))];
-  const { data: users } = userIds.length
-    ? await supabase.from("users").select("id, full_name, username, avatar_url").in("id", userIds)
-    : { data: [] };
+  const { data: users } =
+    userIds.length > 0
+      ? await supabase.from("users").select("id, full_name, username, avatar_url").in("id", userIds)
+      : { data: [] };
   const userMap = new Map((users ?? []).map((u) => [u.id, u]));
 
   const mapped = (replies ?? []).map((r) => ({
@@ -80,7 +83,7 @@ export async function POST(req: Request, { params }: RouteContext) {
 
   const body = (await req.json()) as { text?: string };
   const text = body.text?.trim();
-  if (!text || text.length < 1 || text.length > 2000) {
+  if (!text || text.length === 0 || text.length > 2000) {
     return NextResponse.json({ error: "Text is required (1-2000 chars)" }, { status: 400 });
   }
 

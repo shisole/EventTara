@@ -3,7 +3,9 @@ import { NextResponse } from "next/server";
 import { checkClubPermissionServer, CLUB_PERMISSIONS } from "@/lib/clubs/permissions";
 import { createClient } from "@/lib/supabase/server";
 
-type RouteContext = { params: Promise<{ slug: string; replyId: string }> };
+interface RouteContext {
+  params: Promise<{ slug: string; replyId: string }>;
+}
 
 export async function DELETE(_req: Request, { params }: RouteContext) {
   const { slug, replyId } = await params;

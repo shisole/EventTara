@@ -46,7 +46,7 @@ export default function ForumPollWidget({
       const newVotes = [...pollVotes];
       if (userVote !== null) {
         const oldIdx = newVotes.findIndex((v) => v.option_index === userVote);
-        if (oldIdx >= 0) {
+        if (oldIdx !== -1) {
           newVotes[oldIdx] = {
             ...newVotes[oldIdx],
             count: Math.max(0, newVotes[oldIdx].count - 1),
@@ -54,7 +54,7 @@ export default function ForumPollWidget({
         }
       }
       const newIdx = newVotes.findIndex((v) => v.option_index === optionIndex);
-      if (newIdx >= 0) {
+      if (newIdx !== -1) {
         newVotes[newIdx] = { ...newVotes[newIdx], count: newVotes[newIdx].count + 1 };
       } else {
         newVotes.push({ option_index: optionIndex, count: 1 });

@@ -3,7 +3,9 @@ import { NextResponse } from "next/server";
 import { checkClubPermissionServer, CLUB_PERMISSIONS } from "@/lib/clubs/permissions";
 import { createClient } from "@/lib/supabase/server";
 
-type RouteContext = { params: Promise<{ slug: string }> };
+interface RouteContext {
+  params: Promise<{ slug: string }>;
+}
 
 export async function GET(_req: Request, { params }: RouteContext) {
   const { slug } = await params;
@@ -51,14 +53,14 @@ export async function POST(req: Request, { params }: RouteContext) {
 
   const body = (await req.json()) as { name?: string };
   const name = body.name?.trim();
-  if (!name || name.length < 1 || name.length > 50) {
+  if (!name || name.length === 0 || name.length > 50) {
     return NextResponse.json({ error: "Name is required (1-50 chars)" }, { status: 400 });
   }
 
   const categorySlug = name
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
+    .replaceAll(/[^a-z0-9]+/g, "-")
+    .replaceAll(/^-|-$/g, "");
 
   const { count } = await supabase
     .from("club_forum_categories")

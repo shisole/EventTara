@@ -5,7 +5,9 @@ import { type ForumThreadType } from "@/lib/clubs/types";
 import { createNotifications } from "@/lib/notifications/create";
 import { createClient } from "@/lib/supabase/server";
 
-type RouteContext = { params: Promise<{ slug: string }> };
+interface RouteContext {
+  params: Promise<{ slug: string }>;
+}
 
 export async function GET(req: Request, { params }: RouteContext) {
   const { slug } = await params;
@@ -53,9 +55,10 @@ export async function GET(req: Request, { params }: RouteContext) {
 
   // Fetch author profiles separately (FK references auth.users, not public.users)
   const userIds = [...new Set((threads ?? []).map((t) => t.user_id))];
-  const { data: users } = userIds.length
-    ? await supabase.from("users").select("id, full_name, username, avatar_url").in("id", userIds)
-    : { data: [] };
+  const { data: users } =
+    userIds.length > 0
+      ? await supabase.from("users").select("id, full_name, username, avatar_url").in("id", userIds)
+      : { data: [] };
   const userMap = new Map((users ?? []).map((u) => [u.id, u]));
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -118,7 +121,7 @@ export async function POST(req: Request, { params }: RouteContext) {
   const threadBody = body.body?.trim() ?? "";
   const type: ForumThreadType = body.type ?? "discussion";
 
-  if (!title || title.length < 1 || title.length > 200) {
+  if (!title || title.length === 0 || title.length > 200) {
     return NextResponse.json({ error: "Title is required (1-200 chars)" }, { status: 400 });
   }
 

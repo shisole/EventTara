@@ -3,7 +3,9 @@ import { NextResponse } from "next/server";
 import { checkClubPermissionServer } from "@/lib/clubs/permissions";
 import { createClient } from "@/lib/supabase/server";
 
-type RouteContext = { params: Promise<{ slug: string; threadId: string }> };
+interface RouteContext {
+  params: Promise<{ slug: string; threadId: string }>;
+}
 
 export async function POST(req: Request, { params }: RouteContext) {
   const { slug, threadId } = await params;
@@ -26,7 +28,7 @@ export async function POST(req: Request, { params }: RouteContext) {
     .eq("id", threadId)
     .eq("club_id", club.id)
     .single();
-  if (!thread || thread.type !== "poll") {
+  if (thread?.type !== "poll") {
     return NextResponse.json({ error: "Not a poll thread" }, { status: 400 });
   }
 

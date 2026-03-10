@@ -3,7 +3,9 @@ import { NextResponse } from "next/server";
 import { checkClubPermissionServer, CLUB_PERMISSIONS } from "@/lib/clubs/permissions";
 import { createClient } from "@/lib/supabase/server";
 
-type RouteContext = { params: Promise<{ slug: string; threadId: string }> };
+interface RouteContext {
+  params: Promise<{ slug: string; threadId: string }>;
+}
 
 export async function GET(_req: Request, { params }: RouteContext) {
   const { slug, threadId } = await params;
