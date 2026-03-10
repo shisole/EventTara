@@ -6,14 +6,16 @@ import { useCallback, useRef, useState } from "react";
 
 import { Button } from "@/components/ui";
 import { type RaceData, type RaceParticipant } from "@/lib/races/types";
-import { cn } from "@/lib/utils";
 
 type RaceState = "idle" | "racing" | "finished";
 
 interface ParticipantProgress {
   participant: RaceParticipant;
   progress: number;
-  target: number;
+  /** Random speed multiplier so each duck moves at its own pace */
+  speed: number;
+  /** Small random offset so ducks don't stack perfectly */
+  offset: number;
 }
 
 async function fireConfetti() {
@@ -35,6 +37,29 @@ async function fireConfetti() {
   requestAnimationFrame(frame);
 }
 
+function Avatar({ src, name, size = 32 }: { src: string | null; name: string; size?: number }) {
+  if (src) {
+    return (
+      <Image
+        src={src}
+        alt={name}
+        width={size}
+        height={size}
+        className="rounded-full object-cover"
+        style={{ width: size, height: size }}
+      />
+    );
+  }
+  return (
+    <div
+      className="rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center font-bold text-gray-600 dark:text-gray-300"
+      style={{ width: size, height: size, fontSize: size * 0.4 }}
+    >
+      {name.charAt(0).toUpperCase()}
+    </div>
+  );
+}
+
 export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin: boolean }) {
   const initialState: RaceState = race.status === "completed" ? "finished" : "idle";
   const [state, setState] = useState<RaceState>(initialState);
@@ -43,6 +68,7 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
   const [error, setError] = useState<string | null>(null);
   const progressRef = useRef<ParticipantProgress[]>([]);
   const [displayProgress, setDisplayProgress] = useState<ParticipantProgress[]>([]);
+  const winnerIdsRef = useRef<Set<string>>(new Set());
 
   const startRace = useCallback(async () => {
     setLoading(true);
@@ -63,13 +89,17 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
         participants: RaceParticipant[];
       };
 
-      const winnerIds = new Set(data.winners);
+      winnerIdsRef.current = new Set(data.winners);
 
-      // Initialize progress entries
-      const entries: ParticipantProgress[] = data.participants.map((p) => ({
+      // Shuffle participant order so it's not predictable
+      const shuffled = [...data.participants].sort(() => Math.random() - 0.5);
+
+      // All participants get similar random speeds — no difference between winners and losers
+      const entries: ParticipantProgress[] = shuffled.map((p) => ({
         participant: p,
         progress: 0,
-        target: winnerIds.has(p.user_id) ? 100 : 60 + Math.random() * 35,
+        speed: 0.85 + Math.random() * 0.3, // 0.85 - 1.15
+        offset: Math.random() * 3, // small random offset
       }));
 
       progressRef.current = entries;
@@ -78,30 +108,59 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
       setState("racing");
       setLoading(false);
 
-      // Animate
+      // Animation in 2 phases:
+      // Phase 1 (0-7s): Everyone races together, jockeying for position (all reach ~70-85%)
+      // Phase 2 (7-9s): Winners pull ahead to 100%, losers slow down
       const startTime = performance.now();
-      const duration = 9000;
+      const totalDuration = 9000;
+      const phase1End = 7000;
 
       const animate = (now: number) => {
         const elapsed = now - startTime;
-        const t = Math.min(elapsed / duration, 1);
-        const eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
+        const t = Math.min(elapsed / totalDuration, 1);
 
-        for (const entry of progressRef.current) {
-          const jitter = 0.97 + Math.random() * 0.06;
-          entry.progress = Math.min(eased * entry.target * jitter, entry.target);
+        if (elapsed <= phase1End) {
+          // Phase 1: everyone races together
+          const phase1T = elapsed / phase1End;
+          const eased = 1 - Math.pow(1 - phase1T, 2); // ease-out quad
+
+          for (const entry of progressRef.current) {
+            const jitter = 0.98 + Math.random() * 0.04;
+            // Everyone heads toward 75% with their individual speed
+            entry.progress = Math.min(eased * 75 * entry.speed * jitter, 82);
+          }
+        } else {
+          // Phase 2: winners sprint, losers fade
+          const phase2T = (elapsed - phase1End) / (totalDuration - phase1End);
+          const eased2 = 1 - Math.pow(1 - phase2T, 3); // ease-out cubic
+
+          for (const entry of progressRef.current) {
+            const isWinner = winnerIdsRef.current.has(entry.participant.user_id);
+            const currentBase = 75 * entry.speed;
+
+            if (isWinner) {
+              // Sprint to 100%
+              entry.progress = currentBase + (100 - currentBase) * eased2;
+            } else {
+              // Slow crawl, end at 80-92%
+              const finalTarget = 80 + entry.offset * 4;
+              entry.progress = currentBase + (finalTarget - currentBase) * eased2 * 0.5;
+            }
+          }
         }
 
-        setDisplayProgress([...progressRef.current]);
+        setDisplayProgress(progressRef.current.map((e) => ({ ...e })));
 
         if (t < 1) {
           requestAnimationFrame(animate);
         } else {
-          // Ensure final values
+          // Snap final values
           for (const entry of progressRef.current) {
-            entry.progress = entry.target;
+            entry.progress = winnerIdsRef.current.has(entry.participant.user_id)
+              ? 100
+              : entry.progress;
           }
-          setDisplayProgress([...progressRef.current]);
+          setDisplayProgress(progressRef.current.map((e) => ({ ...e })));
           setState("finished");
           void fireConfetti();
         }
@@ -147,41 +206,26 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
     );
   }
 
-  // Racing state
+  // Racing state — all bars same color, no winner hints
   if (state === "racing") {
     return (
       <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
         <h1 className="text-2xl font-heading font-bold text-center dark:text-white">
           {race.title}
         </h1>
-        <div className="max-h-[60vh] overflow-y-auto space-y-3">
+        <div className="max-h-[60vh] overflow-y-auto space-y-4">
           {displayProgress.map((entry) => (
             <div key={entry.participant.user_id} className="flex items-center gap-3">
               <div className="flex-shrink-0">
-                {entry.participant.avatar_url ? (
-                  <Image
-                    src={entry.participant.avatar_url}
-                    alt={entry.participant.full_name}
-                    width={32}
-                    height={32}
-                    className="rounded-full"
-                  />
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-600 dark:text-gray-300">
-                    {entry.participant.full_name.charAt(0).toUpperCase()}
-                  </div>
-                )}
+                <Avatar src={entry.participant.avatar_url} name={entry.participant.full_name} />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium dark:text-white truncate">
+                <p className="text-sm font-medium dark:text-white truncate mb-1">
                   {entry.participant.full_name}
                 </p>
                 <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                   <div
-                    className={cn(
-                      "h-full rounded-full transition-none",
-                      entry.participant.isWinner ? "bg-lime-500" : "bg-gray-300 dark:bg-gray-500",
-                    )}
+                    className="h-full rounded-full bg-teal-500 transition-none"
                     style={{ width: `${entry.progress}%` }}
                   />
                 </div>
@@ -198,13 +242,15 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
   const others = participants.filter((p) => !p.isWinner);
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8 space-y-8">
+    <div className="max-w-2xl mx-auto px-4 py-8 space-y-8 animate-fadeUp">
       <h1 className="text-2xl font-heading font-bold text-center dark:text-white">{race.title}</h1>
 
       {/* Winners */}
       {winners.length > 0 && (
         <div className="space-y-3">
-          <h2 className="text-lg font-heading font-bold dark:text-white">Winners</h2>
+          <h2 className="text-lg font-heading font-bold dark:text-white text-center">
+            {"🏆"} Winners
+          </h2>
           {winners.map((w) => (
             <div
               key={w.user_id}
@@ -213,21 +259,7 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
               <span className="text-2xl" role="img" aria-label="trophy">
                 {"🏆"}
               </span>
-              <div className="flex-shrink-0">
-                {w.avatar_url ? (
-                  <Image
-                    src={w.avatar_url}
-                    alt={w.full_name}
-                    width={40}
-                    height={40}
-                    className="rounded-full"
-                  />
-                ) : (
-                  <div className="w-10 h-10 rounded-full bg-amber-200 dark:bg-amber-700 flex items-center justify-center text-sm font-bold text-amber-800 dark:text-amber-200">
-                    {w.full_name.charAt(0).toUpperCase()}
-                  </div>
-                )}
-              </div>
+              <Avatar src={w.avatar_url} name={w.full_name} size={40} />
               <div className="min-w-0">
                 <p className="font-medium dark:text-white">{w.full_name}</p>
                 {w.username && (
@@ -248,21 +280,7 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
               key={p.user_id}
               className="flex items-center gap-3 bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm dark:shadow-gray-950/30"
             >
-              <div className="flex-shrink-0">
-                {p.avatar_url ? (
-                  <Image
-                    src={p.avatar_url}
-                    alt={p.full_name}
-                    width={40}
-                    height={40}
-                    className="rounded-full"
-                  />
-                ) : (
-                  <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-sm font-bold text-gray-600 dark:text-gray-300">
-                    {p.full_name.charAt(0).toUpperCase()}
-                  </div>
-                )}
-              </div>
+              <Avatar src={p.avatar_url} name={p.full_name} size={40} />
               <div className="min-w-0">
                 <p className="font-medium dark:text-white">{p.full_name}</p>
                 {p.username && (
