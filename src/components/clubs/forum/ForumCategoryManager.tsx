@@ -6,9 +6,13 @@ import { type ForumCategory } from "@/lib/clubs/types";
 
 interface ForumCategoryManagerProps {
   clubSlug: string;
+  onCategoryChange?: () => void;
 }
 
-export default function ForumCategoryManager({ clubSlug }: ForumCategoryManagerProps) {
+export default function ForumCategoryManager({
+  clubSlug,
+  onCategoryChange,
+}: ForumCategoryManagerProps) {
   const [categories, setCategories] = useState<ForumCategory[]>([]);
   const [newName, setNewName] = useState("");
   const [loading, setLoading] = useState(true);
@@ -42,6 +46,7 @@ export default function ForumCategoryManager({ clubSlug }: ForumCategoryManagerP
     if (res.ok) {
       setNewName("");
       void fetchCategories();
+      onCategoryChange?.();
     }
     setAdding(false);
   };
@@ -54,6 +59,7 @@ export default function ForumCategoryManager({ clubSlug }: ForumCategoryManagerP
     });
     if (res.ok) {
       setCategories((prev) => prev.filter((c) => c.id !== categoryId));
+      onCategoryChange?.();
     }
   };
 

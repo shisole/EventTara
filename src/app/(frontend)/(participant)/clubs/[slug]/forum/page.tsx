@@ -2,7 +2,6 @@ import { type Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
-import ForumCategoryManager from "@/components/clubs/forum/ForumCategoryManager";
 import ForumTab from "@/components/clubs/forum/ForumTab";
 import { type ClubRole } from "@/lib/clubs/types";
 import { createClient } from "@/lib/supabase/server";
@@ -52,23 +51,18 @@ export default async function ForumPage({ params }: { params: Promise<{ slug: st
   if (!membership) notFound();
 
   const userRole = membership.role as ClubRole;
-  const isAdmin = userRole === "owner" || userRole === "admin";
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <Link
-            href={`/clubs/${club.slug}`}
-            className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
-          >
-            &larr; {club.name}
-          </Link>
-          <h1 className="text-2xl font-heading font-bold mt-1 dark:text-white">Forum</h1>
-        </div>
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-5">
+      <div>
+        <Link
+          href={`/clubs/${club.slug}`}
+          className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+        >
+          &larr; {club.name}
+        </Link>
+        <h1 className="text-2xl font-heading font-bold mt-1 dark:text-white">Forum</h1>
       </div>
-
-      {isAdmin && <ForumCategoryManager clubSlug={club.slug} />}
 
       <ForumTab clubId={club.id} clubSlug={club.slug} userRole={userRole} />
     </div>
