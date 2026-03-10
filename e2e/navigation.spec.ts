@@ -1,5 +1,10 @@
 import { test, expect } from "@playwright/test";
 
+test.beforeEach(async ({ page }) => {
+  // Dismiss onboarding quiz modal that blocks interaction in fresh sessions
+  await page.addInitScript(() => localStorage.setItem("quiz_completed", "true"));
+});
+
 test.describe("Navigation", () => {
   test("navbar logo links to homepage", async ({ page }) => {
     await page.goto("/events");
