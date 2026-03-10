@@ -94,12 +94,12 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
       // Shuffle participant order so it's not predictable
       const shuffled = [...data.participants].sort(() => Math.random() - 0.5);
 
-      // All participants get similar random speeds — no difference between winners and losers
+      // Each participant gets a tiny random offset — keeps bars close but not identical
       const entries: ParticipantProgress[] = shuffled.map((p) => ({
         participant: p,
         progress: 0,
-        speed: 0.85 + Math.random() * 0.3, // 0.85 - 1.15
-        offset: Math.random() * 3, // small random offset
+        speed: 0.97 + Math.random() * 0.06, // very tight: 0.97 - 1.03
+        offset: Math.random() * 5, // used for final non-winner spread
       }));
 
       progressRef.current = entries;
@@ -108,53 +108,68 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
       setState("racing");
       setLoading(false);
 
-      // Animation in 2 phases:
-      // Phase 1 (0-7s): Everyone races together, jockeying for position (all reach ~70-85%)
-      // Phase 2 (7-9s): Winners pull ahead to 100%, losers slow down
+      // Animation in 3 phases:
+      // Phase 1 (0-6s): Pack racing — everyone stays tight together, reaching ~70%
+      // Phase 2 (6-8s): Tension — pack slows, bars jostle, still bunched at ~75-80%
+      // Phase 3 (8-9.5s): Sprint finish — winners burst to 100%, losers stall
       const startTime = performance.now();
-      const totalDuration = 9000;
-      const phase1End = 7000;
+      const totalDuration = 9500;
+
+      // Throttle renders to every other frame for smoother animation
+      let frameCount = 0;
 
       const animate = (now: number) => {
+        frameCount++;
         const elapsed = now - startTime;
         const t = Math.min(elapsed / totalDuration, 1);
 
-        if (elapsed <= phase1End) {
-          // Phase 1: everyone races together
-          const phase1T = elapsed / phase1End;
-          const eased = 1 - Math.pow(1 - phase1T, 2); // ease-out quad
+        if (elapsed <= 6000) {
+          // Phase 1: tight pack racing to ~70%
+          const phase1T = elapsed / 6000;
+          const eased = 1 - Math.pow(1 - phase1T, 2);
+          const base = eased * 70;
 
           for (const entry of progressRef.current) {
-            const jitter = 0.98 + Math.random() * 0.04;
-            // Everyone heads toward 75% with their individual speed
-            entry.progress = Math.min(eased * 75 * entry.speed * jitter, 82);
+            // Jitter creates natural back-and-forth within ±2%
+            const jitter = (Math.random() - 0.5) * 4;
+            entry.progress = Math.max(0, Math.min(base + jitter, 72));
+          }
+        } else if (elapsed <= 8000) {
+          // Phase 2: tension — pack bunches up around 75%, slight shuffle
+          const phase2T = (elapsed - 6000) / 2000;
+          const base = 70 + phase2T * 8; // 70 -> 78
+
+          for (const entry of progressRef.current) {
+            const jitter = (Math.random() - 0.5) * 3;
+            entry.progress = Math.max(70, Math.min(base + jitter, 80));
           }
         } else {
-          // Phase 2: winners sprint, losers fade
-          const phase2T = (elapsed - phase1End) / (totalDuration - phase1End);
-          const eased2 = 1 - Math.pow(1 - phase2T, 3); // ease-out cubic
+          // Phase 3: sprint finish!
+          const phase3T = (elapsed - 8000) / (totalDuration - 8000);
+          const eased3 = 1 - Math.pow(1 - phase3T, 4); // sharp ease-out
 
           for (const entry of progressRef.current) {
             const isWinner = winnerIdsRef.current.has(entry.participant.user_id);
-            const currentBase = 75 * entry.speed;
 
             if (isWinner) {
-              // Sprint to 100%
-              entry.progress = currentBase + (100 - currentBase) * eased2;
+              entry.progress = 78 + (100 - 78) * eased3;
             } else {
-              // Slow crawl, end at 80-92%
-              const finalTarget = 80 + entry.offset * 4;
-              entry.progress = currentBase + (finalTarget - currentBase) * eased2 * 0.5;
+              // Stall at 80-88%
+              const finalPos = 80 + entry.offset * 1.6;
+              entry.progress = 78 + (finalPos - 78) * eased3 * 0.6;
             }
           }
         }
 
-        setDisplayProgress(progressRef.current.map((e) => ({ ...e })));
+        // Only update React state every other frame to reduce re-renders
+        if (frameCount % 2 === 0) {
+          setDisplayProgress(progressRef.current.map((e) => ({ ...e })));
+        }
 
         if (t < 1) {
           requestAnimationFrame(animate);
         } else {
-          // Snap final values
+          // Final snap
           for (const entry of progressRef.current) {
             entry.progress = winnerIdsRef.current.has(entry.participant.user_id)
               ? 100
