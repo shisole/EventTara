@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { ACTIVITY_TYPES } from "@/lib/constants/activity-types";
 import type { Database } from "@/lib/supabase/types";
 
 type Badge = Database["public"]["Tables"]["badges"]["Row"];
@@ -140,14 +141,13 @@ export async function calculateBadgeProgress(
     const { data: events } = await supabase.from("events").select("type").in("id", eventIds);
 
     const types = new Set<string>((events ?? []).map((e) => e.type));
-    const requiredTypes = ["hiking", "mtb", "road_bike", "running", "trail_run"];
-    const current = requiredTypes.filter((t) => types.has(t)).length;
+    const current = ACTIVITY_TYPES.filter((t) => types.has(t)).length;
 
     return {
       current,
-      target: requiredTypes.length,
-      percent: Math.min((current / requiredTypes.length) * 100, 99),
-      progressText: `${current}/${requiredTypes.length} activity types`,
+      target: ACTIVITY_TYPES.length,
+      percent: Math.min((current / ACTIVITY_TYPES.length) * 100, 99),
+      progressText: `${current}/${ACTIVITY_TYPES.length} activity types`,
     };
   }
 

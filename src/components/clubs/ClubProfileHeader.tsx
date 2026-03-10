@@ -3,6 +3,7 @@ import Image from "next/image";
 import ClubRoleBadge from "@/components/clubs/ClubRoleBadge";
 import JoinClubButton from "@/components/clubs/JoinClubButton";
 import { type ClubRole } from "@/lib/clubs/types";
+import { getActivityBadgeColor, getActivityLabel } from "@/lib/constants/activity-types";
 import { cn } from "@/lib/utils";
 
 interface ClubProfileHeaderProps {
@@ -19,22 +20,6 @@ interface ClubProfileHeaderProps {
   currentUserId: string | null;
   currentMembership: { role: ClubRole; userId: string } | null;
 }
-
-const typeLabels: Record<string, string> = {
-  hiking: "Hiking",
-  mtb: "Mountain Biking",
-  road_bike: "Road Biking",
-  running: "Running",
-  trail_run: "Trail Running",
-};
-
-const typeBadgeColors: Record<string, string> = {
-  hiking: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
-  mtb: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
-  road_bike: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
-  running: "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300",
-  trail_run: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300",
-};
 
 const logoColors: string[] = [
   "bg-teal-500",
@@ -217,11 +202,10 @@ export default function ClubProfileHeader({
                 key={type}
                 className={cn(
                   "inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold",
-                  typeBadgeColors[type] ??
-                    "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
+                  getActivityBadgeColor(type),
                 )}
               >
-                {typeLabels[type] ?? type}
+                {getActivityLabel(type)}
               </span>
             ))}
           </div>

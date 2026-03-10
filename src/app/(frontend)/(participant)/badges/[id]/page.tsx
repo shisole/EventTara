@@ -4,20 +4,13 @@ import { notFound } from "next/navigation";
 
 import ReviewForm from "@/components/reviews/ReviewForm";
 import { Breadcrumbs, UserAvatar } from "@/components/ui";
+import { ACTIVITY_TYPE_LABELS } from "@/lib/constants/activity-types";
 import type { BorderTier } from "@/lib/constants/avatar-borders";
 import { resolvePresetImage } from "@/lib/constants/avatars";
 import { RARITY_STYLES, CATEGORY_STYLES } from "@/lib/constants/badge-rarity";
 import { BreadcrumbTitle } from "@/lib/contexts/BreadcrumbContext";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
-
-const typeLabels: Record<string, string> = {
-  hiking: "Hiking",
-  mtb: "Mountain Biking",
-  road_bike: "Road Biking",
-  running: "Running",
-  trail_run: "Trail Running",
-};
 
 export async function generateMetadata({
   params,
@@ -309,7 +302,8 @@ export default async function BadgeDetailPage({ params }: { params: Promise<{ id
               <p className="font-heading font-bold truncate">{event.title}</p>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-xs px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300">
-                  {typeLabels[event.type] || event.type}
+                  {ACTIVITY_TYPE_LABELS[event.type as keyof typeof ACTIVITY_TYPE_LABELS] ||
+                    event.type}
                 </span>
                 {event.date && (
                   <span className="text-xs text-gray-500 dark:text-gray-400">

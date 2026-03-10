@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
 
+import { ACTIVITY_TYPES } from "@/lib/constants/activity-types";
 import { uploadImage } from "@/lib/upload";
 
 interface ClubRow {
@@ -19,8 +20,6 @@ interface ClubRow {
   event_count: number;
   owner: { username: string | null; email: string | null } | null;
 }
-
-const ACTIVITY_OPTIONS = ["hiking", "mtb", "road_biking", "running", "trail_running"];
 
 function getClaimUrl(token: string) {
   return `${globalThis.location.origin}/claim/${token}`;
@@ -256,7 +255,7 @@ export default function ClubManager() {
               Activity Types
             </label>
             <div className="flex flex-wrap gap-2">
-              {ACTIVITY_OPTIONS.map((activity) => (
+              {ACTIVITY_TYPES.map((activity) => (
                 <button
                   key={activity}
                   type="button"

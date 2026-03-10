@@ -3,17 +3,8 @@ import crypto from "node:crypto";
 import { type NextRequest, NextResponse } from "next/server";
 
 import { isAdminUser } from "@/lib/admin/auth";
+import { generateSlug } from "@/lib/clubs/slug";
 import { createClient } from "@/lib/supabase/server";
-
-function generateSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .replaceAll(/[^a-z0-9\s-]/g, "")
-    .replaceAll(/\s+/g, "-")
-    .replaceAll(/-+/g, "-")
-    .replaceAll(/^-|-$/g, "")
-    .slice(0, 60);
-}
 
 export async function GET() {
   const supabase = await createClient();

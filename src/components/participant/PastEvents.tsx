@@ -4,6 +4,7 @@ import StravaActivitySection, {
   type LinkedStravaActivity,
 } from "@/components/strava/StravaActivitySection";
 import { Card, UIBadge } from "@/components/ui";
+import { getActivityLabel } from "@/lib/constants/activity-types";
 import { formatEventDate } from "@/lib/utils/format-date";
 
 interface PastEvent {
@@ -20,14 +21,6 @@ interface PastEvent {
   linkedActivity: LinkedStravaActivity | null;
   hasStravaConnected: boolean;
 }
-
-const typeLabels: Record<string, string> = {
-  hiking: "Hiking",
-  mtb: "Mountain Biking",
-  road_bike: "Road Biking",
-  running: "Running",
-  trail_run: "Trail Running",
-};
 
 export default function PastEvents({ events }: { events: PastEvent[] }) {
   if (events.length === 0) {
@@ -47,7 +40,7 @@ export default function PastEvents({ events }: { events: PastEvent[] }) {
         <Card key={e.eventId} className="p-5">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <UIBadge variant={e.eventType}>{typeLabels[e.eventType] || e.eventType}</UIBadge>
+              <UIBadge variant={e.eventType}>{getActivityLabel(e.eventType)}</UIBadge>
               <Link href={`/events/${e.eventId}`}>
                 <h3 className="font-heading font-bold hover:text-lime-600 dark:hover:text-lime-400">
                   {e.eventTitle}

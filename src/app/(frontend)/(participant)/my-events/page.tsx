@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import PastEvents from "@/components/participant/PastEvents";
 import UpcomingBookings from "@/components/participant/UpcomingBookings";
 import { Breadcrumbs } from "@/components/ui";
+import { splitBookingsByDate } from "@/lib/data/bookings";
+import { fetchCompanionsByBooking } from "@/lib/data/companions";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = { title: "My Events — EventTara" };
@@ -25,29 +27,17 @@ export default async function MyEventsPage() {
     .in("status", ["confirmed", "pending"])
     .order("booked_at", { ascending: false });
 
-  const now = new Date();
-
-  // Upcoming bookings
-  const upcomingBookings = (bookingData || []).filter(
-    (b: any) => b.events && new Date(b.events.date) >= now,
+  const { upcoming: upcomingBookings, past: pastBookings } = splitBookingsByDate(
+    (bookingData || []) as any[],
   );
 
   // Fetch companions for upcoming bookings
   const upcomingBookingIds = upcomingBookings.map((b: any) => b.id);
-  const companionsByBooking: Record<string, any[]> = {};
-  if (upcomingBookingIds.length > 0) {
-    const { data: companions } = await supabase
-      .from("booking_companions")
-      .select("booking_id, full_name, qr_code")
-      .in("booking_id", upcomingBookingIds);
-
-    if (companions) {
-      for (const c of companions) {
-        if (!companionsByBooking[c.booking_id]) companionsByBooking[c.booking_id] = [];
-        companionsByBooking[c.booking_id].push({ full_name: c.full_name, qr_code: c.qr_code });
-      }
-    }
-  }
+  const companionsByBooking = await fetchCompanionsByBooking<{
+    booking_id: string;
+    full_name: string;
+    qr_code: string | null;
+  }>(supabase, upcomingBookingIds, "booking_id, full_name, qr_code");
 
   // Fetch check-in status for upcoming events
   const upcomingEventIds = upcomingBookings.map((b: any) => b.events.id);
@@ -79,11 +69,6 @@ export default async function MyEventsPage() {
     checkedIn: upcomingCheckinSet.has(b.events.id),
     userId: user.id,
   }));
-
-  // Past bookings
-  const pastBookings = (bookingData || []).filter(
-    (b: any) => b.events && new Date(b.events.date) < now,
-  );
 
   const pastEventIds = pastBookings.map((b: any) => b.events.id);
   const pastBookingIds = pastBookings.map((b: any) => b.id);

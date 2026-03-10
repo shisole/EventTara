@@ -11,6 +11,8 @@ import { ChevronLeftIcon } from "@/components/icons";
 import { Button, UIBadge } from "@/components/ui";
 import { type BorderTier } from "@/lib/constants/avatar-borders";
 import { BreadcrumbTitle } from "@/lib/contexts/BreadcrumbContext";
+import { fetchCompanionsByBooking } from "@/lib/data/companions";
+import { buildBorderLookupByUserId } from "@/lib/data/enrich-borders";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function ClubEventDetailPage({
@@ -41,20 +43,12 @@ export default async function ClubEventDetailPage({
 
   // Get companions per booking
   const bookingIds = (bookings || []).map((b: any) => b.id);
-  const companionsByBooking: Record<string, any[]> = {};
-  if (bookingIds.length > 0) {
-    const { data: companions } = await supabase
-      .from("booking_companions")
-      .select("id, booking_id, full_name, status")
-      .in("booking_id", bookingIds);
-
-    if (companions) {
-      for (const c of companions) {
-        if (!companionsByBooking[c.booking_id]) companionsByBooking[c.booking_id] = [];
-        companionsByBooking[c.booking_id].push(c);
-      }
-    }
-  }
+  const companionsByBooking = await fetchCompanionsByBooking<{
+    id: string;
+    booking_id: string;
+    full_name: string;
+    status: "pending" | "confirmed" | "cancelled";
+  }>(supabase, bookingIds, "id, booking_id, full_name, status");
 
   // Total participants = non-cancelled bookings + non-cancelled companions
   const totalCompanions = Object.values(companionsByBooking).reduce(
@@ -107,37 +101,10 @@ export default async function ClubEventDetailPage({
   }
 
   // Fetch active border info for badge awarder participants
-  const allUserIds = (bookings || [])
-    .filter((b: any) => !b.participant_cancelled)
-    .map((b: any) => b.user_id);
-
-  const bordersByUserId: Record<string, { tier: BorderTier | null; color: string | null }> = {};
-  if (allUserIds.length > 0) {
-    const borderIds = (bookings || []).map((b: any) => b.users?.active_border_id).filter(Boolean);
-
-    if (borderIds.length > 0) {
-      const { data: borders } = await supabase
-        .from("avatar_borders")
-        .select("id, tier, border_color")
-        .in("id", borderIds);
-
-      if (borders) {
-        const borderMap = new Map(borders.map((b) => [b.id, b]));
-        for (const booking of bookings || []) {
-          const user = (booking as any).users;
-          if (user?.active_border_id) {
-            const border = borderMap.get(user.active_border_id);
-            if (border) {
-              bordersByUserId[(booking as any).user_id] = {
-                tier: border.tier as BorderTier | null,
-                color: border.border_color,
-              };
-            }
-          }
-        }
-      }
-    }
-  }
+  const bordersByUserId = await buildBorderLookupByUserId(
+    supabase,
+    (bookings || []).filter((b: any) => !b.participant_cancelled) as any,
+  );
 
   // Build participants array for BadgeAwarder
   const badgeParticipants = eventBadge
@@ -149,7 +116,7 @@ export default async function ClubEventDetailPage({
           avatarUrl: (b.users?.avatar_url as string | null) ?? null,
           checkedIn: checkedInUserIds.has(b.user_id),
           alreadyAwarded: awardedUserIds.has(b.user_id),
-          borderTier: bordersByUserId[b.user_id]?.tier ?? null,
+          borderTier: (bordersByUserId[b.user_id]?.tier as BorderTier) ?? null,
           borderColor: bordersByUserId[b.user_id]?.color ?? null,
         }))
     : [];

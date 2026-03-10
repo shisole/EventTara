@@ -5,7 +5,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
-import ParticipantsTable from "@/components/dashboard/ParticipantsTable";
+import ParticipantsTable, {
+  type Booking,
+  type Companion,
+} from "@/components/dashboard/ParticipantsTable";
 import { Download, PrinterIcon } from "@/components/icons";
 import { Button } from "@/components/ui";
 import { downloadCSV } from "@/lib/utils/export-csv";
@@ -23,8 +26,8 @@ interface ParticipantsSectionProps {
   eventId: string;
   eventStatus: string;
   isFull: boolean;
-  bookings: any[];
-  companionsByBooking: Record<string, any[]>;
+  bookings: Booking[];
+  companionsByBooking: Record<string, Companion[]>;
   checkedInUserIds: Set<string>;
   distances: EventDistance[];
 }
@@ -55,7 +58,7 @@ export default function ParticipantsSection({
       "Booked Date",
     ];
 
-    const rows = bookings.map((booking: any) => {
+    const rows = bookings.map((booking) => {
       const name: string = booking.users?.full_name || booking.manual_name || "Guest";
       const email: string = booking.users?.email || booking.manual_contact || "";
       const status: string = booking.participant_cancelled ? "Cancelled" : booking.status;

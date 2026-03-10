@@ -14,6 +14,8 @@ import { Breadcrumbs, Button } from "@/components/ui";
 import { checkAndAwardBorders } from "@/lib/borders/check-borders";
 import { type BorderTier } from "@/lib/constants/avatar-borders";
 import { BreadcrumbTitle } from "@/lib/contexts/BreadcrumbContext";
+import { splitBookingsByDate } from "@/lib/data/bookings";
+import { fetchCompanionsByBooking } from "@/lib/data/companions";
 import { createClient } from "@/lib/supabase/server";
 
 export async function generateMetadata({ params }: { params: Promise<{ username: string }> }) {
@@ -123,26 +125,17 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
       .in("status", ["confirmed", "pending"])
       .order("booked_at", { ascending: false });
 
-    const upcomingBookings = (bookingData || []).filter(
-      (b: any) => b.events && new Date(b.events.date) >= new Date(),
+    const { upcoming: upcomingBookings, past: pastBookings } = splitBookingsByDate(
+      (bookingData || []) as any[],
     );
 
     // Fetch companions for upcoming bookings
     const upcomingBookingIds = upcomingBookings.map((b: any) => b.id);
-    const companionsByBooking: Record<string, any[]> = {};
-    if (upcomingBookingIds.length > 0) {
-      const { data: companions } = await supabase
-        .from("booking_companions")
-        .select("booking_id, full_name, qr_code")
-        .in("booking_id", upcomingBookingIds);
-
-      if (companions) {
-        for (const c of companions) {
-          if (!companionsByBooking[c.booking_id]) companionsByBooking[c.booking_id] = [];
-          companionsByBooking[c.booking_id].push({ full_name: c.full_name, qr_code: c.qr_code });
-        }
-      }
-    }
+    const companionsByBooking = await fetchCompanionsByBooking<{
+      booking_id: string;
+      full_name: string;
+      qr_code: string | null;
+    }>(supabase, upcomingBookingIds, "booking_id, full_name, qr_code");
 
     upcoming = upcomingBookings.map((b: any) => ({
       id: b.id,
@@ -159,10 +152,6 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
       paymentProofUrl: b.payment_proof_url,
       companions: companionsByBooking[b.id] || [],
     }));
-
-    const pastBookings = (bookingData || []).filter(
-      (b: any) => b.events && new Date(b.events.date) < new Date(),
-    );
 
     const pastEventIds = pastBookings.map((b: any) => b.events.id);
 

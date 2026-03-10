@@ -3,6 +3,11 @@
 import Image from "next/image";
 
 import { DemoBadge } from "@/components/ui";
+import {
+  getActivityGradientColor,
+  getActivityLabel,
+  getActivitySolidColor,
+} from "@/lib/constants/activity-types";
 import { type EventCardData } from "@/lib/events/map-event-card";
 import { cn } from "@/lib/utils";
 import { formatEventDate } from "@/lib/utils/format-date";
@@ -11,30 +16,6 @@ interface BentoEventCardProps {
   event: EventCardData;
   variant: "large" | "small";
 }
-
-const typeLabels: Record<string, string> = {
-  hiking: "Hiking",
-  mtb: "Mountain Biking",
-  road_bike: "Road Biking",
-  running: "Running",
-  trail_run: "Trail Running",
-};
-
-const typeBadgeStyles: Record<string, string> = {
-  hiking: "bg-emerald-500 text-white",
-  mtb: "bg-amber-500 text-white",
-  road_bike: "bg-blue-500 text-white",
-  running: "bg-orange-500 text-white",
-  trail_run: "bg-yellow-800 text-white",
-};
-
-const typeGradientFallback: Record<string, string> = {
-  hiking: "from-emerald-600 to-emerald-900",
-  mtb: "from-amber-600 to-amber-900",
-  road_bike: "from-blue-600 to-blue-900",
-  running: "from-orange-600 to-orange-900",
-  trail_run: "from-yellow-700 to-yellow-950",
-};
 
 export default function BentoEventCard({ event, variant }: BentoEventCardProps) {
   const formattedDate = formatEventDate(event.date, event.endDate, { short: true });
@@ -48,10 +29,7 @@ export default function BentoEventCard({ event, variant }: BentoEventCardProps) 
       >
         {/* Image or gradient fallback */}
         <div
-          className={cn(
-            "absolute inset-0 bg-gradient-to-br",
-            typeGradientFallback[event.type] ?? "from-gray-600 to-gray-900",
-          )}
+          className={cn("absolute inset-0 bg-gradient-to-br", getActivityGradientColor(event.type))}
         >
           {event.cover_image_url && (
             <Image
@@ -70,10 +48,10 @@ export default function BentoEventCard({ event, variant }: BentoEventCardProps) 
           <span
             className={cn(
               "inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold tracking-wide uppercase backdrop-blur-sm",
-              typeBadgeStyles[event.type] ?? "bg-gray-500/90 text-white",
+              getActivitySolidColor(event.type),
             )}
           >
-            {typeLabels[event.type] ?? event.type}
+            {getActivityLabel(event.type)}
           </span>
         </div>
 
@@ -163,7 +141,7 @@ export default function BentoEventCard({ event, variant }: BentoEventCardProps) 
       <div
         className={cn(
           "relative aspect-[16/10] bg-gradient-to-br",
-          typeGradientFallback[event.type] ?? "from-gray-600 to-gray-900",
+          getActivityGradientColor(event.type),
         )}
       >
         {event.cover_image_url && (
@@ -182,10 +160,10 @@ export default function BentoEventCard({ event, variant }: BentoEventCardProps) 
           <span
             className={cn(
               "inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide uppercase backdrop-blur-sm",
-              typeBadgeStyles[event.type] ?? "bg-gray-500/90 text-white",
+              getActivitySolidColor(event.type),
             )}
           >
-            {typeLabels[event.type] ?? event.type}
+            {getActivityLabel(event.type)}
           </span>
         </div>
 

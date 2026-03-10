@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { ACTIVITY_TYPES } from "@/lib/constants/activity-types";
 import { SYSTEM_BADGES } from "@/lib/constants/system-badges";
 import type { Database } from "@/lib/supabase/types";
 
@@ -9,8 +10,6 @@ export interface AwardedBadge {
   imageUrl: string;
   criteriaKey: string;
 }
-
-const ALL_EVENT_TYPES = ["hiking", "running", "road_bike", "mtb", "trail_run"];
 
 /** The 7 Igbaras peaks required for the "Igbaras Graduate" badge. */
 const IGBARAS_PEAKS = [
@@ -45,7 +44,7 @@ const CRITERIA_EVALUATORS: Record<
   first_road_ride: (stats) => typeCount(stats, "road_bike") >= 1,
   first_mtb: (stats) => typeCount(stats, "mtb") >= 1,
   first_trail_run: (stats) => typeCount(stats, "trail_run") >= 1,
-  all_rounder: (stats) => ALL_EVENT_TYPES.every((type) => typeCount(stats, type) >= 1),
+  all_rounder: (stats) => ACTIVITY_TYPES.every((type) => typeCount(stats, type) >= 1),
   events_5: (stats) => stats.totalCheckins >= 5,
   events_10: (stats) => stats.totalCheckins >= 10,
   events_25: (stats) => stats.totalCheckins >= 25,

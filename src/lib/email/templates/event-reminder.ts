@@ -1,3 +1,5 @@
+import { ACTIVITY_TYPE_LABELS } from "@/lib/constants/activity-types";
+
 // Cron integration note: eventReminderHtml() is intended to be called from a
 // scheduled job (e.g. Supabase Edge Function via pg_cron, Vercel Cron Job, or
 // any external cron service). The job should query events happening in the next
@@ -25,15 +27,8 @@ export function eventReminderHtml({
   eventLocation,
   eventType,
 }: EventReminderProps): string {
-  const typeLabels: Record<string, string> = {
-    hiking: "Hiking",
-    mtb: "Mountain Biking",
-    road_bike: "Road Cycling",
-    running: "Running",
-    trail_run: "Trail Running",
-  };
-
-  const typeLabel = typeLabels[eventType] || eventType;
+  const typeLabel =
+    ACTIVITY_TYPE_LABELS[eventType as keyof typeof ACTIVITY_TYPE_LABELS] || eventType;
 
   return `
 <!DOCTYPE html>
