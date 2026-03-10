@@ -126,8 +126,8 @@ export default function CheckinList({
           ),
         );
       }
-    } catch {
-      // silently fail
+    } catch (error) {
+      console.error("[CheckinList] Check-in failed:", error);
     } finally {
       setLoadingId(null);
     }

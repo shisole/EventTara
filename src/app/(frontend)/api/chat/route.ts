@@ -3,7 +3,8 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { buildSearchSystemPrompt, buildSuggestionPrompt } from "@/lib/ai/search-prompt";
-import type { ParsedSearchParams } from "@/lib/ai/search-prompt";
+import { type ParsedSearchParams } from "@/lib/ai/search-prompt";
+import { ACTIVITY_TYPES } from "@/lib/constants/activity-types";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, Json } from "@/lib/supabase/types";
 import { haversineDistance } from "@/lib/utils/geo";
@@ -120,12 +121,9 @@ export async function POST(request: Request) {
     .in("status", ["published", "completed"] as const);
 
   // Apply parsed filters
-  if (parsed.type) {
-    const validTypes: EventType[] = ["hiking", "mtb", "road_bike", "running", "trail_run"];
-    if (validTypes.includes(parsed.type)) {
-      countQ = countQ.eq("type", parsed.type);
-      dataQ = dataQ.eq("type", parsed.type);
-    }
+  if (parsed.type && (ACTIVITY_TYPES as readonly string[]).includes(parsed.type)) {
+    countQ = countQ.eq("type", parsed.type);
+    dataQ = dataQ.eq("type", parsed.type);
   }
 
   if (parsed.search) {

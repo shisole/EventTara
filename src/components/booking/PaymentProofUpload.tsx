@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 interface PaymentProofUploadProps {
   file: File | null;
@@ -35,7 +35,13 @@ export default function PaymentProofUpload({ file, onFileChange }: PaymentProofU
     if (f) validateAndSet(f);
   };
 
-  const preview = file ? URL.createObjectURL(file) : null;
+  const preview = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
+
+  useEffect(() => {
+    return () => {
+      if (preview) URL.revokeObjectURL(preview);
+    };
+  }, [preview]);
 
   return (
     <div className="space-y-2">
