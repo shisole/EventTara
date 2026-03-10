@@ -41,13 +41,28 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
     title?: string;
     num_winners?: number;
     duration_seconds?: number;
+    event_id?: string | null;
     badge_id?: string | null;
   };
 
   const title = body.title || "Duck Race";
   const numWinners = body.num_winners && body.num_winners >= 1 ? body.num_winners : 1;
   const durationSeconds = Math.max(5, Math.min(60, body.duration_seconds ?? 10));
+  const eventId = body.event_id ?? null;
   const badgeId = body.badge_id ?? null;
+
+  // Validate event belongs to this club if provided
+  if (eventId) {
+    const { data: event } = await supabase
+      .from("events")
+      .select("id")
+      .eq("id", eventId)
+      .eq("club_id", club.id)
+      .maybeSingle();
+    if (!event) {
+      return NextResponse.json({ error: "Event not found in this club" }, { status: 400 });
+    }
+  }
 
   // Insert race
   const { data: race, error: insertError } = await supabase
@@ -57,6 +72,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
       title,
       num_winners: numWinners,
       duration_seconds: durationSeconds,
+      event_id: eventId,
       badge_id: badgeId,
       created_by: user.id,
     })

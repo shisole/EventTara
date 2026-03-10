@@ -30,16 +30,21 @@ export default async function NewRacePage({ params }: { params: Promise<{ slug: 
     redirect(`/dashboard/clubs/${slug}`);
   }
 
-  // Fetch badges for dropdown
-  const { data: badges } = await supabase
-    .from("badges")
-    .select("id, title, image_url")
-    .order("title");
+  // Fetch badges and events for dropdowns
+  const [{ data: badges }, { data: events }] = await Promise.all([
+    supabase.from("badges").select("id, title, image_url").order("title"),
+    supabase
+      .from("events")
+      .select("id, title")
+      .eq("club_id", club.id)
+      .in("status", ["published", "completed"])
+      .order("date", { ascending: false }),
+  ]);
 
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-heading font-bold dark:text-white">New Duck Race</h1>
-      <CreateRaceForm clubSlug={club.slug} badges={badges ?? []} />
+      <CreateRaceForm clubSlug={club.slug} badges={badges ?? []} events={events ?? []} />
     </div>
   );
 }

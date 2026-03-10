@@ -45,6 +45,17 @@ export default async function RacePage({ params }: { params: Promise<{ id: strin
 
   if (!club) notFound();
 
+  // Fetch event title if linked
+  let eventTitle: string | null = null;
+  if (race.event_id) {
+    const { data: event } = await supabase
+      .from("events")
+      .select("title")
+      .eq("id", race.event_id)
+      .maybeSingle();
+    eventTitle = event?.title ?? null;
+  }
+
   // Check auth & permissions
   const {
     data: { user },
@@ -92,6 +103,8 @@ export default async function RacePage({ params }: { params: Promise<{ id: strin
     status: race.status,
     num_winners: race.num_winners,
     duration_seconds: race.duration_seconds,
+    event_id: race.event_id ?? null,
+    event_title: eventTitle,
     badge_id: race.badge_id,
     club,
     participants,

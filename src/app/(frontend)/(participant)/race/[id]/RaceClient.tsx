@@ -212,6 +212,9 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
           )}
           <p className="text-sm text-gray-500 dark:text-gray-400">{race.club.name}</p>
           <h1 className="text-3xl font-heading font-bold dark:text-white">{race.title}</h1>
+          {race.event_title && (
+            <p className="text-sm text-gray-500 dark:text-gray-400">{race.event_title}</p>
+          )}
           <div className="flex items-center justify-center gap-1 text-gray-400 dark:text-gray-500">
             <span>Waiting to start</span>
             <span className="animate-pulse">...</span>

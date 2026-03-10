@@ -11,16 +11,23 @@ interface Badge {
   image_url: string | null;
 }
 
+interface EventOption {
+  id: string;
+  title: string;
+}
+
 interface CreateRaceFormProps {
   clubSlug: string;
   badges: Badge[];
+  events: EventOption[];
 }
 
-export default function CreateRaceForm({ clubSlug, badges }: CreateRaceFormProps) {
+export default function CreateRaceForm({ clubSlug, badges, events }: CreateRaceFormProps) {
   const router = useRouter();
   const [title, setTitle] = useState("Duck Race");
   const [numWinners, setNumWinners] = useState(1);
   const [durationSeconds, setDurationSeconds] = useState(10);
+  const [eventId, setEventId] = useState("");
   const [badgeId, setBadgeId] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,6 +45,7 @@ export default function CreateRaceForm({ clubSlug, badges }: CreateRaceFormProps
           title,
           num_winners: numWinners,
           duration_seconds: durationSeconds,
+          event_id: eventId || null,
           badge_id: badgeId || null,
         }),
       });
@@ -89,6 +97,31 @@ export default function CreateRaceForm({ clubSlug, badges }: CreateRaceFormProps
         }
         required
       />
+
+      <div className="space-y-1">
+        <label
+          htmlFor="event-select"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+        >
+          Event (optional)
+        </label>
+        <select
+          id="event-select"
+          value={eventId}
+          onChange={(e) => setEventId(e.target.value)}
+          className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors"
+        >
+          <option value="">All club members</option>
+          {events.map((ev) => (
+            <option key={ev.id} value={ev.id}>
+              {ev.title}
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          Linked to event: only checked-in participants will race
+        </p>
+      </div>
 
       <div className="space-y-1">
         <label

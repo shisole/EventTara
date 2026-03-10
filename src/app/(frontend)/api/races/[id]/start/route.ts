@@ -42,16 +42,29 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  // Fetch all club members
-  const { data: members } = await supabase
-    .from("club_members")
-    .select("user_id")
-    .eq("club_id", race.club_id);
+  // Fetch participants: check-ins if event-linked, else club members
+  let participantIds: string[];
+  if (race.event_id) {
+    const { data: checkins } = await supabase
+      .from("event_checkins")
+      .select("user_id")
+      .eq("event_id", race.event_id);
+    participantIds = (checkins ?? []).map((c) => c.user_id);
+  } else {
+    const { data: members } = await supabase
+      .from("club_members")
+      .select("user_id")
+      .eq("club_id", race.club_id);
+    participantIds = (members ?? []).map((m) => m.user_id);
+  }
 
-  const memberIds = (members ?? []).map((m) => m.user_id);
+  if (participantIds.length === 0) {
+    const source = race.event_id ? "No checked-in participants" : "No club members";
+    return NextResponse.json({ error: `${source} found for this race` }, { status: 400 });
+  }
 
   // Pick winners
-  const winnerIds = pickWinners(memberIds, race.num_winners);
+  const winnerIds = pickWinners(participantIds, race.num_winners);
 
   // Update race
   const { error: updateError } = await supabase
@@ -59,7 +72,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     .update({
       status: "completed" as const,
       winner_ids: winnerIds,
-      participant_ids: memberIds,
+      participant_ids: participantIds,
       completed_at: new Date().toISOString(),
     })
     .eq("id", id);
@@ -102,7 +115,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
   const { data: users } = await supabase
     .from("users")
     .select("id, full_name, username, avatar_url")
-    .in("id", memberIds);
+    .in("id", participantIds);
 
   const participants = (users ?? []).map((u) => ({
     user_id: u.id,

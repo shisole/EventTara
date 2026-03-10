@@ -12,6 +12,8 @@ export interface RaceData {
   status: "pending" | "completed";
   num_winners: number;
   duration_seconds: number;
+  event_id: string | null;
+  event_title: string | null;
   badge_id: string | null;
   club: {
     id: string;

@@ -1666,6 +1666,7 @@ export interface Database {
           title: string;
           num_winners: number;
           duration_seconds: number;
+          event_id: string | null;
           badge_id: string | null;
           status: "pending" | "completed";
           winner_ids: string[];
@@ -1680,6 +1681,7 @@ export interface Database {
           title?: string;
           num_winners?: number;
           duration_seconds?: number;
+          event_id?: string | null;
           badge_id?: string | null;
           status?: "pending" | "completed";
           winner_ids?: string[];
@@ -1694,6 +1696,7 @@ export interface Database {
           title?: string;
           num_winners?: number;
           duration_seconds?: number;
+          event_id?: string | null;
           badge_id?: string | null;
           status?: "pending" | "completed";
           winner_ids?: string[];
@@ -1708,6 +1711,13 @@ export interface Database {
             columns: ["club_id"];
             isOneToOne: false;
             referencedRelation: "clubs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "club_races_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "events";
             referencedColumns: ["id"];
           },
           {
