@@ -12,10 +12,10 @@ type RaceState = "idle" | "racing" | "finished";
 interface ParticipantProgress {
   participant: RaceParticipant;
   progress: number;
-  /** Random speed multiplier so each duck moves at its own pace */
   speed: number;
-  /** Small random offset so ducks don't stack perfectly */
   offset: number;
+  /** Per-duck wobble phase so they don't bob in sync */
+  wobblePhase: number;
 }
 
 async function fireConfetti() {
@@ -69,6 +69,7 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
   const progressRef = useRef<ParticipantProgress[]>([]);
   const [displayProgress, setDisplayProgress] = useState<ParticipantProgress[]>([]);
   const winnerIdsRef = useRef<Set<string>>(new Set());
+  const elapsedRef = useRef(0);
 
   const startRace = useCallback(async () => {
     setLoading(true);
@@ -91,15 +92,15 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
 
       winnerIdsRef.current = new Set(data.winners);
 
-      // Shuffle participant order so it's not predictable
+      // Shuffle so order isn't predictable
       const shuffled = [...data.participants].sort(() => Math.random() - 0.5);
 
-      // Each participant gets a tiny random offset — keeps bars close but not identical
       const entries: ParticipantProgress[] = shuffled.map((p) => ({
         participant: p,
         progress: 0,
-        speed: 0.97 + Math.random() * 0.06, // very tight: 0.97 - 1.03
-        offset: Math.random() * 5, // used for final non-winner spread
+        speed: 0.97 + Math.random() * 0.06,
+        offset: Math.random() * 5,
+        wobblePhase: Math.random() * Math.PI * 2,
       }));
 
       progressRef.current = entries;
@@ -108,60 +109,45 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
       setState("racing");
       setLoading(false);
 
-      // Animation in 3 phases:
-      // Phase 1 (0-6s): Pack racing — everyone stays tight together, reaching ~70%
-      // Phase 2 (6-8s): Tension — pack slows, bars jostle, still bunched at ~75-80%
-      // Phase 3 (8-9.5s): Sprint finish — winners burst to 100%, losers stall
       const startTime = performance.now();
       const totalDuration = 9500;
-
-      // Throttle renders to every other frame for smoother animation
       let frameCount = 0;
 
       const animate = (now: number) => {
         frameCount++;
         const elapsed = now - startTime;
+        elapsedRef.current = elapsed;
         const t = Math.min(elapsed / totalDuration, 1);
 
         if (elapsed <= 6000) {
-          // Phase 1: tight pack racing to ~70%
           const phase1T = elapsed / 6000;
           const eased = 1 - Math.pow(1 - phase1T, 2);
           const base = eased * 70;
-
           for (const entry of progressRef.current) {
-            // Jitter creates natural back-and-forth within ±2%
             const jitter = (Math.random() - 0.5) * 4;
             entry.progress = Math.max(0, Math.min(base + jitter, 72));
           }
         } else if (elapsed <= 8000) {
-          // Phase 2: tension — pack bunches up around 75%, slight shuffle
           const phase2T = (elapsed - 6000) / 2000;
-          const base = 70 + phase2T * 8; // 70 -> 78
-
+          const base = 70 + phase2T * 8;
           for (const entry of progressRef.current) {
             const jitter = (Math.random() - 0.5) * 3;
             entry.progress = Math.max(70, Math.min(base + jitter, 80));
           }
         } else {
-          // Phase 3: sprint finish!
           const phase3T = (elapsed - 8000) / (totalDuration - 8000);
-          const eased3 = 1 - Math.pow(1 - phase3T, 4); // sharp ease-out
-
+          const eased3 = 1 - Math.pow(1 - phase3T, 4);
           for (const entry of progressRef.current) {
             const isWinner = winnerIdsRef.current.has(entry.participant.user_id);
-
             if (isWinner) {
               entry.progress = 78 + (100 - 78) * eased3;
             } else {
-              // Stall at 80-88%
               const finalPos = 80 + entry.offset * 1.6;
               entry.progress = 78 + (finalPos - 78) * eased3 * 0.6;
             }
           }
         }
 
-        // Only update React state every other frame to reduce re-renders
         if (frameCount % 2 === 0) {
           setDisplayProgress(progressRef.current.map((e) => ({ ...e })));
         }
@@ -169,7 +155,6 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
         if (t < 1) {
           requestAnimationFrame(animate);
         } else {
-          // Final snap
           for (const entry of progressRef.current) {
             entry.progress = winnerIdsRef.current.has(entry.participant.user_id)
               ? 100
@@ -188,7 +173,7 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
     }
   }, [race.id]);
 
-  // Idle state
+  // ── Idle state ──
   if (state === "idle") {
     return (
       <div className="min-h-[60vh] flex items-center justify-center px-4">
@@ -221,30 +206,111 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
     );
   }
 
-  // Racing state — all bars same color, no winner hints
+  // ── Racing state — 2D river view ──
   if (state === "racing") {
+    const elapsed = elapsedRef.current;
+
     return (
-      <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
+      <div className="max-w-3xl mx-auto px-4 py-8 space-y-4">
         <h1 className="text-2xl font-heading font-bold text-center dark:text-white">
           {race.title}
         </h1>
-        <div className="max-h-[60vh] overflow-y-auto space-y-4">
-          {displayProgress.map((entry) => (
-            <div key={entry.participant.user_id} className="flex items-center gap-3">
-              <div className="flex-shrink-0">
-                <Avatar src={entry.participant.avatar_url} name={entry.participant.full_name} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium dark:text-white truncate mb-1">
-                  {entry.participant.full_name}
-                </p>
-                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+
+        {/* River container */}
+        <div
+          className="relative rounded-2xl overflow-hidden"
+          style={{
+            background:
+              "linear-gradient(180deg, #0e7490 0%, #0891b2 30%, #06b6d4 60%, #22d3ee 100%)",
+          }}
+        >
+          {/* Animated wave overlay */}
+          <div
+            className="absolute inset-0 opacity-20 pointer-events-none"
+            style={{
+              backgroundImage:
+                "repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(255,255,255,0.3) 40px, rgba(255,255,255,0.3) 42px)",
+              animation: "river-flow 2s linear infinite",
+            }}
+          />
+
+          {/* Finish line */}
+          <div
+            className="absolute top-0 bottom-0 w-px border-r-2 border-dashed border-white/40"
+            style={{ right: "4%" }}
+          />
+          <div className="absolute text-2xl" style={{ right: "1%", top: "4px" }}>
+            {"🏁"}
+          </div>
+
+          {/* Duck lanes */}
+          <div className="relative z-10">
+            {displayProgress.map((entry, i) => {
+              // Wobble: each duck bobs up/down using sin wave with unique phase
+              const wobbleY = Math.sin(elapsed / 300 + entry.wobblePhase) * 3;
+              // Duck position: 2% to 90% of the track width
+              const duckLeft = 2 + (entry.progress / 100) * 88;
+
+              return (
+                <div
+                  key={entry.participant.user_id}
+                  className="relative flex items-center"
+                  style={{
+                    height: 64,
+                    borderBottom:
+                      i < displayProgress.length - 1 ? "1px solid rgba(255,255,255,0.12)" : "none",
+                  }}
+                >
+                  {/* Name + avatar on left */}
+                  <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-2 z-20">
+                    <Avatar
+                      src={entry.participant.avatar_url}
+                      name={entry.participant.full_name}
+                      size={24}
+                    />
+                    <span className="text-xs font-medium text-white drop-shadow-md max-w-[80px] truncate">
+                      {entry.participant.full_name.split(" ")[0]}
+                    </span>
+                  </div>
+
+                  {/* Duck */}
                   <div
-                    className="h-full rounded-full bg-teal-500 transition-none"
-                    style={{ width: `${entry.progress}%` }}
-                  />
+                    className="absolute z-10 transition-none select-none"
+                    style={{
+                      left: `${duckLeft}%`,
+                      top: "50%",
+                      transform: `translate(-50%, -50%) translateY(${String(wobbleY)}px)`,
+                      fontSize: 32,
+                      filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.3))",
+                    }}
+                  >
+                    {"🦆"}
+                  </div>
                 </div>
-              </div>
+              );
+            })}
+          </div>
+
+          {/* Water ripple lines */}
+          <div
+            className="absolute inset-0 pointer-events-none opacity-10"
+            style={{
+              backgroundImage:
+                "repeating-linear-gradient(0deg, transparent, transparent 62px, rgba(255,255,255,0.5) 62px, rgba(255,255,255,0.5) 64px)",
+            }}
+          />
+        </div>
+
+        {/* Legend below river */}
+        <div className="flex flex-wrap justify-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+          {displayProgress.map((entry) => (
+            <div key={entry.participant.user_id} className="flex items-center gap-1">
+              <Avatar
+                src={entry.participant.avatar_url}
+                name={entry.participant.full_name}
+                size={18}
+              />
+              <span>{entry.participant.full_name}</span>
             </div>
           ))}
         </div>
@@ -252,7 +318,7 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
     );
   }
 
-  // Finished state
+  // ── Finished state ──
   const winners = participants.filter((p) => p.isWinner);
   const others = participants.filter((p) => !p.isWinner);
 
@@ -260,7 +326,6 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
     <div className="max-w-2xl mx-auto px-4 py-8 space-y-8 animate-fadeUp">
       <h1 className="text-2xl font-heading font-bold text-center dark:text-white">{race.title}</h1>
 
-      {/* Winners */}
       {winners.length > 0 && (
         <div className="space-y-3">
           <h2 className="text-lg font-heading font-bold dark:text-white text-center">
@@ -286,7 +351,6 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
         </div>
       )}
 
-      {/* Other participants */}
       {others.length > 0 && (
         <div className="space-y-3">
           <h2 className="text-lg font-heading font-bold dark:text-white">Participants</h2>
