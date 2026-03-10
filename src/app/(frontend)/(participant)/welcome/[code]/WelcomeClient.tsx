@@ -28,6 +28,14 @@ interface BadgeInfo {
   rarity: "common" | "rare" | "epic" | "legendary";
 }
 
+interface ClubInfo {
+  id: string;
+  name: string;
+  slug: string;
+  logo_url: string | null;
+  description: string | null;
+}
+
 interface WelcomeClientProps {
   code: string;
   title: string;
@@ -36,6 +44,8 @@ interface WelcomeClientProps {
   heroImageUrl: string | null;
   redirectUrl: string;
   badge: BadgeInfo | null;
+  club: ClubInfo | null;
+  isClubMember: boolean;
   spotsRemaining: number | null;
   isLoggedIn: boolean;
   hasClaimed: boolean;
@@ -112,11 +122,13 @@ function InlineAuthForm({
   onSwitchMode,
   onAuthSuccess,
   welcomeCode,
+  clubName,
 }: {
   mode: "signup" | "login";
   onSwitchMode: () => void;
   onAuthSuccess: () => void;
   welcomeCode: string;
+  clubName?: string;
 }) {
   const supabase = createClient();
   const [authMethod, setAuthMethod] = useState<AuthMethod>("password");
@@ -719,7 +731,9 @@ function InlineAuthForm({
                 ? authMethod === "password"
                   ? "Creating account..."
                   : "Sending code..."
-                : "Create Account & Claim"}
+                : clubName
+                  ? "Create Account & Join"
+                  : "Create Account & Claim"}
             </Button>
 
             {authMethod === "otp" && (
@@ -792,7 +806,9 @@ function InlineAuthForm({
                 ? "Signing in..."
                 : "Sending code..."
               : authMethod === "password"
-                ? "Sign In & Claim"
+                ? clubName
+                  ? "Sign In & Join"
+                  : "Sign In & Claim"
                 : "Send Code"}
           </Button>
 
@@ -845,6 +861,8 @@ export default function WelcomeClient({
   heroImageUrl,
   redirectUrl,
   badge,
+  club,
+  isClubMember,
   spotsRemaining,
   isLoggedIn,
   hasClaimed,
@@ -858,7 +876,7 @@ export default function WelcomeClient({
     setState("claiming");
     try {
       const res = await fetch(`/api/welcome/${code}/claim`, { method: "POST" });
-      const data: { error?: string; success?: boolean } = await res.json();
+      const data: { error?: string; success?: boolean; club_joined?: boolean } = await res.json();
 
       if (!res.ok) {
         if (res.status === 409) {
@@ -901,22 +919,56 @@ export default function WelcomeClient({
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h1 className="font-heading text-2xl font-bold mb-2">Already Claimed</h1>
-          <p className="text-gray-500 dark:text-gray-400 mb-6">
-            You&apos;ve already claimed this reward. Enjoy your badge!
-          </p>
-          {badge && (
-            <div className="mb-6">
-              <BadgePreview badge={badge} />
-              <p className="font-heading font-bold mt-3">{badge.title}</p>
-            </div>
+          {club && isClubMember ? (
+            <>
+              {club.logo_url && (
+                <div className="mx-auto mb-4 h-16 w-16 rounded-full overflow-hidden">
+                  <Image
+                    src={club.logo_url}
+                    alt={club.name}
+                    width={64}
+                    height={64}
+                    className="object-cover"
+                  />
+                </div>
+              )}
+              <h1 className="font-heading text-2xl font-bold mb-2">You&apos;re a member!</h1>
+              <p className="text-gray-500 dark:text-gray-400 mb-6">
+                You&apos;re already a member of {club.name}
+              </p>
+              {badge && (
+                <div className="mb-6">
+                  <BadgePreview badge={badge} />
+                  <p className="font-heading font-bold mt-3">{badge.title}</p>
+                </div>
+              )}
+              <Link
+                href={`/clubs/${club.slug}`}
+                className="inline-flex items-center justify-center font-semibold rounded-xl bg-lime-500 hover:bg-lime-400 text-gray-900 py-3 px-6 min-h-[48px] transition-colors"
+              >
+                Go to {club.name}
+              </Link>
+            </>
+          ) : (
+            <>
+              <h1 className="font-heading text-2xl font-bold mb-2">Already Claimed</h1>
+              <p className="text-gray-500 dark:text-gray-400 mb-6">
+                You&apos;ve already claimed this reward. Enjoy your badge!
+              </p>
+              {badge && (
+                <div className="mb-6">
+                  <BadgePreview badge={badge} />
+                  <p className="font-heading font-bold mt-3">{badge.title}</p>
+                </div>
+              )}
+              <Link
+                href={redirectUrl}
+                className="inline-flex items-center justify-center font-semibold rounded-xl bg-lime-500 hover:bg-lime-400 text-gray-900 py-3 px-6 min-h-[48px] transition-colors"
+              >
+                Continue Exploring
+              </Link>
+            </>
           )}
-          <Link
-            href={redirectUrl}
-            className="inline-flex items-center justify-center font-semibold rounded-xl bg-lime-500 hover:bg-lime-400 text-gray-900 py-3 px-6 min-h-[48px] transition-colors"
-          >
-            Continue Exploring
-          </Link>
         </div>
       </div>
     );
@@ -927,38 +979,90 @@ export default function WelcomeClient({
     return (
       <div className="min-h-[60vh] flex items-center justify-center px-4">
         <div className="max-w-md w-full text-center animate-fadeUp">
-          {badge && (
-            <div className="mb-6">
-              <BadgePreview badge={badge} size="lg" />
-            </div>
-          )}
-          <h1 className="font-heading text-3xl font-bold mb-2">Badge Unlocked!</h1>
-          {badge && (
+          {club ? (
             <>
-              <p className="font-heading text-xl font-semibold text-golden-600 dark:text-golden-400 mb-1">
-                {badge.title}
-              </p>
-              {badge.description && (
-                <p className="text-gray-500 dark:text-gray-400 mb-2">{badge.description}</p>
+              {club.logo_url && (
+                <div className="mx-auto mb-4 h-16 w-16 rounded-full overflow-hidden">
+                  <Image
+                    src={club.logo_url}
+                    alt={club.name}
+                    width={64}
+                    height={64}
+                    className="object-cover"
+                  />
+                </div>
               )}
-              <span
-                className={cn(
-                  "inline-block text-xs px-2.5 py-0.5 rounded-full mb-6",
-                  RARITY_STYLES[badge.rarity].pill,
-                )}
-              >
-                {RARITY_STYLES[badge.rarity].label}
-              </span>
+              <h1 className="font-heading text-3xl font-bold mb-2">You&apos;re in!</h1>
+              <p className="text-lg text-gray-600 dark:text-gray-300 mb-6">
+                You&apos;ve joined {club.name}
+              </p>
+              {badge && (
+                <div className="mb-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                    Plus, you earned a badge!
+                  </p>
+                  <BadgePreview badge={badge} />
+                  <p className="font-heading font-bold mt-3">{badge.title}</p>
+                  {badge.description && (
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                      {badge.description}
+                    </p>
+                  )}
+                  <span
+                    className={cn(
+                      "inline-block text-xs px-2.5 py-0.5 rounded-full mt-2",
+                      RARITY_STYLES[badge.rarity].pill,
+                    )}
+                  >
+                    {RARITY_STYLES[badge.rarity].label}
+                  </span>
+                </div>
+              )}
+              <div>
+                <Link
+                  href={`/clubs/${club.slug}`}
+                  className="inline-flex items-center justify-center font-semibold rounded-xl bg-lime-500 hover:bg-lime-400 text-gray-900 py-3 px-6 min-h-[48px] transition-colors"
+                >
+                  Go to {club.name}
+                </Link>
+              </div>
+            </>
+          ) : (
+            <>
+              {badge && (
+                <div className="mb-6">
+                  <BadgePreview badge={badge} size="lg" />
+                </div>
+              )}
+              <h1 className="font-heading text-3xl font-bold mb-2">Badge Unlocked!</h1>
+              {badge && (
+                <>
+                  <p className="font-heading text-xl font-semibold text-golden-600 dark:text-golden-400 mb-1">
+                    {badge.title}
+                  </p>
+                  {badge.description && (
+                    <p className="text-gray-500 dark:text-gray-400 mb-2">{badge.description}</p>
+                  )}
+                  <span
+                    className={cn(
+                      "inline-block text-xs px-2.5 py-0.5 rounded-full mb-6",
+                      RARITY_STYLES[badge.rarity].pill,
+                    )}
+                  >
+                    {RARITY_STYLES[badge.rarity].label}
+                  </span>
+                </>
+              )}
+              <div>
+                <Link
+                  href={redirectUrl}
+                  className="inline-flex items-center justify-center font-semibold rounded-xl bg-lime-500 hover:bg-lime-400 text-gray-900 py-3 px-6 min-h-[48px] transition-colors"
+                >
+                  Start Exploring
+                </Link>
+              </div>
             </>
           )}
-          <div>
-            <Link
-              href={redirectUrl}
-              className="inline-flex items-center justify-center font-semibold rounded-xl bg-lime-500 hover:bg-lime-400 text-gray-900 py-3 px-6 min-h-[48px] transition-colors"
-            >
-              Start Exploring
-            </Link>
-          </div>
         </div>
       </div>
     );
@@ -1006,6 +1110,24 @@ export default function WelcomeClient({
         )}
 
         <div className="p-8 text-center">
+          {/* Club branding */}
+          {club && (
+            <div className="mb-4 flex flex-col items-center">
+              {club.logo_url && (
+                <div className="mb-2 h-16 w-16 rounded-full overflow-hidden">
+                  <Image
+                    src={club.logo_url}
+                    alt={club.name}
+                    width={64}
+                    height={64}
+                    className="object-cover"
+                  />
+                </div>
+              )}
+              <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">{club.name}</p>
+            </div>
+          )}
+
           {/* Title & subtitle */}
           <h1 className="font-heading text-2xl font-bold mb-2">{title}</h1>
           {subtitle && <p className="text-gray-500 dark:text-gray-400 mb-4">{subtitle}</p>}
@@ -1046,7 +1168,7 @@ export default function WelcomeClient({
               disabled={state === "claiming"}
               className="w-full min-h-[48px]"
             >
-              {state === "claiming" ? "Claiming..." : "Claim Your Reward"}
+              {state === "claiming" ? "Claiming..." : club ? "Join & Claim" : "Claim Your Reward"}
             </Button>
           ) : authPanel === "hidden" ? (
             <div className="space-y-3">
@@ -1055,7 +1177,7 @@ export default function WelcomeClient({
                 className="w-full min-h-[48px]"
                 size="lg"
               >
-                Sign Up to Claim
+                {club ? `Sign Up & Join ${club.name}` : "Sign Up to Claim"}
               </Button>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Already have an account?{" "}
@@ -1075,6 +1197,7 @@ export default function WelcomeClient({
                 onSwitchMode={() => setAuthPanel(authPanel === "signup" ? "login" : "signup")}
                 onAuthSuccess={handleAuthSuccess}
                 welcomeCode={code}
+                clubName={club?.name ?? undefined}
               />
             </div>
           )}

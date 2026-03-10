@@ -120,5 +120,51 @@ export async function POST(_request: Request, { params }: { params: Promise<{ co
     }
   }
 
-  return NextResponse.json({ success: true, badge_awarded: badgeAwarded });
+  // Auto-join club if linked
+  let clubJoined = false;
+  if (page.club_id) {
+    const { data: existingMember } = await supabase
+      .from("club_members")
+      .select("id")
+      .eq("club_id", page.club_id)
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (!existingMember) {
+      const { error: joinError } = await supabase.from("club_members").insert({
+        club_id: page.club_id,
+        user_id: user.id,
+        role: "member",
+      });
+
+      if (joinError) {
+        console.error("[welcome-claim] Club join failed:", joinError.message);
+      } else {
+        clubJoined = true;
+
+        // Get club name and slug for notification
+        const { data: club } = await supabase
+          .from("clubs")
+          .select("name, slug")
+          .eq("id", page.club_id)
+          .single();
+
+        if (club) {
+          await createNotification(supabase, {
+            userId: user.id,
+            type: "booking_confirmed",
+            title: "Welcome to the club!",
+            body: `You've joined ${club.name}`,
+            href: `/clubs/${club.slug}`,
+          });
+        }
+      }
+    }
+  }
+
+  return NextResponse.json({
+    success: true,
+    badge_awarded: badgeAwarded,
+    club_joined: clubJoined,
+  });
 }

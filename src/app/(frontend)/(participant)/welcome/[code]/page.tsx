@@ -114,6 +114,24 @@ export default async function WelcomePage({ params }: { params: Promise<{ code: 
     badge = badgeData;
   }
 
+  // Fetch club data if linked
+  let club: {
+    id: string;
+    name: string;
+    slug: string;
+    logo_url: string | null;
+    description: string | null;
+  } | null = null;
+
+  if (page.club_id) {
+    const { data: clubData } = await supabase
+      .from("clubs")
+      .select("id, name, slug, logo_url, description")
+      .eq("id", page.club_id)
+      .single();
+    club = clubData;
+  }
+
   // Check auth & existing claim
   const {
     data: { user },
@@ -130,6 +148,18 @@ export default async function WelcomePage({ params }: { params: Promise<{ code: 
     hasClaimed = !!existingClaim;
   }
 
+  // Check if user is already a club member
+  let isClubMember = false;
+  if (user && club) {
+    const { data: membership } = await supabase
+      .from("club_members")
+      .select("id")
+      .eq("club_id", club.id)
+      .eq("user_id", user.id)
+      .maybeSingle();
+    isClubMember = !!membership;
+  }
+
   const spotsRemaining = page.max_claims === null ? null : page.max_claims - (claimCount ?? 0);
 
   return (
@@ -141,6 +171,8 @@ export default async function WelcomePage({ params }: { params: Promise<{ code: 
       heroImageUrl={page.hero_image_url}
       redirectUrl={page.redirect_url}
       badge={badge}
+      club={club}
+      isClubMember={isClubMember}
       spotsRemaining={spotsRemaining}
       isLoggedIn={!!user}
       hasClaimed={hasClaimed}

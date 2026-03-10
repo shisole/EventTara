@@ -1659,6 +1659,63 @@ export interface Database {
         };
         Relationships: [];
       };
+      club_races: {
+        Row: {
+          id: string;
+          club_id: string;
+          title: string;
+          num_winners: number;
+          badge_id: string | null;
+          status: "pending" | "completed";
+          winner_ids: string[];
+          participant_ids: string[];
+          created_by: string | null;
+          created_at: string;
+          completed_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          title?: string;
+          num_winners?: number;
+          badge_id?: string | null;
+          status?: "pending" | "completed";
+          winner_ids?: string[];
+          participant_ids?: string[];
+          created_by?: string | null;
+          created_at?: string;
+          completed_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          club_id?: string;
+          title?: string;
+          num_winners?: number;
+          badge_id?: string | null;
+          status?: "pending" | "completed";
+          winner_ids?: string[];
+          participant_ids?: string[];
+          created_by?: string | null;
+          created_at?: string;
+          completed_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "club_races_club_id_fkey";
+            columns: ["club_id"];
+            isOneToOne: false;
+            referencedRelation: "clubs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "club_races_badge_id_fkey";
+            columns: ["badge_id"];
+            isOneToOne: false;
+            referencedRelation: "badges";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       welcome_pages: {
         Row: {
           id: string;
