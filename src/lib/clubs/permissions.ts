@@ -58,4 +58,11 @@ export const CLUB_PERMISSIONS = {
   delete_club: "owner" as ClubRole,
   promote_roles: "owner" as ClubRole,
   view_events: "member" as ClubRole,
+  create_thread: "member" as ClubRole,
+  create_announcement: "admin" as ClubRole,
+  pin_thread: "admin" as ClubRole,
+  lock_thread: "moderator" as ClubRole,
+  delete_any_thread: "moderator" as ClubRole,
+  delete_any_reply: "moderator" as ClubRole,
+  manage_categories: "admin" as ClubRole,
 } as const;
