@@ -16,6 +16,7 @@ const PUSH_TYPES = new Set([
   "event_reminder",
   "badge_earned",
   "border_earned",
+  "event_published",
 ]);
 
 interface SupabaseWebhookPayload {

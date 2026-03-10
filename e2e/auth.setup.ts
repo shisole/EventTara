@@ -13,6 +13,9 @@ const PARTICIPANT = {
 };
 
 async function login(page: Page, email: string, password: string) {
+  // Dismiss the onboarding quiz modal that overlays the login form in fresh sessions
+  await page.addInitScript(() => localStorage.setItem("quiz_completed", "true"));
+
   await page.goto("/login");
 
   await page.getByLabel(/email/i).fill(email);

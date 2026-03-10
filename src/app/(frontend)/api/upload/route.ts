@@ -10,6 +10,7 @@ const ALLOWED_FOLDERS = new Set([
   "badges/images",
   "organizers/logos",
   "reviews/photos",
+  "clubs/forum",
 ]);
 
 export async function POST(request: Request) {
