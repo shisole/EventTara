@@ -40,8 +40,9 @@ describe("splitBookingsByDate", () => {
   });
 
   test("today's date is considered upcoming", () => {
-    const now = new Date().toISOString();
-    const bookings = [{ id: "1", events: { date: now } }];
+    // Use a date a few minutes in the future to avoid millisecond race condition
+    const soonDate = new Date(Date.now() + 60_000).toISOString();
+    const bookings = [{ id: "1", events: { date: soonDate } }];
 
     const { upcoming } = splitBookingsByDate(bookings);
 
