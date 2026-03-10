@@ -23,12 +23,21 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
   const [loading, setLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Fetch unread count on mount
+  // Fetch unread count on mount and when window regains focus
   useEffect(() => {
-    fetch("/api/notifications/unread-count")
-      .then((res) => res.json())
-      .then((data: { count?: number }) => setUnreadCount(data.count ?? 0))
-      .catch(() => null);
+    const fetchCount = () =>
+      fetch("/api/notifications/unread-count")
+        .then((res) => res.json())
+        .then((data: { count?: number }) => setUnreadCount(data.count ?? 0))
+        .catch(() => null);
+
+    void fetchCount();
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") void fetchCount();
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
   }, []);
 
   // Subscribe to realtime notifications
