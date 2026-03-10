@@ -6,18 +6,35 @@ const PARTICIPANT_STATE = "e2e/.auth/participant.json";
 test.describe("Organizer + Participant booking flow", () => {
   let eventId: string;
   let eventTitle: string;
+  let clubId: string;
 
   test("full happy path: create → book → check-in → verify", async ({ browser }) => {
     const organizerContext = await browser.newContext({ storageState: ORGANIZER_STATE });
     const participantContext = await browser.newContext({ storageState: PARTICIPANT_STATE });
 
-    // ── Step 1: Create event via API ──────────────────────────────
+    // ── Step 1: Create club (events require a club) ─────────────────
+    await test.step("Organizer creates club via API", async () => {
+      const response = await organizerContext.request.post("/api/clubs", {
+        data: {
+          name: `E2E Test Club ${String(Date.now())}`,
+          description: "Automated E2E test club — safe to delete.",
+        },
+      });
+
+      expect(response.ok()).toBeTruthy();
+      const body = (await response.json()) as { club: { id: string } };
+      clubId = body.club.id;
+      expect(clubId).toBeTruthy();
+    });
+
+    // ── Step 2: Create event via API ────────────────────────────────
     await test.step("Organizer creates event via API", async () => {
       const startDate = new Date(Date.now() + 47 * 60 * 60 * 1000);
       eventTitle = `E2E Test Event ${String(Date.now())}`;
 
       const response = await organizerContext.request.post("/api/events", {
         data: {
+          club_id: clubId,
           title: eventTitle,
           description: "Automated E2E test event — safe to delete.",
           type: "hiking",
@@ -35,7 +52,7 @@ test.describe("Organizer + Participant booking flow", () => {
       expect(eventId).toBeTruthy();
     });
 
-    // ── Step 2: Publish event via API ─────────────────────────────
+    // ── Step 3: Publish event via API ───────────────────────────────
     await test.step("Organizer publishes event", async () => {
       const response = await organizerContext.request.put(`/api/events/${eventId}`, {
         data: { status: "published" },
@@ -44,7 +61,7 @@ test.describe("Organizer + Participant booking flow", () => {
       expect(response.ok()).toBeTruthy();
     });
 
-    // ── Step 3: Participant finds event on /events ────────────────
+    // ── Step 4: Participant finds event on /events ──────────────────
     await test.step("Participant finds event on /events", async () => {
       const participantPage = await participantContext.newPage();
 
@@ -63,7 +80,7 @@ test.describe("Organizer + Participant booking flow", () => {
       await participantPage.close();
     });
 
-    // ── Step 4: Participant books event ───────────────────────────
+    // ── Step 5: Participant books event ─────────────────────────────
     await test.step("Participant books event", async () => {
       const participantPage = await participantContext.newPage();
 
@@ -80,7 +97,7 @@ test.describe("Organizer + Participant booking flow", () => {
       await participantPage.close();
     });
 
-    // ── Step 5: Participant self-checks-in from /my-events ───────
+    // ── Step 6: Participant self-checks-in from /my-events ─────────
     await test.step("Participant self-checks-in", async () => {
       const participantPage = await participantContext.newPage();
 
@@ -99,7 +116,7 @@ test.describe("Organizer + Participant booking flow", () => {
       await participantPage.close();
     });
 
-    // ── Step 6: Organizer sees check-in on dashboard ─────────────
+    // ── Step 7: Organizer sees check-in on dashboard ───────────────
     await test.step("Organizer sees check-in on dashboard", async () => {
       const organizerPage = await organizerContext.newPage();
 
