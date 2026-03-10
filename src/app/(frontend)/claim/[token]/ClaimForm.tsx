@@ -1,8 +1,9 @@
 "use client";
 
+import confetti from "canvas-confetti";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, useEffect, useRef, useState } from "react";
 
 import { Button, Input } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
@@ -25,6 +26,7 @@ export default function ClaimForm({ token, clubName, clubSlug, logoUrl }: ClaimF
   const [existingUserId, setExistingUserId] = useState<string | null>(null);
   const [existingUserName, setExistingUserName] = useState<string | null>(null);
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const confettiFired = useRef(false);
 
   useEffect(() => {
     async function checkAuth() {
@@ -81,10 +83,37 @@ export default function ClaimForm({ token, clubName, clubSlug, logoUrl }: ClaimF
       }
 
       setSuccess(true);
+
+      // Fire confetti
+      if (!confettiFired.current) {
+        confettiFired.current = true;
+        const colors = ["#a3e635", "#22d3ee", "#f59e0b", "#ec4899", "#8b5cf6"];
+        void confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 }, colors });
+        const end = Date.now() + 2500;
+        const frame = () => {
+          void confetti({
+            particleCount: 3,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0, y: 0.6 },
+            colors,
+          });
+          void confetti({
+            particleCount: 3,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1, y: 0.6 },
+            colors,
+          });
+          if (Date.now() < end) requestAnimationFrame(frame);
+        };
+        requestAnimationFrame(frame);
+      }
+
       setTimeout(() => {
         router.push(`/dashboard/clubs/${clubSlug}`);
         router.refresh();
-      }, 2000);
+      }, 2500);
     } catch {
       setError("Network error. Please try again.");
       setLoading(false);
