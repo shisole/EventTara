@@ -130,9 +130,7 @@ export default function ForumTab({ clubSlug, userRole }: ForumTabProps) {
         ) : (
           <div className="p-8 text-center">
             <p className="text-gray-500 dark:text-gray-400 font-medium">No threads yet</p>
-            <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">
-              Start a conversation!
-            </p>
+            <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">Start a conversation!</p>
           </div>
         )}
       </div>

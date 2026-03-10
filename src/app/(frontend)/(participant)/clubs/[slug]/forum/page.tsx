@@ -22,11 +22,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function ForumPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
+export default async function ForumPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const supabase = await createClient();
 
@@ -72,9 +68,7 @@ export default async function ForumPage({
         </div>
       </div>
 
-      {isAdmin && (
-        <ForumCategoryManager clubSlug={club.slug} />
-      )}
+      {isAdmin && <ForumCategoryManager clubSlug={club.slug} />}
 
       <ForumTab clubId={club.id} clubSlug={club.slug} userRole={userRole} />
     </div>

@@ -32,10 +32,7 @@ export async function GET(_req: Request, { params }: RouteContext) {
   // Fetch author profiles separately (FK references auth.users, not public.users)
   const userIds = [...new Set((replies ?? []).map((r) => r.user_id))];
   const { data: users } = userIds.length
-    ? await supabase
-        .from("users")
-        .select("id, full_name, username, avatar_url")
-        .in("id", userIds)
+    ? await supabase.from("users").select("id, full_name, username, avatar_url").in("id", userIds)
     : { data: [] };
   const userMap = new Map((users ?? []).map((u) => [u.id, u]));
 

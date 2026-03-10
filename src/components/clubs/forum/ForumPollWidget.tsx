@@ -91,9 +91,7 @@ export default function ForumPollWidget({
               />
             )}
             <div className="relative flex justify-between items-center">
-              <span
-                className={cn("font-medium", isSelected && "text-teal-700 dark:text-teal-300")}
-              >
+              <span className={cn("font-medium", isSelected && "text-teal-700 dark:text-teal-300")}>
                 {option}
               </span>
               {hasVoted && (

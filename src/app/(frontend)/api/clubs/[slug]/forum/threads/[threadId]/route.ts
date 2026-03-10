@@ -129,11 +129,7 @@ export async function PATCH(req: Request, { params }: RouteContext) {
   }
 
   if (body.is_pinned !== undefined) {
-    const pinRole = await checkClubPermissionServer(
-      user.id,
-      club.id,
-      CLUB_PERMISSIONS.pin_thread,
-    );
+    const pinRole = await checkClubPermissionServer(user.id, club.id, CLUB_PERMISSIONS.pin_thread);
     if (!pinRole) return NextResponse.json({ error: "Only admins can pin" }, { status: 403 });
     updates.is_pinned = body.is_pinned;
   }

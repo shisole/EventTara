@@ -184,11 +184,7 @@ export default async function ClubProfilePage({ params }: { params: Promise<{ sl
             </>
           ),
           forum: currentMembership ? (
-            <ForumTab
-              clubId={club.id}
-              clubSlug={club.slug}
-              userRole={currentMembership.role}
-            />
+            <ForumTab clubId={club.id} clubSlug={club.slug} userRole={currentMembership.role} />
           ) : (
             <div className="text-center py-12 bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30">
               <p className="text-gray-500 dark:text-gray-400 font-medium">
@@ -205,29 +201,19 @@ export default async function ClubProfilePage({ params }: { params: Promise<{ sl
                 <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-5">
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                     {sortedMembers.map((member) => {
-                      const userData = Array.isArray(member.users)
-                        ? member.users[0]
-                        : member.users;
-                      const displayName =
-                        userData?.full_name || userData?.username || "Unknown";
+                      const userData = Array.isArray(member.users) ? member.users[0] : member.users;
+                      const displayName = userData?.full_name || userData?.username || "Unknown";
 
                       return (
                         <div
                           key={member.id}
                           className="flex flex-col items-center text-center gap-1.5 py-2"
                         >
-                          <Avatar
-                            src={userData?.avatar_url ?? null}
-                            alt={displayName}
-                            size="md"
-                          />
+                          <Avatar src={userData?.avatar_url ?? null} alt={displayName} size="md" />
                           <div className="min-w-0 w-full">
                             <p className="text-sm font-medium truncate">{displayName}</p>
                             {member.role !== "member" && (
-                              <ClubRoleBadge
-                                role={member.role as ClubRole}
-                                className="mt-0.5"
-                              />
+                              <ClubRoleBadge role={member.role as ClubRole} className="mt-0.5" />
                             )}
                           </div>
                         </div>
