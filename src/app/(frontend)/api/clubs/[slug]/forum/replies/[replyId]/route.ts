@@ -31,7 +31,7 @@ export async function DELETE(_req: Request, { params }: RouteContext) {
     .select("club_id")
     .eq("id", reply.thread_id)
     .single();
-  if (!thread || thread.club_id !== club.id) {
+  if (thread?.club_id !== club.id) {
     return NextResponse.json({ error: "Reply not found" }, { status: 404 });
   }
 

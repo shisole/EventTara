@@ -54,10 +54,10 @@ export default function ForumPollWidget({
         }
       }
       const newIdx = newVotes.findIndex((v) => v.option_index === optionIndex);
-      if (newIdx !== -1) {
-        newVotes[newIdx] = { ...newVotes[newIdx], count: newVotes[newIdx].count + 1 };
-      } else {
+      if (newIdx === -1) {
         newVotes.push({ option_index: optionIndex, count: 1 });
+      } else {
+        newVotes[newIdx] = { ...newVotes[newIdx], count: newVotes[newIdx].count + 1 };
       }
       setPollVotes(newVotes);
       setUserVote(optionIndex);

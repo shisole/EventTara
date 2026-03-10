@@ -34,7 +34,7 @@ export async function POST(req: Request, { params }: RouteContext) {
 
   const body = (await req.json()) as { option_index?: number };
   const optionIndex = body.option_index;
-  const options = (thread.poll_options ?? []) as string[];
+  const options = thread.poll_options ?? [];
 
   if (optionIndex === undefined || optionIndex < 0 || optionIndex >= options.length) {
     return NextResponse.json({ error: "Invalid option" }, { status: 400 });

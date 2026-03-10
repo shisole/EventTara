@@ -131,7 +131,11 @@ export default function ForumReplySection({
         </p>
       )}
 
-      {!isLocked ? (
+      {isLocked ? (
+        <p className="text-sm text-gray-500 dark:text-gray-400 italic text-center py-2">
+          This thread is locked. No new replies.
+        </p>
+      ) : (
         <form onSubmit={handleSubmitReply} className="flex gap-2">
           <input
             type="text"
@@ -149,10 +153,6 @@ export default function ForumReplySection({
             Reply
           </button>
         </form>
-      ) : (
-        <p className="text-sm text-gray-500 dark:text-gray-400 italic text-center py-2">
-          This thread is locked. No new replies.
-        </p>
       )}
     </div>
   );

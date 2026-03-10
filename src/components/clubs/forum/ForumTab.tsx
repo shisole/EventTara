@@ -87,9 +87,9 @@ export default function ForumTab({ clubSlug, userRole }: ForumTabProps) {
             }}
             className={cn(
               "flex items-center gap-2.5 w-full rounded-lg px-3 py-2 text-sm font-medium transition-colors text-left",
-              !activeCategory
-                ? "bg-teal-50 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300"
-                : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800",
+              activeCategory
+                ? "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"
+                : "bg-teal-50 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300",
             )}
           >
             <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
