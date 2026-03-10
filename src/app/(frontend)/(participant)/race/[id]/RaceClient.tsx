@@ -16,6 +16,9 @@ interface ParticipantProgress {
   offset: number;
   /** Per-duck wobble phase so they don't bob in sync */
   wobblePhase: number;
+  /** Unique phase for smooth horizontal sway */
+  swayPhase: number;
+  swaySpeed: number;
 }
 
 async function fireConfetti() {
@@ -101,6 +104,9 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
         speed: 0.97 + Math.random() * 0.06,
         offset: Math.random() * 5,
         wobblePhase: Math.random() * Math.PI * 2,
+        /** Unique phase for smooth horizontal sway (replaces random jitter) */
+        swayPhase: Math.random() * Math.PI * 2,
+        swaySpeed: 0.8 + Math.random() * 0.6,
       }));
 
       progressRef.current = entries;
@@ -111,30 +117,34 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
 
       const startTime = performance.now();
       const totalDuration = 9500;
-      let frameCount = 0;
 
       const animate = (now: number) => {
-        frameCount++;
         const elapsed = now - startTime;
         elapsedRef.current = elapsed;
         const t = Math.min(elapsed / totalDuration, 1);
 
+        // Seconds for smoother math
+        const sec = elapsed / 1000;
+
         if (elapsed <= 6000) {
+          // Phase 1: Pack racing — all ducks move together with gentle sine sway
           const phase1T = elapsed / 6000;
           const eased = 1 - Math.pow(1 - phase1T, 2);
           const base = eased * 70;
           for (const entry of progressRef.current) {
-            const jitter = (Math.random() - 0.5) * 4;
-            entry.progress = Math.max(0, Math.min(base + jitter, 72));
+            const sway = Math.sin(sec * entry.swaySpeed + entry.swayPhase) * 2;
+            entry.progress = Math.max(0, Math.min(base + sway, 72));
           }
         } else if (elapsed <= 8000) {
+          // Phase 2: Tension — bunched tight, slight oscillation
           const phase2T = (elapsed - 6000) / 2000;
           const base = 70 + phase2T * 8;
           for (const entry of progressRef.current) {
-            const jitter = (Math.random() - 0.5) * 3;
-            entry.progress = Math.max(70, Math.min(base + jitter, 80));
+            const sway = Math.sin(sec * entry.swaySpeed * 1.5 + entry.swayPhase) * 1.5;
+            entry.progress = Math.max(70, Math.min(base + sway, 80));
           }
         } else {
+          // Phase 3: Sprint finish — winners pull ahead smoothly
           const phase3T = (elapsed - 8000) / (totalDuration - 8000);
           const eased3 = 1 - Math.pow(1 - phase3T, 4);
           for (const entry of progressRef.current) {
@@ -148,9 +158,7 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
           }
         }
 
-        if (frameCount % 2 === 0) {
-          setDisplayProgress(progressRef.current.map((e) => ({ ...e })));
-        }
+        setDisplayProgress(progressRef.current.map((e) => ({ ...e })));
 
         if (t < 1) {
           requestAnimationFrame(animate);
