@@ -1665,6 +1665,7 @@ export interface Database {
           club_id: string;
           title: string;
           num_winners: number;
+          duration_seconds: number;
           badge_id: string | null;
           status: "pending" | "completed";
           winner_ids: string[];
@@ -1678,6 +1679,7 @@ export interface Database {
           club_id: string;
           title?: string;
           num_winners?: number;
+          duration_seconds?: number;
           badge_id?: string | null;
           status?: "pending" | "completed";
           winner_ids?: string[];
@@ -1691,6 +1693,7 @@ export interface Database {
           club_id?: string;
           title?: string;
           num_winners?: number;
+          duration_seconds?: number;
           badge_id?: string | null;
           status?: "pending" | "completed";
           winner_ids?: string[];

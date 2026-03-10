@@ -40,11 +40,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
   const body = (await request.json()) as {
     title?: string;
     num_winners?: number;
+    duration_seconds?: number;
     badge_id?: string | null;
   };
 
   const title = body.title || "Duck Race";
   const numWinners = body.num_winners && body.num_winners >= 1 ? body.num_winners : 1;
+  const durationSeconds = Math.max(5, Math.min(60, body.duration_seconds ?? 10));
   const badgeId = body.badge_id ?? null;
 
   // Insert race
@@ -54,6 +56,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
       club_id: club.id,
       title,
       num_winners: numWinners,
+      duration_seconds: durationSeconds,
       badge_id: badgeId,
       created_by: user.id,
     })

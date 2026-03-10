@@ -77,6 +77,7 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
   const [displayProgress, setDisplayProgress] = useState<ParticipantProgress[]>([]);
   const winnerIdsRef = useRef<Set<string>>(new Set());
   const elapsedRef = useRef(0);
+  const [countdown, setCountdown] = useState(race.duration_seconds);
 
   const startRace = useCallback(async () => {
     setLoading(true);
@@ -122,28 +123,39 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
       setLoading(false);
 
       const startTime = performance.now();
-      const totalDuration = 9500;
+      const totalMs = race.duration_seconds * 1000;
+      // Phase boundaries as proportions of total duration
+      const phase1End = totalMs * 0.63; // ~63% pack racing
+      const phase2End = totalMs * 0.84; // ~84% tension
+      let lastCountdown = race.duration_seconds;
 
       const animate = (now: number) => {
         const elapsed = now - startTime;
         elapsedRef.current = elapsed;
-        const t = Math.min(elapsed / totalDuration, 1);
+        const t = Math.min(elapsed / totalMs, 1);
+
+        // Update countdown timer
+        const remaining = Math.ceil(Math.max(0, (totalMs - elapsed) / 1000));
+        if (remaining !== lastCountdown) {
+          lastCountdown = remaining;
+          setCountdown(remaining);
+        }
 
         // Seconds for smoother math
         const sec = elapsed / 1000;
 
-        if (elapsed <= 6000) {
+        if (elapsed <= phase1End) {
           // Phase 1: Pack racing — all ducks move together with gentle sine sway
-          const phase1T = elapsed / 6000;
+          const phase1T = elapsed / phase1End;
           const eased = 1 - Math.pow(1 - phase1T, 2);
           const base = eased * 70;
           for (const entry of progressRef.current) {
             const sway = Math.sin(sec * entry.swaySpeed + entry.swayPhase) * 2;
             entry.progress = Math.max(0, Math.min(base + sway, 72));
           }
-        } else if (elapsed <= 8000) {
+        } else if (elapsed <= phase2End) {
           // Phase 2: Tension — bunched tight, slight oscillation
-          const phase2T = (elapsed - 6000) / 2000;
+          const phase2T = (elapsed - phase1End) / (phase2End - phase1End);
           const base = 70 + phase2T * 8;
           for (const entry of progressRef.current) {
             const sway = Math.sin(sec * entry.swaySpeed * 1.5 + entry.swayPhase) * 1.5;
@@ -151,7 +163,7 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
           }
         } else {
           // Phase 3: Sprint finish — smoothly from current position to target
-          const phase3T = (elapsed - 8000) / (totalDuration - 8000);
+          const phase3T = (elapsed - phase2End) / (totalMs - phase2End);
           const eased3 = 1 - Math.pow(1 - phase3T, 2.5);
           for (const entry of progressRef.current) {
             // Snapshot each duck's position on first frame of phase 3
@@ -175,6 +187,7 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
               : entry.progress;
           }
           setDisplayProgress(progressRef.current.map((e) => ({ ...e })));
+          setCountdown(0);
           setState("finished");
           void fireConfetti();
         }
@@ -226,9 +239,15 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
 
     return (
       <div className="max-w-3xl mx-auto px-4 py-8 space-y-4">
-        <h1 className="text-2xl font-heading font-bold text-center dark:text-white">
-          {race.title}
-        </h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-heading font-bold dark:text-white">{race.title}</h1>
+          <div className="flex items-center gap-2 bg-gray-900/80 dark:bg-gray-800 rounded-full px-4 py-2">
+            <span className="text-xl font-mono font-bold text-white tabular-nums">
+              {String(Math.floor(countdown / 60)).padStart(2, "0")}:
+              {String(countdown % 60).padStart(2, "0")}
+            </span>
+          </div>
+        </div>
 
         {/* River container */}
         <div

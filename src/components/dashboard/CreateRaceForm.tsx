@@ -20,6 +20,7 @@ export default function CreateRaceForm({ clubSlug, badges }: CreateRaceFormProps
   const router = useRouter();
   const [title, setTitle] = useState("Duck Race");
   const [numWinners, setNumWinners] = useState(1);
+  const [durationSeconds, setDurationSeconds] = useState(10);
   const [badgeId, setBadgeId] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,6 +37,7 @@ export default function CreateRaceForm({ clubSlug, badges }: CreateRaceFormProps
         body: JSON.stringify({
           title,
           num_winners: numWinners,
+          duration_seconds: durationSeconds,
           badge_id: badgeId || null,
         }),
       });
@@ -72,6 +74,19 @@ export default function CreateRaceForm({ clubSlug, badges }: CreateRaceFormProps
         min={1}
         value={numWinners}
         onChange={(e) => setNumWinners(Math.max(1, Number.parseInt(e.target.value, 10) || 1))}
+        required
+      />
+
+      <Input
+        id="duration"
+        label="Race Duration (seconds)"
+        type="number"
+        min={5}
+        max={60}
+        value={durationSeconds}
+        onChange={(e) =>
+          setDurationSeconds(Math.max(5, Math.min(60, Number.parseInt(e.target.value, 10) || 10)))
+        }
         required
       />
 

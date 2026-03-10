@@ -91,6 +91,7 @@ export default async function RacePage({ params }: { params: Promise<{ id: strin
     title: race.title,
     status: race.status,
     num_winners: race.num_winners,
+    duration_seconds: race.duration_seconds,
     badge_id: race.badge_id,
     club,
     participants,

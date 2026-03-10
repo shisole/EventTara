@@ -3,6 +3,7 @@ CREATE TABLE club_races (
   club_id UUID NOT NULL REFERENCES clubs(id) ON DELETE CASCADE,
   title TEXT NOT NULL DEFAULT 'Duck Race',
   num_winners INT NOT NULL DEFAULT 1,
+  duration_seconds INT NOT NULL DEFAULT 10,
   badge_id UUID REFERENCES badges(id),
   status TEXT NOT NULL DEFAULT 'pending',
   winner_ids JSONB NOT NULL DEFAULT '[]'::jsonb,
