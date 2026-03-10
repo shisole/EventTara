@@ -1,18 +1,33 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { type StreamEvent } from "@langchain/core/tracers/log_stream";
+import { MemorySaver } from "@langchain/langgraph";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
-import { buildSearchSystemPrompt, buildSuggestionPrompt } from "@/lib/ai/search-prompt";
-import { type ParsedSearchParams } from "@/lib/ai/search-prompt";
-import { ACTIVITY_TYPES } from "@/lib/constants/activity-types";
+import { createCocoAgent } from "@/lib/ai/agent";
+import { executeEventSearch } from "@/lib/ai/agent/event-query-builder";
+import { type SSEEvent } from "@/lib/ai/agent/types";
+import {
+  type ParsedSearchParams,
+  buildSearchSystemPrompt,
+  buildSuggestionPrompt,
+} from "@/lib/ai/search-prompt";
+import { isChatAgentV2Enabled } from "@/lib/cms/cached";
 import { createClient } from "@/lib/supabase/server";
-import type { Database, Json } from "@/lib/supabase/types";
-import { haversineDistance } from "@/lib/utils/geo";
-
-type EventType = Database["public"]["Tables"]["events"]["Row"]["type"];
+import type { Json } from "@/lib/supabase/types";
 
 // Hard daily cap per user/IP to prevent abuse (session limit is enforced client-side)
 const DAILY_HARD_CAP = 30;
+
+// Vercel serverless function timeout
+export const maxDuration = 30;
+
+// Shared checkpointer for in-session memory across requests (reset on cold start)
+const agentCheckpointer = new MemorySaver();
+
+function formatSSE(event: SSEEvent): string {
+  return `data: ${JSON.stringify(event)}\n\n`;
+}
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -28,6 +43,7 @@ export async function POST(request: Request) {
   // Parse request body
   let message: string;
   let userLocation: { lat: number; lng: number } | undefined;
+  let threadId: string | undefined;
   try {
     const body = await request.json();
     message = body.message;
@@ -37,15 +53,17 @@ export async function POST(request: Request) {
     if (message.length > 500) {
       return NextResponse.json({ error: "Message too long (max 500 characters)" }, { status: 400 });
     }
-    // Optional geolocation from the client
     if (typeof body.lat === "number" && typeof body.lng === "number") {
       userLocation = { lat: body.lat, lng: body.lng };
+    }
+    if (typeof body.threadId === "string") {
+      threadId = body.threadId;
     }
   } catch {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
 
-  // Hard daily cap check (abuse prevention — session limit is client-side)
+  // Hard daily cap check
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
   const todayISO = todayStart.toISOString();
@@ -70,11 +88,160 @@ export async function POST(request: Request) {
     );
   }
 
-  // Call Claude Haiku
   const apiKey = process.env.ANTHROPIC_CHAT_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ error: "Chat service not configured" }, { status: 503 });
   }
+
+  // Feature flag: LangGraph agent v2 vs legacy
+  const useAgentV2 = threadId && (await isChatAgentV2Enabled());
+
+  if (useAgentV2) {
+    return handleAgentRequest({
+      message: message.trim(),
+      threadId: threadId!,
+      userId: user?.id ?? null,
+      userName: user?.user_metadata?.full_name ?? null,
+      userLocation: userLocation ?? null,
+      supabase,
+      ip,
+    });
+  }
+
+  return handleLegacyRequest({
+    message: message.trim(),
+    userLocation,
+    supabase,
+    userId: user?.id ?? null,
+    ip,
+    apiKey,
+  });
+}
+
+// ── LangGraph Agent Handler ─────────────────────────────────────────
+
+interface AgentRequestParams {
+  message: string;
+  threadId: string;
+  userId: string | null;
+  userName: string | null;
+  userLocation: { lat: number; lng: number } | null;
+  supabase: Awaited<ReturnType<typeof createClient>>;
+  ip: string;
+}
+
+async function handleAgentRequest(params: AgentRequestParams) {
+  const { message, threadId, userId, userName, userLocation, supabase, ip } = params;
+
+  const agent = createCocoAgent({
+    ctx: { supabase, userId, userName, userLocation },
+    checkpointer: agentCheckpointer,
+  });
+
+  const encoder = new TextEncoder();
+
+  const stream = new ReadableStream({
+    async start(controller) {
+      try {
+        const eventStream = agent.streamEvents(
+          { messages: [{ role: "user", content: message }] },
+          {
+            configurable: { thread_id: threadId },
+            recursionLimit: 8,
+            version: "v2",
+          },
+        );
+
+        for await (const event of eventStream as AsyncIterable<StreamEvent>) {
+          switch (event.event) {
+            case "on_chat_model_stream": {
+              const chunk = event.data?.chunk;
+              if (chunk?.content && typeof chunk.content === "string") {
+                controller.enqueue(
+                  encoder.encode(formatSSE({ type: "token", content: chunk.content })),
+                );
+              }
+              break;
+            }
+            case "on_tool_start": {
+              controller.enqueue(
+                encoder.encode(formatSSE({ type: "tool_start", name: event.name ?? "unknown" })),
+              );
+              break;
+            }
+            case "on_tool_end": {
+              let data: unknown = null;
+              try {
+                data =
+                  typeof event.data?.output === "string"
+                    ? JSON.parse(event.data.output)
+                    : event.data?.output;
+              } catch {
+                data = event.data?.output;
+              }
+              controller.enqueue(
+                encoder.encode(
+                  formatSSE({ type: "tool_result", name: event.name ?? "unknown", data }),
+                ),
+              );
+              break;
+            }
+          }
+        }
+
+        controller.enqueue(encoder.encode(formatSSE({ type: "done" })));
+      } catch (error) {
+        console.error("[chat] Agent stream error:", error);
+        controller.enqueue(
+          encoder.encode(
+            formatSSE({
+              type: "error",
+              message: "Sorry, something went wrong. Please try again.",
+            }),
+          ),
+        );
+      } finally {
+        // Log query for analytics
+        await supabase
+          .from("chat_queries")
+          .insert({
+            user_id: userId,
+            ip_address: userId ? null : ip,
+            query: message,
+            parsed_params: { agent: "v2", threadId } as unknown as Json,
+            result_count: 0,
+          })
+          .then(({ error }) => {
+            if (error) console.error("[chat] Failed to log query:", error.message);
+          });
+
+        controller.close();
+      }
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+    },
+  });
+}
+
+// ── Legacy Handler (unchanged behavior) ─────────────────────────────
+
+interface LegacyRequestParams {
+  message: string;
+  userLocation?: { lat: number; lng: number };
+  supabase: Awaited<ReturnType<typeof createClient>>;
+  userId: string | null;
+  ip: string;
+  apiKey: string;
+}
+
+async function handleLegacyRequest(params: LegacyRequestParams) {
+  const { message, userLocation, supabase, userId, ip, apiKey } = params;
 
   const anthropic = new Anthropic({ apiKey });
 
@@ -84,11 +251,10 @@ export async function POST(request: Request) {
       model: "claude-haiku-4-5-20251001",
       max_tokens: 300,
       system: buildSearchSystemPrompt(userLocation),
-      messages: [{ role: "user", content: message.trim() }],
+      messages: [{ role: "user", content: message }],
     });
 
     const text = completion.content[0].type === "text" ? completion.content[0].text : "";
-    // Strip markdown code fences if Haiku wraps the JSON
     const cleaned = text
       .replace(/^```(?:json)?\s*\n?/i, "")
       .replace(/\n?```\s*$/i, "")
@@ -107,236 +273,27 @@ export async function POST(request: Request) {
     );
   }
 
-  // Build event query using same patterns as /api/events
-  const today = new Date().toISOString().split("T")[0];
-
-  let countQ = supabase
-    .from("events")
-    .select("id", { count: "exact", head: true })
-    .in("status", ["published", "completed"] as const);
-
-  let dataQ = supabase
-    .from("events")
-    .select("id, title, type, date, location, price, cover_image_url, coordinates")
-    .in("status", ["published", "completed"] as const);
-
-  // Apply parsed filters
-  if (parsed.type && (ACTIVITY_TYPES as readonly string[]).includes(parsed.type)) {
-    countQ = countQ.eq("type", parsed.type);
-    dataQ = dataQ.eq("type", parsed.type);
-  }
-
-  if (parsed.search) {
-    const pattern = parsed.search.trim().replaceAll(/\s+/g, "%");
-
-    // Also match club names (same pattern as /api/events)
-    const { data: matchingClubs } = await supabase
-      .from("clubs")
-      .select("id")
-      .ilike("name", `%${pattern}%`);
-    const clubIds = matchingClubs?.map((c) => c.id) ?? [];
-
-    // Also match guide names → get their linked event IDs
-    const { data: matchingGuides } = await supabase
-      .from("guides")
-      .select("id")
-      .ilike("full_name", `%${pattern}%`);
-    let guideEventIds: string[] = [];
-    if (matchingGuides && matchingGuides.length > 0) {
-      const guideIds = matchingGuides.map((g) => g.id);
-      const { data: links } = await supabase
-        .from("event_guides")
-        .select("event_id")
-        .in("guide_id", guideIds);
-      guideEventIds = links?.map((l) => l.event_id) ?? [];
-    }
-
-    let filter = `title.ilike.%${pattern}%,location.ilike.%${pattern}%`;
-    if (clubIds.length > 0) {
-      filter += `,club_id.in.(${clubIds.join(",")})`;
-    }
-    if (guideEventIds.length > 0) {
-      filter += `,id.in.(${guideEventIds.join(",")})`;
-    }
-    countQ = countQ.or(filter);
-    dataQ = dataQ.or(filter);
-  }
-
-  if (parsed.duration === "single") {
-    countQ = countQ.is("end_date", null);
-    dataQ = dataQ.is("end_date", null);
-  } else if (parsed.duration === "multi") {
-    countQ = countQ.not("end_date", "is", null);
-    dataQ = dataQ.not("end_date", "is", null);
-  }
-
-  // Distance filter: query event_distances table for matching distance
-  if (parsed.distance) {
-    const { data: distanceRows } = await supabase
-      .from("event_distances")
-      .select("event_id")
-      .eq("distance_km", parsed.distance);
-    const distanceEventIds = distanceRows?.map((d) => d.event_id) ?? [];
-    if (distanceEventIds.length === 0) {
-      // No events match this distance — return empty results early
-      const emptyFilterParts: string[] = [];
-      if (parsed.search) emptyFilterParts.push(`search=${encodeURIComponent(parsed.search)}`);
-      if (parsed.type) emptyFilterParts.push(`type=${parsed.type}`);
-      if (parsed.distance) emptyFilterParts.push(`distance=${parsed.distance}`);
-      if (parsed.difficulty) emptyFilterParts.push(`difficulty=${parsed.difficulty}`);
-      const emptyFilterUrl = `/events${emptyFilterParts.length > 0 ? `?${emptyFilterParts.join("&")}` : ""}`;
-
-      // Log query even for empty distance results
-      await supabase.from("chat_queries").insert({
-        user_id: user?.id ?? null,
-        ip_address: user ? null : ip,
-        query: message.trim(),
-        parsed_params: parsed as unknown as Json,
-        result_count: 0,
-      });
-
-      const searchTerm = parsed.search ?? message.trim();
-      return NextResponse.json({
-        reply: `Sorry, but there are no results for "${searchTerm}". Try a different search or browse all events!`,
-        events: [],
-        totalCount: 0,
-        filterUrl: emptyFilterUrl,
-      });
-    }
-    countQ = countQ.in("id", distanceEventIds);
-    dataQ = dataQ.in("id", distanceEventIds);
-  }
-
-  // Difficulty filter: range-based (e.g. "1-4", "5-7", "8-9")
-  if (parsed.difficulty) {
-    const [minStr, maxStr] = parsed.difficulty.split("-");
-    const min = Number.parseInt(minStr, 10);
-    const max = Number.parseInt(maxStr, 10);
-    if (!Number.isNaN(min) && !Number.isNaN(max)) {
-      countQ = countQ
-        .not("difficulty_level", "is", null)
-        .gte("difficulty_level", min)
-        .lte("difficulty_level", max);
-      dataQ = dataQ
-        .not("difficulty_level", "is", null)
-        .gte("difficulty_level", min)
-        .lte("difficulty_level", max);
-    }
-  }
-
-  if (parsed.dateFrom) {
-    countQ = countQ.gte("date", parsed.dateFrom);
-    dataQ = dataQ.gte("date", parsed.dateFrom);
-  }
-
-  if (parsed.dateTo) {
-    countQ = countQ.lte("date", `${parsed.dateTo}T23:59:59`);
-    dataQ = dataQ.lte("date", `${parsed.dateTo}T23:59:59`);
-  }
-
-  if (parsed.when) {
-    switch (parsed.when) {
-      case "upcoming": {
-        countQ = countQ.gt("date", today);
-        dataQ = dataQ.gt("date", today);
-        break;
-      }
-      case "now": {
-        countQ = countQ.gte("date", today).lte("date", `${today}T23:59:59`);
-        dataQ = dataQ.gte("date", today).lte("date", `${today}T23:59:59`);
-        break;
-      }
-      case "past": {
-        countQ = countQ.lt("date", today);
-        dataQ = dataQ.lt("date", today);
-        break;
-      }
-    }
-  }
-
-  // When sorting by distance, fetch more results to sort client-side then take top 3
-  const fetchLimit = userLocation && parsed.nearMe ? 20 : 3;
-  dataQ = dataQ.order("date", { ascending: true }).limit(fetchLimit);
-
-  const [{ count: totalCount }, { data: events }] = await Promise.all([countQ, dataQ]);
-
-  interface ChatEvent {
-    id: string;
-    title: string;
-    type: EventType;
-    date: string;
-    location: string;
-    price: number;
-    cover_image_url: string | null;
-    coordinates: { lat: number; lng: number } | null;
-  }
-
-  const allEvents = (events ?? []) as ChatEvent[];
-
-  // Sort by distance from user's location when nearMe is requested
-  const topEvents: ChatEvent[] =
-    userLocation && parsed.nearMe && allEvents.length > 0
-      ? [...allEvents]
-          .sort((a, b) => {
-            const distA = a.coordinates
-              ? haversineDistance(
-                  userLocation.lat,
-                  userLocation.lng,
-                  a.coordinates.lat,
-                  a.coordinates.lng,
-                )
-              : Infinity;
-            const distB = b.coordinates
-              ? haversineDistance(
-                  userLocation.lat,
-                  userLocation.lng,
-                  b.coordinates.lat,
-                  b.coordinates.lng,
-                )
-              : Infinity;
-            return distA - distB;
-          })
-          .slice(0, 3)
-      : allEvents.slice(0, 3);
-
-  const miniEvents = topEvents.map((e) => ({
-    id: e.id,
-    title: e.title,
-    type: e.type,
-    date: e.date,
-    location: e.location,
-    price: e.price,
-    cover_image_url: e.cover_image_url,
-  }));
-
-  const count = totalCount ?? 0;
-
-  // Build filter URL for "View all results"
-  const filterParts: string[] = [];
-  if (parsed.search) filterParts.push(`search=${encodeURIComponent(parsed.search)}`);
-  if (parsed.type) filterParts.push(`type=${parsed.type}`);
-  if (parsed.dateFrom) filterParts.push(`from=${parsed.dateFrom}`);
-  if (parsed.dateTo) filterParts.push(`to=${parsed.dateTo}`);
-  if (parsed.when) filterParts.push(`when=${parsed.when}`);
-  if (parsed.distance) filterParts.push(`distance=${parsed.distance}`);
-  if (parsed.difficulty) filterParts.push(`difficulty=${parsed.difficulty}`);
-  const filterUrl = `/events${filterParts.length > 0 ? `?${filterParts.join("&")}` : ""}`;
+  const result = await executeEventSearch({
+    supabase,
+    parsed,
+    userLocation,
+  });
 
   // Log query for rate limiting + analytics
   const { error: insertErr } = await supabase.from("chat_queries").insert({
-    user_id: user?.id ?? null,
-    ip_address: user ? null : ip,
-    query: message.trim(),
+    user_id: userId,
+    ip_address: userId ? null : ip,
+    query: message,
     parsed_params: parsed as unknown as Json,
-    result_count: count,
+    result_count: result.totalCount,
   });
   if (insertErr) {
     console.error("[chat] Failed to log query:", insertErr.message);
   }
 
-  // When no results found, run fallback query and suggest nearest events
-  if (count === 0) {
-    // Fallback: keep type + search, drop date/distance/difficulty, find nearest upcoming
+  // When no results found, run fallback query
+  if (result.totalCount === 0) {
+    const today = new Date().toISOString().split("T")[0];
     let fallbackQ = supabase
       .from("events")
       .select("id, title, type, date, location, price, cover_image_url")
@@ -355,12 +312,11 @@ export async function POST(request: Request) {
     const { data: fallbackEvents } = await fallbackQ;
 
     if (fallbackEvents && fallbackEvents.length > 0) {
-      // Second Claude call to generate a natural suggestion
       try {
         const suggestionCompletion = await anthropic.messages.create({
           model: "claude-haiku-4-5-20251001",
           max_tokens: 200,
-          system: buildSuggestionPrompt(message.trim(), parsed.type, fallbackEvents),
+          system: buildSuggestionPrompt(message, parsed.type, fallbackEvents),
           messages: [{ role: "user", content: "Suggest the nearest events." }],
         });
 
@@ -384,7 +340,6 @@ export async function POST(request: Request) {
           cover_image_url: e.cover_image_url,
         }));
 
-        // Build broader filter URL for "View all results"
         const fallbackFilterParts: string[] = [];
         if (parsed.type) fallbackFilterParts.push(`type=${parsed.type}`);
         if (parsed.search) fallbackFilterParts.push(`search=${encodeURIComponent(parsed.search)}`);
@@ -398,24 +353,23 @@ export async function POST(request: Request) {
           filterUrl: fallbackFilterUrl,
         });
       } catch {
-        // If suggestion call fails, fall through to generic empty response
+        // Fall through to generic empty response
       }
     }
 
-    // No fallback events found either, or suggestion call failed
-    const searchTerm = parsed.search ?? message.trim();
+    const searchTerm = parsed.search ?? message;
     return NextResponse.json({
       reply: `Sorry, but there are no results for "${searchTerm}". Try a different search or browse all events!`,
       events: [],
       totalCount: 0,
-      filterUrl,
+      filterUrl: result.filterUrl,
     });
   }
 
   return NextResponse.json({
     reply: parsed.reply,
-    events: miniEvents,
-    totalCount: count,
-    filterUrl,
+    events: result.events,
+    totalCount: result.totalCount,
+    filterUrl: result.filterUrl,
   });
 }

@@ -8,12 +8,19 @@ export interface MiniEvent {
   cover_image_url: string | null;
 }
 
+export interface ToolCallInfo {
+  name: string;
+  status: "running" | "done";
+}
+
 export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   events?: MiniEvent[];
   totalCount?: number;
   filterUrl?: string;
+  isStreaming?: boolean;
+  toolCalls?: ToolCallInfo[];
 }
 
 export interface ChatResponse {

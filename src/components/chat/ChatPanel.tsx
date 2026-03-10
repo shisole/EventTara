@@ -7,7 +7,7 @@ import { CloseIcon, SendIcon } from "@/components/icons";
 import { type Corner } from "@/lib/hooks/useDraggable";
 
 import ChatMessage from "./ChatMessage";
-import type { ChatMessage as ChatMessageType, ChatResponse } from "./types";
+import type { ChatMessage as ChatMessageType, ChatResponse, ToolCallInfo } from "./types";
 
 const DAILY_LIMIT = 5;
 const STORAGE_KEY = "eventtara_chat_queries";
@@ -93,6 +93,7 @@ export default function ChatPanel({
   const inputRef = useRef<HTMLInputElement>(null);
   const locationRef = useRef<{ lat: number; lng: number } | null>(null);
   const hasAutoSuggested = useRef(false);
+  const threadIdRef = useRef<string>(crypto.randomUUID());
 
   // Request geolocation once on first open
   useEffect(() => {
@@ -135,11 +136,9 @@ export default function ChatPanel({
   // Auto-suggest nearby events on first open when location is available
   useEffect(() => {
     if (!open || hasAutoSuggested.current || loading) return;
-    // Wait a bit for geolocation to resolve
     const timer = setTimeout(() => {
       if (!locationRef.current || hasAutoSuggested.current || remaining <= 0) return;
       hasAutoSuggested.current = true;
-      // Fire a "nearby events" search automatically
       void (async () => {
         setLoading(true);
         try {
@@ -180,6 +179,112 @@ export default function ChatPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally run once on first open
   }, [open]);
 
+  /** Consume an SSE stream from the agent v2 endpoint */
+  async function consumeStream(response: Response) {
+    const reader = response.body?.getReader();
+    if (!reader) return;
+
+    const decoder = new TextDecoder();
+    let buffer = "";
+    const msgIndex = messages.length; // index of the streaming message (will be appended)
+    let content = "";
+    const toolCalls: ToolCallInfo[] = [];
+
+    // Add empty streaming message
+    setMessages((prev) => [
+      ...prev,
+      { role: "assistant", content: "", isStreaming: true, toolCalls: [] },
+    ]);
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const jsonStr = line.slice(6).trim();
+          if (!jsonStr) continue;
+
+          try {
+            const event: {
+              type: string;
+              content?: string;
+              name?: string;
+              data?: unknown;
+              message?: string;
+            } = JSON.parse(jsonStr);
+
+            const updateStreaming = (overrides?: Partial<ChatMessageType>) => {
+              setMessages((prev) => {
+                const updated = [...prev];
+                updated[msgIndex] = {
+                  ...updated[msgIndex],
+                  content,
+                  isStreaming: true,
+                  toolCalls: [...toolCalls],
+                  ...overrides,
+                };
+                return updated;
+              });
+            };
+
+            switch (event.type) {
+              case "token": {
+                content += event.content ?? "";
+                updateStreaming();
+                break;
+              }
+
+              case "tool_start": {
+                toolCalls.push({ name: event.name ?? "unknown", status: "running" });
+                updateStreaming();
+                break;
+              }
+
+              case "tool_result": {
+                const idx = toolCalls.findIndex(
+                  (t) => t.name === event.name && t.status === "running",
+                );
+                if (idx !== -1) {
+                  toolCalls[idx] = { ...toolCalls[idx], status: "done" };
+                }
+                updateStreaming();
+                break;
+              }
+
+              case "done": {
+                updateStreaming({ isStreaming: false, toolCalls: undefined });
+                break;
+              }
+
+              case "error": {
+                setMessages((prev) => {
+                  const updated = [...prev];
+                  updated[msgIndex] = {
+                    role: "assistant",
+                    content: event.message || "Something went wrong. Please try again.",
+                    isStreaming: false,
+                  };
+                  return updated;
+                });
+                break;
+              }
+            }
+          } catch {
+            // Skip malformed SSE lines
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
+  }
+
   const handleSend = async () => {
     const trimmed = input.trim();
     if (!trimmed || loading) return;
@@ -190,7 +295,10 @@ export default function ChatPanel({
     setLoading(true);
 
     try {
-      const payload: Record<string, unknown> = { message: trimmed };
+      const payload: Record<string, unknown> = {
+        message: trimmed,
+        threadId: threadIdRef.current,
+      };
       if (locationRef.current) {
         payload.lat = locationRef.current.lat;
         payload.lng = locationRef.current.lng;
@@ -201,9 +309,10 @@ export default function ChatPanel({
         body: JSON.stringify(payload),
       });
 
-      const data: ChatResponse = await res.json();
+      const contentType = res.headers.get("Content-Type") ?? "";
 
       if (res.status === 429) {
+        const data: ChatResponse = await res.json();
         setMessages((prev) => [
           ...prev,
           {
@@ -217,22 +326,31 @@ export default function ChatPanel({
         return;
       }
 
-      if (data.error && res.status !== 200) {
-        setMessages((prev) => [
-          ...prev,
-          { role: "assistant", content: "Something went wrong. Please try again." },
-        ]);
-        return;
+      // SSE streaming path (agent v2)
+      if (contentType.includes("text/event-stream")) {
+        await consumeStream(res);
+      } else {
+        // Legacy JSON path
+        const data: ChatResponse = await res.json();
+
+        if (data.error && res.status !== 200) {
+          setMessages((prev) => [
+            ...prev,
+            { role: "assistant", content: "Something went wrong. Please try again." },
+          ]);
+          return;
+        }
+
+        const assistantMessage: ChatMessageType = {
+          role: "assistant",
+          content: data.reply,
+          events: data.events,
+          totalCount: data.totalCount,
+          filterUrl: data.filterUrl,
+        };
+        setMessages((prev) => [...prev, assistantMessage]);
       }
 
-      const assistantMessage: ChatMessageType = {
-        role: "assistant",
-        content: data.reply,
-        events: data.events,
-        totalCount: data.totalCount,
-        filterUrl: data.filterUrl,
-      };
-      setMessages((prev) => [...prev, assistantMessage]);
       if (!unlimitedChat) {
         incrementUsed();
         setRemaining(DAILY_LIMIT - getUsedToday());
@@ -263,15 +381,8 @@ export default function ChatPanel({
   const viewportOffset = keyboard?.viewportOffset ?? 0;
   const keyboardOpen = kbHeight > 0;
 
-  // On iOS, when the keyboard opens the browser scrolls the page up.
-  // Fixed elements stay relative to the layout viewport, so bottom-based
-  // positioning breaks. Instead, use top-based positioning calculated from
-  // the visual viewport: place the panel so its bottom edge sits at the
-  // top of the keyboard (bottom of the visible area).
   const keyboardStyle: React.CSSProperties | undefined = keyboardOpen
     ? {
-        // Bottom of visible area = viewportOffset + visualViewport.height
-        // = viewportOffset + (window.innerHeight - kbHeight)
         top: `${viewportOffset + (window.innerHeight - kbHeight) - PANEL_MAX_HEIGHT}px`,
         bottom: "auto",
         height: `${PANEL_MAX_HEIGHT}px`,
@@ -337,7 +448,7 @@ export default function ChatPanel({
             </div>
           ))}
 
-          {loading && (
+          {loading && !messages.some((m) => m.isStreaming) && (
             <div className="animate-chat-message-in flex justify-start">
               <div className="rounded-2xl rounded-bl-md bg-gray-100 px-4 py-2.5 dark:bg-gray-700">
                 <div className="flex gap-1">
