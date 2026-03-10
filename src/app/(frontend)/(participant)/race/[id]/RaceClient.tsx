@@ -12,15 +12,12 @@ type RaceState = "idle" | "racing" | "finished";
 interface ParticipantProgress {
   participant: RaceParticipant;
   progress: number;
-  speed: number;
-  offset: number;
   /** Per-duck wobble phase so they don't bob in sync */
   wobblePhase: number;
-  /** Unique phase for smooth horizontal sway */
-  swayPhase: number;
-  swaySpeed: number;
-  /** Snapshot of progress at start of phase 3 for smooth transition */
-  phase3Start: number;
+  /** Multiple sine layers for unpredictable movement */
+  waves: { freq: number; amp: number; phase: number }[];
+  /** Snapshot of progress at start of sprint for smooth transition */
+  sprintStart: number;
   /** Final target position */
   finalTarget: number;
 }
@@ -106,14 +103,15 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
       const entries: ParticipantProgress[] = shuffled.map((p) => ({
         participant: p,
         progress: 0,
-        speed: 0.97 + Math.random() * 0.06,
-        offset: Math.random() * 5,
         wobblePhase: Math.random() * Math.PI * 2,
-        swayPhase: Math.random() * Math.PI * 2,
-        swaySpeed: 0.8 + Math.random() * 0.6,
-        phase3Start: 0,
-        // Non-winners finish between 85-92%, winners at 100%
-        finalTarget: 85 + Math.random() * 7,
+        // 3-4 layered sine waves per duck → each duck has a unique rhythm
+        waves: Array.from({ length: 3 + Math.floor(Math.random() * 2) }, () => ({
+          freq: 0.3 + Math.random() * 1.2,
+          amp: 1 + Math.random() * 3,
+          phase: Math.random() * Math.PI * 2,
+        })),
+        sprintStart: 0,
+        finalTarget: 85 + Math.random() * 8,
       }));
 
       progressRef.current = entries;
@@ -124,9 +122,7 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
 
       const startTime = performance.now();
       const totalMs = race.duration_seconds * 1000;
-      // Phase boundaries as proportions of total duration
-      const phase1End = totalMs * 0.63; // ~63% pack racing
-      const phase2End = totalMs * 0.84; // ~84% tension
+      const sprintStart = totalMs * 0.8; // last 20% is the sprint
       let lastCountdown = race.duration_seconds;
 
       const animate = (now: number) => {
@@ -141,38 +137,36 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
           setCountdown(remaining);
         }
 
-        // Seconds for smoother math
         const sec = elapsed / 1000;
 
-        if (elapsed <= phase1End) {
-          // Phase 1: Pack racing — all ducks move together with gentle sine sway
-          const phase1T = elapsed / phase1End;
-          const eased = 1 - Math.pow(1 - phase1T, 2);
-          const base = eased * 70;
+        if (elapsed <= sprintStart) {
+          // Main race: each duck follows a unique path via layered sine waves
+          // Base progress moves everyone forward, individual waves create lead changes
+          const raceT = elapsed / sprintStart;
+          const base = (1 - Math.pow(1 - raceT, 1.8)) * 78;
+
           for (const entry of progressRef.current) {
-            const sway = Math.sin(sec * entry.swaySpeed + entry.swayPhase) * 2;
-            entry.progress = Math.max(0, Math.min(base + sway, 72));
-          }
-        } else if (elapsed <= phase2End) {
-          // Phase 2: Tension — bunched tight, slight oscillation
-          const phase2T = (elapsed - phase1End) / (phase2End - phase1End);
-          const base = 70 + phase2T * 8;
-          for (const entry of progressRef.current) {
-            const sway = Math.sin(sec * entry.swaySpeed * 1.5 + entry.swayPhase) * 1.5;
-            entry.progress = Math.max(70, Math.min(base + sway, 80));
+            // Sum of sine waves → unique per-duck oscillation pattern
+            let offset = 0;
+            for (const w of entry.waves) {
+              offset += Math.sin(sec * w.freq + w.phase) * w.amp;
+            }
+            // Scale oscillation up as race progresses (boring start → exciting middle)
+            const drama = Math.min(1, raceT * 2);
+            entry.progress = Math.max(0, Math.min(base + offset * drama, 82));
           }
         } else {
-          // Phase 3: Sprint finish — smoothly from current position to target
-          const phase3T = (elapsed - phase2End) / (totalMs - phase2End);
-          const eased3 = 1 - Math.pow(1 - phase3T, 2.5);
+          // Sprint: smoothly converge each duck from current position to final target
+          const sprintT = (elapsed - sprintStart) / (totalMs - sprintStart);
+          const eased = 1 - Math.pow(1 - sprintT, 2.5);
+
           for (const entry of progressRef.current) {
-            // Snapshot each duck's position on first frame of phase 3
-            if (entry.phase3Start === 0) {
-              entry.phase3Start = entry.progress;
+            if (entry.sprintStart === 0) {
+              entry.sprintStart = entry.progress;
             }
             const isWinner = winnerIdsRef.current.has(entry.participant.user_id);
             const target = isWinner ? 100 : entry.finalTarget;
-            entry.progress = entry.phase3Start + (target - entry.phase3Start) * eased3;
+            entry.progress = entry.sprintStart + (target - entry.sprintStart) * eased;
           }
         }
 
