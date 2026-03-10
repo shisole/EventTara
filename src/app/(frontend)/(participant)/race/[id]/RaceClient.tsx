@@ -19,6 +19,10 @@ interface ParticipantProgress {
   /** Unique phase for smooth horizontal sway */
   swayPhase: number;
   swaySpeed: number;
+  /** Snapshot of progress at start of phase 3 for smooth transition */
+  phase3Start: number;
+  /** Final target position */
+  finalTarget: number;
 }
 
 async function fireConfetti() {
@@ -104,9 +108,11 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
         speed: 0.97 + Math.random() * 0.06,
         offset: Math.random() * 5,
         wobblePhase: Math.random() * Math.PI * 2,
-        /** Unique phase for smooth horizontal sway (replaces random jitter) */
         swayPhase: Math.random() * Math.PI * 2,
         swaySpeed: 0.8 + Math.random() * 0.6,
+        phase3Start: 0,
+        // Non-winners finish between 85-92%, winners at 100%
+        finalTarget: 85 + Math.random() * 7,
       }));
 
       progressRef.current = entries;
@@ -144,17 +150,17 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
             entry.progress = Math.max(70, Math.min(base + sway, 80));
           }
         } else {
-          // Phase 3: Sprint finish — winners pull ahead smoothly
+          // Phase 3: Sprint finish — smoothly from current position to target
           const phase3T = (elapsed - 8000) / (totalDuration - 8000);
-          const eased3 = 1 - Math.pow(1 - phase3T, 4);
+          const eased3 = 1 - Math.pow(1 - phase3T, 2.5);
           for (const entry of progressRef.current) {
-            const isWinner = winnerIdsRef.current.has(entry.participant.user_id);
-            if (isWinner) {
-              entry.progress = 78 + (100 - 78) * eased3;
-            } else {
-              const finalPos = 80 + entry.offset * 1.6;
-              entry.progress = 78 + (finalPos - 78) * eased3 * 0.6;
+            // Snapshot each duck's position on first frame of phase 3
+            if (entry.phase3Start === 0) {
+              entry.phase3Start = entry.progress;
             }
+            const isWinner = winnerIdsRef.current.has(entry.participant.user_id);
+            const target = isWinner ? 100 : entry.finalTarget;
+            entry.progress = entry.phase3Start + (target - entry.phase3Start) * eased3;
           }
         }
 
