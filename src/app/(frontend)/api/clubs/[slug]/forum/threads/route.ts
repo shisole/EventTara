@@ -30,10 +30,7 @@ export async function GET(req: Request, { params }: RouteContext) {
 
   let query = supabase
     .from("club_forum_threads")
-    .select(
-      "*, users!club_forum_threads_user_id_fkey(id, full_name, username, avatar_url), club_forum_categories(id, name, slug)",
-      { count: "exact" },
-    )
+    .select("*, club_forum_categories(id, name, slug)", { count: "exact" })
     .eq("club_id", club.id)
     .order("is_pinned", { ascending: false })
     .order("last_activity_at", { ascending: false })
@@ -54,6 +51,16 @@ export async function GET(req: Request, { params }: RouteContext) {
   const { data: threads, count, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
+  // Fetch author profiles separately (FK references auth.users, not public.users)
+  const userIds = [...new Set((threads ?? []).map((t) => t.user_id))];
+  const { data: users } = userIds.length
+    ? await supabase
+        .from("users")
+        .select("id, full_name, username, avatar_url")
+        .in("id", userIds)
+    : { data: [] };
+  const userMap = new Map((users ?? []).map((u) => [u.id, u]));
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mapped = (threads ?? []).map((t: any) => ({
     id: t.id,
@@ -69,7 +76,7 @@ export async function GET(req: Request, { params }: RouteContext) {
     reply_count: t.reply_count,
     last_activity_at: t.last_activity_at,
     created_at: t.created_at,
-    author: Array.isArray(t.users) ? t.users[0] : t.users,
+    author: userMap.get(t.user_id) ?? null,
     category: Array.isArray(t.club_forum_categories)
       ? t.club_forum_categories[0]
       : t.club_forum_categories,

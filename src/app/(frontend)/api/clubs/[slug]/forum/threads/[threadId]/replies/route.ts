@@ -23,20 +23,29 @@ export async function GET(_req: Request, { params }: RouteContext) {
 
   const { data: replies, error } = await supabase
     .from("club_forum_replies")
-    .select("*, users!club_forum_replies_user_id_fkey(id, full_name, username, avatar_url)")
+    .select("*")
     .eq("thread_id", threadId)
     .order("created_at", { ascending: true });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const mapped = (replies ?? []).map((r: any) => ({
+  // Fetch author profiles separately (FK references auth.users, not public.users)
+  const userIds = [...new Set((replies ?? []).map((r) => r.user_id))];
+  const { data: users } = userIds.length
+    ? await supabase
+        .from("users")
+        .select("id, full_name, username, avatar_url")
+        .in("id", userIds)
+    : { data: [] };
+  const userMap = new Map((users ?? []).map((u) => [u.id, u]));
+
+  const mapped = (replies ?? []).map((r) => ({
     id: r.id,
     thread_id: r.thread_id,
     user_id: r.user_id,
     text: r.text,
     created_at: r.created_at,
-    author: Array.isArray(r.users) ? r.users[0] : r.users,
+    author: userMap.get(r.user_id) ?? null,
   }));
 
   return NextResponse.json({ replies: mapped });

@@ -22,9 +22,7 @@ export async function GET(_req: Request, { params }: RouteContext) {
 
   const { data: thread, error } = await supabase
     .from("club_forum_threads")
-    .select(
-      "*, users!club_forum_threads_user_id_fkey(id, full_name, username, avatar_url), club_forum_categories(id, name, slug)",
-    )
+    .select("*, club_forum_categories(id, name, slug)")
     .eq("id", threadId)
     .eq("club_id", club.id)
     .single();
@@ -32,6 +30,13 @@ export async function GET(_req: Request, { params }: RouteContext) {
   if (error || !thread) {
     return NextResponse.json({ error: "Thread not found" }, { status: 404 });
   }
+
+  // Fetch author separately (FK references auth.users, not public.users)
+  const { data: author } = await supabase
+    .from("users")
+    .select("id, full_name, username, avatar_url")
+    .eq("id", thread.user_id)
+    .single();
 
   let pollVotes: { option_index: number; count: number }[] = [];
   let userVote: number | null = null;
@@ -69,7 +74,7 @@ export async function GET(_req: Request, { params }: RouteContext) {
     reply_count: thread.reply_count,
     last_activity_at: thread.last_activity_at,
     created_at: thread.created_at,
-    author: Array.isArray(thread.users) ? thread.users[0] : thread.users,
+    author: author ?? null,
     category: Array.isArray(thread.club_forum_categories)
       ? thread.club_forum_categories[0]
       : thread.club_forum_categories,
