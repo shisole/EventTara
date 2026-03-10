@@ -3662,6 +3662,46 @@ async function seedDuckRaces(clubMap: Map<string, string>, userMap: Map<string, 
     return;
   }
 
+  // Add participant users as Yenergy club members so the race has participants
+  const memberEmails = [
+    `participant1${TEST_EMAIL_DOMAIN}`,
+    `participant2${TEST_EMAIL_DOMAIN}`,
+    `participant3${TEST_EMAIL_DOMAIN}`,
+    `participant4${TEST_EMAIL_DOMAIN}`,
+    `participant5${TEST_EMAIL_DOMAIN}`,
+    `organizer1${TEST_EMAIL_DOMAIN}`,
+    `organizer2${TEST_EMAIL_DOMAIN}`,
+    `organizer3${TEST_EMAIL_DOMAIN}`,
+  ];
+
+  for (const email of memberEmails) {
+    const userId = userMap.get(email);
+    if (!userId) continue;
+
+    // Skip if already a member (e.g., the owner)
+    const { data: existing } = await supabase
+      .from("club_members")
+      .select("id")
+      .eq("club_id", yenergyClubId)
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (existing) continue;
+
+    const { error: memberErr } = await supabase.from("club_members").insert({
+      club_id: yenergyClubId,
+      user_id: userId,
+      role: "member",
+    });
+
+    if (memberErr) {
+      console.error(`  Failed to add ${email} to Yenergy: ${memberErr.message}`);
+    } else {
+      const name = TEST_USERS.find((u) => u.email === email)?.full_name;
+      log("  ✅", `Added ${name} to Yenergy Outdoors`);
+    }
+  }
+
   const { data: race, error } = await supabase
     .from("club_races")
     .insert({
