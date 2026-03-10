@@ -25,6 +25,8 @@ const TYPE_ICONS: Record<NotificationRow["type"], string> = {
   feed_mention: "📣",
   review_request: "⭐",
   event_published: "📢",
+  forum_reply: "💬",
+  forum_mention: "📣",
 };
 
 export default function NotificationItem({ notification, onMarkRead }: NotificationItemProps) {

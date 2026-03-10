@@ -885,7 +885,9 @@ export interface Database {
             | "feed_comment_like"
             | "feed_mention"
             | "review_request"
-            | "event_published";
+            | "event_published"
+            | "forum_reply"
+            | "forum_mention";
           title: string;
           body: string;
           href: string | null;
@@ -907,7 +909,9 @@ export interface Database {
             | "feed_comment_like"
             | "feed_mention"
             | "review_request"
-            | "event_published";
+            | "event_published"
+            | "forum_reply"
+            | "forum_mention";
           title: string;
           body: string;
           href?: string | null;
@@ -929,7 +933,9 @@ export interface Database {
             | "feed_comment_like"
             | "feed_mention"
             | "review_request"
-            | "event_published";
+            | "event_published"
+            | "forum_reply"
+            | "forum_mention";
           title?: string;
           body?: string;
           href?: string | null;
@@ -1527,6 +1533,129 @@ export interface Database {
           discovery_source?: "social_media" | "friend" | "google" | "poster" | "other" | null;
           completed_at?: string | null;
           skipped_at_step?: number | null;
+        };
+        Relationships: [];
+      };
+      club_forum_categories: {
+        Row: {
+          id: string;
+          club_id: string;
+          name: string;
+          slug: string;
+          sort_order: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          name: string;
+          slug: string;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          club_id?: string;
+          name?: string;
+          slug?: string;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      club_forum_threads: {
+        Row: {
+          id: string;
+          club_id: string;
+          category_id: string | null;
+          user_id: string;
+          title: string;
+          body: string;
+          type: "discussion" | "announcement" | "poll";
+          poll_options: string[] | null;
+          is_pinned: boolean;
+          is_locked: boolean;
+          reply_count: number;
+          last_activity_at: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          category_id?: string | null;
+          user_id: string;
+          title: string;
+          body: string;
+          type?: "discussion" | "announcement" | "poll";
+          poll_options?: string[] | null;
+          is_pinned?: boolean;
+          is_locked?: boolean;
+          reply_count?: number;
+          last_activity_at?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          club_id?: string;
+          category_id?: string | null;
+          user_id?: string;
+          title?: string;
+          body?: string;
+          type?: "discussion" | "announcement" | "poll";
+          poll_options?: string[] | null;
+          is_pinned?: boolean;
+          is_locked?: boolean;
+          reply_count?: number;
+          last_activity_at?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      club_forum_replies: {
+        Row: {
+          id: string;
+          thread_id: string;
+          user_id: string;
+          text: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          thread_id: string;
+          user_id: string;
+          text: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          thread_id?: string;
+          user_id?: string;
+          text?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      club_forum_poll_votes: {
+        Row: {
+          id: string;
+          thread_id: string;
+          user_id: string;
+          option_index: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          thread_id: string;
+          user_id: string;
+          option_index: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          thread_id?: string;
+          user_id?: string;
+          option_index?: number;
+          created_at?: string;
         };
         Relationships: [];
       };
