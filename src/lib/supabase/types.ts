@@ -1659,6 +1659,101 @@ export interface Database {
         };
         Relationships: [];
       };
+      welcome_pages: {
+        Row: {
+          id: string;
+          code: string;
+          title: string;
+          subtitle: string | null;
+          description: string | null;
+          badge_id: string | null;
+          club_id: string | null;
+          redirect_url: string;
+          hero_image_url: string | null;
+          max_claims: number | null;
+          expires_at: string | null;
+          is_active: boolean;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          code: string;
+          title: string;
+          subtitle?: string | null;
+          description?: string | null;
+          badge_id?: string | null;
+          club_id?: string | null;
+          redirect_url?: string;
+          hero_image_url?: string | null;
+          max_claims?: number | null;
+          expires_at?: string | null;
+          is_active?: boolean;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          code?: string;
+          title?: string;
+          subtitle?: string | null;
+          description?: string | null;
+          badge_id?: string | null;
+          club_id?: string | null;
+          redirect_url?: string;
+          hero_image_url?: string | null;
+          max_claims?: number | null;
+          expires_at?: string | null;
+          is_active?: boolean;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "welcome_pages_badge_id_fkey";
+            columns: ["badge_id"];
+            isOneToOne: false;
+            referencedRelation: "badges";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "welcome_pages_club_id_fkey";
+            columns: ["club_id"];
+            isOneToOne: false;
+            referencedRelation: "clubs";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      welcome_page_claims: {
+        Row: {
+          id: string;
+          welcome_page_id: string;
+          user_id: string;
+          claimed_at: string;
+        };
+        Insert: {
+          id?: string;
+          welcome_page_id: string;
+          user_id: string;
+          claimed_at?: string;
+        };
+        Update: {
+          id?: string;
+          welcome_page_id?: string;
+          user_id?: string;
+          claimed_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "welcome_page_claims_welcome_page_id_fkey";
+            columns: ["welcome_page_id"];
+            isOneToOne: false;
+            referencedRelation: "welcome_pages";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: Record<never, never>;
     Functions: {
