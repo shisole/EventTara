@@ -51,3 +51,57 @@ export interface ClubMemberWithUser extends ClubMember {
     avatar_url: string | null;
   };
 }
+
+export type ForumThreadType = "discussion" | "announcement" | "poll";
+
+export interface ForumCategory {
+  id: string;
+  club_id: string;
+  name: string;
+  slug: string;
+  sort_order: number;
+  created_at: string;
+}
+
+export interface ForumThread {
+  id: string;
+  club_id: string;
+  category_id: string | null;
+  user_id: string;
+  title: string;
+  body: string;
+  type: ForumThreadType;
+  poll_options: string[] | null;
+  is_pinned: boolean;
+  is_locked: boolean;
+  reply_count: number;
+  last_activity_at: string;
+  created_at: string;
+}
+
+export interface ForumThreadWithAuthor extends ForumThread {
+  author: {
+    id: string;
+    full_name: string | null;
+    username: string | null;
+    avatar_url: string | null;
+  };
+  category: ForumCategory | null;
+}
+
+export interface ForumReply {
+  id: string;
+  thread_id: string;
+  user_id: string;
+  text: string;
+  created_at: string;
+}
+
+export interface ForumReplyWithAuthor extends ForumReply {
+  author: {
+    id: string;
+    full_name: string | null;
+    username: string | null;
+    avatar_url: string | null;
+  };
+}

@@ -65,6 +65,77 @@ export function SkeletonFeedCard() {
   );
 }
 
+/** Skeleton shaped like a ForumThreadCard row */
+export function SkeletonForumThread() {
+  return (
+    <div className="flex items-center gap-4 py-3.5 px-4">
+      <SkeletonCircle className="h-8 w-8" />
+      <div className="flex-1 min-w-0 space-y-2">
+        <SkeletonText className="w-2/3 h-4" />
+        <SkeletonText className="w-1/3 h-3" />
+      </div>
+      <div className="flex items-center gap-3 shrink-0">
+        <Skeleton className="hidden sm:block h-5 w-16 rounded-full" />
+        <SkeletonText className="w-8 h-4" />
+      </div>
+    </div>
+  );
+}
+
+/** Skeleton for forum sidebar categories */
+export function SkeletonForumSidebar() {
+  return (
+    <div className="space-y-4">
+      <Skeleton className="h-11 w-full rounded-xl" />
+      <div className="space-y-1">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="flex items-center gap-2.5 px-3 py-2">
+            <Skeleton className="h-3 w-3 rounded-full" />
+            <SkeletonText className="w-24" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Skeleton for a full thread detail page */
+export function SkeletonForumThreadDetail() {
+  return (
+    <div className="space-y-6">
+      <SkeletonText className="w-32 h-4" />
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-5 space-y-4">
+        <SkeletonText className="w-3/4 h-6" />
+        <div className="flex items-center gap-3">
+          <SkeletonCircle className="h-8 w-8" />
+          <div className="space-y-1.5">
+            <SkeletonText className="w-28 h-4" />
+            <SkeletonText className="w-20 h-3" />
+          </div>
+        </div>
+        <div className="space-y-2 pt-2">
+          <SkeletonText className="w-full" />
+          <SkeletonText className="w-full" />
+          <SkeletonText className="w-2/3" />
+        </div>
+      </div>
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-5 space-y-4">
+        <SkeletonText className="w-20 h-5" />
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="flex items-start gap-3 py-3">
+            <SkeletonCircle className="h-8 w-8" />
+            <div className="flex-1 space-y-2">
+              <SkeletonText className="w-24 h-3" />
+              <SkeletonText className="w-full" />
+              <SkeletonText className="w-1/2" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /** Skeleton for a table row */
 export function SkeletonTableRow() {
   return (
