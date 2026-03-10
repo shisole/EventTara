@@ -1,5 +1,10 @@
 import { test, expect } from "@playwright/test";
 
+test.beforeEach(async ({ page }) => {
+  // Dismiss onboarding quiz modal that blocks interaction in fresh sessions
+  await page.addInitScript(() => localStorage.setItem("quiz_completed", "true"));
+});
+
 test("homepage loads and shows key content", async ({ page }) => {
   await page.goto("/");
 
