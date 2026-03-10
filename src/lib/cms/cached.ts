@@ -292,6 +292,18 @@ export async function isEwalletPaymentsEnabled(): Promise<boolean> {
 }
 
 /**
+ * Returns whether the LangGraph chat agent v2 is enabled.
+ */
+export async function isChatAgentV2Enabled(): Promise<boolean> {
+  try {
+    const flags = await getCachedFeatureFlags();
+    return flags?.chat_agent_v2 === true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Returns whether the club reviews feature flag is enabled.
  */
 export async function isClubReviewsEnabled(): Promise<boolean> {
