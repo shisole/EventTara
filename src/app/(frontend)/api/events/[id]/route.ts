@@ -3,7 +3,10 @@ import { NextResponse } from "next/server";
 import { onEventCompleted } from "@/lib/badges/award-event-badge";
 import { checkClubPermissionServer, CLUB_PERMISSIONS } from "@/lib/clubs/permissions";
 import { findProvinceFromLocation } from "@/lib/constants/philippine-provinces";
+import { sendEmail } from "@/lib/email/send";
+import { eventPublishedHtml } from "@/lib/email/templates/event-published";
 import { findOverlappingEvent, formatOverlapDate } from "@/lib/events/overlap";
+import { createNotifications } from "@/lib/notifications/create";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -123,6 +126,77 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   // Auto-award event badge when marked as completed (fire-and-forget)
   if (body.status === "completed") {
     onEventCompleted(id, supabase).catch(() => null);
+  }
+
+  // Notify club members when event is published (fire-and-forget)
+  if (body.status === "published" && event.club_id) {
+    (async () => {
+      // Get club name and members (excluding the publishing user)
+      const [{ data: club }, { data: members }] = await Promise.all([
+        supabase.from("clubs").select("name").eq("id", event.club_id).single(),
+        supabase
+          .from("club_members")
+          .select("user_id")
+          .eq("club_id", event.club_id)
+          .neq("user_id", user.id),
+      ]);
+
+      if (!members?.length) return;
+
+      const clubName = club?.name ?? "Your club";
+      const eventDate = event.date
+        ? new Date(event.date).toLocaleDateString("en-PH", {
+            weekday: "short",
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })
+        : "TBA";
+
+      // Batch-insert in-app notifications
+      await createNotifications(
+        supabase,
+        members.map((m) => ({
+          userId: m.user_id,
+          type: "event_published" as const,
+          title: `New event: ${event.title}`,
+          body: `${clubName} published "${event.title}"`,
+          href: `/events/${id}`,
+          actorId: user.id,
+          metadata: { event_id: id, club_id: event.club_id },
+        })),
+      );
+
+      // Send emails to members (query emails, fire-and-forget)
+      const { data: users } = await supabase
+        .from("users")
+        .select("id, email, full_name")
+        .in(
+          "id",
+          members.map((m) => m.user_id),
+        );
+
+      if (users?.length) {
+        const emailPromises = users
+          .filter((u) => u.email)
+          .map((u) =>
+            sendEmail({
+              to: u.email!,
+              subject: `New event from ${clubName}: ${event.title}`,
+              html: eventPublishedHtml({
+                userName: u.full_name || "Member",
+                eventTitle: event.title,
+                eventDate,
+                eventLocation: event.location || "TBA",
+                eventType: event.type || "",
+                clubName,
+                eventId: id,
+              }),
+            }),
+          );
+        await Promise.allSettled(emailPromises);
+      }
+    })().catch((error_) => console.error("[EventPublished] Notification error:", error_));
   }
 
   // Replace distances if provided (delete all then re-insert)

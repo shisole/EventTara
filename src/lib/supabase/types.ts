@@ -885,6 +885,7 @@ export interface Database {
             | "feed_comment_like"
             | "feed_mention"
             | "review_request"
+            | "event_published"
             | "forum_reply"
             | "forum_mention";
           title: string;
@@ -908,6 +909,7 @@ export interface Database {
             | "feed_comment_like"
             | "feed_mention"
             | "review_request"
+            | "event_published"
             | "forum_reply"
             | "forum_mention";
           title: string;
@@ -931,6 +933,7 @@ export interface Database {
             | "feed_comment_like"
             | "feed_mention"
             | "review_request"
+            | "event_published"
             | "forum_reply"
             | "forum_mention";
           title?: string;
