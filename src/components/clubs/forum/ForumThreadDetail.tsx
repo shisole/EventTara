@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import { Avatar } from "@/components/ui";
+import { SkeletonForumThreadDetail } from "@/components/ui/Skeleton";
 import { type ClubRole, type ForumThreadWithAuthor } from "@/lib/clubs/types";
 import { formatRelativeTime } from "@/lib/utils/relative-time";
 
@@ -53,9 +54,7 @@ export default function ForumThreadDetail({
   }, [fetchThread]);
 
   if (loading) {
-    return (
-      <div className="text-center py-12 text-gray-500 dark:text-gray-400">Loading thread...</div>
-    );
+    return <SkeletonForumThreadDetail />;
   }
 
   if (!thread) {

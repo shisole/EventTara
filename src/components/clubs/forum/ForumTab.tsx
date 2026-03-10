@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import { SkeletonForumThread } from "@/components/ui/Skeleton";
 import { type ClubRole, type ForumCategory, type ForumThreadWithAuthor } from "@/lib/clubs/types";
 import { cn } from "@/lib/utils";
 
@@ -188,8 +189,10 @@ export default function ForumTab({ clubSlug, userRole }: ForumTabProps) {
         {/* Thread list */}
         <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm dark:shadow-gray-950/30 overflow-hidden divide-y divide-gray-100 dark:divide-gray-800">
           {loading ? (
-            <div className="p-8 text-center text-gray-500 dark:text-gray-400 text-sm">
-              Loading discussions...
+            <div className="divide-y divide-gray-100 dark:divide-gray-800">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <SkeletonForumThread key={i} />
+              ))}
             </div>
           ) : threads.length > 0 ? (
             threads.map((thread) => (

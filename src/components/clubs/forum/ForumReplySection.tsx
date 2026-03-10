@@ -76,7 +76,18 @@ export default function ForumReplySection({
       </h3>
 
       {loading ? (
-        <p className="text-sm text-gray-500 dark:text-gray-400">Loading replies...</p>
+        <div className="space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="flex gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50">
+              <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse shrink-0" />
+              <div className="flex-1 space-y-2">
+                <div className="h-3 w-24 rounded-md bg-gray-200 dark:bg-gray-700 animate-pulse" />
+                <div className="h-4 w-full rounded-md bg-gray-200 dark:bg-gray-700 animate-pulse" />
+                <div className="h-4 w-2/3 rounded-md bg-gray-200 dark:bg-gray-700 animate-pulse" />
+              </div>
+            </div>
+          ))}
+        </div>
       ) : replies.length > 0 ? (
         <div className="space-y-3">
           {replies.map((reply) => {
