@@ -61,6 +61,12 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - name: Seed staging database
+        run: pnpm seed --yes
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.STAGING_SUPABASE_SERVICE_ROLE_KEY }}
+
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium
 
