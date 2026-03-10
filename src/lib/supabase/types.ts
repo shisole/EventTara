@@ -884,7 +884,8 @@ export interface Database {
             | "feed_repost"
             | "feed_comment_like"
             | "feed_mention"
-            | "review_request";
+            | "review_request"
+            | "event_published";
           title: string;
           body: string;
           href: string | null;
@@ -905,7 +906,8 @@ export interface Database {
             | "feed_repost"
             | "feed_comment_like"
             | "feed_mention"
-            | "review_request";
+            | "review_request"
+            | "event_published";
           title: string;
           body: string;
           href?: string | null;
@@ -926,7 +928,8 @@ export interface Database {
             | "feed_repost"
             | "feed_comment_like"
             | "feed_mention"
-            | "review_request";
+            | "review_request"
+            | "event_published";
           title?: string;
           body?: string;
           href?: string | null;
