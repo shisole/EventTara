@@ -2,6 +2,7 @@ import Image from "next/image";
 
 import { NavLink } from "@/components/navigation/NavigationContext";
 import { Card, DemoBadge } from "@/components/ui";
+import { getActivityLabel, getActivitySolidColor } from "@/lib/constants/activity-types";
 import { cn } from "@/lib/utils";
 import { formatEventDate } from "@/lib/utils/format-date";
 
@@ -33,22 +34,6 @@ interface EventCardProps {
   compact?: boolean;
   is_demo?: boolean;
 }
-
-const typeLabels: Record<string, string> = {
-  hiking: "Hiking",
-  mtb: "Mountain Biking",
-  road_bike: "Road Biking",
-  running: "Running",
-  trail_run: "Trail Running",
-};
-
-const solidTypeBadge: Record<string, string> = {
-  hiking: "bg-emerald-500 text-white",
-  mtb: "bg-amber-500 text-white",
-  road_bike: "bg-blue-500 text-white",
-  running: "bg-orange-500 text-white",
-  trail_run: "bg-yellow-800 text-white",
-};
 
 function solidDifficultyBadge(level: number): string {
   if (level <= 4) return "bg-emerald-500 text-white";
@@ -145,10 +130,10 @@ export default function EventCard({
             <span
               className={cn(
                 "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold shadow-sm",
-                solidTypeBadge[type] ?? "bg-gray-500 text-white",
+                getActivitySolidColor(type),
               )}
             >
-              {typeLabels[type] || type}
+              {getActivityLabel(type)}
             </span>
             {difficulty_level != null && (
               <span

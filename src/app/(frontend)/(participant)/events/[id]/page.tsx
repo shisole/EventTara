@@ -15,19 +15,13 @@ import ReviewForm from "@/components/reviews/ReviewForm";
 import ReviewList from "@/components/reviews/ReviewList";
 import EventRouteSection from "@/components/strava/EventRouteSection";
 import { Breadcrumbs, DemoBadge, UIBadge } from "@/components/ui";
+import { ACTIVITY_TYPE_LABELS } from "@/lib/constants/activity-types";
 import { resolvePresetImage } from "@/lib/constants/avatars";
 import { BreadcrumbTitle } from "@/lib/contexts/BreadcrumbContext";
+import { enrichReviewsWithBorders } from "@/lib/data/enrich-borders";
 import { cdnUrl } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/server";
 import { formatEventDate } from "@/lib/utils/format-date";
-
-const typeLabels: Record<string, string> = {
-  hiking: "Hiking",
-  mtb: "Mountain Biking",
-  road_bike: "Road Biking",
-  running: "Running",
-  trail_run: "Trail Running",
-};
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -42,7 +36,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
   const description = event.description
     ? event.description.slice(0, 160)
-    : `Join this ${typeLabels[event.type] || event.type} adventure on EventTara!`;
+    : `Join this ${ACTIVITY_TYPE_LABELS[event.type as keyof typeof ACTIVITY_TYPE_LABELS] || event.type} adventure on EventTara!`;
 
   const images = event.cover_image_url
     ? [{ url: event.cover_image_url, width: 1200, height: 630, alt: event.title }]
@@ -165,32 +159,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
     .order("created_at", { ascending: false });
 
   // Enrich reviews with border data
-  const rawReviews = (reviews || []) as any[];
-  const reviewBorderIds = rawReviews
-    .map((r: any) => r.users?.active_border_id)
-    .filter(Boolean) as string[];
-
-  let borderLookup = new Map<string, { tier: string; border_color: string | null }>();
-  if (reviewBorderIds.length > 0) {
-    const { data: borderDefs } = await supabase
-      .from("avatar_borders")
-      .select("id, tier, border_color")
-      .in("id", reviewBorderIds);
-    borderLookup = new Map((borderDefs || []).map((b) => [b.id, b]));
-  }
-
-  const eventReviews = rawReviews.map((r: any) => {
-    const borderId = r.users?.active_border_id;
-    const border = borderId ? borderLookup.get(borderId) : null;
-    return {
-      ...r,
-      users: {
-        ...r.users,
-        active_border_tier: border?.tier ?? null,
-        active_border_color: border?.border_color ?? null,
-      },
-    };
-  });
+  const eventReviews = await enrichReviewsWithBorders(supabase, (reviews || []) as any[]);
   const avgRating =
     eventReviews.length > 0
       ? eventReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / eventReviews.length
@@ -428,7 +397,10 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
         <div className="lg:col-span-2 space-y-8">
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <UIBadge variant={event.type as any}>{typeLabels[event.type] || event.type}</UIBadge>
+              <UIBadge variant={event.type as any}>
+                {ACTIVITY_TYPE_LABELS[event.type as keyof typeof ACTIVITY_TYPE_LABELS] ||
+                  event.type}
+              </UIBadge>
               {event.difficulty_level && <DifficultyBadge level={event.difficulty_level} />}
               {event.is_demo && <DemoBadge />}
             </div>

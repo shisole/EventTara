@@ -4,8 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Button, Input, Toggle } from "@/components/ui";
-
-const ACTIVITY_OPTIONS = ["hiking", "mtb", "road_bike", "running", "trail_run"];
+import { ACTIVITY_TYPES } from "@/lib/constants/activity-types";
 
 interface ClubSettingsFormProps {
   club: {
@@ -159,7 +158,7 @@ export default function ClubSettingsForm({ club, isOwner }: ClubSettingsFormProp
               Activity Types
             </label>
             <div className="flex flex-wrap gap-2">
-              {ACTIVITY_OPTIONS.map((type) => (
+              {ACTIVITY_TYPES.map((type) => (
                 <button
                   key={type}
                   type="button"

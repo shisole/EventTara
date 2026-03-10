@@ -1,24 +1,10 @@
+import { getActivityPluralLabel, getActivityStatsColor } from "@/lib/constants/activity-types";
+
 interface ProfileStatsProps {
   totalEvents: number;
   badgeCount: number;
   typeBreakdown: Record<string, number>;
 }
-
-const typeLabels: Record<string, string> = {
-  hiking: "Hikes",
-  mtb: "MTB Rides",
-  road_bike: "Road Rides",
-  running: "Runs",
-  trail_run: "Trail Runs",
-};
-
-const typeColors: Record<string, string> = {
-  hiking: "bg-forest-100 text-forest-700 dark:bg-forest-900/40 dark:text-forest-300",
-  mtb: "bg-lime-100 text-lime-700 dark:bg-lime-900/40 dark:text-lime-300",
-  road_bike: "bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300",
-  running: "bg-golden-100 text-golden-700 dark:bg-golden-900/40 dark:text-golden-300",
-  trail_run: "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300",
-};
 
 export default function ProfileStats({
   totalEvents,
@@ -46,9 +32,9 @@ export default function ProfileStats({
             .map(([type, count]) => (
               <span
                 key={type}
-                className={`px-3 py-1 rounded-full text-sm font-medium ${typeColors[type] || "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"}`}
+                className={`px-3 py-1 rounded-full text-sm font-medium ${getActivityStatsColor(type)}`}
               >
-                {count} {typeLabels[type] || type}
+                {count} {getActivityPluralLabel(type)}
               </span>
             ))}
           {Object.keys(typeBreakdown).length > 3 && (

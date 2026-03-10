@@ -4,15 +4,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Button, Input, Toggle } from "@/components/ui";
+import { ACTIVITY_TYPE_OPTIONS } from "@/lib/constants/activity-types";
 import { cn } from "@/lib/utils";
-
-const activityOptions = [
-  { key: "hiking", label: "Hiking", color: "bg-emerald-500" },
-  { key: "mtb", label: "Mountain Biking", color: "bg-amber-500" },
-  { key: "road_bike", label: "Road Biking", color: "bg-blue-500" },
-  { key: "running", label: "Running", color: "bg-orange-500" },
-  { key: "trail_run", label: "Trail Running", color: "bg-yellow-700" },
-];
 
 export default function CreateClubForm() {
   const router = useRouter();
@@ -132,7 +125,7 @@ export default function CreateClubForm() {
             Activity Types
           </label>
           <div className="flex flex-wrap gap-2">
-            {activityOptions.map((opt) => {
+            {ACTIVITY_TYPE_OPTIONS.map((opt) => {
               const isSelected = activityTypes.includes(opt.key);
               return (
                 <button

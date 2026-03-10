@@ -11,6 +11,7 @@ import { type ExistingEventMarker } from "@/components/maps/MapPicker";
 import RouteAttachmentForm from "@/components/strava/RouteAttachmentForm";
 import { Button, Input, Toggle } from "@/components/ui";
 import { type EventDateInfo } from "@/components/ui/DateRangePicker";
+import { DISTANCE_ACTIVITY_TYPES } from "@/lib/constants/activity-types";
 import { COVER_TEMPLATES } from "@/lib/constants/cover-templates";
 import { findProvinceFromLocation } from "@/lib/constants/philippine-provinces";
 import { rangesOverlap, getEffectiveEnd } from "@/lib/events/overlap";
@@ -75,7 +76,6 @@ const EVENT_TYPES = [
   { value: "trail_run", label: "Trail Running" },
 ];
 
-const DISTANCE_TYPES = new Set(["running", "trail_run", "road_bike"]);
 const PRESET_DISTANCES = [3, 5, 10, 21, 42, 50, 100];
 
 const DISTANCE_LABEL_MAP: Record<number, string> = {
@@ -309,7 +309,7 @@ export default function EventForm({ mode, clubId, initialData }: EventFormProps)
   );
   const [customDistanceInput, setCustomDistanceInput] = useState("");
 
-  const supportsDistances = DISTANCE_TYPES.has(type);
+  const supportsDistances = DISTANCE_ACTIVITY_TYPES.has(type);
 
   // Organizer's existing events (for map markers + date indicators)
   interface OrganizerEvent {

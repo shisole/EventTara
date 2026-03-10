@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useState, useEffect, useRef, useTransition, type ReactNode } from "react";
 
+import { DISTANCE_ACTIVITY_TYPES } from "@/lib/constants/activity-types";
 import { cn } from "@/lib/utils";
 
 /* ------------------------------------------------------------------ */
@@ -54,8 +55,6 @@ const DIFFICULTY_OPTIONS = [
   { value: "5-7", label: "Moderate (5-7)", variant: "difficulty_moderate" as const },
   { value: "8-9", label: "Hard (8-9)", variant: "difficulty_hard" as const },
 ];
-
-const DISTANCE_TYPES = new Set(["running", "trail_run", "road_bike"]);
 
 const DISTANCE_OPTIONS = [
   { value: "3", label: "3 km" },
@@ -651,7 +650,7 @@ export default function EventFilters({
         updates.difficulty = "";
       }
       // If selected type doesn't support distance, clear distance filter
-      if (!next || !DISTANCE_TYPES.has(next)) updates.distance = "";
+      if (!next || !DISTANCE_ACTIVITY_TYPES.has(next)) updates.distance = "";
       updateParams(updates);
     },
     [currentTypes, updateParams],
@@ -833,7 +832,7 @@ export default function EventFilters({
 
   /* Only show Distance chip when a distance-supporting type is selected */
   const showDistanceChip =
-    isAllSelected(activeTypes) || [...activeTypes].some((t) => DISTANCE_TYPES.has(t));
+    isAllSelected(activeTypes) || [...activeTypes].some((t) => DISTANCE_ACTIVITY_TYPES.has(t));
 
   return (
     <div className="space-y-4">

@@ -56,7 +56,13 @@ export default function BookingForm({
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [booking, setBooking] = useState<any>(null);
+  const [booking, setBooking] = useState<{
+    id: string;
+    qr_code: string | null;
+    payment_status: string;
+    payment_method: string | null;
+    companions?: { id: string; full_name: string; qr_code: string | null }[];
+  } | null>(null);
   const [companions, setCompanions] = useState<Companion[]>(
     mode === "friend" ? [{ full_name: "", phone: "" }] : [],
   );
@@ -212,7 +218,7 @@ export default function BookingForm({
         eventEndDate={eventEndDate}
         qrCode={booking.qr_code}
         paymentStatus={booking.payment_status}
-        paymentMethod={booking.payment_method}
+        paymentMethod={booking.payment_method ?? undefined}
         companions={booking.companions}
         mode={mode}
       />

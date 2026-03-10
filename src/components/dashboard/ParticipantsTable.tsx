@@ -7,10 +7,10 @@ import { Button } from "@/components/ui";
 import PaymentStatusBadge from "@/components/ui/PaymentStatusBadge";
 import { cn } from "@/lib/utils";
 
-interface Booking {
+export interface Booking {
   id: string;
   user_id: string | null;
-  status: string;
+  status: "pending" | "confirmed" | "cancelled";
   payment_status: "pending" | "paid" | "rejected" | "refunded";
   payment_method: string | null;
   participant_cancelled: boolean;
@@ -25,7 +25,7 @@ interface Booking {
   users: { full_name: string; email: string; avatar_url: string | null } | null;
 }
 
-interface Companion {
+export interface Companion {
   id: string;
   full_name: string;
   status: "pending" | "confirmed" | "cancelled";
@@ -65,13 +65,13 @@ const WAIVER_FILTERS: { label: string; value: WaiverFilter }[] = [
   { label: "Unsigned", value: "unsigned" },
 ];
 
-const companionStatusStyle: Record<string, string> = {
+const companionStatusStyle: Record<Companion["status"], string> = {
   pending: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300",
   confirmed: "bg-forest-100 text-forest-700 dark:bg-forest-900/50 dark:text-forest-300",
   cancelled: "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300 line-through",
 };
 
-const manualStatusStyle: Record<string, string> = {
+const manualStatusStyle: Record<"paid" | "reserved" | "pending", string> = {
   paid: "bg-forest-100 text-forest-700 dark:bg-forest-900/50 dark:text-forest-300",
   reserved: "bg-teal-100 text-teal-700 dark:bg-teal-900/50 dark:text-teal-300",
   pending: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300",

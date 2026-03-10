@@ -6,6 +6,7 @@ import { useState, useRef } from "react";
 
 import { Card, UIBadge, Button } from "@/components/ui";
 import PaymentStatusBadge from "@/components/ui/PaymentStatusBadge";
+import { getActivityLabel } from "@/lib/constants/activity-types";
 import { formatEventDate } from "@/lib/utils/format-date";
 
 interface BookingCompanion {
@@ -23,21 +24,13 @@ interface Booking {
   eventLocation: string;
   eventId: string;
   eventPrice: number;
-  paymentStatus: string;
+  paymentStatus: "pending" | "paid" | "rejected" | "refunded";
   paymentMethod: string;
   paymentProofUrl: string | null;
   companions?: BookingCompanion[];
   checkedIn: boolean;
   userId: string;
 }
-
-const typeLabels: Record<string, string> = {
-  hiking: "Hiking",
-  mtb: "Mountain Biking",
-  road_bike: "Road Biking",
-  running: "Running",
-  trail_run: "Trail Running",
-};
 
 function ReuploadButton({ bookingId }: { bookingId: string }) {
   const [uploading, setUploading] = useState(false);
@@ -161,7 +154,7 @@ export default function UpcomingBookings({ bookings }: { bookings: Booking[] }) 
           <div className="flex items-start justify-between">
             <div className="space-y-1">
               <div className="flex gap-2 items-center">
-                <UIBadge variant={b.eventType}>{typeLabels[b.eventType] || b.eventType}</UIBadge>
+                <UIBadge variant={b.eventType}>{getActivityLabel(b.eventType)}</UIBadge>
                 {b.paymentStatus && b.paymentMethod && (
                   <PaymentStatusBadge status={b.paymentStatus} />
                 )}

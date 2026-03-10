@@ -7,6 +7,7 @@ import ReviewList from "@/components/reviews/ReviewList";
 import StarRating from "@/components/reviews/StarRating";
 import { Breadcrumbs, UserAvatar } from "@/components/ui";
 import { BreadcrumbTitle } from "@/lib/contexts/BreadcrumbContext";
+import { enrichReviewsWithBorders } from "@/lib/data/enrich-borders";
 import { createClient } from "@/lib/supabase/server";
 
 const EventsCalendar = nextDynamic(() => import("@/components/dashboard/EventsCalendar"));
@@ -148,32 +149,10 @@ export default async function GuideProfilePage({ params }: { params: Promise<{ i
     .order("created_at", { ascending: false });
 
   // Enrich reviews with border data
-  const rawGuideReviews = (reviews || []) as any[];
-  const guideReviewBorderIds = rawGuideReviews
-    .map((r: any) => r.users?.active_border_id)
-    .filter(Boolean) as string[];
-
-  let guideBorderLookup = new Map<string, { tier: string; border_color: string | null }>();
-  if (guideReviewBorderIds.length > 0) {
-    const { data: borderDefs } = await supabase
-      .from("avatar_borders")
-      .select("id, tier, border_color")
-      .in("id", guideReviewBorderIds);
-    guideBorderLookup = new Map((borderDefs || []).map((b) => [b.id, b]));
-  }
-
-  const reviewList = rawGuideReviews.map((r: any) => {
-    const borderId = r.users?.active_border_id;
-    const border = borderId ? guideBorderLookup.get(borderId) : null;
-    return {
-      ...r,
-      users: {
-        ...r.users,
-        active_border_tier: border?.tier ?? null,
-        active_border_color: border?.border_color ?? null,
-      },
-    };
-  }) as unknown as GuideReview[];
+  const reviewList = (await enrichReviewsWithBorders(
+    supabase,
+    (reviews || []) as any[],
+  )) as unknown as GuideReview[];
 
   // Calculate aggregate stats
   let avgRating = 0;

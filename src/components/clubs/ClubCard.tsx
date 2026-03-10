@@ -2,6 +2,7 @@ import Image from "next/image";
 
 import { NavLink } from "@/components/navigation/NavigationContext";
 import { Card } from "@/components/ui";
+import { getActivityBadgeColor, getActivityShortLabel } from "@/lib/constants/activity-types";
 import { cn } from "@/lib/utils";
 
 interface ClubCardProps {
@@ -14,22 +15,6 @@ interface ClubCardProps {
   description: string | null;
   is_demo?: boolean;
 }
-
-const typeLabels: Record<string, string> = {
-  hiking: "Hiking",
-  mtb: "MTB",
-  road_bike: "Road Bike",
-  running: "Running",
-  trail_run: "Trail Run",
-};
-
-const typeBadgeColors: Record<string, string> = {
-  hiking: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
-  mtb: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
-  road_bike: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
-  running: "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300",
-  trail_run: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300",
-};
 
 const logoColors: string[] = [
   "bg-teal-500",
@@ -117,11 +102,10 @@ export default function ClubCard({
                   key={type}
                   className={cn(
                     "inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold",
-                    typeBadgeColors[type] ??
-                      "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
+                    getActivityBadgeColor(type),
                   )}
                 >
-                  {typeLabels[type] ?? type}
+                  {getActivityShortLabel(type)}
                 </span>
               ))}
               {activity_types.length > 3 && (

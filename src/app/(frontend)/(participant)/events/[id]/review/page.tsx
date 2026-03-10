@@ -3,17 +3,10 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import QuickReviewForm from "@/components/reviews/QuickReviewForm";
+import { ACTIVITY_TYPE_LABELS } from "@/lib/constants/activity-types";
 import { cdnUrl } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/server";
 import { formatEventDate } from "@/lib/utils/format-date";
-
-const typeLabels: Record<string, string> = {
-  hiking: "Hiking",
-  mtb: "Mountain Biking",
-  road_bike: "Road Biking",
-  running: "Running",
-  trail_run: "Trail Running",
-};
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -92,7 +85,7 @@ export default async function EventReviewPage({ params }: { params: Promise<{ id
           )}
           <div className="p-4">
             <span className="inline-block rounded-full bg-teal-50 dark:bg-teal-950/30 px-2.5 py-0.5 text-xs font-medium text-teal-700 dark:text-teal-300 mb-2">
-              {typeLabels[event.type] || event.type}
+              {ACTIVITY_TYPE_LABELS[event.type as keyof typeof ACTIVITY_TYPE_LABELS] || event.type}
             </span>
             <h1 className="text-lg font-heading font-bold text-gray-900 dark:text-white">
               {event.title}

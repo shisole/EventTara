@@ -2,10 +2,6 @@ import { type HTMLAttributes, forwardRef } from "react";
 
 import { cn } from "@/lib/utils";
 
-interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
-  variant?: string;
-}
-
 const variantStyles: Record<string, string> = {
   default: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
   hiking: "bg-forest-100 text-forest-700 dark:bg-forest-900/50 dark:text-forest-300",
@@ -18,6 +14,12 @@ const variantStyles: Record<string, string> = {
   difficulty_moderate: "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300",
   difficulty_hard: "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300",
 };
+
+export type BadgeVariant = keyof typeof variantStyles;
+
+interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
+  variant?: string;
+}
 
 const UIBadge = forwardRef<HTMLSpanElement, BadgeProps>(
   ({ className, variant = "default", ...props }, ref) => (

@@ -2,17 +2,10 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { UIBadge } from "@/components/ui";
+import { getActivityLabel } from "@/lib/constants/activity-types";
 import { formatEventDate } from "@/lib/utils/format-date";
 
 import type { MiniEvent } from "./types";
-
-const typeLabels: Record<string, string> = {
-  hiking: "Hiking",
-  mtb: "Mountain Biking",
-  road_bike: "Road Biking",
-  running: "Running",
-  trail_run: "Trail Running",
-};
 
 export default function ChatEventCard({
   id,
@@ -40,7 +33,7 @@ export default function ChatEventCard({
       <div className="min-w-0 flex-1">
         <div className="mb-0.5">
           <UIBadge variant={type} className="text-[10px] px-1.5 py-0">
-            {typeLabels[type] || type}
+            {getActivityLabel(type)}
           </UIBadge>
         </div>
         <p className="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">{title}</p>
