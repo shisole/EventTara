@@ -110,7 +110,7 @@ export default async function WelcomePage({ params }: { params: Promise<{ code: 
       .from("badges")
       .select("id, title, description, image_url, category, rarity")
       .eq("id", page.badge_id)
-      .single();
+      .maybeSingle();
     badge = badgeData;
   }
 
@@ -128,7 +128,7 @@ export default async function WelcomePage({ params }: { params: Promise<{ code: 
       .from("clubs")
       .select("id, name, slug, logo_url, description")
       .eq("id", page.club_id)
-      .single();
+      .maybeSingle();
     club = clubData;
   }
 
