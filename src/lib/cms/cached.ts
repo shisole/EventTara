@@ -292,6 +292,18 @@ export async function isEwalletPaymentsEnabled(): Promise<boolean> {
 }
 
 /**
+ * Returns whether the duck race feature is enabled.
+ */
+export async function isDuckRaceEnabled(): Promise<boolean> {
+  try {
+    const flags = await getCachedFeatureFlags();
+    return flags?.duck_race === true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Returns whether the club reviews feature flag is enabled.
  */
 export async function isClubReviewsEnabled(): Promise<boolean> {

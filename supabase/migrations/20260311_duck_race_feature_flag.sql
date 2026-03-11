@@ -1,0 +1,1 @@
+ALTER TABLE cms_feature_flags ADD COLUMN IF NOT EXISTS duck_race BOOLEAN NOT NULL DEFAULT false;

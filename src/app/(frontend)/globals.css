@@ -139,6 +139,16 @@
   animation: chatMessageIn 0.2s ease-out forwards;
 }
 
+/* Duck race river flow animation */
+@keyframes river-flow {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -84px 0;
+  }
+}
+
 /* Hero carousel crossfade animation */
 @keyframes heroFade {
   0%,

@@ -68,6 +68,11 @@ const FLAG_META: Record<string, { label: string; description: string }> = {
     label: "Lock Facebook Login",
     description: "When enabled, locks 'Continue with Facebook' behind a 'Coming Soon' label.",
   },
+  duck_race: {
+    label: "Duck Race",
+    description:
+      "Enable the duck race raffle feature for clubs (create & run races from dashboard).",
+  },
 };
 
 export default function FeatureFlagsForm() {

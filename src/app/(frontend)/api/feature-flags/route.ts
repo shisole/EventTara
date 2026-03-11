@@ -24,6 +24,7 @@ export async function GET() {
     oauthGoogle: flags?.oauth_google === true,
     oauthStrava: flags?.oauth_strava === true,
     oauthFacebook: flags?.oauth_facebook === true,
+    duckRace: flags?.duck_race === true,
     envOverride: process.env.ACTIVITY_FEED_ENABLED ?? null,
     cmsResult,
     cmsError,

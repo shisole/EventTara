@@ -3616,6 +3616,111 @@ async function awardClubOwnerBorders(userMap: Map<string, string>, clubMap: Map<
 }
 
 // ---------------------------------------------------------------------------
+// Welcome Pages & Duck Races
+// ---------------------------------------------------------------------------
+
+async function seedWelcomePages(clubMap: Map<string, string>, badgeMap: Map<string, string>) {
+  log("🎫", "Creating welcome pages...");
+
+  const yenergyClubId = clubMap.get("Yenergy Outdoors");
+  const pioneerBadgeId = badgeMap.get("Pioneer Participant");
+
+  if (!yenergyClubId) {
+    console.error("  Yenergy Outdoors club not found — skipping welcome pages");
+    return;
+  }
+
+  const { error } = await supabase.from("welcome_pages").insert({
+    code: "yenergy",
+    title: "Welcome to Yenergy Outdoors!",
+    subtitle: "Scan this QR to join the crew",
+    description:
+      "You're about to join a community of outdoor enthusiasts. Sign up to become a member and claim your exclusive badge!",
+    badge_id: pioneerBadgeId ?? null,
+    club_id: yenergyClubId,
+    redirect_url: "/clubs/yenergy-outdoors",
+    hero_image_url:
+      "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&h=400&fit=crop",
+    is_active: true,
+  });
+
+  if (error) {
+    console.error("  Failed to create Yenergy welcome page:", error.message);
+  } else {
+    log("  ✅", "Yenergy welcome page → /welcome/yenergy");
+  }
+}
+
+async function seedDuckRaces(clubMap: Map<string, string>, userMap: Map<string, string>) {
+  log("🦆", "Creating duck races...");
+
+  const yenergyClubId = clubMap.get("Yenergy Outdoors");
+  const ownerUserId = userMap.get(`organizer5${TEST_EMAIL_DOMAIN}`);
+
+  if (!yenergyClubId || !ownerUserId) {
+    console.error("  Yenergy club or owner not found — skipping duck races");
+    return;
+  }
+
+  // Add participant users as Yenergy club members so the race has participants
+  const memberEmails = [
+    `participant1${TEST_EMAIL_DOMAIN}`,
+    `participant2${TEST_EMAIL_DOMAIN}`,
+    `participant3${TEST_EMAIL_DOMAIN}`,
+    `participant4${TEST_EMAIL_DOMAIN}`,
+    `participant5${TEST_EMAIL_DOMAIN}`,
+    `organizer1${TEST_EMAIL_DOMAIN}`,
+    `organizer2${TEST_EMAIL_DOMAIN}`,
+    `organizer3${TEST_EMAIL_DOMAIN}`,
+  ];
+
+  for (const email of memberEmails) {
+    const userId = userMap.get(email);
+    if (!userId) continue;
+
+    // Skip if already a member (e.g., the owner)
+    const { data: existing } = await supabase
+      .from("club_members")
+      .select("id")
+      .eq("club_id", yenergyClubId)
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (existing) continue;
+
+    const { error: memberErr } = await supabase.from("club_members").insert({
+      club_id: yenergyClubId,
+      user_id: userId,
+      role: "member",
+    });
+
+    if (memberErr) {
+      console.error(`  Failed to add ${email} to Yenergy: ${memberErr.message}`);
+    } else {
+      const name = TEST_USERS.find((u) => u.email === email)?.full_name;
+      log("  ✅", `Added ${name} to Yenergy Outdoors`);
+    }
+  }
+
+  const { data: race, error } = await supabase
+    .from("club_races")
+    .insert({
+      club_id: yenergyClubId,
+      title: "Yenergy Pioneer Raffle",
+      num_winners: 3,
+      created_by: ownerUserId,
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    console.error("  Failed to create duck race:", error.message);
+  } else {
+    log("  ✅", `Yenergy Pioneer Raffle → /race/${race.id}`);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
 
@@ -3707,6 +3812,14 @@ async function main() {
 
     // Step 12: Award club owner borders
     await awardClubOwnerBorders(userMap, clubMap);
+    console.log();
+
+    // Step 13: Welcome pages
+    await seedWelcomePages(clubMap, systemBadgeMap);
+    console.log();
+
+    // Step 14: Duck races
+    await seedDuckRaces(clubMap, userMap);
     console.log();
 
     // Summary

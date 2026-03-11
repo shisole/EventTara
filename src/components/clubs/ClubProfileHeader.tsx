@@ -56,7 +56,7 @@ export default function ClubProfileHeader({
   const initial = name.charAt(0).toUpperCase();
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 overflow-hidden">
+    <div className="bg-white dark:bg-gray-900 -mx-4 sm:mx-0 sm:rounded-2xl sm:shadow-md dark:sm:shadow-gray-950/30 overflow-hidden">
       {/* Cover image */}
       <div className="relative h-44 sm:h-60 bg-gradient-to-br from-teal-400 to-forest-500 dark:from-teal-700 dark:to-forest-800">
         {cover_url && (
@@ -95,29 +95,18 @@ export default function ClubProfileHeader({
           )}
         </div>
 
-        {/* Name + Join button */}
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2.5">
-              <h1 className="font-heading text-2xl sm:text-3xl font-bold truncate">{name}</h1>
-              {currentMembership && <ClubRoleBadge role={currentMembership.role} />}
-            </div>
-            {/* Description */}
-            {description && (
-              <p className="mt-2 text-gray-600 dark:text-gray-400 text-sm sm:text-base leading-relaxed">
-                {description}
-              </p>
-            )}
-          </div>
-          <div className="shrink-0 mt-1">
-            <JoinClubButton
-              clubSlug={slug}
-              visibility={visibility}
-              initialMembership={currentMembership}
-              currentUserId={currentUserId}
-            />
-          </div>
+        {/* Name + Role */}
+        <div className="flex items-center gap-2.5">
+          <h1 className="font-heading text-2xl sm:text-3xl font-bold truncate">{name}</h1>
+          {currentMembership && <ClubRoleBadge role={currentMembership.role} />}
         </div>
+
+        {/* Description */}
+        {description && (
+          <p className="mt-2 text-gray-600 dark:text-gray-400 text-sm sm:text-base leading-relaxed">
+            {description}
+          </p>
+        )}
 
         {/* Meta info row */}
         <div className="mt-3.5 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-gray-500 dark:text-gray-400">
@@ -192,6 +181,16 @@ export default function ClubProfileHeader({
               <span>Private</span>
             </div>
           )}
+        </div>
+
+        {/* Join / Manage button */}
+        <div className="mt-4">
+          <JoinClubButton
+            clubSlug={slug}
+            visibility={visibility}
+            initialMembership={currentMembership}
+            currentUserId={currentUserId}
+          />
         </div>
 
         {/* Activity type badges */}
