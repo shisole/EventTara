@@ -1,8 +1,14 @@
 import { NextResponse } from "next/server";
 
+import { isDuckRaceEnabled } from "@/lib/cms/cached";
 import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request, { params }: { params: Promise<{ slug: string }> }) {
+  const duckRaceEnabled = await isDuckRaceEnabled();
+  if (!duckRaceEnabled) {
+    return NextResponse.json({ error: "Duck race is disabled" }, { status: 403 });
+  }
+
   const { slug } = await params;
   const supabase = await createClient();
 

@@ -1,10 +1,15 @@
 import { notFound, redirect } from "next/navigation";
 
 import CreateRaceForm from "@/components/dashboard/CreateRaceForm";
+import { isDuckRaceEnabled } from "@/lib/cms/cached";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function NewRacePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+
+  const duckRaceEnabled = await isDuckRaceEnabled();
+  if (!duckRaceEnabled) notFound();
+
   const supabase = await createClient();
 
   const {

@@ -1047,6 +1047,7 @@ export interface Database {
           oauth_strava: boolean;
           oauth_facebook: boolean;
           onboarding_quiz: boolean;
+          duck_race: boolean;
         };
         Insert: {
           id?: number;
@@ -1064,6 +1065,7 @@ export interface Database {
           oauth_strava?: boolean;
           oauth_facebook?: boolean;
           onboarding_quiz?: boolean;
+          duck_race?: boolean;
         };
         Update: {
           id?: number;
@@ -1081,6 +1083,7 @@ export interface Database {
           oauth_strava?: boolean;
           oauth_facebook?: boolean;
           onboarding_quiz?: boolean;
+          duck_race?: boolean;
         };
         Relationships: [];
       };

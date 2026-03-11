@@ -1,6 +1,7 @@
 import { type Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import { isDuckRaceEnabled } from "@/lib/cms/cached";
 import { type RaceData, type RaceParticipant } from "@/lib/races/types";
 import { createClient } from "@/lib/supabase/server";
 
@@ -25,6 +26,10 @@ export async function generateMetadata({
 
 export default async function RacePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+
+  const duckRaceEnabled = await isDuckRaceEnabled();
+  if (!duckRaceEnabled) notFound();
+
   const supabase = await createClient();
 
   // Fetch race
