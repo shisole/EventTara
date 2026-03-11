@@ -50,6 +50,14 @@ export default function QRBatchManager() {
   const [batchName, setBatchName] = useState("");
   const [quantity, setQuantity] = useState(10);
 
+  // Inline badge creation
+  const [creatingNewBadge, setCreatingNewBadge] = useState(false);
+  const [newBadgeTitle, setNewBadgeTitle] = useState("");
+  const [newBadgeDescription, setNewBadgeDescription] = useState("");
+  const [newBadgeRarity, setNewBadgeRarity] = useState<string>("legendary");
+  const [newBadgeCategory, setNewBadgeCategory] = useState<string>("special");
+  const [newBadgeImageUrl, setNewBadgeImageUrl] = useState("");
+
   // Expanded batch codes
   const [expandedBatchId, setExpandedBatchId] = useState<string | null>(null);
   const [codes, setCodes] = useState<CodeRow[]>([]);
@@ -90,16 +98,53 @@ export default function QRBatchManager() {
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
-    if (!badgeId || !batchName.trim() || quantity < 1) return;
+    if (!batchName.trim() || quantity < 1) return;
 
     setCreating(true);
     setError(null);
 
     try {
+      let finalBadgeId = badgeId;
+
+      // Create badge first if using inline form
+      if (creatingNewBadge) {
+        if (!newBadgeTitle.trim()) {
+          setError("Badge title is required");
+          setCreating(false);
+          return;
+        }
+
+        const badgeRes = await fetch("/api/badges", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: newBadgeTitle.trim(),
+            description: newBadgeDescription.trim() || null,
+            image_url: newBadgeImageUrl.trim() || null,
+            rarity: newBadgeRarity,
+            category: newBadgeCategory,
+          }),
+        });
+
+        if (!badgeRes.ok) {
+          const data: { error?: string } = await badgeRes.json();
+          throw new Error(data.error ?? "Failed to create badge");
+        }
+
+        const badgeData: { badge: { id: string } } = await badgeRes.json();
+        finalBadgeId = badgeData.badge.id;
+      }
+
+      if (!finalBadgeId) {
+        setError("Please select or create a badge");
+        setCreating(false);
+        return;
+      }
+
       const res = await fetch("/api/admin/qr-batches", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ badge_id: badgeId, name: batchName.trim(), quantity }),
+        body: JSON.stringify({ badge_id: finalBadgeId, name: batchName.trim(), quantity }),
       });
 
       if (!res.ok) {
@@ -107,11 +152,19 @@ export default function QRBatchManager() {
         throw new Error(data.error ?? "Failed to create batch");
       }
 
+      // Reset form
       setBadgeId("");
       setBatchName("");
       setQuantity(10);
+      setCreatingNewBadge(false);
+      setNewBadgeTitle("");
+      setNewBadgeDescription("");
+      setNewBadgeRarity("legendary");
+      setNewBadgeCategory("special");
+      setNewBadgeImageUrl("");
       setShowCreate(false);
       await loadBatches();
+      await loadBadges();
     } catch (error_) {
       setError(error_ instanceof Error ? error_.message : "Failed to create batch");
     } finally {
@@ -182,11 +235,117 @@ export default function QRBatchManager() {
           <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
             Create QR Code Batch
           </h3>
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Badge
-              </label>
+
+          {/* Badge selection */}
+          <div className="mb-4 space-y-3">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Badge
+            </label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setCreatingNewBadge(false)}
+                className={cn(
+                  "rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
+                  creatingNewBadge
+                    ? "border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+                    : "bg-lime-500 text-gray-900",
+                )}
+              >
+                Choose Existing
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setCreatingNewBadge(true);
+                  setBadgeId("");
+                }}
+                className={cn(
+                  "rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
+                  creatingNewBadge
+                    ? "bg-lime-500 text-gray-900"
+                    : "border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800",
+                )}
+              >
+                + Create New Badge
+              </button>
+            </div>
+
+            {creatingNewBadge ? (
+              <div className="space-y-3 rounded-lg border border-dashed border-gray-300 bg-gray-50 p-4 dark:border-gray-600 dark:bg-gray-800/50">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
+                      Badge Title
+                    </label>
+                    <input
+                      type="text"
+                      value={newBadgeTitle}
+                      onChange={(e) => setNewBadgeTitle(e.target.value)}
+                      placeholder="e.g., Founder's Mark"
+                      required={creatingNewBadge}
+                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
+                      Image URL
+                    </label>
+                    <input
+                      type="url"
+                      value={newBadgeImageUrl}
+                      onChange={(e) => setNewBadgeImageUrl(e.target.value)}
+                      placeholder="https://..."
+                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
+                    Description
+                  </label>
+                  <input
+                    type="text"
+                    value={newBadgeDescription}
+                    onChange={(e) => setNewBadgeDescription(e.target.value)}
+                    placeholder="Awarded to founding members"
+                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                  />
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
+                      Rarity
+                    </label>
+                    <select
+                      value={newBadgeRarity}
+                      onChange={(e) => setNewBadgeRarity(e.target.value)}
+                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    >
+                      <option value="common">Common</option>
+                      <option value="rare">Rare</option>
+                      <option value="epic">Epic</option>
+                      <option value="legendary">Legendary</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
+                      Category
+                    </label>
+                    <select
+                      value={newBadgeCategory}
+                      onChange={(e) => setNewBadgeCategory(e.target.value)}
+                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    >
+                      <option value="special">Special</option>
+                      <option value="distance">Distance</option>
+                      <option value="adventure">Adventure</option>
+                      <option value="location">Location</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            ) : (
               <select
                 value={badgeId}
                 onChange={(e) => setBadgeId(e.target.value)}
@@ -200,19 +359,26 @@ export default function QRBatchManager() {
                   </option>
                 ))}
               </select>
-            </div>
+            )}
+          </div>
+
+          {/* Edition + quantity */}
+          <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Batch Name
+                Edition Name
               </label>
               <input
                 type="text"
                 value={batchName}
                 onChange={(e) => setBatchName(e.target.value)}
-                placeholder='e.g., "Mt. Pulag Summit 2026"'
+                placeholder="e.g., Mt. Pulag Summit 2026"
                 required
                 className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               />
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Shown on the claim page, e.g. &quot;#3 of 10 — Mt. Pulag Summit 2026&quot;
+              </p>
             </div>
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -227,6 +393,9 @@ export default function QRBatchManager() {
                 required
                 className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               />
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Number of unique QR codes to generate
+              </p>
             </div>
           </div>
           <button
@@ -253,7 +422,7 @@ export default function QRBatchManager() {
                   Badge
                 </th>
                 <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
-                  Batch Name
+                  Edition
                 </th>
                 <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
                   Rarity
