@@ -66,11 +66,9 @@ export default function ProfileClubs({ clubs, isOwnProfile }: ProfileClubsProps)
               visibility={club.visibility}
               description={club.description}
             />
-            {club.role !== "member" && (
-              <div className="absolute top-2 right-2 z-10">
-                <ClubRoleBadge role={club.role} />
-              </div>
-            )}
+            <div className="absolute top-2 right-2 z-10">
+              <ClubRoleBadge role={club.role} />
+            </div>
           </div>
         ))}
       </div>
