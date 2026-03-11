@@ -265,11 +265,11 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
         slug: club.slug,
         name: club.name,
         logo_url: club.logo_url,
-        activity_types: (club.activity_types as string[]) || [],
+        activity_types: club.activity_types || [],
         member_count: countMap.get(club.id) || 0,
-        visibility: club.visibility as "public" | "private",
+        visibility: club.visibility,
         description: club.description,
-        role: (roleMap.get(club.id) || "member") as ProfileClub["role"],
+        role: roleMap.get(club.id) || "member",
       }));
     }
   }
