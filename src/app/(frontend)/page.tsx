@@ -318,7 +318,7 @@ export default async function Home() {
 
   return (
     <main>
-      <EntryBanner />
+      {process.env.NEXT_PUBLIC_DEMO_MODE === "true" && <EntryBanner />}
 
       {enabledSections.map((section) => (
         <div key={section.key}>
