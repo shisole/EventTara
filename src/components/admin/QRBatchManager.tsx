@@ -108,7 +108,7 @@ export default function QRBatchManager() {
     }
     setUploadingImage(true);
     try {
-      const url = await uploadImage(file, "badges");
+      const url = await uploadImage(file, "badges/images");
       setNewBadgeImageUrl(url);
     } catch {
       setError("Failed to upload image");
