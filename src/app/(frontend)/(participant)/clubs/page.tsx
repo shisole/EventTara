@@ -27,10 +27,12 @@ export default async function ClubsPage() {
     is_demo: boolean;
   }[] = [];
   let myClubMemberCounts: Record<string, number> = {};
+  let isLoggedIn = false;
 
   try {
     const { data: authData } = await supabase.auth.getUser();
     const user = authData?.user ?? null;
+    isLoggedIn = !!user;
 
     if (user) {
       const { data: memberships } = await supabase
@@ -99,6 +101,29 @@ export default async function ClubsPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Logged-out prompt */}
+      {!isLoggedIn && (
+        <div className="mb-8 rounded-2xl border border-gray-200 dark:border-gray-700 bg-gradient-to-r from-teal-50 to-lime-50 dark:from-teal-950/30 dark:to-lime-950/30 p-6 sm:p-8">
+          <h2 className="font-heading text-xl sm:text-2xl font-bold mb-2">
+            Join the adventure community
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-5 max-w-lg">
+            Sign up to join clubs, connect with fellow outdoor enthusiasts, and organize your own
+            events.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <Link href="/signup">
+              <Button size="sm">Sign Up</Button>
+            </Link>
+            <Link href="/login">
+              <Button size="sm" variant="ghost">
+                Log In
+              </Button>
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* My Clubs section */}
       {myClubs.length > 0 && (
         <div className="mb-10">
