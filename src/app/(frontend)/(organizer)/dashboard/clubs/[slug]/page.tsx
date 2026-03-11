@@ -117,14 +117,14 @@ export default async function ClubOverviewPage({ params }: { params: Promise<{ s
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
           <Link
             href={`/dashboard/clubs/${slug}/members`}
-            className="bg-white dark:bg-gray-900 rounded-xl shadow-sm dark:shadow-gray-950/30 p-4 hover:shadow-md transition-shadow text-center"
+            className="bg-white dark:bg-gray-900 rounded-xl shadow-sm dark:shadow-gray-950/30 p-4 text-center border border-transparent hover:border-lime-500/40 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
           >
             <p className="font-medium dark:text-white">Manage Members</p>
             <p className="text-sm text-gray-500 dark:text-gray-400">View and manage club members</p>
           </Link>
           <Link
             href={`/dashboard/clubs/${slug}/invites`}
-            className="bg-white dark:bg-gray-900 rounded-xl shadow-sm dark:shadow-gray-950/30 p-4 hover:shadow-md transition-shadow text-center"
+            className="bg-white dark:bg-gray-900 rounded-xl shadow-sm dark:shadow-gray-950/30 p-4 text-center border border-transparent hover:border-lime-500/40 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
           >
             <p className="font-medium dark:text-white">Invite Members</p>
             <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -133,7 +133,7 @@ export default async function ClubOverviewPage({ params }: { params: Promise<{ s
           </Link>
           <Link
             href={`/dashboard/clubs/${slug}/settings`}
-            className="bg-white dark:bg-gray-900 rounded-xl shadow-sm dark:shadow-gray-950/30 p-4 hover:shadow-md transition-shadow text-center"
+            className="bg-white dark:bg-gray-900 rounded-xl shadow-sm dark:shadow-gray-950/30 p-4 text-center border border-transparent hover:border-lime-500/40 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
           >
             <p className="font-medium dark:text-white">Club Settings</p>
             <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -142,7 +142,7 @@ export default async function ClubOverviewPage({ params }: { params: Promise<{ s
           </Link>
           <Link
             href={`/dashboard/clubs/${slug}/welcome-qr`}
-            className="bg-white dark:bg-gray-900 rounded-xl shadow-sm dark:shadow-gray-950/30 p-4 hover:shadow-md transition-shadow text-center"
+            className="bg-white dark:bg-gray-900 rounded-xl shadow-sm dark:shadow-gray-950/30 p-4 text-center border border-transparent hover:border-lime-500/40 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
           >
             <p className="font-medium dark:text-white">Welcome QR</p>
             <p className="text-sm text-gray-500 dark:text-gray-400">Generate scannable QR codes</p>
@@ -150,7 +150,7 @@ export default async function ClubOverviewPage({ params }: { params: Promise<{ s
           {duckRaceEnabled && (
             <Link
               href={`/dashboard/clubs/${slug}/races/new`}
-              className="bg-white dark:bg-gray-900 rounded-xl shadow-sm dark:shadow-gray-950/30 p-4 hover:shadow-md transition-shadow text-center"
+              className="bg-white dark:bg-gray-900 rounded-xl shadow-sm dark:shadow-gray-950/30 p-4 text-center border border-transparent hover:border-lime-500/40 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
             >
               <p className="font-medium dark:text-white">Duck Race</p>
               <p className="text-sm text-gray-500 dark:text-gray-400">
