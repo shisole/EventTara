@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 
 import { CompositeAvatar, Button } from "@/components/ui";
@@ -23,6 +24,13 @@ interface EarnedBorder {
   };
 }
 
+interface AnimalOption {
+  id: string;
+  slug: string;
+  name: string;
+  image_url: string;
+}
+
 interface AvatarConfig {
   animalImageUrl?: string | null;
   accessoryImageUrl?: string | null;
@@ -37,8 +45,12 @@ interface BorderPickerModalProps {
   fullName: string;
   activeBorderId: string | null;
   avatarConfig?: AvatarConfig | null;
+  currentAnimalId?: string | null;
   onBorderChange: (borderId: string | null, tier: BorderTier | null, color: string | null) => void;
+  onAnimalChange?: (animalId: string, imageUrl: string) => void;
 }
+
+type Tab = "animal" | "border";
 
 export default function BorderPickerModal({
   open,
@@ -47,16 +59,21 @@ export default function BorderPickerModal({
   fullName,
   activeBorderId,
   avatarConfig = null,
+  currentAnimalId = null,
   onBorderChange,
+  onAnimalChange,
 }: BorderPickerModalProps) {
+  const [tab, setTab] = useState<Tab>("animal");
   const [borders, setBorders] = useState<EarnedBorder[]>([]);
-  const [selectedId, setSelectedId] = useState<string | null>(activeBorderId);
+  const [animals, setAnimals] = useState<AnimalOption[]>([]);
+  const [selectedBorderId, setSelectedBorderId] = useState<string | null>(activeBorderId);
+  const [selectedAnimalId, setSelectedAnimalId] = useState<string | null>(currentAnimalId);
   const [saving, setSaving] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
   const supabase = createClient();
 
-  const fetchBorders = useCallback(async () => {
+  const fetchData = useCallback(async () => {
     const {
       data: { user: authUser },
     } = await supabase.auth.getUser();
@@ -66,6 +83,24 @@ export default function BorderPickerModal({
       return;
     }
 
+    // Fetch animals
+    const { data: animalData } = await supabase
+      .from("avatar_animals")
+      .select("id, slug, name, image_url")
+      .order("sort_order");
+    setAnimals(animalData ?? []);
+
+    // Fetch current animal selection
+    const { data: configRow } = await supabase
+      .from("user_avatar_config")
+      .select("animal_id")
+      .eq("user_id", authUser.id)
+      .maybeSingle();
+    if (configRow?.animal_id) {
+      setSelectedAnimalId(configRow.animal_id);
+    }
+
+    // Fetch borders
     const { data: awards } = await supabase
       .from("user_avatar_borders")
       .select("id, border_id, awarded_at")
@@ -99,13 +134,17 @@ export default function BorderPickerModal({
 
   useEffect(() => {
     if (open && !loaded) {
-      void fetchBorders();
+      void fetchData();
     }
-  }, [open, loaded, fetchBorders]);
+  }, [open, loaded, fetchData]);
 
   useEffect(() => {
-    setSelectedId(activeBorderId);
+    setSelectedBorderId(activeBorderId);
   }, [activeBorderId]);
+
+  useEffect(() => {
+    if (currentAnimalId) setSelectedAnimalId(currentAnimalId);
+  }, [currentAnimalId]);
 
   // Close on escape
   useEffect(() => {
@@ -117,32 +156,61 @@ export default function BorderPickerModal({
     return () => document.removeEventListener("keydown", handleKey);
   }, [open, onClose]);
 
-  const hasChanges = selectedId !== activeBorderId;
+  const borderChanged = selectedBorderId !== activeBorderId;
+  const animalChanged = selectedAnimalId !== currentAnimalId && selectedAnimalId !== null;
+  const hasChanges = borderChanged || animalChanged;
+
+  const selectedAnimal = animals.find((a) => a.id === selectedAnimalId);
+  const previewConfig: AvatarConfig = {
+    ...avatarConfig,
+    animalImageUrl: selectedAnimal?.image_url ?? avatarConfig?.animalImageUrl,
+  };
 
   const handleSave = async () => {
     setSaving(true);
 
-    const res = await fetch("/api/users/active-border", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ border_id: selectedId }),
-    });
+    // Save animal change
+    if (animalChanged && selectedAnimalId) {
+      await fetch("/api/users/avatar-config", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ animal_id: selectedAnimalId }),
+      });
+      const animal = animals.find((a) => a.id === selectedAnimalId);
+      if (animal && onAnimalChange) {
+        onAnimalChange(selectedAnimalId, animal.image_url);
+      }
+    }
 
-    setSaving(false);
-    if (res.ok) {
-      if (selectedId === null) {
-        onBorderChange(null, null, null);
-      } else {
-        const border = borders.find((b) => b.border_id === selectedId);
-        if (border) {
-          onBorderChange(
-            selectedId,
-            border.avatar_borders.tier,
-            border.avatar_borders.border_color,
-          );
+    // Save border change
+    if (borderChanged) {
+      const res = await fetch("/api/users/active-border", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ border_id: selectedBorderId }),
+      });
+
+      if (res.ok) {
+        if (selectedBorderId === null) {
+          onBorderChange(null, null, null);
+        } else {
+          const border = borders.find((b) => b.border_id === selectedBorderId);
+          if (border) {
+            onBorderChange(
+              selectedBorderId,
+              border.avatar_borders.tier,
+              border.avatar_borders.border_color,
+            );
+          }
         }
       }
-      onClose();
+    }
+
+    setSaving(false);
+    onClose();
+    // Reload to reflect changes
+    if (animalChanged) {
+      globalThis.location.reload();
     }
   };
 
@@ -157,7 +225,7 @@ export default function BorderPickerModal({
     }))
     .filter((g) => g.borders.length > 0);
 
-  const previewBorder = borders.find((b) => b.border_id === selectedId);
+  const previewBorder = borders.find((b) => b.border_id === selectedBorderId);
 
   return (
     <div
@@ -169,7 +237,7 @@ export default function BorderPickerModal({
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl max-w-md w-full max-h-[80vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
-          <h2 className="text-lg font-heading font-bold">Choose Avatar Border</h2>
+          <h2 className="text-lg font-heading font-bold">Customize Avatar</h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-xl leading-none"
@@ -187,90 +255,153 @@ export default function BorderPickerModal({
               size="xl"
               borderTier={previewBorder?.avatar_borders.tier ?? null}
               borderColor={previewBorder?.avatar_borders.border_color}
-              avatarConfig={avatarConfig}
+              avatarConfig={previewConfig}
               className="mx-auto"
             />
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              {previewBorder?.avatar_borders.name ?? "No border"}
+              {selectedAnimal?.name ?? "No animal"}
+              {previewBorder ? ` · ${previewBorder.avatar_borders.name}` : ""}
             </p>
           </div>
         </div>
 
-        {/* Border grid */}
-        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
-          {/* No border option */}
+        {/* Tabs */}
+        <div className="flex border-b border-gray-100 dark:border-gray-800">
           <button
-            onClick={() => setSelectedId(null)}
+            onClick={() => setTab("animal")}
             className={cn(
-              "w-full flex items-center gap-3 p-3 rounded-xl border transition-colors",
-              selectedId === null
-                ? "border-lime-500 bg-lime-50 dark:bg-lime-950/20"
-                : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800",
+              "flex-1 px-4 py-2.5 text-sm font-medium transition-colors",
+              tab === "animal"
+                ? "text-teal-600 dark:text-teal-400 border-b-2 border-teal-500"
+                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300",
             )}
           >
-            <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
-                />
-              </svg>
-            </div>
-            <span className="text-sm font-medium">No Border</span>
+            Animal
           </button>
+          <button
+            onClick={() => setTab("border")}
+            className={cn(
+              "flex-1 px-4 py-2.5 text-sm font-medium transition-colors",
+              tab === "border"
+                ? "text-teal-600 dark:text-teal-400 border-b-2 border-teal-500"
+                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300",
+            )}
+          >
+            Border
+          </button>
+        </div>
 
-          {grouped.map(({ tier, borders: tierBorders }) => (
-            <div key={tier}>
-              <div className="flex items-center gap-2 mb-2">
-                <span
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+          {tab === "animal" && (
+            <div className="grid grid-cols-4 gap-3">
+              {animals.map((animal) => (
+                <button
+                  key={animal.id}
+                  onClick={() => setSelectedAnimalId(animal.id)}
                   className={cn(
-                    "text-xs font-semibold px-2 py-0.5 rounded-full",
-                    TIER_LABEL_COLORS[tier],
+                    "flex flex-col items-center gap-1 p-2 rounded-xl border transition-all",
+                    selectedAnimalId === animal.id
+                      ? "border-teal-500 bg-teal-50 dark:bg-teal-950/20 ring-1 ring-teal-500"
+                      : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800",
                   )}
                 >
-                  {TIER_LABELS[tier]}
-                </span>
-              </div>
-              <div className="grid grid-cols-1 gap-2">
-                {tierBorders.map((border) => (
-                  <button
-                    key={border.border_id}
-                    onClick={() => setSelectedId(border.border_id)}
-                    className={cn(
-                      "flex items-center gap-3 p-3 rounded-xl border transition-colors text-left",
-                      selectedId === border.border_id
-                        ? "border-lime-500 bg-lime-50 dark:bg-lime-950/20"
-                        : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800",
-                    )}
-                  >
-                    <CompositeAvatar
-                      src={avatarUrl}
-                      alt={fullName}
-                      size="sm"
-                      borderTier={border.avatar_borders.tier}
-                      borderColor={border.avatar_borders.border_color}
-                      avatarConfig={avatarConfig}
+                  <div className="w-12 h-12 rounded-full bg-teal-100 dark:bg-teal-900 overflow-hidden flex-shrink-0">
+                    <Image
+                      src={animal.image_url}
+                      alt={animal.name}
+                      width={48}
+                      height={48}
+                      className="w-full h-full object-contain"
                     />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{border.avatar_borders.name}</p>
-                      {border.avatar_borders.description && (
-                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                          {border.avatar_borders.description}
-                        </p>
-                      )}
-                    </div>
-                  </button>
-                ))}
-              </div>
+                  </div>
+                  <span className="text-[11px] font-medium text-gray-700 dark:text-gray-300 truncate w-full text-center">
+                    {animal.name}
+                  </span>
+                </button>
+              ))}
             </div>
-          ))}
+          )}
 
-          {loaded && borders.length === 0 && (
-            <p className="text-center text-sm text-gray-500 dark:text-gray-400 py-4">
-              No borders earned yet. Keep adventuring to unlock borders!
-            </p>
+          {tab === "border" && (
+            <>
+              {/* No border option */}
+              <button
+                onClick={() => setSelectedBorderId(null)}
+                className={cn(
+                  "w-full flex items-center gap-3 p-3 rounded-xl border transition-colors",
+                  selectedBorderId === null
+                    ? "border-lime-500 bg-lime-50 dark:bg-lime-950/20"
+                    : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800",
+                )}
+              >
+                <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
+                    />
+                  </svg>
+                </div>
+                <span className="text-sm font-medium">No Border</span>
+              </button>
+
+              {grouped.map(({ tier, borders: tierBorders }) => (
+                <div key={tier}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span
+                      className={cn(
+                        "text-xs font-semibold px-2 py-0.5 rounded-full",
+                        TIER_LABEL_COLORS[tier],
+                      )}
+                    >
+                      {TIER_LABELS[tier]}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 gap-2">
+                    {tierBorders.map((border) => (
+                      <button
+                        key={border.border_id}
+                        onClick={() => setSelectedBorderId(border.border_id)}
+                        className={cn(
+                          "flex items-center gap-3 p-3 rounded-xl border transition-colors text-left",
+                          selectedBorderId === border.border_id
+                            ? "border-lime-500 bg-lime-50 dark:bg-lime-950/20"
+                            : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800",
+                        )}
+                      >
+                        <CompositeAvatar
+                          src={avatarUrl}
+                          alt={fullName}
+                          size="sm"
+                          borderTier={border.avatar_borders.tier}
+                          borderColor={border.avatar_borders.border_color}
+                          avatarConfig={previewConfig}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">
+                            {border.avatar_borders.name}
+                          </p>
+                          {border.avatar_borders.description && (
+                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                              {border.avatar_borders.description}
+                            </p>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+
+              {loaded && borders.length === 0 && (
+                <p className="text-center text-sm text-gray-500 dark:text-gray-400 py-4">
+                  No borders earned yet. Keep adventuring to unlock borders!
+                </p>
+              )}
+            </>
           )}
         </div>
 

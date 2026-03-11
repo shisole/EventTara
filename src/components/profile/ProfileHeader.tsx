@@ -25,6 +25,7 @@ interface ProfileHeaderProps {
   activeBorderTier?: BorderTier | null;
   activeBorderColor?: string | null;
   avatarConfig?: AvatarConfig | null;
+  currentAnimalId?: string | null;
 }
 
 export default function ProfileHeader({
@@ -37,6 +38,7 @@ export default function ProfileHeader({
   activeBorderTier = null,
   activeBorderColor = null,
   avatarConfig = null,
+  currentAnimalId = null,
 }: ProfileHeaderProps) {
   const [copied, setCopied] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -87,9 +89,7 @@ export default function ProfileHeader({
         />
       </div>
       {isOwnProfile && (
-        <p className="text-xs text-gray-400 dark:text-gray-500 -mt-2">
-          Tap avatar to change border
-        </p>
+        <p className="text-xs text-gray-400 dark:text-gray-500 -mt-2">Tap avatar to customize</p>
       )}
       <div>
         <div className="flex items-center justify-center gap-2">
@@ -117,6 +117,7 @@ export default function ProfileHeader({
           fullName={fullName}
           activeBorderId={currentBorderId}
           avatarConfig={avatarConfig}
+          currentAnimalId={currentAnimalId}
           onBorderChange={handleBorderChange}
         />
       )}

@@ -275,6 +275,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
         activeBorderTier={activeBorderTier}
         activeBorderColor={activeBorderColor}
         avatarConfig={avatarConfig}
+        currentAnimalId={avatarConfigRow?.animal_id ?? null}
       />
 
       {authUser && !isOwnProfile && (
