@@ -127,22 +127,7 @@ export default async function ClubsPage() {
       {/* My Clubs section */}
       {myClubs.length > 0 && (
         <div className="mb-10">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-heading text-2xl font-bold">My Clubs</h2>
-            <Link href="/clubs/new">
-              <Button size="sm" variant="ghost">
-                <svg
-                  className="h-4 w-4 mr-1.5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  aria-hidden="true"
-                >
-                  <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
-                </svg>
-                New Club
-              </Button>
-            </Link>
-          </div>
+          <h2 className="font-heading text-2xl font-bold mb-4">My Clubs</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {myClubs.map((club) => (
               <ClubCard
@@ -161,29 +146,28 @@ export default async function ClubsPage() {
         </div>
       )}
 
-      {/* Discover Clubs header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-        <div>
-          <h1 className="font-heading text-3xl font-bold">Discover Clubs</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">
-            Find your community of outdoor adventure enthusiasts
+      {/* Host your own club CTA */}
+      {isLoggedIn && (
+        <div className="mb-10 rounded-2xl border border-gray-200 dark:border-gray-700 bg-gradient-to-r from-forest-50 to-teal-50 dark:from-forest-950/30 dark:to-teal-950/30 p-6 sm:p-8">
+          <h2 className="font-heading text-xl sm:text-2xl font-bold mb-2">
+            Want to host your own club?
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-5 max-w-lg">
+            Create a club to organize events, build your community, and manage members all in one
+            place.
           </p>
-        </div>
-        {isLoggedIn && myClubs.length === 0 && (
           <Link href="/clubs/new">
-            <Button size="sm">
-              <svg
-                className="h-4 w-4 mr-1.5"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                aria-hidden="true"
-              >
-                <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
-              </svg>
-              Create Club
-            </Button>
+            <Button size="sm">Create a Club</Button>
           </Link>
-        )}
+        </div>
+      )}
+
+      {/* Discover Clubs header */}
+      <div className="mb-8">
+        <h1 className="font-heading text-3xl font-bold">Discover Clubs</h1>
+        <p className="text-gray-500 dark:text-gray-400 mt-1">
+          Find your community of outdoor adventure enthusiasts
+        </p>
       </div>
 
       <ClubGrid
