@@ -52,18 +52,25 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { badge_id, name, quantity } = body as {
+  const { badge_id, new_badge, name, quantity } = body as {
     badge_id?: string;
+    new_badge?: {
+      title: string;
+      description?: string;
+      image_url?: string;
+      rarity?: string;
+      category?: string;
+    };
     name?: string;
     quantity?: number;
   };
 
-  if (!badge_id) {
+  if (!badge_id && !new_badge) {
     return NextResponse.json({ error: "Badge is required" }, { status: 400 });
   }
   if (!name || name.trim().length < 2) {
     return NextResponse.json(
-      { error: "Batch name is required (min 2 characters)" },
+      { error: "Edition name is required (min 2 characters)" },
       { status: 400 },
     );
   }
@@ -71,22 +78,50 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Quantity must be between 1 and 1000" }, { status: 400 });
   }
 
-  // Verify badge exists
-  const { data: badge, error: badgeError } = await supabase
-    .from("badges")
-    .select("id, title")
-    .eq("id", badge_id)
-    .single();
+  let finalBadgeId = badge_id;
 
-  if (badgeError || !badge) {
-    return NextResponse.json({ error: "Badge not found" }, { status: 404 });
+  // Create new badge if provided
+  if (new_badge) {
+    if (!new_badge.title?.trim()) {
+      return NextResponse.json({ error: "Badge title is required" }, { status: 400 });
+    }
+
+    const { data: badge, error: badgeError } = await supabase
+      .from("badges")
+      .insert({
+        title: new_badge.title.trim(),
+        description: new_badge.description?.trim() ?? null,
+        image_url: new_badge.image_url ?? null,
+        category: new_badge.category ?? "special",
+        rarity: new_badge.rarity ?? "legendary",
+        type: "system",
+      })
+      .select("id")
+      .single();
+
+    if (badgeError) {
+      return NextResponse.json({ error: badgeError.message }, { status: 500 });
+    }
+
+    finalBadgeId = badge.id;
+  } else {
+    // Verify existing badge
+    const { data: badge, error: badgeError } = await supabase
+      .from("badges")
+      .select("id, title")
+      .eq("id", badge_id!)
+      .single();
+
+    if (badgeError || !badge) {
+      return NextResponse.json({ error: "Badge not found" }, { status: 404 });
+    }
   }
 
   // Create batch
   const { data: batch, error: batchError } = await supabase
     .from("qr_claim_batches")
     .insert({
-      badge_id,
+      badge_id: finalBadgeId!,
       name: name.trim(),
       quantity,
       created_by: user.id,

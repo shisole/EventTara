@@ -133,47 +133,39 @@ export default function QRBatchManager() {
     setError(null);
 
     try {
-      let finalBadgeId = badgeId;
-
-      // Create badge first if using inline form
-      if (creatingNewBadge) {
-        if (!newBadgeTitle.trim()) {
-          setError("Badge title is required");
-          setCreating(false);
-          return;
-        }
-
-        const badgeRes = await fetch("/api/badges", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            title: newBadgeTitle.trim(),
-            description: newBadgeDescription.trim() || null,
-            image_url: newBadgeImageUrl.trim() || null,
-            rarity: newBadgeRarity,
-            category: newBadgeCategory,
-          }),
-        });
-
-        if (!badgeRes.ok) {
-          const data: { error?: string } = await badgeRes.json();
-          throw new Error(data.error ?? "Failed to create badge");
-        }
-
-        const badgeData: { badge: { id: string } } = await badgeRes.json();
-        finalBadgeId = badgeData.badge.id;
-      }
-
-      if (!finalBadgeId) {
-        setError("Please select or create a badge");
+      if (creatingNewBadge && !newBadgeTitle.trim()) {
+        setError("Badge title is required");
         setCreating(false);
         return;
+      }
+
+      if (!creatingNewBadge && !badgeId) {
+        setError("Please select a badge");
+        setCreating(false);
+        return;
+      }
+
+      const payload: Record<string, unknown> = {
+        name: batchName.trim(),
+        quantity,
+      };
+
+      if (creatingNewBadge) {
+        payload.new_badge = {
+          title: newBadgeTitle.trim(),
+          description: newBadgeDescription.trim() || null,
+          image_url: newBadgeImageUrl || null,
+          rarity: newBadgeRarity,
+          category: newBadgeCategory,
+        };
+      } else {
+        payload.badge_id = badgeId;
       }
 
       const res = await fetch("/api/admin/qr-batches", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ badge_id: finalBadgeId, name: batchName.trim(), quantity }),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
