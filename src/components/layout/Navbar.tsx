@@ -12,6 +12,7 @@ import ThemeToggle from "@/components/layout/ThemeToggle";
 import { NavLink } from "@/components/navigation/NavigationContext";
 import { UserAvatar, Button } from "@/components/ui";
 import type { BorderTier } from "@/lib/constants/avatar-borders";
+import { createClient } from "@/lib/supabase/client";
 
 const BorderPickerModal = dynamic(() => import("@/components/profile/BorderPickerModal"));
 const NotificationBell = dynamic(() => import("@/components/notifications/NotificationBell"));
@@ -60,6 +61,21 @@ export default function Navbar({
   const [profileOpen, setProfileOpen] = useState(false);
   const [exploreOpen, setExploreOpen] = useState(false);
   const [borderPickerOpen, setBorderPickerOpen] = useState(false);
+  const [tokenBalance, setTokenBalance] = useState<number | null>(null);
+
+  // Fetch TaraTokens balance
+  useEffect(() => {
+    if (!user) return;
+    const supabase = createClient();
+    supabase
+      .from("tara_tokens")
+      .select("balance")
+      .eq("user_id", user.id)
+      .single()
+      .then(({ data }) => {
+        setTokenBalance(data?.balance ?? 0);
+      });
+  }, [user]);
 
   // Close dropdowns on route change
   useEffect(() => {
@@ -145,6 +161,28 @@ export default function Navbar({
               <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 animate-pulse" />
             ) : user ? (
               <div className="flex items-center gap-3">
+                {tokenBalance !== null && (
+                  <NavLink
+                    href="/shop"
+                    className="flex items-center gap-1 rounded-lg px-2 py-1 text-sm font-medium text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors"
+                    title="TaraTokens"
+                  >
+                    <svg className="w-4 h-4" viewBox="0 0 16 16" fill="currentColor">
+                      <circle cx="8" cy="8" r="7" fill="#F59E0B" />
+                      <text
+                        x="8"
+                        y="11"
+                        textAnchor="middle"
+                        fontSize="9"
+                        fontWeight="bold"
+                        fill="white"
+                      >
+                        T
+                      </text>
+                    </svg>
+                    {tokenBalance.toLocaleString()}
+                  </NavLink>
+                )}
                 <NotificationBell userId={user.id} />
                 <div className="relative" data-profile-dropdown>
                   <button
