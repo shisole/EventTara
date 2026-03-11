@@ -72,53 +72,69 @@ export default function CompositeAvatar({
   const pixels = pixelMap[size];
   const animalSrc = avatarConfig.skinImageUrl ?? avatarConfig.animalImageUrl;
 
+  // Inset for animal/accessory so background is visible around the edges
+  const animalInset: Record<BorderSize, string> = {
+    sm: "inset-[4px]",
+    md: "inset-[6px]",
+    lg: "inset-[8px]",
+    xl: "inset-[12px]",
+  };
+
   const compositeContent = (
-    <div className={cn("relative overflow-hidden rounded-full flex-shrink-0", sizeMap[size])}>
-      {/* Background layer (z-0) */}
-      {avatarConfig.backgroundImageUrl ? (
+    <div className={cn("relative rounded-full flex-shrink-0", sizeMap[size])}>
+      {/* Background layer (z-0) — clipped to circle */}
+      <div className="absolute inset-0 z-0 overflow-hidden rounded-full">
+        {avatarConfig.backgroundImageUrl ? (
+          <Image
+            src={avatarConfig.backgroundImageUrl}
+            alt=""
+            width={pixels}
+            height={pixels}
+            className="h-full w-full object-cover"
+            aria-hidden="true"
+          />
+        ) : (
+          <div className={cn("h-full w-full", DEFAULT_BG_COLOR)} aria-hidden="true" />
+        )}
+      </div>
+
+      {/* Animal layer (z-10) — inset so background peeks around edges */}
+      <div className={cn("absolute z-10 overflow-hidden rounded-full", animalInset[size])}>
         <Image
-          src={avatarConfig.backgroundImageUrl}
-          alt=""
+          src={animalSrc}
+          alt={alt}
           width={pixels}
           height={pixels}
-          className="absolute inset-0 z-0 h-full w-full object-cover"
-          aria-hidden="true"
+          className="h-full w-full object-contain"
         />
-      ) : (
-        <div className={cn("absolute inset-0 z-0", DEFAULT_BG_COLOR)} aria-hidden="true" />
-      )}
-
-      {/* Animal layer (z-10) */}
-      <Image
-        src={animalSrc}
-        alt={alt}
-        width={pixels}
-        height={pixels}
-        className="absolute inset-0 z-10 h-full w-full object-contain"
-      />
+      </div>
 
       {/* Accessory layer (z-20) */}
       {avatarConfig.accessoryImageUrl ? (
-        <Image
-          src={avatarConfig.accessoryImageUrl}
-          alt=""
-          width={pixels}
-          height={pixels}
-          className="absolute inset-0 z-20 h-full w-full object-contain"
-          aria-hidden="true"
-        />
+        <div className="absolute inset-0 z-20 overflow-hidden rounded-full">
+          <Image
+            src={avatarConfig.accessoryImageUrl}
+            alt=""
+            width={pixels}
+            height={pixels}
+            className="h-full w-full object-contain"
+            aria-hidden="true"
+          />
+        </div>
       ) : null}
 
-      {/* Shop border layer (z-30) */}
+      {/* Shop border layer (z-30) — NOT clipped, spins */}
       {avatarConfig.borderImageUrl ? (
-        <Image
-          src={avatarConfig.borderImageUrl}
-          alt=""
-          width={pixels}
-          height={pixels}
-          className="absolute inset-0 z-30 h-full w-full object-contain"
-          aria-hidden="true"
-        />
+        <div className="absolute inset-0 z-30 animate-spin-slow">
+          <Image
+            src={avatarConfig.borderImageUrl}
+            alt=""
+            width={pixels}
+            height={pixels}
+            className="h-full w-full object-contain"
+            aria-hidden="true"
+          />
+        </div>
       ) : null}
     </div>
   );
