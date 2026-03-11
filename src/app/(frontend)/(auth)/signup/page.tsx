@@ -221,7 +221,7 @@ function SignupForm() {
           }
           setState("success");
           setTimeout(() => {
-            router.push(next);
+            router.push(`/setup-avatar?next=${encodeURIComponent(next)}`);
             router.refresh();
           }, 2000);
         } else {
@@ -284,7 +284,7 @@ function SignupForm() {
       setState("success");
 
       setTimeout(() => {
-        router.push(next);
+        router.push(`/setup-avatar?next=${encodeURIComponent(next)}`);
         router.refresh();
       }, 2000);
     } catch {

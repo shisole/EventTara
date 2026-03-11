@@ -38,17 +38,28 @@ export async function GET(request: Request) {
           console.error("[auth/callback] upsert error:", upsertErr.message);
         }
 
-        // Check if user needs to set up username
+        // Check if user needs onboarding steps (avatar picker, username)
         const { data: profile, error: profileErr } = await admin
           .from("users")
-          .select("username")
+          .select("username, has_picked_avatar")
           .eq("id", user.id)
           .maybeSingle();
 
-        console.log("[auth/callback] username check:", {
+        console.log("[auth/callback] onboarding check:", {
           username: profile?.username,
+          has_picked_avatar: profile?.has_picked_avatar,
           error: profileErr?.message,
         });
+
+        // Chain: /setup-avatar → /setup-username → destination
+        if (!profile?.has_picked_avatar) {
+          const avatarNext = profile?.username
+            ? next
+            : `/setup-username?next=${encodeURIComponent(next)}`;
+          return NextResponse.redirect(
+            `${origin}/setup-avatar?next=${encodeURIComponent(avatarNext)}`,
+          );
+        }
 
         if (!profile?.username) {
           console.log("[auth/callback] redirecting to /setup-username");
