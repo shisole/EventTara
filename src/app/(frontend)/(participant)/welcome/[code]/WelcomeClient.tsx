@@ -906,7 +906,7 @@ export default function WelcomeClient({
   // ---------- Already Claimed ----------
   if (state === "already-claimed") {
     return (
-      <div className="min-h-dvh md:min-h-[60vh] flex items-center justify-center px-6 md:px-4">
+      <div className="min-h-dvh md:min-h-[60vh] flex items-start md:items-center justify-center px-6 md:px-4 pt-16 md:pt-0">
         <div className="max-w-md w-full md:bg-white md:dark:bg-gray-900 md:rounded-2xl md:shadow-md md:dark:shadow-gray-950/30 p-0 md:p-8 text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
             <svg
@@ -977,7 +977,7 @@ export default function WelcomeClient({
   // ---------- Celebration ----------
   if (state === "celebration") {
     return (
-      <div className="min-h-dvh md:min-h-[60vh] flex items-center justify-center px-6 md:px-4">
+      <div className="min-h-dvh md:min-h-[60vh] flex items-start md:items-center justify-center px-6 md:px-4 pt-16 md:pt-0">
         <div className="max-w-md w-full text-center animate-fadeUp">
           {club ? (
             <>
@@ -1071,7 +1071,7 @@ export default function WelcomeClient({
   // ---------- Error ----------
   if (state === "error") {
     return (
-      <div className="min-h-dvh md:min-h-[60vh] flex items-center justify-center px-6 md:px-4">
+      <div className="min-h-dvh md:min-h-[60vh] flex items-start md:items-center justify-center px-6 md:px-4 pt-16 md:pt-0">
         <div className="max-w-md w-full md:bg-white md:dark:bg-gray-900 md:rounded-2xl md:shadow-md md:dark:shadow-gray-950/30 p-0 md:p-8 text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
             <svg
@@ -1100,7 +1100,7 @@ export default function WelcomeClient({
 
   // ---------- Welcome (default) ----------
   return (
-    <div className="min-h-dvh md:min-h-[60vh] flex items-center justify-center px-0 md:px-4 py-0 md:py-12">
+    <div className="min-h-dvh md:min-h-[60vh] flex items-start md:items-center justify-center px-0 md:px-4 py-0 md:py-12">
       <div className="max-w-md w-full md:bg-white md:dark:bg-gray-900 md:rounded-2xl md:shadow-md md:dark:shadow-gray-950/30 overflow-hidden">
         {/* Hero image */}
         {heroImageUrl && (
