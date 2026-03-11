@@ -54,7 +54,7 @@ export default function ClubMembersList({
   const router = useRouter();
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [roleFilter, setRoleFilter] = useState<RoleFilter>("all");
+  const [roleFilter, setRoleFilter] = useState("all");
   const isOwner = currentUserRole === "owner";
 
   const filtered = useMemo(() => {
@@ -131,41 +131,44 @@ export default function ClubMembersList({
         />
       </div>
 
-      {/* Role pills */}
-      <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
-        {ROLE_OPTIONS.map((opt) => (
-          <button
-            key={opt.value}
-            onClick={() => setRoleFilter(opt.value)}
+      {/* Role filter + results count */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-2">
+          <label className="text-sm text-gray-500 dark:text-gray-400">Role:</label>
+          <select
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value)}
             className={cn(
-              "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors",
-              roleFilter === opt.value
-                ? "bg-lime-500 text-gray-900"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700",
+              "text-sm rounded-lg border px-2.5 py-1.5 transition-colors",
+              "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700",
+              "dark:text-white focus:outline-none focus:ring-2 focus:ring-lime-500/40 focus:border-lime-500",
             )}
           >
-            {opt.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Results count + clear */}
-      {hasFilters && (
-        <div className="flex items-center justify-between text-sm">
-          <p className="text-gray-500 dark:text-gray-400">
-            {filtered.length} of {members.length} member{members.length === 1 ? "" : "s"}
-          </p>
-          <button
-            onClick={() => {
-              setSearch("");
-              setRoleFilter("all");
-            }}
-            className="text-xs text-teal-600 dark:text-teal-400 hover:underline font-medium"
-          >
-            Clear filters
-          </button>
+            {ROLE_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
         </div>
-      )}
+
+        {hasFilters && (
+          <>
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              {filtered.length} of {members.length} member{members.length === 1 ? "" : "s"}
+            </span>
+            <button
+              onClick={() => {
+                setSearch("");
+                setRoleFilter("all");
+              }}
+              className="text-xs text-teal-600 dark:text-teal-400 hover:underline font-medium"
+            >
+              Clear
+            </button>
+          </>
+        )}
+      </div>
 
       {/* Members list */}
       <div className="space-y-3">

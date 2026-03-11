@@ -44,8 +44,8 @@ interface ClubEventsTableProps {
 
 export default function ClubEventsTable({ events, clubSlug }: ClubEventsTableProps) {
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<EventStatus | "all">("all");
-  const [typeFilter, setTypeFilter] = useState<EventType | "all">("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>("asc");
 
@@ -161,63 +161,64 @@ export default function ClubEventsTable({ events, clubSlug }: ClubEventsTablePro
         />
       </div>
 
-      {/* Filter pills */}
-      <div className="space-y-2">
-        {/* Status pills */}
-        <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
-          {STATUS_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => setStatusFilter(opt.value)}
-              className={cn(
-                "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors",
-                statusFilter === opt.value
-                  ? "bg-lime-500 text-gray-900"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700",
-              )}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Type pills */}
-        <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
-          {TYPE_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => setTypeFilter(opt.value)}
-              className={cn(
-                "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors",
-                typeFilter === opt.value
-                  ? "bg-teal-500 text-white"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700",
-              )}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Results count + clear */}
-      {hasFilters && (
-        <div className="flex items-center justify-between text-sm">
-          <p className="text-gray-500 dark:text-gray-400">
-            {sorted.length} of {events.length} event{events.length === 1 ? "" : "s"}
-          </p>
-          <button
-            onClick={() => {
-              setSearch("");
-              setStatusFilter("all");
-              setTypeFilter("all");
-            }}
-            className="text-xs text-teal-600 dark:text-teal-400 hover:underline font-medium"
+      {/* Filter dropdowns + results count */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-2">
+          <label className="text-sm text-gray-500 dark:text-gray-400">Status:</label>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className={cn(
+              "text-sm rounded-lg border px-2.5 py-1.5 transition-colors",
+              "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700",
+              "dark:text-white focus:outline-none focus:ring-2 focus:ring-lime-500/40 focus:border-lime-500",
+            )}
           >
-            Clear filters
-          </button>
+            {STATUS_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
         </div>
-      )}
+
+        <div className="flex items-center gap-2">
+          <label className="text-sm text-gray-500 dark:text-gray-400">Type:</label>
+          <select
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
+            className={cn(
+              "text-sm rounded-lg border px-2.5 py-1.5 transition-colors",
+              "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700",
+              "dark:text-white focus:outline-none focus:ring-2 focus:ring-lime-500/40 focus:border-lime-500",
+            )}
+          >
+            {TYPE_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {hasFilters && (
+          <>
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              {sorted.length} of {events.length} event{events.length === 1 ? "" : "s"}
+            </span>
+            <button
+              onClick={() => {
+                setSearch("");
+                setStatusFilter("all");
+                setTypeFilter("all");
+              }}
+              className="text-xs text-teal-600 dark:text-teal-400 hover:underline font-medium"
+            >
+              Clear
+            </button>
+          </>
+        )}
+      </div>
 
       {/* Empty state */}
       {sorted.length === 0 && (
