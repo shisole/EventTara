@@ -123,7 +123,7 @@ export default async function ClubProfilePage({ params }: { params: Promise<{ sl
   const eventCards = eventList.map((event: any) => mapEventToCard(event, today, enrichments));
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-0 pb-8 space-y-8">
       {/* Profile header */}
       <ClubProfileHeader
         name={club.name}
