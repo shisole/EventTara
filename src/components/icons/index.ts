@@ -31,6 +31,7 @@ export { default as PrinterIcon } from "./PrinterIcon";
 export { default as ProfileIcon } from "./ProfileIcon";
 export { default as QRScanIcon } from "./QRScanIcon";
 export { default as RepostIcon } from "./RepostIcon";
+export { default as SearchIcon } from "./SearchIcon";
 export { default as SendIcon } from "./SendIcon";
 export { default as ShareIcon } from "./ShareIcon";
 export { default as SpinnerIcon } from "./SpinnerIcon";
