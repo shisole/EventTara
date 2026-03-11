@@ -3822,6 +3822,25 @@ async function main() {
     await seedDuckRaces(clubMap, userMap);
     console.log();
 
+    // Step 15: Grant TaraTokens to all seeded users
+    log("🪙", "Granting 9999 TaraTokens to all seeded users...");
+    for (const [, userId] of userMap) {
+      await admin
+        .from("tara_tokens")
+        .upsert(
+          { user_id: userId, balance: 9999, updated_at: new Date().toISOString() },
+          { onConflict: "user_id" },
+        );
+      await admin.from("token_transactions").insert({
+        user_id: userId,
+        amount: 9999,
+        reason: "admin_grant",
+        reference_id: "seed-initial-tokens",
+      });
+    }
+    log("✅", `Granted 9999 TaraTokens to ${userMap.size} users`);
+    console.log();
+
     // Summary
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
     console.log("=".repeat(60));
