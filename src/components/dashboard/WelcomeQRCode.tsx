@@ -42,13 +42,13 @@ export default function WelcomeQRCode({ code, clubName, title }: WelcomeQRCodePr
         <strong>{title}</strong> welcome page where they can sign up and join your club.
       </p>
 
-      <div className="flex flex-col items-center rounded-xl border-2 border-gray-100 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+      <div className="flex flex-col items-center rounded-xl border-2 border-gray-100 bg-white p-4 sm:p-6 dark:border-gray-700 dark:bg-gray-800">
         <div ref={qrRef}>
           <QRCodeCanvas
             value={welcomeUrl}
-            size={240}
+            size={200}
             level="H"
-            marginSize={8}
+            marginSize={4}
             bgColor="#ffffff"
             fgColor="#0f172a"
           />
@@ -76,11 +76,11 @@ export default function WelcomeQRCode({ code, clubName, title }: WelcomeQRCodePr
             type="text"
             readOnly
             value={welcomeUrl}
-            className="flex-1 rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
+            className="min-w-0 flex-1 truncate rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
           />
           <button
             onClick={handleCopy}
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+            className="shrink-0 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
           >
             {copied ? (
               <span className="text-lime-600 dark:text-lime-400">Copied!</span>
