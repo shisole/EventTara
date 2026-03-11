@@ -2,7 +2,7 @@
 
 import type { User } from "@supabase/supabase-js";
 import dynamic from "next/dynamic";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { DebugFlagProvider } from "@/components/debug/DebugFlagContext";
@@ -76,6 +76,7 @@ export default function ClientShell({
   heroSlideCount = 0,
 }: ClientShellProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const isLighthouse = useMemo(
     () =>
       typeof globalThis !== "undefined" &&
@@ -197,6 +198,26 @@ export default function ClientShell({
       subscription.unsubscribe();
     };
   }, [supabase, fetchRole]);
+
+  // Redirect existing users to avatar picker if they haven't picked one yet
+  const avatarShopEnabled = featureFlags?.avatar_shop_enabled === true;
+  useEffect(() => {
+    if (!avatarShopEnabled || !user || loading) return;
+    // Don't redirect if already on setup pages
+    const skipPaths = ["/setup-avatar", "/setup-username", "/login", "/signup", "/guest-setup"];
+    if (skipPaths.some((p) => pathname.startsWith(p))) return;
+
+    supabase
+      .from("users")
+      .select("has_picked_avatar")
+      .eq("id", user.id)
+      .single()
+      .then(({ data }) => {
+        if (data && !data.has_picked_avatar) {
+          router.push(`/setup-avatar?next=${encodeURIComponent(pathname)}`);
+        }
+      });
+  }, [avatarShopEnabled, user, loading, pathname, supabase, router]);
 
   // Edge swipe detection (right 20px edge, swipe left to open)
   useEffect(() => {
