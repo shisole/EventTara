@@ -97,7 +97,7 @@ export default function ClubCard({
           {/* Footer: Activity badges + Visibility */}
           <div className="mt-auto flex items-center justify-between gap-2">
             <div className="flex flex-wrap gap-1">
-              {activity_types.slice(0, 3).map((type) => (
+              {(activity_types ?? []).slice(0, 3).map((type) => (
                 <span
                   key={type}
                   className={cn(
@@ -108,9 +108,9 @@ export default function ClubCard({
                   {getActivityShortLabel(type)}
                 </span>
               ))}
-              {activity_types.length > 3 && (
+              {(activity_types ?? []).length > 3 && (
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
-                  +{activity_types.length - 3}
+                  +{(activity_types ?? []).length - 3}
                 </span>
               )}
             </div>

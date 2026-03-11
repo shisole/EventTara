@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 import {
   CalendarIcon,
+  ClubsIcon,
   CogIcon,
   DashboardIcon,
   ExploreIcon,
@@ -83,25 +84,15 @@ function getNavItems(
           },
         ]
       : []),
+    {
+      href: "/clubs",
+      label: "Clubs",
+      icon: ClubsIcon,
+      isActive: (p: string) => p === "/clubs" || p.startsWith("/clubs/"),
+    },
   ];
 
   if (user) {
-    if (canManage) {
-      items.push({
-        href: "/dashboard",
-        label: "Dashboard",
-        icon: DashboardIcon,
-        isActive: (p) => p.startsWith("/dashboard"),
-      });
-    } else {
-      items.push({
-        href: "/my-events",
-        label: "My Events",
-        icon: CalendarIcon,
-        isActive: (p) => p === "/my-events",
-      });
-    }
-
     items.push({
       href: "/profile",
       label: "Profile",

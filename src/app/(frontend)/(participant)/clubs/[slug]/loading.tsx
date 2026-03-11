@@ -2,34 +2,34 @@ import { Skeleton, SkeletonCircle, SkeletonEventCard } from "@/components/ui";
 
 export default function Loading() {
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      {/* Profile header skeleton */}
-      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 overflow-hidden">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-0 pb-8 space-y-8">
+      {/* Profile header skeleton — full-width on mobile */}
+      <div className="bg-white dark:bg-gray-900 -mx-4 sm:mx-0 sm:rounded-2xl sm:shadow-md dark:sm:shadow-gray-950/30 overflow-hidden">
         {/* Cover */}
-        <Skeleton className="h-40 sm:h-56 w-full rounded-none" />
+        <Skeleton className="h-44 sm:h-60 w-full rounded-none" />
         <div className="px-5 pb-6 sm:px-8">
-          {/* Logo + Name */}
-          <div className="flex flex-col sm:flex-row sm:items-end gap-4 -mt-10 sm:-mt-12">
-            <Skeleton className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl border-4 border-white dark:border-gray-900" />
-            <div className="flex-1 space-y-2 sm:pb-1">
-              <Skeleton className="h-8 w-48" />
-              <Skeleton className="h-4 w-32" />
-            </div>
-            <Skeleton className="h-10 w-28 rounded-xl" />
+          {/* Logo */}
+          <div className="-mt-16 sm:-mt-20 mb-4">
+            <Skeleton className="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl ring-4 ring-white dark:ring-gray-900" />
           </div>
+          {/* Name */}
+          <Skeleton className="h-8 w-56 mb-2" />
           {/* Description */}
-          <div className="mt-4 space-y-2">
+          <div className="mt-2 space-y-2">
             <Skeleton className="h-4 w-full" />
             <Skeleton className="h-4 w-3/4" />
           </div>
+          {/* Join button */}
+          <div className="mt-4">
+            <Skeleton className="h-9 w-28 rounded-xl" />
+          </div>
           {/* Meta */}
-          <div className="mt-4 flex gap-4">
-            <Skeleton className="h-4 w-28" />
+          <div className="mt-3.5 flex gap-5">
             <Skeleton className="h-4 w-24" />
             <Skeleton className="h-4 w-20" />
           </div>
           {/* Activity badges */}
-          <div className="mt-4 flex gap-2">
+          <div className="mt-3.5 flex gap-2">
             <Skeleton className="h-7 w-20 rounded-full" />
             <Skeleton className="h-7 w-24 rounded-full" />
           </div>

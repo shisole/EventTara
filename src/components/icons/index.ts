@@ -8,6 +8,7 @@ export { default as ChevronLeftIcon } from "./ChevronLeftIcon";
 export { default as ChevronRightIcon } from "./ChevronRightIcon";
 export { default as CloseFilledIcon } from "./CloseFilledIcon";
 export { default as CloseIcon } from "./CloseIcon";
+export { default as ClubsIcon } from "./ClubsIcon";
 export { default as CogIcon } from "./CogIcon";
 export { default as Copy } from "./Copy";
 export { default as DashboardIcon } from "./DashboardIcon";
