@@ -58,8 +58,8 @@ export async function POST(request: NextRequest) {
       title: string;
       description?: string;
       image_url?: string;
-      rarity?: string;
-      category?: string;
+      rarity?: "common" | "rare" | "epic" | "legendary";
+      category?: "distance" | "adventure" | "location" | "special";
     };
     name?: string;
     quantity?: number;
