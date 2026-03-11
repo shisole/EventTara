@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import EventsCalendar, { type CalendarEvent } from "@/components/dashboard/EventsCalendar";
 import { Button, UIBadge } from "@/components/ui";
 import { isDuckRaceEnabled } from "@/lib/cms/cached";
 import { createClient } from "@/lib/supabase/server";
@@ -26,27 +27,38 @@ export default async function ClubOverviewPage({ params }: { params: Promise<{ s
   if (!club) notFound();
 
   // Fetch stats in parallel
-  const [{ count: memberCount }, { count: eventCount }, { data: recentEvents }] = await Promise.all(
-    [
-      supabase
-        .from("club_members")
-        .select("id", { count: "exact", head: true })
-        .eq("club_id", club.id),
-      supabase.from("events").select("id", { count: "exact", head: true }).eq("club_id", club.id),
-      supabase
-        .from("events")
-        .select("id, title, date, end_date, status, type")
-        .eq("club_id", club.id)
-        .order("date", { ascending: false })
-        .limit(5),
-    ],
-  );
+  const [{ count: memberCount }, { count: eventCount }, { data: allEvents }] = await Promise.all([
+    supabase
+      .from("club_members")
+      .select("id", { count: "exact", head: true })
+      .eq("club_id", club.id),
+    supabase.from("events").select("id", { count: "exact", head: true }).eq("club_id", club.id),
+    supabase
+      .from("events")
+      .select("id, title, date, end_date, status, type")
+      .eq("club_id", club.id)
+      .order("date", { ascending: false }),
+  ]);
+
+  const recentEvents = (allEvents ?? []).slice(0, 5);
 
   // Count upcoming events
   const now = new Date().toISOString();
-  const upcomingCount = (recentEvents ?? []).filter(
+  const upcomingCount = (allEvents ?? []).filter(
     (e) => e.status === "published" && e.date >= now,
   ).length;
+
+  // Calendar events (all non-cancelled)
+  const calendarEvents: CalendarEvent[] = (allEvents ?? [])
+    .filter((e) => e.status !== "cancelled")
+    .map((e) => ({
+      id: e.id,
+      title: e.title,
+      date: e.date,
+      end_date: e.end_date,
+      type: e.type as CalendarEvent["type"],
+      status: e.status as CalendarEvent["status"],
+    }));
 
   // Fetch total bookings for this club's events
   const { data: clubEvents } = await supabase.from("events").select("id").eq("club_id", club.id);
@@ -99,51 +111,6 @@ export default async function ClubOverviewPage({ params }: { params: Promise<{ s
         </div>
       </div>
 
-      {/* Recent events */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-heading font-bold dark:text-white">Recent Events</h2>
-          <Link
-            href={`/dashboard/clubs/${slug}/events`}
-            className="text-sm text-lime-600 dark:text-lime-400 hover:underline"
-          >
-            View all
-          </Link>
-        </div>
-
-        {recentEvents && recentEvents.length > 0 ? (
-          <div className="space-y-3">
-            {recentEvents.map((event) => (
-              <Link
-                key={event.id}
-                href={`/dashboard/clubs/${slug}/events/${event.id}`}
-                className="block bg-white dark:bg-gray-900 rounded-xl shadow-sm dark:shadow-gray-950/30 p-4 hover:shadow-md dark:hover:shadow-gray-950/50 transition-shadow"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <h3 className="font-medium dark:text-white truncate">{event.title}</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {formatEventDate(event.date, event.end_date, { short: true })}
-                    </p>
-                  </div>
-                  <UIBadge variant={statusStyles[event.status]}>{event.status}</UIBadge>
-                </div>
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12 bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30">
-            <h3 className="text-lg font-heading font-bold mb-2 dark:text-white">No events yet</h3>
-            <p className="text-gray-500 dark:text-gray-400 mb-4">
-              Create your first event for this club!
-            </p>
-            <Link href={`/dashboard/clubs/${slug}/events/new`}>
-              <Button>Create Event</Button>
-            </Link>
-          </div>
-        )}
-      </div>
-
       {/* Quick actions */}
       <div>
         <h2 className="text-xl font-heading font-bold mb-4 dark:text-white">Quick Actions</h2>
@@ -192,6 +159,54 @@ export default async function ClubOverviewPage({ params }: { params: Promise<{ s
             </Link>
           )}
         </div>
+      </div>
+
+      {/* Event calendar */}
+      <EventsCalendar events={calendarEvents} linkPrefix={`/dashboard/clubs/${slug}/events`} />
+
+      {/* Recent events */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-heading font-bold dark:text-white">Recent Events</h2>
+          <Link
+            href={`/dashboard/clubs/${slug}/events`}
+            className="text-sm text-lime-600 dark:text-lime-400 hover:underline"
+          >
+            View all
+          </Link>
+        </div>
+
+        {recentEvents && recentEvents.length > 0 ? (
+          <div className="space-y-3">
+            {recentEvents.map((event) => (
+              <Link
+                key={event.id}
+                href={`/dashboard/clubs/${slug}/events/${event.id}`}
+                className="block bg-white dark:bg-gray-900 rounded-xl shadow-sm dark:shadow-gray-950/30 p-4 hover:shadow-md dark:hover:shadow-gray-950/50 transition-shadow"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <h3 className="font-medium dark:text-white truncate">{event.title}</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {formatEventDate(event.date, event.end_date, { short: true })}
+                    </p>
+                  </div>
+                  <UIBadge variant={statusStyles[event.status]}>{event.status}</UIBadge>
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12 bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30">
+            <h3 className="text-lg font-heading font-bold mb-2 dark:text-white">No events yet</h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-4">
+              Create your first event for this club!
+            </p>
+            <Link href={`/dashboard/clubs/${slug}/events/new`}>
+              <Button>Create Event</Button>
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );
