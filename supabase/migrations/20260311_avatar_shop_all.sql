@@ -281,37 +281,37 @@ ON CONFLICT (slug) DO NOTHING;
 -- 12. Seed: shop items — accessories (5)
 -- ============================================================
 INSERT INTO shop_items (slug, name, category, image_url, price, rarity, sort_order) VALUES
-  ('cozy-beanie',    'Cozy Beanie',    'accessory', '/avatars/accessory/cozy-beanie.svg',    80,  'common', 1),
-  ('baseball-cap',   'Baseball Cap',   'accessory', '/avatars/accessory/baseball-cap.svg',   80,  'common', 2),
-  ('red-scarf',      'Red Scarf',      'accessory', '/avatars/accessory/red-scarf.svg',      60,  'common', 3),
-  ('cool-sunglasses','Cool Sunglasses','accessory', '/avatars/accessory/cool-sunglasses.svg',120, 'common', 4),
-  ('trail-headband', 'Trail Headband', 'accessory', '/avatars/accessory/trail-headband.svg', 100, 'common', 5)
+  ('cozy-beanie',    'Cozy Beanie',    'accessory', '/avatars/accessories/hat-beanie.svg',    80,  'common', 1),
+  ('baseball-cap',   'Baseball Cap',   'accessory', '/avatars/accessories/hat-cap.svg',       80,  'common', 2),
+  ('red-scarf',      'Red Scarf',      'accessory', '/avatars/accessories/scarf-red.svg',     60,  'common', 3),
+  ('cool-sunglasses','Cool Sunglasses','accessory', '/avatars/accessories/glasses-sun.svg',   120, 'common', 4),
+  ('trail-headband', 'Trail Headband', 'accessory', '/avatars/accessories/headband-hike.svg', 100, 'common', 5)
 ON CONFLICT (slug) DO NOTHING;
 
 -- ============================================================
 -- 13. Seed: shop items — backgrounds (4)
 -- ============================================================
 INSERT INTO shop_items (slug, name, category, image_url, price, rarity, sort_order) VALUES
-  ('sunset-gradient', 'Sunset Gradient', 'background', '/avatars/background/sunset-gradient.svg', 150, 'uncommon', 1),
-  ('forest-trail',    'Forest Trail',    'background', '/avatars/background/forest-trail.svg',    150, 'uncommon', 2),
-  ('mountain-peak',   'Mountain Peak',   'background', '/avatars/background/mountain-peak.svg',   200, 'rare',     3),
-  ('starry-night',    'Starry Night',    'background', '/avatars/background/starry-night.svg',    300, 'rare',     4)
+  ('sunset-gradient', 'Sunset Gradient', 'background', '/avatars/backgrounds/bg-sunset.svg',   150, 'uncommon', 1),
+  ('forest-trail',    'Forest Trail',    'background', '/avatars/backgrounds/bg-forest.svg',   150, 'uncommon', 2),
+  ('mountain-peak',   'Mountain Peak',   'background', '/avatars/backgrounds/bg-mountain.svg', 200, 'rare',     3),
+  ('starry-night',    'Starry Night',    'background', '/avatars/backgrounds/bg-starry.svg',   300, 'rare',     4)
 ON CONFLICT (slug) DO NOTHING;
 
 -- ============================================================
 -- 14. Seed: shop items — borders (3)
 -- ============================================================
 INSERT INTO shop_items (slug, name, category, image_url, price, rarity, sort_order) VALUES
-  ('golden-ring',  'Golden Ring',  'border', '/avatars/border/golden-ring.svg',  250, 'rare',      1),
-  ('neon-glow',    'Neon Glow',    'border', '/avatars/border/neon-glow.svg',    250, 'rare',      2),
-  ('rainbow',      'Rainbow',      'border', '/avatars/border/rainbow.svg',      500, 'legendary', 3)
+  ('golden-ring',  'Golden Ring',  'border', '/avatars/borders/border-gold.svg',    250, 'rare',      1),
+  ('neon-glow',    'Neon Glow',    'border', '/avatars/borders/border-neon.svg',    250, 'rare',      2),
+  ('rainbow',      'Rainbow',      'border', '/avatars/borders/border-rainbow.svg', 500, 'legendary', 3)
 ON CONFLICT (slug) DO NOTHING;
 
 -- ============================================================
 -- 15. Seed: shop items — skins (3)
 -- ============================================================
 INSERT INTO shop_items (slug, name, category, image_url, price, rarity, sort_order) VALUES
-  ('winter-bear', 'Winter Bear', 'skin', '/avatars/skin/winter-bear.svg', 300, 'rare',      1),
-  ('pirate-cat',  'Pirate Cat',  'skin', '/avatars/skin/pirate-cat.svg',  300, 'rare',      2),
-  ('ninja-fox',   'Ninja Fox',   'skin', '/avatars/skin/ninja-fox.svg',   400, 'legendary', 3)
+  ('winter-bear', 'Winter Bear', 'skin', '/avatars/skins/skin-winter-bear.svg', 300, 'rare',      1),
+  ('pirate-cat',  'Pirate Cat',  'skin', '/avatars/skins/skin-pirate-cat.svg',  300, 'rare',      2),
+  ('ninja-fox',   'Ninja Fox',   'skin', '/avatars/skins/skin-ninja-fox.svg',   400, 'legendary', 3)
 ON CONFLICT (slug) DO NOTHING;
