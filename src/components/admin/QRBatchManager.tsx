@@ -74,7 +74,7 @@ export default function QRBatchManager() {
 
   const loadBadges = useCallback(async () => {
     try {
-      const res = await fetch("/api/badges");
+      const res = await fetch("/api/admin/qr-batches/badges");
       if (!res.ok) return;
       const data: BadgeOption[] = await res.json();
       setBadges(data);
