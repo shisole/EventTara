@@ -3,6 +3,7 @@
 import confetti from "canvas-confetti";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { GoogleIcon, StravaIcon } from "@/components/icons";
@@ -55,6 +56,34 @@ type ViewState = "welcome" | "claiming" | "celebration" | "already-claimed" | "e
 type AuthPanel = "hidden" | "signup" | "login";
 type AuthMethod = "password" | "otp";
 type AuthStep = "form" | "verify-code";
+
+function AutoRedirectButton({ href, label }: { href: string; label: string }) {
+  const router = useRouter();
+  const [seconds, setSeconds] = useState(10);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSeconds((s) => {
+        if (s <= 1) {
+          clearInterval(interval);
+          router.push(href);
+          return 0;
+        }
+        return s - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [href, router]);
+
+  return (
+    <Link
+      href={href}
+      className="inline-flex items-center justify-center font-semibold rounded-xl bg-lime-500 hover:bg-lime-400 text-gray-900 py-3 px-6 min-h-[48px] transition-colors w-full md:w-auto"
+    >
+      {label} {seconds > 0 && <span className="ml-2 opacity-60">({seconds}s)</span>}
+    </Link>
+  );
+}
 
 function fireConfetti() {
   const colors = ["#a3e635", "#22d3ee", "#f59e0b", "#ec4899", "#8b5cf6"];
@@ -889,6 +918,7 @@ export default function WelcomeClient({
       }
 
       setState("celebration");
+      window.scrollTo({ top: 0, behavior: "smooth" });
       if (!confettiFired.current) {
         confettiFired.current = true;
         fireConfetti();
@@ -1019,12 +1049,7 @@ export default function WelcomeClient({
                 </div>
               )}
               <div>
-                <Link
-                  href={`/clubs/${club.slug}`}
-                  className="inline-flex items-center justify-center font-semibold rounded-xl bg-lime-500 hover:bg-lime-400 text-gray-900 py-3 px-6 min-h-[48px] transition-colors"
-                >
-                  Go to {club.name}
-                </Link>
+                <AutoRedirectButton href={`/clubs/${club.slug}`} label={`Go to ${club.name}`} />
               </div>
             </>
           ) : (
@@ -1054,12 +1079,7 @@ export default function WelcomeClient({
                 </>
               )}
               <div>
-                <Link
-                  href={redirectUrl}
-                  className="inline-flex items-center justify-center font-semibold rounded-xl bg-lime-500 hover:bg-lime-400 text-gray-900 py-3 px-6 min-h-[48px] transition-colors"
-                >
-                  Start Exploring
-                </Link>
+                <AutoRedirectButton href={redirectUrl} label="Start Exploring" />
               </div>
             </>
           )}
