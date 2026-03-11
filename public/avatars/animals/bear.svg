@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Bear ears -->
+  <circle cx="38" cy="30" r="16" fill="#C49464"/>
+  <circle cx="38" cy="30" r="10" fill="#E8C4A0"/>
+  <circle cx="90" cy="30" r="16" fill="#C49464"/>
+  <circle cx="90" cy="30" r="10" fill="#E8C4A0"/>
+  <!-- Body/head -->
+  <circle cx="64" cy="68" r="44" fill="#D4A574"/>
+  <!-- Snout -->
+  <ellipse cx="64" cy="78" rx="18" ry="14" fill="#E8C4A0"/>
+  <!-- Eyes -->
+  <circle cx="50" cy="62" r="5" fill="#3D2B1F"/>
+  <circle cx="78" cy="62" r="5" fill="#3D2B1F"/>
+  <!-- Eye shine -->
+  <circle cx="52" cy="60" r="2" fill="#FFFFFF"/>
+  <circle cx="80" cy="60" r="2" fill="#FFFFFF"/>
+  <!-- Nose -->
+  <ellipse cx="64" cy="74" rx="5" ry="4" fill="#3D2B1F"/>
+  <!-- Mouth -->
+  <path d="M60 80 Q64 86 68 80" stroke="#3D2B1F" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <!-- Blush -->
+  <circle cx="42" cy="74" r="6" fill="#F0B0A0" opacity="0.5"/>
+  <circle cx="86" cy="74" r="6" fill="#F0B0A0" opacity="0.5"/>
+</svg>

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Long ears -->
+  <ellipse cx="44" cy="22" rx="10" ry="28" fill="#FFB6C1"/>
+  <ellipse cx="44" cy="22" rx="6" ry="22" fill="#FFD0D8"/>
+  <ellipse cx="84" cy="22" rx="10" ry="28" fill="#FFB6C1"/>
+  <ellipse cx="84" cy="22" rx="6" ry="22" fill="#FFD0D8"/>
+  <!-- Body/head -->
+  <circle cx="64" cy="72" r="42" fill="#FFB6C1"/>
+  <!-- Face area -->
+  <ellipse cx="64" cy="80" rx="18" ry="14" fill="#FFE0E6"/>
+  <!-- Eyes -->
+  <circle cx="50" cy="66" r="5" fill="#4A2040"/>
+  <circle cx="78" cy="66" r="5" fill="#4A2040"/>
+  <!-- Eye shine -->
+  <circle cx="52" cy="64" r="2" fill="#FFFFFF"/>
+  <circle cx="80" cy="64" r="2" fill="#FFFFFF"/>
+  <!-- Nose -->
+  <ellipse cx="64" cy="76" rx="3" ry="2.5" fill="#FF8090"/>
+  <!-- Mouth -->
+  <path d="M60 80 L64 84 L68 80" stroke="#CC6070" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Whisker dots -->
+  <circle cx="54" cy="78" r="1" fill="#CC8090"/>
+  <circle cx="50" cy="80" r="1" fill="#CC8090"/>
+  <circle cx="74" cy="78" r="1" fill="#CC8090"/>
+  <circle cx="78" cy="80" r="1" fill="#CC8090"/>
+  <!-- Blush -->
+  <circle cx="40" cy="76" r="6" fill="#FF8090" opacity="0.35"/>
+  <circle cx="88" cy="76" r="6" fill="#FF8090" opacity="0.35"/>
+</svg>

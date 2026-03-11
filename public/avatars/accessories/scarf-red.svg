@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Red scarf at bottom/neck area -->
+  <!-- Main scarf wrap -->
+  <path d="M20 88 Q24 82 40 80 Q64 76 88 80 Q104 82 108 88 Q104 96 88 98 Q64 102 40 98 Q24 96 20 88 Z" fill="#DC2626"/>
+  <!-- Scarf fold/overlap -->
+  <path d="M50 88 Q54 82 60 84 Q66 86 64 92 Q62 96 56 98 Q50 96 50 88 Z" fill="#B91C1C"/>
+  <!-- Scarf tail hanging down -->
+  <path d="M56 98 Q54 100 52 108 Q50 116 48 122 Q46 124 50 124 Q54 124 56 118 Q58 112 60 106 Q62 100 58 98 Z" fill="#DC2626"/>
+  <!-- Scarf tail end detail -->
+  <line x1="48" y1="122" x2="46" y2="126" stroke="#B91C1C" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="50" y1="123" x2="49" y2="127" stroke="#B91C1C" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="52" y1="122" x2="52" y2="126" stroke="#B91C1C" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Knit pattern -->
+  <path d="M30 86 Q34 84 38 86 Q42 84 46 86" stroke="#B91C1C" stroke-width="1" fill="none" opacity="0.4"/>
+  <path d="M68 84 Q72 82 76 84 Q80 82 84 84" stroke="#B91C1C" stroke-width="1" fill="none" opacity="0.4"/>
+</svg>

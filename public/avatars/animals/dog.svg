@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Floppy ears -->
+  <ellipse cx="26" cy="58" rx="14" ry="24" fill="#C8961E" transform="rotate(-15 26 58)"/>
+  <ellipse cx="102" cy="58" rx="14" ry="24" fill="#C8961E" transform="rotate(15 102 58)"/>
+  <!-- Body/head -->
+  <circle cx="64" cy="68" r="44" fill="#DAA520"/>
+  <!-- Forehead patch -->
+  <ellipse cx="64" cy="52" rx="16" ry="12" fill="#E8C050"/>
+  <!-- Snout -->
+  <ellipse cx="64" cy="80" rx="20" ry="14" fill="#F5E6C8"/>
+  <!-- Eyes -->
+  <circle cx="48" cy="60" r="6" fill="#3D2B1F"/>
+  <circle cx="80" cy="60" r="6" fill="#3D2B1F"/>
+  <!-- Eye shine -->
+  <circle cx="50" cy="58" r="2.5" fill="#FFFFFF"/>
+  <circle cx="82" cy="58" r="2.5" fill="#FFFFFF"/>
+  <!-- Nose -->
+  <ellipse cx="64" cy="74" rx="7" ry="5" fill="#3D2B1F"/>
+  <!-- Nose highlight -->
+  <ellipse cx="62" cy="73" rx="2" ry="1.5" fill="#5A4030" opacity="0.6"/>
+  <!-- Mouth -->
+  <path d="M58 82 Q64 88 70 82" stroke="#8B6914" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <!-- Tongue -->
+  <ellipse cx="64" cy="88" rx="5" ry="6" fill="#FF8080"/>
+  <!-- Blush -->
+  <circle cx="38" cy="72" r="6" fill="#F0B0A0" opacity="0.4"/>
+  <circle cx="90" cy="72" r="6" fill="#F0B0A0" opacity="0.4"/>
+</svg>
