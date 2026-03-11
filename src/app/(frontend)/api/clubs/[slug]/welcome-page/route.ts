@@ -114,11 +114,15 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ sl
     .update(updates)
     .eq("id", welcomePage.id)
     .select()
-    .single();
+    .maybeSingle();
 
   if (error) {
     console.error("Welcome page update error:", error.message);
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  if (!updated) {
+    return NextResponse.json({ error: "Update failed — check permissions" }, { status: 403 });
   }
 
   return NextResponse.json({ welcome_page: updated });

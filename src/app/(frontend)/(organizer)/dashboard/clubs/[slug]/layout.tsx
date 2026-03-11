@@ -33,7 +33,8 @@ export default async function ClubDashboardLayout({
     .eq("club_id", club.id)
     .eq("user_id", user.id)
     .in("role", ["owner", "admin", "moderator"])
-    .single();
+    .limit(1)
+    .maybeSingle();
 
   if (!membership) redirect("/dashboard");
 
