@@ -77,7 +77,7 @@ export default function Navbar({
       .then(({ data }) => {
         setTokenBalance(data?.balance ?? 0);
       });
-  }, [user]);
+  }, [user, avatarShopEnabled]);
 
   // Close dropdowns on route change
   useEffect(() => {
