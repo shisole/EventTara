@@ -72,6 +72,7 @@ export default function ShopItemCard({ item, owned, equipped, onBuy, onEquip }: 
         className={cn(
           "mx-auto mb-3 flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl",
           "bg-gray-50 dark:bg-gray-800",
+          item.category === "border" && "rounded-full",
         )}
       >
         <Image
@@ -79,7 +80,11 @@ export default function ShopItemCard({ item, owned, equipped, onBuy, onEquip }: 
           alt={item.name}
           width={64}
           height={64}
-          className="h-full w-full object-contain"
+          className={cn(
+            "h-full w-full object-contain",
+            item.category === "border" && "animate-spin-slow",
+            item.category === "background" && "animate-float",
+          )}
         />
       </div>
 

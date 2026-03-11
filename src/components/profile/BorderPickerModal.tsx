@@ -24,6 +24,13 @@ interface EarnedBorder {
   };
 }
 
+interface ShopBorder {
+  id: string;
+  name: string;
+  image_url: string;
+  rarity: string;
+}
+
 interface AnimalOption {
   id: string;
   slug: string;
@@ -51,7 +58,8 @@ interface BorderPickerModalProps {
   onAnimalChange?: (animalId: string, imageUrl: string) => void;
 }
 
-type Tab = "animal" | "border";
+type Tab = "avatar" | "border";
+type BorderSource = "achievement" | "shop" | "none";
 
 export default function BorderPickerModal({
   open,
@@ -64,10 +72,13 @@ export default function BorderPickerModal({
   onBorderChange,
   onAnimalChange,
 }: BorderPickerModalProps) {
-  const [tab, setTab] = useState<Tab>("animal");
+  const [tab, setTab] = useState<Tab>("avatar");
   const [borders, setBorders] = useState<EarnedBorder[]>([]);
+  const [shopBorders, setShopBorders] = useState<ShopBorder[]>([]);
   const [animals, setAnimals] = useState<AnimalOption[]>([]);
   const [selectedBorderId, setSelectedBorderId] = useState<string | null>(activeBorderId);
+  const [selectedBorderSource, setSelectedBorderSource] = useState<BorderSource>("none");
+  const [equippedShopBorderId, setEquippedShopBorderId] = useState<string | null>(null);
   const [selectedAnimalId, setSelectedAnimalId] = useState<string | null>(currentAnimalId);
   const [saving, setSaving] = useState(false);
   const [loaded, setLoaded] = useState(false);
@@ -91,47 +102,83 @@ export default function BorderPickerModal({
       .order("sort_order");
     setAnimals(animalData ?? []);
 
-    // Fetch current animal selection
+    // Fetch current avatar config (animal + equipped shop border)
     const { data: configRow } = await supabase
       .from("user_avatar_config")
-      .select("animal_id")
+      .select("animal_id, equipped_border_id")
       .eq("user_id", authUser.id)
       .maybeSingle();
     if (configRow?.animal_id) {
       setSelectedAnimalId(configRow.animal_id);
     }
+    const currentEquippedShopBorder = configRow?.equipped_border_id ?? null;
+    setEquippedShopBorderId(currentEquippedShopBorder);
 
-    // Fetch borders
+    // Fetch achievement borders
     const { data: awards } = await supabase
       .from("user_avatar_borders")
       .select("id, border_id, awarded_at")
       .eq("user_id", authUser.id)
       .order("awarded_at", { ascending: true });
 
-    if (!awards || awards.length === 0) {
+    if (awards && awards.length > 0) {
+      const borderIds = awards.map((a) => a.border_id);
+      const { data: borderDefs } = await supabase
+        .from("avatar_borders")
+        .select("id, slug, name, description, tier, border_color, sort_order")
+        .in("id", borderIds);
+
+      const borderMap = new Map((borderDefs ?? []).map((b) => [b.id, b]));
+
+      const earned: EarnedBorder[] = awards
+        .filter((a) => borderMap.has(a.border_id))
+        .map((a) => ({
+          ...a,
+          avatar_borders: borderMap.get(a.border_id)!,
+        }));
+
+      setBorders(earned);
+    } else {
       setBorders([]);
-      setLoaded(true);
-      return;
     }
 
-    const borderIds = awards.map((a) => a.border_id);
-    const { data: borderDefs } = await supabase
-      .from("avatar_borders")
-      .select("id, slug, name, description, tier, border_color, sort_order")
-      .in("id", borderIds);
+    // Fetch shop borders from inventory
+    const { data: inventoryData } = await supabase
+      .from("user_inventory")
+      .select("shop_item_id, shop_items(id, name, image_url, rarity)")
+      .eq("user_id", authUser.id);
 
-    const borderMap = new Map((borderDefs ?? []).map((b) => [b.id, b]));
+    const ownedShopBorders: ShopBorder[] = (inventoryData ?? [])
+      .filter((row) => {
+        const si = row.shop_items;
+        return si && typeof si === "object" && "category" in si && si.category === "border";
+      })
+      .map((row) => {
+        const si = row.shop_items;
+        const id: string = (si && typeof si === "object" && "id" in si ? si.id : "") ?? "";
+        const name: string = (si && typeof si === "object" && "name" in si ? si.name : "") ?? "";
+        const image_url: string =
+          (si && typeof si === "object" && "image_url" in si ? si.image_url : "") ?? "";
+        const rarity: string =
+          (si && typeof si === "object" && "rarity" in si ? si.rarity : "common") ?? "common";
+        return { id, name, image_url, rarity };
+      });
 
-    const earned: EarnedBorder[] = awards
-      .filter((a) => borderMap.has(a.border_id))
-      .map((a) => ({
-        ...a,
-        avatar_borders: borderMap.get(a.border_id)!,
-      }));
+    setShopBorders(ownedShopBorders);
 
-    setBorders(earned);
+    // Determine initial selected border source
+    if (
+      currentEquippedShopBorder &&
+      ownedShopBorders.some((b) => b.id === currentEquippedShopBorder)
+    ) {
+      setSelectedBorderId(currentEquippedShopBorder);
+      setSelectedBorderSource("shop");
+    } else if (activeBorderId) {
+      setSelectedBorderSource("achievement");
+    }
+
     setLoaded(true);
-  }, [supabase]);
+  }, [supabase, activeBorderId]);
 
   useEffect(() => {
     if (open && !loaded) {
@@ -157,14 +204,33 @@ export default function BorderPickerModal({
     return () => document.removeEventListener("keydown", handleKey);
   }, [open, onClose]);
 
-  const borderChanged = selectedBorderId !== activeBorderId;
   const animalChanged = selectedAnimalId !== currentAnimalId && selectedAnimalId !== null;
+
+  // Determine if border selection changed
+  const borderChanged = (() => {
+    if (selectedBorderSource === "none") {
+      return activeBorderId !== null || equippedShopBorderId !== null;
+    }
+    if (selectedBorderSource === "shop") {
+      return selectedBorderId !== equippedShopBorderId;
+    }
+    // achievement
+    return selectedBorderId !== activeBorderId;
+  })();
+
   const hasChanges = borderChanged || animalChanged;
 
   const selectedAnimal = animals.find((a) => a.id === selectedAnimalId);
+  const selectedShopBorder = shopBorders.find((b) => b.id === selectedBorderId);
   const previewConfig: AvatarConfig = {
     ...avatarConfig,
     animalImageUrl: selectedAnimal?.image_url ?? avatarConfig?.animalImageUrl,
+    borderImageUrl:
+      selectedBorderSource === "shop" && selectedShopBorder
+        ? selectedShopBorder.image_url
+        : selectedBorderSource === "none"
+          ? null
+          : avatarConfig?.borderImageUrl,
   };
 
   const handleSave = async () => {
@@ -185,32 +251,65 @@ export default function BorderPickerModal({
 
     // Save border change
     if (borderChanged) {
-      const res = await fetch("/api/users/active-border", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ border_id: selectedBorderId }),
-      });
-
-      if (res.ok) {
-        if (selectedBorderId === null) {
-          onBorderChange(null, null, null);
-        } else {
-          const border = borders.find((b) => b.border_id === selectedBorderId);
-          if (border) {
-            onBorderChange(
-              selectedBorderId,
-              border.avatar_borders.tier,
-              border.avatar_borders.border_color,
-            );
-          }
+      if (selectedBorderSource === "shop" && selectedBorderId) {
+        // Equip shop border via avatar-config + clear achievement border
+        await Promise.all([
+          fetch("/api/users/avatar-config", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ equipped_border_id: selectedBorderId }),
+          }),
+          fetch("/api/users/active-border", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ border_id: null }),
+          }),
+        ]);
+        onBorderChange(null, null, null);
+      } else if (selectedBorderSource === "achievement" && selectedBorderId) {
+        // Set achievement border + clear shop border
+        await Promise.all([
+          fetch("/api/users/active-border", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ border_id: selectedBorderId }),
+          }),
+          fetch("/api/users/avatar-config", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ equipped_border_id: null }),
+          }),
+        ]);
+        const border = borders.find((b) => b.border_id === selectedBorderId);
+        if (border) {
+          onBorderChange(
+            selectedBorderId,
+            border.avatar_borders.tier,
+            border.avatar_borders.border_color,
+          );
         }
+      } else {
+        // No border — clear both
+        await Promise.all([
+          fetch("/api/users/active-border", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ border_id: null }),
+          }),
+          fetch("/api/users/avatar-config", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ equipped_border_id: null }),
+          }),
+        ]);
+        onBorderChange(null, null, null);
       }
     }
 
     setSaving(false);
     onClose();
     // Reload to reflect changes
-    if (animalChanged) {
+    if (animalChanged || borderChanged) {
       globalThis.location.reload();
     }
   };
@@ -226,7 +325,25 @@ export default function BorderPickerModal({
     }))
     .filter((g) => g.borders.length > 0);
 
-  const previewBorder = borders.find((b) => b.border_id === selectedBorderId);
+  const previewBorder =
+    selectedBorderSource === "achievement"
+      ? borders.find((b) => b.border_id === selectedBorderId)
+      : null;
+
+  // Label for preview
+  const borderLabel =
+    selectedBorderSource === "shop" && selectedShopBorder
+      ? selectedShopBorder.name
+      : previewBorder
+        ? previewBorder.avatar_borders.name
+        : "";
+
+  const RARITY_COLORS: Record<string, string> = {
+    common: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
+    uncommon: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+    rare: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+    legendary: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+  };
 
   return (
     <div
@@ -260,8 +377,8 @@ export default function BorderPickerModal({
               className="mx-auto"
             />
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              {selectedAnimal?.name ?? "No animal"}
-              {previewBorder ? ` · ${previewBorder.avatar_borders.name}` : ""}
+              {selectedAnimal?.name ?? "No avatar"}
+              {borderLabel ? ` · ${borderLabel}` : ""}
             </p>
           </div>
         </div>
@@ -269,15 +386,15 @@ export default function BorderPickerModal({
         {/* Tabs */}
         <div className="flex border-b border-gray-100 dark:border-gray-800">
           <button
-            onClick={() => setTab("animal")}
+            onClick={() => setTab("avatar")}
             className={cn(
               "flex-1 px-4 py-2.5 text-sm font-medium transition-colors",
-              tab === "animal"
+              tab === "avatar"
                 ? "text-teal-600 dark:text-teal-400 border-b-2 border-teal-500"
                 : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300",
             )}
           >
-            Animal
+            Avatar
           </button>
           <button
             onClick={() => setTab("border")}
@@ -294,7 +411,7 @@ export default function BorderPickerModal({
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
-          {tab === "animal" && (
+          {tab === "avatar" && (
             <div className="grid grid-cols-4 gap-3">
               {animals.map((animal) => (
                 <button
@@ -328,10 +445,13 @@ export default function BorderPickerModal({
             <>
               {/* No border option */}
               <button
-                onClick={() => setSelectedBorderId(null)}
+                onClick={() => {
+                  setSelectedBorderId(null);
+                  setSelectedBorderSource("none");
+                }}
                 className={cn(
                   "w-full flex items-center gap-3 p-3 rounded-xl border transition-colors",
-                  selectedBorderId === null
+                  selectedBorderSource === "none"
                     ? "border-lime-500 bg-lime-50 dark:bg-lime-950/20"
                     : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800",
                 )}
@@ -349,6 +469,56 @@ export default function BorderPickerModal({
                 <span className="text-sm font-medium">No Border</span>
               </button>
 
+              {/* Shop borders */}
+              {shopBorders.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+                      Shop Borders
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 gap-2">
+                    {shopBorders.map((sb) => (
+                      <button
+                        key={sb.id}
+                        onClick={() => {
+                          setSelectedBorderId(sb.id);
+                          setSelectedBorderSource("shop");
+                        }}
+                        className={cn(
+                          "flex items-center gap-3 p-3 rounded-xl border transition-colors text-left",
+                          selectedBorderId === sb.id && selectedBorderSource === "shop"
+                            ? "border-lime-500 bg-lime-50 dark:bg-lime-950/20"
+                            : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800",
+                        )}
+                      >
+                        <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-50 dark:bg-gray-800 flex-shrink-0">
+                          <Image
+                            src={sb.image_url}
+                            alt={sb.name}
+                            width={40}
+                            height={40}
+                            className="w-full h-full object-contain animate-spin-slow"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{sb.name}</p>
+                          <span
+                            className={cn(
+                              "text-[10px] font-semibold px-1.5 py-0.5 rounded-full",
+                              RARITY_COLORS[sb.rarity] ?? RARITY_COLORS.common,
+                            )}
+                          >
+                            {sb.rarity.charAt(0).toUpperCase() + sb.rarity.slice(1)}
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Achievement borders */}
               {grouped.map(({ tier, borders: tierBorders }) => (
                 <div key={tier}>
                   <div className="flex items-center gap-2 mb-2">
@@ -365,10 +535,14 @@ export default function BorderPickerModal({
                     {tierBorders.map((border) => (
                       <button
                         key={border.border_id}
-                        onClick={() => setSelectedBorderId(border.border_id)}
+                        onClick={() => {
+                          setSelectedBorderId(border.border_id);
+                          setSelectedBorderSource("achievement");
+                        }}
                         className={cn(
                           "flex items-center gap-3 p-3 rounded-xl border transition-colors text-left",
-                          selectedBorderId === border.border_id
+                          selectedBorderId === border.border_id &&
+                            selectedBorderSource === "achievement"
                             ? "border-lime-500 bg-lime-50 dark:bg-lime-950/20"
                             : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800",
                         )}
@@ -397,9 +571,9 @@ export default function BorderPickerModal({
                 </div>
               ))}
 
-              {loaded && borders.length === 0 && (
+              {loaded && borders.length === 0 && shopBorders.length === 0 && (
                 <p className="text-center text-sm text-gray-500 dark:text-gray-400 py-4">
-                  No borders earned yet. Keep adventuring to unlock borders!
+                  No borders yet. Earn borders through adventures or buy them in the shop!
                 </p>
               )}
             </>

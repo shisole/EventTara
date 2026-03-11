@@ -172,10 +172,10 @@ function SetupAvatarForm() {
     <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md p-8 space-y-6">
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-heading font-bold text-gray-900 dark:text-white">
-          Pick Your Animal
+          Pick Your Avatar
         </h2>
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          Choose an animal avatar to represent you on EventTara
+          Choose an avatar to represent you on EventTara
         </p>
       </div>
 
