@@ -15,12 +15,7 @@ export const metadata: Metadata = {
 export default async function ClubsPage() {
   const supabase = await createClient();
 
-  // Check if user is logged in
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  // Fetch user's clubs if logged in
+  // Fetch user's clubs if logged in (wrapped in try-catch to avoid crashing the page)
   let myClubs: {
     id: string;
     slug: string;
@@ -31,36 +26,45 @@ export default async function ClubsPage() {
     description: string | null;
     is_demo: boolean;
   }[] = [];
-  const myClubMemberCounts: Record<string, number> = {};
+  let myClubMemberCounts: Record<string, number> = {};
 
-  if (user) {
-    const { data: memberships } = await supabase
-      .from("club_members")
-      .select("club_id")
-      .eq("user_id", user.id);
+  try {
+    const { data: authData } = await supabase.auth.getUser();
+    const user = authData?.user ?? null;
 
-    if (memberships && memberships.length > 0) {
-      const clubIds = memberships.map((m) => m.club_id);
-      const { data: userClubs } = await supabase
-        .from("clubs")
-        .select("*")
-        .in("id", clubIds)
-        .order("name");
+    if (user) {
+      const { data: memberships } = await supabase
+        .from("club_members")
+        .select("club_id")
+        .eq("user_id", user.id);
 
-      myClubs = (userClubs ?? []) as typeof myClubs;
+      if (memberships && memberships.length > 0) {
+        const clubIds = memberships.map((m) => m.club_id);
+        const { data: userClubs } = await supabase
+          .from("clubs")
+          .select("*")
+          .in("id", clubIds)
+          .order("name");
 
-      // Fetch member counts for user's clubs
-      if (myClubs.length > 0) {
-        const { data: memberRows } = await supabase
-          .from("club_members")
-          .select("club_id")
-          .in("club_id", clubIds);
+        myClubs = (userClubs ?? []) as typeof myClubs;
 
-        for (const row of memberRows ?? []) {
-          myClubMemberCounts[row.club_id] = (myClubMemberCounts[row.club_id] ?? 0) + 1;
+        // Fetch member counts for user's clubs
+        if (myClubs.length > 0) {
+          const { data: memberRows } = await supabase
+            .from("club_members")
+            .select("club_id")
+            .in("club_id", clubIds);
+
+          for (const row of memberRows ?? []) {
+            myClubMemberCounts[row.club_id] = (myClubMemberCounts[row.club_id] ?? 0) + 1;
+          }
         }
       }
     }
+  } catch {
+    // If auth or club queries fail, just show the browse view
+    myClubs = [];
+    myClubMemberCounts = {};
   }
 
   // Fetch initial public clubs
