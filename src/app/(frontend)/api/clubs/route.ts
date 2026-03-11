@@ -120,6 +120,24 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: memberError.message }, { status: 500 });
   }
 
+  // Auto-generate a welcome page for the club (fire-and-forget)
+  supabase
+    .from("welcome_pages")
+    .insert({
+      code: slug,
+      title: `Welcome to ${body.name.trim()}!`,
+      subtitle: "Scan to join the crew",
+      club_id: clubId,
+      redirect_url: `/clubs/${slug}`,
+      is_active: true,
+      created_by: user.id,
+    })
+    .then(({ error: wpError }) => {
+      if (wpError) {
+        console.error("Welcome page auto-create error:", wpError.message, wpError.code);
+      }
+    });
+
   // SELECT after owner is added so the SELECT policy passes (private clubs need membership)
   const { data: club } = await supabase.from("clubs").select().eq("id", clubId).single();
 
