@@ -46,6 +46,7 @@ const FLAG_LABELS: Record<keyof Omit<CmsFeatureFlags, "id">, string> = {
   oauth_facebook: "Lock Facebook Login",
   onboarding_quiz: "Onboarding Quiz",
   duck_race: "Duck Race",
+  avatar_shop_enabled: "Avatar Shop",
 };
 
 type FlagKey = keyof Omit<CmsFeatureFlags, "id">;
@@ -66,6 +67,7 @@ const FLAG_KEYS: FlagKey[] = [
   "oauth_strava",
   "oauth_facebook",
   "onboarding_quiz",
+  "avatar_shop_enabled",
 ];
 
 /* ------------------------------------------------------------------ */

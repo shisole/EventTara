@@ -73,6 +73,10 @@ const FLAG_META: Record<string, { label: string; description: string }> = {
     description:
       "Enable the duck race raffle feature for clubs (create & run races from dashboard).",
   },
+  avatar_shop_enabled: {
+    label: "Avatar Shop",
+    description: "Animal avatars, TaraTokens virtual currency, and cosmetic shop.",
+  },
 };
 
 export default function FeatureFlagsForm() {

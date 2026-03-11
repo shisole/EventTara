@@ -316,6 +316,18 @@ export async function isClubReviewsEnabled(): Promise<boolean> {
 }
 
 /**
+ * Returns whether the avatar shop (animal avatars, TaraTokens, cosmetic shop) is enabled.
+ */
+export async function isAvatarShopEnabled(): Promise<boolean> {
+  try {
+    const flags = await getCachedFeatureFlags();
+    return flags?.avatar_shop_enabled === true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Parse footer sections from JSONB into typed array.
  */
 export function parseFooterSections(nav: CmsNavigation | null): CmsFooterSection[] {

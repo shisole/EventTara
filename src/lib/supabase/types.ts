@@ -1057,6 +1057,7 @@ export interface Database {
           oauth_facebook: boolean;
           onboarding_quiz: boolean;
           duck_race: boolean;
+          avatar_shop_enabled: boolean;
         };
         Insert: {
           id?: number;
@@ -1075,6 +1076,7 @@ export interface Database {
           oauth_facebook?: boolean;
           onboarding_quiz?: boolean;
           duck_race?: boolean;
+          avatar_shop_enabled?: boolean;
         };
         Update: {
           id?: number;
@@ -1093,6 +1095,7 @@ export interface Database {
           oauth_facebook?: boolean;
           onboarding_quiz?: boolean;
           duck_race?: boolean;
+          avatar_shop_enabled?: boolean;
         };
         Relationships: [];
       };
