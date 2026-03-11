@@ -13,6 +13,7 @@ interface AvatarConfig {
   animalImageUrl?: string | null;
   accessoryImageUrl?: string | null;
   backgroundImageUrl?: string | null;
+  borderImageUrl?: string | null;
   skinImageUrl?: string | null;
 }
 
@@ -104,6 +105,18 @@ export default function CompositeAvatar({
           width={pixels}
           height={pixels}
           className="absolute inset-0 z-20 h-full w-full object-contain"
+          aria-hidden="true"
+        />
+      ) : null}
+
+      {/* Shop border layer (z-30) */}
+      {avatarConfig.borderImageUrl ? (
+        <Image
+          src={avatarConfig.borderImageUrl}
+          alt=""
+          width={pixels}
+          height={pixels}
+          className="absolute inset-0 z-30 h-full w-full object-contain"
           aria-hidden="true"
         />
       ) : null}

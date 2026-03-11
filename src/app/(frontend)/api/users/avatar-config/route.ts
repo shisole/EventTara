@@ -21,11 +21,13 @@ export async function GET() {
   // Resolve equipped item image URLs
   let accessoryImageUrl: string | null = null;
   let backgroundImageUrl: string | null = null;
+  let borderImageUrl: string | null = null;
   let skinImageUrl: string | null = null;
 
   const equippedIds = [
     data?.equipped_accessory_id,
     data?.equipped_background_id,
+    data?.equipped_border_id,
     data?.equipped_skin_id,
   ].filter(Boolean) as string[];
 
@@ -40,6 +42,7 @@ export async function GET() {
       accessoryImageUrl = itemMap.get(data.equipped_accessory_id) ?? null;
     if (data?.equipped_background_id)
       backgroundImageUrl = itemMap.get(data.equipped_background_id) ?? null;
+    if (data?.equipped_border_id) borderImageUrl = itemMap.get(data.equipped_border_id) ?? null;
     if (data?.equipped_skin_id) skinImageUrl = itemMap.get(data.equipped_skin_id) ?? null;
   }
 
@@ -50,6 +53,7 @@ export async function GET() {
     animal_image_url: animalImageUrl,
     accessory_image_url: accessoryImageUrl,
     background_image_url: backgroundImageUrl,
+    border_image_url: borderImageUrl,
     skin_image_url: skinImageUrl,
   });
 }

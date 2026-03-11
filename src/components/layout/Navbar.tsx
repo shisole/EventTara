@@ -68,6 +68,7 @@ export default function Navbar({
     animalImageUrl: string | null;
     accessoryImageUrl: string | null;
     backgroundImageUrl: string | null;
+    borderImageUrl: string | null;
     skinImageUrl: string | null;
   } | null>(null);
 
@@ -90,6 +91,7 @@ export default function Navbar({
           animal_image_url?: string | null;
           accessory_image_url?: string | null;
           background_image_url?: string | null;
+          border_image_url?: string | null;
           skin_image_url?: string | null;
         }) => {
           if (data.animal_image_url) {
@@ -97,6 +99,7 @@ export default function Navbar({
               animalImageUrl: data.animal_image_url,
               accessoryImageUrl: data.accessory_image_url ?? null,
               backgroundImageUrl: data.background_image_url ?? null,
+              borderImageUrl: data.border_image_url ?? null,
               skinImageUrl: data.skin_image_url ?? null,
             });
           }

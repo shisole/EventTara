@@ -35,6 +35,7 @@ interface AvatarConfig {
   animalImageUrl?: string | null;
   accessoryImageUrl?: string | null;
   backgroundImageUrl?: string | null;
+  borderImageUrl?: string | null;
   skinImageUrl?: string | null;
 }
 
