@@ -5,6 +5,7 @@ import BadgeGrid from "@/components/badges/BadgeGrid";
 import PastEvents from "@/components/participant/PastEvents";
 import UpcomingBookings from "@/components/participant/UpcomingBookings";
 import FollowButton from "@/components/profile/FollowButton";
+import ProfileClubs, { type ProfileClub } from "@/components/profile/ProfileClubs";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import ProfileStats from "@/components/profile/ProfileStats";
 import StravaActivityFeed from "@/components/strava/StravaActivityFeed";
@@ -232,6 +233,47 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
       : null;
   const stravaAthleteId: number | null = stravaConnection?.strava_athlete_id ?? null;
 
+  // Fetch user's club memberships
+  const { data: clubMemberships } = await supabase
+    .from("club_members")
+    .select("club_id, role")
+    .eq("user_id", user.id);
+
+  let profileClubs: ProfileClub[] = [];
+  if (clubMemberships && clubMemberships.length > 0) {
+    const clubIds = clubMemberships.map((m) => m.club_id);
+
+    const { data: clubs } = await supabase
+      .from("clubs")
+      .select("id, slug, name, logo_url, activity_types, visibility, description")
+      .in("id", clubIds);
+
+    if (clubs) {
+      const memberCounts = await Promise.all(
+        clubs.map(async (club) => {
+          const { count } = await supabase
+            .from("club_members")
+            .select("*", { count: "exact", head: true })
+            .eq("club_id", club.id);
+          return { clubId: club.id, count: count || 0 };
+        }),
+      );
+      const countMap = new Map(memberCounts.map((mc) => [mc.clubId, mc.count]));
+      const roleMap = new Map(clubMemberships.map((m) => [m.club_id, m.role]));
+
+      profileClubs = clubs.map((club) => ({
+        slug: club.slug,
+        name: club.name,
+        logo_url: club.logo_url,
+        activity_types: club.activity_types || [],
+        member_count: countMap.get(club.id) || 0,
+        visibility: club.visibility,
+        description: club.description,
+        role: roleMap.get(club.id) || "member",
+      }));
+    }
+  }
+
   // Format badges for BadgeGrid
   const badges = (userBadges || []).map((ub: any) => ({
     id: ub.badge_id,
@@ -269,6 +311,8 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
         badgeCount={badgeCount}
         typeBreakdown={typeBreakdown}
       />
+
+      <ProfileClubs clubs={profileClubs} isOwnProfile={isOwnProfile} />
 
       {/* Strava stats — shown to everyone if connected */}
       {hasStrava && (
