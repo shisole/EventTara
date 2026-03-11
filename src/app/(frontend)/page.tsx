@@ -15,6 +15,7 @@ import ParallaxMountain from "@/components/landing/ParallaxMountain";
 import PioneerCounterSection from "@/components/landing/PioneerCounterSection";
 import StravaShowcaseSection from "@/components/landing/StravaShowcaseSection";
 import TestimonialsSection from "@/components/landing/TestimonialsSection";
+import WaitlistSection from "@/components/landing/WaitlistSection";
 import {
   getCachedHeroCarousel,
   getCachedHomepageSections,
@@ -51,7 +52,8 @@ const DEFAULT_SECTIONS: CmsHomepageSection[] = [
   { key: "pioneer_counter", label: "Pioneer Counter", enabled: true, order: 9 },
   { key: "testimonials", label: "Testimonials", enabled: true, order: 10 },
   { key: "faq", label: "FAQ", enabled: true, order: 11 },
-  { key: "contact_cta", label: "Contact CTA", enabled: true, order: 12 },
+  { key: "waitlist", label: "Early Access Waitlist", enabled: true, order: 12 },
+  { key: "contact_cta", label: "Contact CTA", enabled: true, order: 13 },
 ];
 
 function BentoEventsSkeleton() {
@@ -264,6 +266,9 @@ function renderSection(key: string, parallaxImageUrl: string, heroData: HeroData
     }
     case "faq": {
       return <FAQSection />;
+    }
+    case "waitlist": {
+      return <WaitlistSection />;
     }
     case "contact_cta": {
       return <ContactCTASection />;
