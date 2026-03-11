@@ -1,10 +1,14 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import PhotoUploader from "@/components/dashboard/PhotoUploader";
 import { Button, Input, Toggle } from "@/components/ui";
+import { WELCOME_HERO_TEMPLATES } from "@/lib/constants/welcome-hero-templates";
 import { createClient } from "@/lib/supabase/client";
+import { cn } from "@/lib/utils";
 
 interface WelcomePage {
   id: string;
@@ -44,7 +48,9 @@ export default function WelcomePageEditor({
   const [title, setTitle] = useState(welcomePage.title);
   const [subtitle, setSubtitle] = useState(welcomePage.subtitle ?? "");
   const [description, setDescription] = useState(welcomePage.description ?? "");
-  const [heroImageUrl, setHeroImageUrl] = useState(welcomePage.hero_image_url ?? "");
+  const [heroImage, setHeroImage] = useState<string | File | null>(
+    welcomePage.hero_image_url ?? null,
+  );
   const [redirectUrl, setRedirectUrl] = useState(welcomePage.redirect_url);
   const [maxClaims, setMaxClaims] = useState(welcomePage.max_claims?.toString() ?? "");
   const [expiresAt, setExpiresAt] = useState(welcomePage.expires_at?.slice(0, 16) ?? "");
@@ -64,6 +70,19 @@ export default function WelcomePageEditor({
       });
   }, []);
 
+  async function uploadHeroImage(file: File): Promise<string> {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("folder", "welcome/heroes");
+
+    const res = await fetch("/api/upload", { method: "POST", body: formData });
+    const json: { url?: string; error?: string } = await res.json();
+    if (!res.ok) {
+      throw new Error(json.error ?? "Upload failed");
+    }
+    return json.url!;
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
@@ -71,6 +90,9 @@ export default function WelcomePageEditor({
     setSuccess(false);
 
     try {
+      // Upload hero image if it's a file
+      const heroImageUrl = heroImage instanceof File ? await uploadHeroImage(heroImage) : heroImage;
+
       const res = await fetch(`/api/clubs/${clubSlug}/welcome-page`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -78,7 +100,7 @@ export default function WelcomePageEditor({
           title: title.trim(),
           subtitle: subtitle.trim() || null,
           description: description.trim() || null,
-          hero_image_url: heroImageUrl.trim() || null,
+          hero_image_url: heroImageUrl,
           redirect_url: redirectUrl.trim() || `/clubs/${clubSlug}`,
           max_claims: maxClaims ? Number.parseInt(maxClaims, 10) : null,
           expires_at: expiresAt || null,
@@ -88,15 +110,15 @@ export default function WelcomePageEditor({
       });
 
       if (!res.ok) {
-        const data = await res.json();
-        setError(data.error || "Failed to update welcome page");
+        const json: { error?: string } = await res.json();
+        setError(json.error ?? "Failed to update welcome page");
         return;
       }
 
       setSuccess(true);
       router.refresh();
-    } catch {
-      setError("Network error. Please try again.");
+    } catch (error_) {
+      setError(error_ instanceof Error ? error_.message : "Network error. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -157,15 +179,41 @@ export default function WelcomePageEditor({
               />
             </div>
 
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Hero Image URL
-              </label>
-              <Input
-                value={heroImageUrl}
-                onChange={(e) => setHeroImageUrl(e.target.value)}
-                placeholder="https://..."
-              />
+            <PhotoUploader
+              value={heroImage}
+              onChange={(file) => setHeroImage(file)}
+              label="Hero Image"
+            />
+
+            <div className="space-y-2">
+              <p className="text-sm text-gray-500 dark:text-gray-400">Or choose a template</p>
+              <div className="flex gap-2 overflow-x-auto pb-2">
+                {WELCOME_HERO_TEMPLATES.map((tpl) => (
+                  <button
+                    key={tpl.url}
+                    type="button"
+                    aria-pressed={heroImage === tpl.url}
+                    onClick={() => setHeroImage(tpl.url)}
+                    className={cn(
+                      "relative h-20 w-32 shrink-0 overflow-hidden rounded-lg border-2 transition-all focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2",
+                      heroImage === tpl.url
+                        ? "border-teal-500 ring-2 ring-teal-500/30"
+                        : "border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600",
+                    )}
+                  >
+                    <Image
+                      src={tpl.url}
+                      alt={tpl.label}
+                      fill
+                      sizes="128px"
+                      className="object-cover"
+                    />
+                    <span className="absolute inset-x-0 bottom-0 bg-black/50 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                      {tpl.label}
+                    </span>
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div>
