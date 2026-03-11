@@ -145,7 +145,7 @@ export default function BorderPickerModal({
     // Fetch shop borders from inventory
     const { data: inventoryData } = await supabase
       .from("user_inventory")
-      .select("shop_item_id, shop_items(id, name, image_url, rarity)")
+      .select("shop_item_id, shop_items(id, name, category, image_url, rarity)")
       .eq("user_id", authUser.id);
 
     const ownedShopBorders: ShopBorder[] = (inventoryData ?? [])
