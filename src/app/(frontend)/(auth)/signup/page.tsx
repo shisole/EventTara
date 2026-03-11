@@ -53,11 +53,19 @@ function SignupForm() {
   useEffect(() => {
     void fetch("/api/feature-flags")
       .then((r) => r.json())
-      .then((d: { oauthGoogle?: boolean; oauthStrava?: boolean; oauthFacebook?: boolean }) => {
-        setOauthGoogle(d.oauthGoogle === true);
-        setOauthStrava(d.oauthStrava === true);
-        setOauthFacebook(d.oauthFacebook === true);
-      })
+      .then(
+        (d: {
+          oauthGoogle?: boolean;
+          oauthStrava?: boolean;
+          oauthFacebook?: boolean;
+          avatarShopEnabled?: boolean;
+        }) => {
+          setOauthGoogle(d.oauthGoogle === true);
+          setOauthStrava(d.oauthStrava === true);
+          setOauthFacebook(d.oauthFacebook === true);
+          setAvatarShopEnabled(d.avatarShopEnabled === true);
+        },
+      )
       // eslint-disable-next-line @typescript-eslint/no-empty-function
       .catch(() => {});
   }, []);
@@ -98,6 +106,7 @@ function SignupForm() {
   const [oauthGoogle, setOauthGoogle] = useState(false);
   const [oauthStrava, setOauthStrava] = useState(false);
   const [oauthFacebook, setOauthFacebook] = useState(false);
+  const [avatarShopEnabled, setAvatarShopEnabled] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [showMoreAuth, setShowMoreAuth] = useState(false);
 
@@ -221,7 +230,9 @@ function SignupForm() {
           }
           setState("success");
           setTimeout(() => {
-            router.push(`/setup-avatar?next=${encodeURIComponent(next)}`);
+            router.push(
+              avatarShopEnabled ? `/setup-avatar?next=${encodeURIComponent(next)}` : next,
+            );
             router.refresh();
           }, 2000);
         } else {

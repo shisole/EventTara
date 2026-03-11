@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { isAvatarShopEnabled } from "@/lib/cms/cached";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 
 export async function GET(request: Request) {
@@ -51,8 +52,9 @@ export async function GET(request: Request) {
           error: profileErr?.message,
         });
 
-        // Chain: /setup-avatar → /setup-username → destination
-        if (!profile?.has_picked_avatar) {
+        // Chain: /setup-avatar → /setup-username → destination (only if avatar shop enabled)
+        const avatarShopOn = await isAvatarShopEnabled();
+        if (avatarShopOn && !profile?.has_picked_avatar) {
           const avatarNext = profile?.username
             ? next
             : `/setup-username?next=${encodeURIComponent(next)}`;

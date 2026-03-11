@@ -269,6 +269,7 @@ export default function ClientShell({
             navLayout={navLayout}
             activeBorder={activeBorder}
             activityFeedEnabled={activityFeedEnabled}
+            avatarShopEnabled={featureFlags?.avatar_shop_enabled === true}
             isAdmin={isAdmin}
             onLogout={() => void handleLogout()}
             onMenuOpen={handleMenuOpen}

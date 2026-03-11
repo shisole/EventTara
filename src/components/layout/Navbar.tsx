@@ -38,6 +38,7 @@ interface NavbarProps {
   navLayout: string;
   activeBorder?: ActiveBorderData | null;
   activityFeedEnabled?: boolean;
+  avatarShopEnabled?: boolean;
   isAdmin?: boolean;
   onLogout: () => void;
   onMenuOpen: () => void;
@@ -52,6 +53,7 @@ export default function Navbar({
   navLayout,
   activeBorder,
   activityFeedEnabled = false,
+  avatarShopEnabled = false,
   isAdmin = false,
   onLogout,
   onMenuOpen,
@@ -65,7 +67,7 @@ export default function Navbar({
 
   // Fetch TaraTokens balance
   useEffect(() => {
-    if (!user) return;
+    if (!user || !avatarShopEnabled) return;
     const supabase = createClient();
     supabase
       .from("tara_tokens")
@@ -161,7 +163,7 @@ export default function Navbar({
               <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 animate-pulse" />
             ) : user ? (
               <div className="flex items-center gap-3">
-                {tokenBalance !== null && (
+                {avatarShopEnabled && tokenBalance !== null && (
                   <NavLink
                     href="/shop"
                     className="flex items-center gap-1 rounded-lg px-2 py-1 text-sm font-medium text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors"
