@@ -92,6 +92,24 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
     await checkAndAwardBorders(user.id, supabase).catch(() => null);
   }
 
+  // Fetch avatar config (animal + equipped items)
+  const { data: avatarConfigRow } = await supabase
+    .from("user_avatar_config")
+    .select(
+      "animal_id, equipped_accessory_id, equipped_background_id, equipped_skin_id, avatar_animals(image_url), accessory:shop_items!user_avatar_config_equipped_accessory_id_fkey(image_url), background:shop_items!user_avatar_config_equipped_background_id_fkey(image_url), skin:shop_items!user_avatar_config_equipped_skin_id_fkey(image_url)",
+    )
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  const avatarConfig = avatarConfigRow
+    ? {
+        animalImageUrl: (avatarConfigRow.avatar_animals as any)?.image_url ?? null,
+        accessoryImageUrl: (avatarConfigRow.accessory as any)?.image_url ?? null,
+        backgroundImageUrl: (avatarConfigRow.background as any)?.image_url ?? null,
+        skinImageUrl: (avatarConfigRow.skin as any)?.image_url ?? null,
+      }
+    : null;
+
   // Fetch active border data
   const activeBorderId: string | null = user.active_border_id ?? null;
   let activeBorderTier: BorderTier | null = null;
@@ -256,6 +274,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
         activeBorderId={activeBorderId}
         activeBorderTier={activeBorderTier}
         activeBorderColor={activeBorderColor}
+        avatarConfig={avatarConfig}
       />
 
       {authUser && !isOwnProfile && (

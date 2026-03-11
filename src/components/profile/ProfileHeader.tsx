@@ -3,10 +3,17 @@
 import dynamic from "next/dynamic";
 import { useState } from "react";
 
-import { UserAvatar, Button } from "@/components/ui";
+import { CompositeAvatar, Button } from "@/components/ui";
 import type { BorderTier } from "@/lib/constants/avatar-borders";
 
 const BorderPickerModal = dynamic(() => import("@/components/profile/BorderPickerModal"));
+
+interface AvatarConfig {
+  animalImageUrl?: string | null;
+  accessoryImageUrl?: string | null;
+  backgroundImageUrl?: string | null;
+  skinImageUrl?: string | null;
+}
 
 interface ProfileHeaderProps {
   fullName: string;
@@ -17,6 +24,7 @@ interface ProfileHeaderProps {
   activeBorderId?: string | null;
   activeBorderTier?: BorderTier | null;
   activeBorderColor?: string | null;
+  avatarConfig?: AvatarConfig | null;
 }
 
 export default function ProfileHeader({
@@ -28,6 +36,7 @@ export default function ProfileHeader({
   activeBorderId = null,
   activeBorderTier = null,
   activeBorderColor = null,
+  avatarConfig = null,
 }: ProfileHeaderProps) {
   const [copied, setCopied] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -66,12 +75,13 @@ export default function ProfileHeader({
   return (
     <div className="text-center space-y-4">
       <div className="flex justify-center">
-        <UserAvatar
+        <CompositeAvatar
           src={avatarUrl}
           alt={fullName}
           size="xl"
           borderTier={currentTier}
           borderColor={currentColor}
+          avatarConfig={avatarConfig}
           onClick={isOwnProfile ? () => setPickerOpen(true) : undefined}
           className={isOwnProfile ? "cursor-pointer" : undefined}
         />

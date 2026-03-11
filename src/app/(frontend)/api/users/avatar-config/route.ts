@@ -18,7 +18,40 @@ export async function GET() {
     .eq("user_id", user.id)
     .single();
 
-  return NextResponse.json({ config: data });
+  // Resolve equipped item image URLs
+  let accessoryImageUrl: string | null = null;
+  let backgroundImageUrl: string | null = null;
+  let skinImageUrl: string | null = null;
+
+  const equippedIds = [
+    data?.equipped_accessory_id,
+    data?.equipped_background_id,
+    data?.equipped_skin_id,
+  ].filter(Boolean) as string[];
+
+  if (equippedIds.length > 0) {
+    const { data: items } = await supabase
+      .from("shop_items")
+      .select("id, image_url")
+      .in("id", equippedIds);
+
+    const itemMap = new Map((items ?? []).map((i) => [i.id, i.image_url]));
+    if (data?.equipped_accessory_id)
+      accessoryImageUrl = itemMap.get(data.equipped_accessory_id) ?? null;
+    if (data?.equipped_background_id)
+      backgroundImageUrl = itemMap.get(data.equipped_background_id) ?? null;
+    if (data?.equipped_skin_id) skinImageUrl = itemMap.get(data.equipped_skin_id) ?? null;
+  }
+
+  const animalImageUrl = (data?.avatar_animals as Record<string, string> | null)?.image_url ?? null;
+
+  return NextResponse.json({
+    config: data,
+    animal_image_url: animalImageUrl,
+    accessory_image_url: accessoryImageUrl,
+    background_image_url: backgroundImageUrl,
+    skin_image_url: skinImageUrl,
+  });
 }
 
 export async function PATCH(request: Request) {

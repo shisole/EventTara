@@ -10,7 +10,7 @@ import { ChevronDownIcon, MenuIcon } from "@/components/icons";
 import ExploreDropdown from "@/components/layout/ExploreDropdown";
 import ThemeToggle from "@/components/layout/ThemeToggle";
 import { NavLink } from "@/components/navigation/NavigationContext";
-import { UserAvatar, Button } from "@/components/ui";
+import { CompositeAvatar, Button } from "@/components/ui";
 import type { BorderTier } from "@/lib/constants/avatar-borders";
 import { createClient } from "@/lib/supabase/client";
 
@@ -64,8 +64,14 @@ export default function Navbar({
   const [exploreOpen, setExploreOpen] = useState(false);
   const [borderPickerOpen, setBorderPickerOpen] = useState(false);
   const [tokenBalance, setTokenBalance] = useState<number | null>(null);
+  const [avatarConfig, setAvatarConfig] = useState<{
+    animalImageUrl: string | null;
+    accessoryImageUrl: string | null;
+    backgroundImageUrl: string | null;
+    skinImageUrl: string | null;
+  } | null>(null);
 
-  // Fetch TaraTokens balance
+  // Fetch TaraTokens balance + avatar config
   useEffect(() => {
     if (!user || !avatarShopEnabled) return;
     const supabase = createClient();
@@ -77,6 +83,27 @@ export default function Navbar({
       .then(({ data }) => {
         setTokenBalance(data?.balance ?? 0);
       });
+    fetch("/api/users/avatar-config")
+      .then((r) => r.json())
+      .then(
+        (data: {
+          animal_image_url?: string | null;
+          accessory_image_url?: string | null;
+          background_image_url?: string | null;
+          skin_image_url?: string | null;
+        }) => {
+          if (data.animal_image_url) {
+            setAvatarConfig({
+              animalImageUrl: data.animal_image_url,
+              accessoryImageUrl: data.accessory_image_url ?? null,
+              backgroundImageUrl: data.background_image_url ?? null,
+              skinImageUrl: data.skin_image_url ?? null,
+            });
+          }
+        },
+      )
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      .catch(() => {});
   }, [user, avatarShopEnabled]);
 
   // Close dropdowns on route change
@@ -193,12 +220,13 @@ export default function Navbar({
                     }}
                     className="flex items-center gap-1 rounded-full hover:ring-2 hover:ring-lime-200 dark:hover:ring-lime-800 transition-all"
                   >
-                    <UserAvatar
+                    <CompositeAvatar
                       src={user.user_metadata?.avatar_url}
                       alt={user.user_metadata?.full_name || "User"}
                       size="sm"
                       borderTier={activeBorder?.tier ?? null}
                       borderColor={activeBorder?.color ?? null}
+                      avatarConfig={avatarConfig}
                     />
                     <ChevronDownIcon
                       className={`w-4 h-4 text-gray-400 transition-transform ${profileOpen ? "rotate-180" : ""}`}
