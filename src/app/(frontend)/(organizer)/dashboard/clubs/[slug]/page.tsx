@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Button, UIBadge } from "@/components/ui";
+import { isDuckRaceEnabled } from "@/lib/cms/cached";
 import { createClient } from "@/lib/supabase/server";
 import { formatEventDate } from "@/lib/utils/format-date";
 
@@ -59,6 +60,8 @@ export default async function ClubOverviewPage({ params }: { params: Promise<{ s
       .in("event_id", eventIds);
     totalBookings = bookingCount ?? 0;
   }
+
+  const duckRaceEnabled = await isDuckRaceEnabled();
 
   const statusStyles: Record<string, string> = {
     draft: "default",
@@ -144,7 +147,7 @@ export default async function ClubOverviewPage({ params }: { params: Promise<{ s
       {/* Quick actions */}
       <div>
         <h2 className="text-xl font-heading font-bold mb-4 dark:text-white">Quick Actions</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
           <Link
             href={`/dashboard/clubs/${slug}/members`}
             className="bg-white dark:bg-gray-900 rounded-xl shadow-sm dark:shadow-gray-950/30 p-4 hover:shadow-md transition-shadow text-center"
@@ -170,6 +173,24 @@ export default async function ClubOverviewPage({ params }: { params: Promise<{ s
               Update club info and preferences
             </p>
           </Link>
+          <Link
+            href={`/dashboard/clubs/${slug}/welcome-qr`}
+            className="bg-white dark:bg-gray-900 rounded-xl shadow-sm dark:shadow-gray-950/30 p-4 hover:shadow-md transition-shadow text-center"
+          >
+            <p className="font-medium dark:text-white">Welcome QR</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Generate scannable QR codes</p>
+          </Link>
+          {duckRaceEnabled && (
+            <Link
+              href={`/dashboard/clubs/${slug}/races/new`}
+              className="bg-white dark:bg-gray-900 rounded-xl shadow-sm dark:shadow-gray-950/30 p-4 hover:shadow-md transition-shadow text-center"
+            >
+              <p className="font-medium dark:text-white">Duck Race</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Run a raffle for club members
+              </p>
+            </Link>
+          )}
         </div>
       </div>
     </div>

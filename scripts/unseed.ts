@@ -117,8 +117,14 @@ async function main() {
       console.log(`  Skipped bookings.payment_verified_by: ${pvErr.message}`);
     }
 
-    // 4b. Clean club-related tables (club_invites, club_members, clubs)
-    console.log("Cleaning club data...");
+    // 4b. Clean welcome pages, races, and club-related tables
+    console.log("Cleaning welcome pages, races, and club data...");
+    await supabase
+      .from("welcome_page_claims")
+      .delete()
+      .neq("id", "00000000-0000-0000-0000-000000000000");
+    await supabase.from("welcome_pages").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    await supabase.from("club_races").delete().neq("id", "00000000-0000-0000-0000-000000000000");
     await supabase.from("club_invites").delete().neq("id", "00000000-0000-0000-0000-000000000000");
     await supabase.from("club_members").delete().neq("id", "00000000-0000-0000-0000-000000000000");
     await supabase.from("clubs").delete().neq("id", "00000000-0000-0000-0000-000000000000");

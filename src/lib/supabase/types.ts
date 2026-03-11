@@ -1047,6 +1047,7 @@ export interface Database {
           oauth_strava: boolean;
           oauth_facebook: boolean;
           onboarding_quiz: boolean;
+          duck_race: boolean;
         };
         Insert: {
           id?: number;
@@ -1064,6 +1065,7 @@ export interface Database {
           oauth_strava?: boolean;
           oauth_facebook?: boolean;
           onboarding_quiz?: boolean;
+          duck_race?: boolean;
         };
         Update: {
           id?: number;
@@ -1081,6 +1083,7 @@ export interface Database {
           oauth_strava?: boolean;
           oauth_facebook?: boolean;
           onboarding_quiz?: boolean;
+          duck_race?: boolean;
         };
         Relationships: [];
       };
@@ -1658,6 +1661,171 @@ export interface Database {
           created_at?: string;
         };
         Relationships: [];
+      };
+      club_races: {
+        Row: {
+          id: string;
+          club_id: string;
+          title: string;
+          num_winners: number;
+          duration_seconds: number;
+          event_id: string | null;
+          badge_id: string | null;
+          status: "pending" | "completed";
+          winner_ids: string[];
+          participant_ids: string[];
+          created_by: string | null;
+          created_at: string;
+          completed_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          title?: string;
+          num_winners?: number;
+          duration_seconds?: number;
+          event_id?: string | null;
+          badge_id?: string | null;
+          status?: "pending" | "completed";
+          winner_ids?: string[];
+          participant_ids?: string[];
+          created_by?: string | null;
+          created_at?: string;
+          completed_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          club_id?: string;
+          title?: string;
+          num_winners?: number;
+          duration_seconds?: number;
+          event_id?: string | null;
+          badge_id?: string | null;
+          status?: "pending" | "completed";
+          winner_ids?: string[];
+          participant_ids?: string[];
+          created_by?: string | null;
+          created_at?: string;
+          completed_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "club_races_club_id_fkey";
+            columns: ["club_id"];
+            isOneToOne: false;
+            referencedRelation: "clubs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "club_races_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "events";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "club_races_badge_id_fkey";
+            columns: ["badge_id"];
+            isOneToOne: false;
+            referencedRelation: "badges";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      welcome_pages: {
+        Row: {
+          id: string;
+          code: string;
+          title: string;
+          subtitle: string | null;
+          description: string | null;
+          badge_id: string | null;
+          club_id: string | null;
+          redirect_url: string;
+          hero_image_url: string | null;
+          max_claims: number | null;
+          expires_at: string | null;
+          is_active: boolean;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          code: string;
+          title: string;
+          subtitle?: string | null;
+          description?: string | null;
+          badge_id?: string | null;
+          club_id?: string | null;
+          redirect_url?: string;
+          hero_image_url?: string | null;
+          max_claims?: number | null;
+          expires_at?: string | null;
+          is_active?: boolean;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          code?: string;
+          title?: string;
+          subtitle?: string | null;
+          description?: string | null;
+          badge_id?: string | null;
+          club_id?: string | null;
+          redirect_url?: string;
+          hero_image_url?: string | null;
+          max_claims?: number | null;
+          expires_at?: string | null;
+          is_active?: boolean;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "welcome_pages_badge_id_fkey";
+            columns: ["badge_id"];
+            isOneToOne: false;
+            referencedRelation: "badges";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "welcome_pages_club_id_fkey";
+            columns: ["club_id"];
+            isOneToOne: false;
+            referencedRelation: "clubs";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      welcome_page_claims: {
+        Row: {
+          id: string;
+          welcome_page_id: string;
+          user_id: string;
+          claimed_at: string;
+        };
+        Insert: {
+          id?: string;
+          welcome_page_id: string;
+          user_id: string;
+          claimed_at?: string;
+        };
+        Update: {
+          id?: string;
+          welcome_page_id?: string;
+          user_id?: string;
+          claimed_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "welcome_page_claims_welcome_page_id_fkey";
+            columns: ["welcome_page_id"];
+            isOneToOne: false;
+            referencedRelation: "welcome_pages";
+            referencedColumns: ["id"];
+          },
+        ];
       };
     };
     Views: Record<never, never>;
