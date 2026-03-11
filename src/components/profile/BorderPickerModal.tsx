@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { UserAvatar, Button } from "@/components/ui";
+import { CompositeAvatar, Button } from "@/components/ui";
 import type { BorderTier } from "@/lib/constants/avatar-borders";
 import { TIER_LABELS, TIER_LABEL_COLORS } from "@/lib/constants/avatar-borders";
 import { createClient } from "@/lib/supabase/client";
@@ -23,12 +23,20 @@ interface EarnedBorder {
   };
 }
 
+interface AvatarConfig {
+  animalImageUrl?: string | null;
+  accessoryImageUrl?: string | null;
+  backgroundImageUrl?: string | null;
+  skinImageUrl?: string | null;
+}
+
 interface BorderPickerModalProps {
   open: boolean;
   onClose: () => void;
   avatarUrl: string | null;
   fullName: string;
   activeBorderId: string | null;
+  avatarConfig?: AvatarConfig | null;
   onBorderChange: (borderId: string | null, tier: BorderTier | null, color: string | null) => void;
 }
 
@@ -38,6 +46,7 @@ export default function BorderPickerModal({
   avatarUrl,
   fullName,
   activeBorderId,
+  avatarConfig = null,
   onBorderChange,
 }: BorderPickerModalProps) {
   const [borders, setBorders] = useState<EarnedBorder[]>([]);
@@ -172,12 +181,13 @@ export default function BorderPickerModal({
         {/* Preview */}
         <div className="px-6 py-4 flex justify-center border-b border-gray-100 dark:border-gray-800">
           <div className="text-center space-y-2">
-            <UserAvatar
+            <CompositeAvatar
               src={avatarUrl}
               alt={fullName}
               size="xl"
               borderTier={previewBorder?.avatar_borders.tier ?? null}
               borderColor={previewBorder?.avatar_borders.border_color}
+              avatarConfig={avatarConfig}
               className="mx-auto"
             />
             <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -235,12 +245,13 @@ export default function BorderPickerModal({
                         : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800",
                     )}
                   >
-                    <UserAvatar
+                    <CompositeAvatar
                       src={avatarUrl}
                       alt={fullName}
                       size="sm"
                       borderTier={border.avatar_borders.tier}
                       borderColor={border.avatar_borders.border_color}
+                      avatarConfig={avatarConfig}
                     />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{border.avatar_borders.name}</p>

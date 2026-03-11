@@ -116,6 +116,7 @@ export default function ProfileHeader({
           avatarUrl={avatarUrl}
           fullName={fullName}
           activeBorderId={currentBorderId}
+          avatarConfig={avatarConfig}
           onBorderChange={handleBorderChange}
         />
       )}
