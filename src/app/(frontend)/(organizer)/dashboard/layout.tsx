@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
+import ClubDashboardMobileNav from "@/components/dashboard/ClubDashboardMobileNav";
 import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
 import ScannerFAB from "@/components/dashboard/ScannerFAB";
 import { Breadcrumbs } from "@/components/ui";
@@ -45,10 +46,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <div className="flex">
       <DashboardSidebar clubs={clubOptions} />
-      <main className="flex-1 min-w-0 p-4 md:p-8 bg-gray-50 dark:bg-gray-950 min-h-[calc(100dvh-4rem)]">
+      <main className="flex-1 min-w-0 p-4 pb-20 md:p-8 md:pb-8 bg-gray-50 dark:bg-gray-950 min-h-[calc(100dvh-4rem)]">
         <Breadcrumbs />
         {children}
       </main>
+      <ClubDashboardMobileNav />
       <ScannerFAB />
     </div>
   );
