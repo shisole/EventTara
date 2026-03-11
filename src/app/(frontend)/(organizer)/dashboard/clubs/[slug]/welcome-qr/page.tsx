@@ -55,13 +55,13 @@ export default async function WelcomeQRPage({ params }: { params: Promise<{ slug
       <h1 className="text-2xl font-heading font-bold dark:text-white">Welcome QR Code</h1>
 
       {welcomePage ? (
-        <div className="grid gap-8 lg:grid-cols-2">
+        <div className="space-y-8">
+          <WelcomeQRCode code={welcomePage.code} clubName={club.name} title={welcomePage.title} />
           <WelcomePageEditor
             welcomePage={welcomePage}
             claimCount={claimCount}
             clubSlug={club.slug}
           />
-          <WelcomeQRCode code={welcomePage.code} clubName={club.name} title={welcomePage.title} />
         </div>
       ) : (
         <GenerateWelcomePage clubSlug={club.slug} clubName={club.name} />
