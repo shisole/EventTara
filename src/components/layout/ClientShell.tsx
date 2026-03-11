@@ -258,7 +258,9 @@ export default function ClientShell({
               : ""
           }`}
         >
-          {!isLighthouse && <DemoBanner isLoggedIn={!loading && !!user && !user.is_anonymous} />}
+          {!isLighthouse && process.env.NEXT_PUBLIC_DEMO_MODE === "true" && (
+            <DemoBanner isLoggedIn={!loading && !!user && !user.is_anonymous} />
+          )}
           <Navbar
             user={user}
             canManage={canManage}
