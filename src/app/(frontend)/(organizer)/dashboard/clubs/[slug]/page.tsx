@@ -92,22 +92,30 @@ export default async function ClubOverviewPage({ params }: { params: Promise<{ s
       </div>
 
       {/* Stats cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-6">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Members</p>
-          <p className="text-3xl font-heading font-bold dark:text-white">{memberCount ?? 0}</p>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl shadow-md dark:shadow-gray-950/30 p-3 sm:p-6">
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Members</p>
+          <p className="text-xl sm:text-3xl font-heading font-bold dark:text-white">
+            {memberCount ?? 0}
+          </p>
         </div>
-        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-6">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Total Events</p>
-          <p className="text-3xl font-heading font-bold dark:text-white">{eventCount ?? 0}</p>
+        <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl shadow-md dark:shadow-gray-950/30 p-3 sm:p-6">
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Total Events</p>
+          <p className="text-xl sm:text-3xl font-heading font-bold dark:text-white">
+            {eventCount ?? 0}
+          </p>
         </div>
-        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-6">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Upcoming</p>
-          <p className="text-3xl font-heading font-bold dark:text-white">{upcomingCount}</p>
+        <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl shadow-md dark:shadow-gray-950/30 p-3 sm:p-6">
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Upcoming</p>
+          <p className="text-xl sm:text-3xl font-heading font-bold dark:text-white">
+            {upcomingCount}
+          </p>
         </div>
-        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-6">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Total Bookings</p>
-          <p className="text-3xl font-heading font-bold dark:text-white">{totalBookings}</p>
+        <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl shadow-md dark:shadow-gray-950/30 p-3 sm:p-6">
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Total Bookings</p>
+          <p className="text-xl sm:text-3xl font-heading font-bold dark:text-white">
+            {totalBookings}
+          </p>
         </div>
       </div>
 
