@@ -103,11 +103,11 @@ export default async function ClubsPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Logged-out prompt */}
       {!isLoggedIn && (
-        <div className="mb-8 rounded-2xl border border-gray-200 dark:border-gray-700 bg-gradient-to-r from-teal-50 to-lime-50 dark:from-teal-950/30 dark:to-lime-950/30 p-6 sm:p-8">
+        <div className="mb-8 rounded-2xl border border-gray-200 dark:border-gray-700 bg-gradient-to-r from-teal-50 to-lime-50 dark:from-gray-800 dark:to-gray-800 p-6 sm:p-8">
           <h2 className="font-heading text-xl sm:text-2xl font-bold mb-2">
             Join the adventure community
           </h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-5 max-w-lg">
+          <p className="text-gray-600 dark:text-gray-300 mb-5 max-w-lg">
             Sign up to join clubs, connect with fellow outdoor enthusiasts, and organize your own
             events.
           </p>
@@ -148,11 +148,11 @@ export default async function ClubsPage() {
 
       {/* Host your own club CTA */}
       {isLoggedIn && (
-        <div className="mb-10 rounded-2xl border border-gray-200 dark:border-gray-700 bg-gradient-to-r from-forest-50 to-teal-50 dark:from-forest-950/30 dark:to-teal-950/30 p-6 sm:p-8">
+        <div className="mb-10 rounded-2xl border border-gray-200 dark:border-gray-700 bg-gradient-to-r from-forest-50 to-teal-50 dark:from-gray-800 dark:to-gray-800 p-6 sm:p-8">
           <h2 className="font-heading text-xl sm:text-2xl font-bold mb-2">
             {myClubs.length > 0 ? "Create another club" : "Want to host your own club?"}
           </h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-5 max-w-lg">
+          <p className="text-gray-600 dark:text-gray-300 mb-5 max-w-lg">
             {myClubs.length > 0
               ? "Start a new club for a different activity or community."
               : "Create a club to organize events, build your community, and manage members all in one place."}
