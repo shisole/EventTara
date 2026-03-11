@@ -319,6 +319,19 @@ export default async function Home() {
     sections = [...sections, leaderboardSection].sort((a, b) => a.order - b.order);
   }
 
+  // Ensure waitlist is present (may be missing from older CMS data)
+  if (!sections.some((s) => s.key === "waitlist")) {
+    const faqIdx = sections.findIndex((s) => s.key === "faq");
+    const insertOrder = faqIdx === -1 ? 12 : sections[faqIdx].order + 0.5;
+    const waitlistSection: CmsHomepageSection = {
+      key: "waitlist",
+      label: "Early Access Waitlist",
+      enabled: true,
+      order: insertOrder,
+    };
+    sections = [...sections, waitlistSection].sort((a, b) => a.order - b.order);
+  }
+
   const enabledSections = sections.filter((s) => s.enabled);
 
   return (
