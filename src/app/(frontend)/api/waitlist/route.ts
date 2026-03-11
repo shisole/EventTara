@@ -1,5 +1,3 @@
-// DEPRECATED: Organizer waitlist is no longer needed — clubs are self-service.
-// This route is kept for backward compatibility with the existing organizer_waitlist table.
 import { NextResponse } from "next/server";
 
 import { sendEmail } from "@/lib/email/send";
@@ -9,13 +7,13 @@ import { createClient } from "@/lib/supabase/server";
 function roundCount(count: number): { display: string; raw: number } {
   if (count === 0) return { display: "Be the first to join!", raw: 0 };
   if (count < 10)
-    return { display: `${count} organizer${count === 1 ? "" : "s"} waiting`, raw: count };
+    return { display: `${count} ${count === 1 ? "person" : "people"} waiting`, raw: count };
   if (count < 100) {
     const rounded = Math.floor(count / 10) * 10;
-    return { display: `${rounded}+ organizers waiting`, raw: rounded };
+    return { display: `${rounded}+ people waiting`, raw: rounded };
   }
   const rounded = Math.floor(count / 50) * 50;
-  return { display: `${rounded}+ organizers waiting`, raw: rounded };
+  return { display: `${rounded}+ people waiting`, raw: rounded };
 }
 
 export async function POST(request: Request) {
@@ -23,11 +21,8 @@ export async function POST(request: Request) {
     const body = (await request.json()) as { email?: string; org_name?: string };
     const { email, org_name } = body;
 
-    if (!email || !org_name) {
-      return NextResponse.json(
-        { error: "Email and organization name are required." },
-        { status: 400 },
-      );
+    if (!email) {
+      return NextResponse.json({ error: "Email is required." }, { status: 400 });
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -35,13 +30,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid email address." }, { status: 400 });
     }
 
-    const trimmedOrgName = org_name.trim();
-    if (trimmedOrgName.length < 2 || trimmedOrgName.length > 100) {
-      return NextResponse.json(
-        { error: "Organization name must be between 2 and 100 characters." },
-        { status: 400 },
-      );
-    }
+    const trimmedOrgName = org_name?.trim() ?? "Early Access";
 
     const supabase = await createClient();
 
@@ -76,8 +65,8 @@ export async function POST(request: Request) {
     // Send confirmation email (non-blocking)
     sendEmail({
       to: email.toLowerCase().trim(),
-      subject: "You're on the EventTara organizer waitlist!",
-      html: waitlistConfirmationHtml({ orgName: trimmedOrgName }),
+      subject: "You're on the EventTara early access list!",
+      html: waitlistConfirmationHtml(),
     }).catch((error) => console.error("[Waitlist] Email error:", error));
 
     return NextResponse.json({
