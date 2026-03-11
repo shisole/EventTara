@@ -169,7 +169,7 @@ export default async function ClubsPage() {
             Find your community of outdoor adventure enthusiasts
           </p>
         </div>
-        {myClubs.length === 0 && (
+        {isLoggedIn && myClubs.length === 0 && (
           <Link href="/clubs/new">
             <Button size="sm">
               <svg
