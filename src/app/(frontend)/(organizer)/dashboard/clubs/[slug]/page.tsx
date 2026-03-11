@@ -173,6 +173,13 @@ export default async function ClubOverviewPage({ params }: { params: Promise<{ s
               Update club info and preferences
             </p>
           </Link>
+          <Link
+            href={`/dashboard/clubs/${slug}/welcome-qr`}
+            className="bg-white dark:bg-gray-900 rounded-xl shadow-sm dark:shadow-gray-950/30 p-4 hover:shadow-md transition-shadow text-center"
+          >
+            <p className="font-medium dark:text-white">Welcome QR</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Generate scannable QR codes</p>
+          </Link>
           {duckRaceEnabled && (
             <Link
               href={`/dashboard/clubs/${slug}/races/new`}
