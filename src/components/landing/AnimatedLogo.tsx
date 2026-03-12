@@ -23,7 +23,7 @@ export default function AnimatedLogo() {
   return (
     <svg
       viewBox="0 0 500 100"
-      className="w-full max-w-md mx-auto h-auto"
+      className="w-full max-w-lg mx-auto h-auto"
       aria-label="EventTara"
       role="img"
     >
