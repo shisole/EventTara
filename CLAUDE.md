@@ -11,20 +11,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Branch Workflow
 
-We use a **staging branch** to batch changes before production deploys:
+Feature branches → PRs target **`main`** directly. CI runs and Vercel deploys on approval.
 
-1. **Feature branches** → PRs target **`staging`** (not `main`)
-2. CI runs on PRs to both `staging` and `main`
-3. Test on `staging` (Vercel preview deploy)
-4. When ready → run the **"Promote Staging to Main"** workflow (Actions tab → manual trigger). It verifies CI + Vercel deployment passed on staging before merging to `main` and resetting staging.
-
-Before making any code changes, check the current branch. If on `main` or `staging`, create a new descriptive branch:
+Before making any code changes, check the current branch. If on `main`, create a new descriptive branch:
 
 ```bash
 git checkout -b <type>/<short-description>
 ```
 
-Use these prefixes: `feat/`, `fix/`, `refactor/`, `chore/`, `docs/`. Keep the description short and kebab-cased (e.g., `feat/explore-dropdown`, `fix/dashboard-auth-guard`). Do NOT commit directly to `main` or `staging`.
+Use these prefixes: `feat/`, `fix/`, `refactor/`, `chore/`, `docs/`. Keep the description short and kebab-cased (e.g., `feat/explore-dropdown`, `fix/dashboard-auth-guard`). Do NOT commit directly to `main`.
 
 Pre-commit hook (`husky` + `lint-staged`) automatically runs Prettier and ESLint on staged `.ts`/`.tsx` files.
 
@@ -46,7 +41,7 @@ pnpm test:e2e        # Run Playwright E2E tests (e2e/ dir, chromium only)
 
 **Package manager is strictly pnpm.** Every script runs a pre-check that exits with an error if invoked via `npm` or `yarn`.
 
-CI pipeline order: `format:check` → `lint` → `typecheck` → `test` → `build`. E2E runs on push to `main` and `staging`.
+CI pipeline order: `format:check` → `lint` → `typecheck` → `test` → `build`. E2E runs on push to `main`.
 
 ## Environment Setup
 
