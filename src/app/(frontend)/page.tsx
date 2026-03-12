@@ -13,6 +13,7 @@ import GamificationSection from "@/components/landing/GamificationSection";
 import HeroSection from "@/components/landing/HeroSection";
 import HowItWorksSection from "@/components/landing/HowItWorksSection";
 import LeaderboardPreviewSection from "@/components/landing/LeaderboardPreviewSection";
+import NewLandingPage from "@/components/landing/NewLandingPage";
 import ParallaxMountain from "@/components/landing/ParallaxMountain";
 import PioneerCounterSection from "@/components/landing/PioneerCounterSection";
 import StravaShowcaseSection from "@/components/landing/StravaShowcaseSection";
@@ -22,6 +23,7 @@ import {
   getCachedHeroCarousel,
   getCachedHomepageSections,
   getCachedSiteSettings,
+  isNewLandingPageEnabled,
   parseHeroSlides,
   parseHomepageSections,
 } from "@/lib/cms/cached";
@@ -303,10 +305,11 @@ interface HeroData {
 }
 
 export default async function Home() {
-  const [heroData, settings, sectionsData] = await Promise.all([
+  const [heroData, settings, sectionsData, useNewLanding] = await Promise.all([
     getCachedHeroCarousel(),
     getCachedSiteSettings(),
     getCachedHomepageSections(),
+    isNewLandingPageEnabled(),
   ]);
 
   const heroSlides = parseHeroSlides(heroData);
@@ -318,6 +321,15 @@ export default async function Home() {
           })),
         }
       : null;
+
+  if (useNewLanding) {
+    return (
+      <main>
+        <NewLandingPage heroData={transformedHeroData} />
+      </main>
+    );
+  }
+
   const parallaxImageUrl =
     settings?.parallax_image_url ??
     "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80";

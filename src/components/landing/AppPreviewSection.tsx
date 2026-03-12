@@ -111,17 +111,6 @@ export default function AppPreviewSection() {
 
   return (
     <section>
-      {/* Section header */}
-      <div className="py-16 sm:py-20 bg-white dark:bg-slate-800 text-center px-4 sm:px-6 lg:px-8">
-        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold text-gray-900 dark:text-white mb-4">
-          See It in Action
-        </h2>
-        <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-          From discovering your next hike to collecting badges — everything you need for your
-          outdoor adventures.
-        </p>
-      </div>
-
       {/* Sticky overlapping panes */}
       {FEATURES.map((feature, i) => {
         const reversed = i % 2 === 1;
@@ -150,10 +139,21 @@ export default function AppPreviewSection() {
             >
               <div
                 className={cn(
-                  "lg:min-h-[calc(100dvh-4rem)] flex items-center",
-                  "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-0",
+                  "lg:min-h-[calc(100dvh-4rem)] flex flex-col justify-center",
+                  "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-8",
                 )}
               >
+                {i === 0 && (
+                  <div className="text-center mb-8 sm:mb-10">
+                    <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold text-gray-900 dark:text-white mb-4">
+                      See It in Action
+                    </h2>
+                    <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+                      From discovering your next hike to collecting badges — everything you need for
+                      your outdoor adventures.
+                    </p>
+                  </div>
+                )}
                 <div
                   className={cn(
                     "flex flex-col gap-8 sm:gap-12 lg:gap-16 items-center w-full",
