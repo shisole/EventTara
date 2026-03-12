@@ -136,8 +136,9 @@ export default function AppPreviewSection() {
             className={cn(
               "lg:sticky lg:top-16 relative overflow-hidden",
               feature.bg,
-              "lg:rounded-t-3xl",
-              "shadow-[0_-8px_30px_-12px_rgba(0,0,0,0.15)] dark:shadow-[0_-8px_30px_-12px_rgba(0,0,0,0.4)]",
+              i > 0 && "lg:rounded-t-3xl",
+              i > 0 &&
+                "shadow-[0_-8px_30px_-12px_rgba(0,0,0,0.15)] dark:shadow-[0_-8px_30px_-12px_rgba(0,0,0,0.4)]",
             )}
             style={{ zIndex: i + 1 }}
           >
@@ -215,7 +216,7 @@ export default function AppPreviewSection() {
                 ref={(el) => {
                   overlayRefs.current[i] = el;
                 }}
-                className="absolute inset-0 bg-black pointer-events-none lg:rounded-t-3xl"
+                className="absolute inset-0 bg-black pointer-events-none"
                 style={{ opacity: 0 }}
               />
             )}
