@@ -1,16 +1,19 @@
 import { Suspense } from "react";
 
+import AppPreviewSection from "@/components/landing/AppPreviewSection";
 import BentoEventsSection from "@/components/landing/BentoEventsSection";
 import CategoriesSection from "@/components/landing/CategoriesSection";
 import ClubsSection from "@/components/landing/ClubsSection";
 import ContactCTASection from "@/components/landing/ContactCTASection";
 import EntryBanner from "@/components/landing/EntryBanner";
 import FAQSection from "@/components/landing/FAQSection";
+import FeaturesSection from "@/components/landing/FeaturesSection";
 import FeedShowcaseSection from "@/components/landing/FeedShowcaseSection";
 import GamificationSection from "@/components/landing/GamificationSection";
 import HeroSection from "@/components/landing/HeroSection";
 import HowItWorksSection from "@/components/landing/HowItWorksSection";
 import LeaderboardPreviewSection from "@/components/landing/LeaderboardPreviewSection";
+import NewLandingPage from "@/components/landing/NewLandingPage";
 import ParallaxMountain from "@/components/landing/ParallaxMountain";
 import PioneerCounterSection from "@/components/landing/PioneerCounterSection";
 import StravaShowcaseSection from "@/components/landing/StravaShowcaseSection";
@@ -20,19 +23,20 @@ import {
   getCachedHeroCarousel,
   getCachedHomepageSections,
   getCachedSiteSettings,
+  isNewLandingPageEnabled,
   parseHeroSlides,
   parseHomepageSections,
 } from "@/lib/cms/cached";
 import { type CmsHomepageSection } from "@/lib/cms/types";
 
 export const metadata = {
-  title: "EventTara — Outdoor Adventure Events in Panay Island",
+  title: "EventTara — Every Great Adventure Starts Here",
   description:
-    "Discover hiking, trail running, mountain biking, and road cycling events across Panay Island. From the mountains of Igbaras and Tubungan to the coasts of Antique — find your next adventure on EventTara.",
+    "Discover outdoor events, join adventure clubs, and book your spot — hiking, biking, running, and trail running across the Philippines, all in one place.",
   openGraph: {
-    title: "EventTara — Outdoor Adventure Events in Panay Island",
+    title: "EventTara — Every Great Adventure Starts Here",
     description:
-      "Discover hiking, trail running, mountain biking, and road cycling events across Panay Island. Find your next adventure on EventTara.",
+      "Discover outdoor events, join adventure clubs, and book your spot across the Philippines. Hiking, biking, running, and trail running — all in one place.",
     type: "website" as const,
   },
 };
@@ -40,20 +44,31 @@ export const metadata = {
 export const revalidate = 300;
 
 const DEFAULT_SECTIONS: CmsHomepageSection[] = [
-  { key: "hero", label: "Hero Carousel", enabled: true, order: 0 },
-  { key: "upcoming_events", label: "Upcoming Events", enabled: true, order: 1 },
-  { key: "strava_showcase", label: "Strava Showcase", enabled: true, order: 2 },
-  { key: "how_it_works", label: "How It Works", enabled: true, order: 3 },
-  { key: "feed_showcase", label: "Activity Feed Showcase", enabled: true, order: 4 },
-  { key: "gamification", label: "Badges & Gamification", enabled: true, order: 5 },
-  { key: "leaderboard_preview", label: "Leaderboard Preview", enabled: true, order: 6 },
-  { key: "categories", label: "Event Categories", enabled: true, order: 7 },
-  { key: "clubs", label: "Community Clubs", enabled: true, order: 8 },
-  { key: "pioneer_counter", label: "Pioneer Counter", enabled: true, order: 9 },
-  { key: "testimonials", label: "Testimonials", enabled: true, order: 10 },
-  { key: "faq", label: "FAQ", enabled: true, order: 11 },
-  { key: "waitlist", label: "Early Access Waitlist", enabled: true, order: 12 },
-  { key: "contact_cta", label: "Contact CTA", enabled: true, order: 13 },
+  // 1. Hook
+  { key: "hero", label: "Hero", enabled: true, order: 0 },
+  // 2. Show the product
+  { key: "app_preview", label: "App Preview", enabled: true, order: 1 },
+  // 3. Social proof — clubs/organizers
+  { key: "clubs", label: "Community Clubs", enabled: true, order: 2 },
+  // 4. What's available
+  { key: "upcoming_events", label: "Upcoming Events", enabled: true, order: 3 },
+  { key: "categories", label: "Event Categories", enabled: true, order: 4 },
+  // 5. How it works
+  { key: "how_it_works", label: "How It Works", enabled: true, order: 5 },
+  // 6. Why it's awesome — features grid
+  { key: "features", label: "Features", enabled: true, order: 6 },
+  // 7. More social proof
+  { key: "testimonials", label: "Testimonials", enabled: true, order: 7 },
+  { key: "pioneer_counter", label: "Pioneer Counter", enabled: true, order: 8 },
+  // 8. Convert
+  { key: "faq", label: "FAQ", enabled: true, order: 9 },
+  { key: "waitlist", label: "Early Access Waitlist", enabled: true, order: 10 },
+  { key: "contact_cta", label: "Contact CTA", enabled: true, order: 11 },
+  // Demoted — still renderable via CMS but off by default
+  { key: "strava_showcase", label: "Strava Showcase", enabled: false, order: 20 },
+  { key: "feed_showcase", label: "Activity Feed Showcase", enabled: false, order: 21 },
+  { key: "gamification", label: "Badges & Gamification", enabled: false, order: 22 },
+  { key: "leaderboard_preview", label: "Leaderboard Preview", enabled: false, order: 23 },
 ];
 
 function BentoEventsSkeleton() {
@@ -205,6 +220,12 @@ function renderSection(key: string, parallaxImageUrl: string, heroData: HeroData
     case "hero": {
       return <HeroSection heroData={heroData} />;
     }
+    case "app_preview": {
+      return <AppPreviewSection />;
+    }
+    case "features": {
+      return <FeaturesSection />;
+    }
     case "upcoming_events": {
       return (
         <Suspense fallback={<BentoEventsSkeleton />}>
@@ -284,10 +305,11 @@ interface HeroData {
 }
 
 export default async function Home() {
-  const [heroData, settings, sectionsData] = await Promise.all([
+  const [heroData, settings, sectionsData, useNewLanding] = await Promise.all([
     getCachedHeroCarousel(),
     getCachedSiteSettings(),
     getCachedHomepageSections(),
+    isNewLandingPageEnabled(),
   ]);
 
   const heroSlides = parseHeroSlides(heroData);
@@ -299,26 +321,21 @@ export default async function Home() {
           })),
         }
       : null;
+
+  if (useNewLanding) {
+    return (
+      <main>
+        <NewLandingPage heroData={transformedHeroData} />
+      </main>
+    );
+  }
+
   const parallaxImageUrl =
     settings?.parallax_image_url ??
     "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80";
 
   const cmsSections = parseHomepageSections(sectionsData);
-  let sections = cmsSections.length > 0 ? cmsSections : DEFAULT_SECTIONS;
-
-  // Ensure leaderboard_preview is present (may be missing from older CMS data)
-  if (!sections.some((s) => s.key === "leaderboard_preview")) {
-    const gamificationIdx = sections.findIndex((s) => s.key === "gamification");
-    const insertOrder = gamificationIdx === -1 ? 6 : sections[gamificationIdx].order + 0.5;
-    const leaderboardSection: CmsHomepageSection = {
-      key: "leaderboard_preview",
-      label: "Leaderboard Preview",
-      enabled: true,
-      order: insertOrder,
-    };
-    sections = [...sections, leaderboardSection].sort((a, b) => a.order - b.order);
-  }
-
+  const sections = cmsSections.length > 0 ? cmsSections : DEFAULT_SECTIONS;
   const enabledSections = sections.filter((s) => s.enabled);
 
   return (
