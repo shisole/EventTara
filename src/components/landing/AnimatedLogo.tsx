@@ -3,56 +3,61 @@
 import { useEffect, useId, useRef, useState } from "react";
 
 const WORD = "EventTara";
-const LETTER_DELAY = 150;
-const INITIAL_DELAY = 200;
+const DURATION = 1800;
+
+function easeInOutCubic(t: number): number {
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
 
 export default function AnimatedLogo() {
   const clipId = useId();
+  const glowId = useId();
   const textRef = useRef<SVGTextElement>(null);
-  const [clip, setClip] = useState({ x: 0, w: 0 });
+  const boundsRef = useRef({ startX: 0, totalW: 0 });
+  const [progress, setProgress] = useState(-1);
   const [done, setDone] = useState(false);
 
   useEffect(() => {
     const el = textRef.current;
     if (!el) return;
-
-    let timer: ReturnType<typeof setInterval> | null = null;
-    let delayTimer: ReturnType<typeof setTimeout> | null = null;
-    let doneTimer: ReturnType<typeof setTimeout> | null = null;
+    let rafId = 0;
 
     void document.fonts.ready.then(() => {
       try {
         const first = el.getExtentOfChar(0);
-        const startX = first.x;
+        const last = el.getExtentOfChar(WORD.length - 1);
+        boundsRef.current = {
+          startX: first.x,
+          totalW: last.x + last.width - first.x + 4,
+        };
 
-        const charEnds: number[] = [];
-        for (let i = 0; i < WORD.length; i++) {
-          const ext = el.getExtentOfChar(i);
-          charEnds.push(ext.x + ext.width - startX + 2);
-        }
-
-        delayTimer = setTimeout(() => {
-          let count = 0;
-          timer = setInterval(() => {
-            setClip({ x: startX, w: charEnds[count] });
-            count++;
-            if (count >= WORD.length) {
-              if (timer) clearInterval(timer);
-              doneTimer = setTimeout(() => setDone(true), LETTER_DELAY);
-            }
-          }, LETTER_DELAY);
-        }, INITIAL_DELAY);
+        const t0 = performance.now() + 300;
+        const tick = (now: number) => {
+          if (now < t0) {
+            rafId = requestAnimationFrame(tick);
+            return;
+          }
+          const p = Math.min((now - t0) / DURATION, 1);
+          setProgress(easeInOutCubic(p));
+          if (p < 1) {
+            rafId = requestAnimationFrame(tick);
+          } else {
+            setTimeout(() => setDone(true), 150);
+          }
+        };
+        rafId = requestAnimationFrame(tick);
       } catch {
         setDone(true);
+        setProgress(1);
       }
     });
 
-    return () => {
-      if (timer) clearInterval(timer);
-      if (delayTimer) clearTimeout(delayTimer);
-      if (doneTimer) clearTimeout(doneTimer);
-    };
+    return () => cancelAnimationFrame(rafId);
   }, []);
+
+  const { startX, totalW } = boundsRef.current;
+  const w = Math.max(0, progress) * totalW;
+  const showCursor = progress > 0 && progress < 1;
 
   return (
     <svg
@@ -64,14 +69,12 @@ export default function AnimatedLogo() {
       {!done && (
         <defs>
           <clipPath id={clipId}>
-            <rect
-              x={clip.x}
-              y="0"
-              width={clip.w}
-              height="100"
-              style={{ transition: `width ${Math.round(LETTER_DELAY * 0.7)}ms ease-out` }}
-            />
+            <rect x={startX} y="0" width={w} height="100" />
           </clipPath>
+          <radialGradient id={glowId}>
+            <stop offset="0%" stopColor="currentColor" stopOpacity="0.5" />
+            <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
+          </radialGradient>
         </defs>
       )}
       <text
@@ -81,14 +84,11 @@ export default function AnimatedLogo() {
         textAnchor="middle"
         className="font-cursive"
         clipPath={done ? undefined : `url(#${clipId})`}
-        style={{
-          fontSize: "72px",
-          fontWeight: 700,
-          fill: "currentColor",
-        }}
+        style={{ fontSize: "72px", fontWeight: 700, fill: "currentColor" }}
       >
         {WORD}
       </text>
+      {showCursor && <circle cx={startX + w} cy="50" r="14" fill={`url(#${glowId})`} />}
     </svg>
   );
 }
