@@ -1,5 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useRef } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -36,6 +39,8 @@ const FEATURES = [
   },
 ];
 
+const NAV_HEIGHT = 64;
+
 function BrowserFrame({ children }: { children: React.ReactNode }) {
   return (
     <div className="rounded-2xl shadow-2xl ring-1 ring-white/10 overflow-hidden bg-slate-900">
@@ -57,6 +62,53 @@ function BrowserFrame({ children }: { children: React.ReactNode }) {
 }
 
 export default function AppPreviewSection() {
+  const paneRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const contentRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const overlayRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  useEffect(() => {
+    const mql = globalThis.matchMedia("(min-width: 1024px)");
+    let isLg = mql.matches;
+
+    const onResize = () => {
+      isLg = mql.matches;
+    };
+    mql.addEventListener("change", onResize);
+
+    const onScroll = () => {
+      const vh = globalThis.innerHeight;
+
+      for (let i = 0; i < FEATURES.length - 1; i++) {
+        const content = contentRefs.current[i];
+        const overlay = overlayRefs.current[i];
+        const nextPane = paneRefs.current[i + 1];
+        if (!content || !overlay || !nextPane) continue;
+
+        if (!isLg) {
+          content.style.filter = "none";
+          content.style.transform = "none";
+          overlay.style.opacity = "0";
+          continue;
+        }
+
+        const nextTop = nextPane.getBoundingClientRect().top;
+        const p = Math.max(0, Math.min(1, (vh - nextTop) / (vh - NAV_HEIGHT)));
+
+        content.style.filter = p > 0.01 ? `blur(${p * 5}px)` : "none";
+        content.style.transform = p > 0.01 ? `scale(${1 - p * 0.04})` : "none";
+        overlay.style.opacity = String(p * 0.6);
+      }
+    };
+
+    globalThis.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+
+    return () => {
+      globalThis.removeEventListener("scroll", onScroll);
+      mql.removeEventListener("change", onResize);
+    };
+  }, []);
+
   return (
     <section>
       {/* Section header */}
@@ -73,77 +125,100 @@ export default function AppPreviewSection() {
       {/* Sticky overlapping panes */}
       {FEATURES.map((feature, i) => {
         const reversed = i % 2 === 1;
+        const isLast = i === FEATURES.length - 1;
+
         return (
           <div
             key={feature.badge}
+            ref={(el) => {
+              paneRefs.current[i] = el;
+            }}
             className={cn(
-              "lg:sticky lg:top-16",
+              "lg:sticky lg:top-16 relative overflow-hidden",
               feature.bg,
               "lg:rounded-t-3xl",
               "shadow-[0_-8px_30px_-12px_rgba(0,0,0,0.15)] dark:shadow-[0_-8px_30px_-12px_rgba(0,0,0,0.4)]",
             )}
             style={{ zIndex: i + 1 }}
           >
+            {/* Content — gets blurred + scaled when next pane overlaps */}
             <div
-              className={cn(
-                "lg:min-h-[calc(100dvh-4rem)] flex items-center",
-                "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-0",
-              )}
+              ref={(el) => {
+                contentRefs.current[i] = el;
+              }}
             >
               <div
                 className={cn(
-                  "flex flex-col gap-8 sm:gap-12 lg:gap-16 items-center w-full",
-                  reversed ? "lg:flex-row-reverse" : "lg:flex-row",
+                  "lg:min-h-[calc(100dvh-4rem)] flex items-center",
+                  "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-0",
                 )}
               >
-                {/* Screenshot */}
-                <div className="w-full lg:w-[58%] shrink-0">
-                  <BrowserFrame>
-                    <div className="relative aspect-[16/10]">
-                      <Image
-                        src={feature.src}
-                        alt={feature.alt}
-                        fill
-                        className="object-cover object-top"
-                        sizes="(max-width: 1024px) 100vw, 58vw"
-                      />
-                    </div>
-                  </BrowserFrame>
-                </div>
+                <div
+                  className={cn(
+                    "flex flex-col gap-8 sm:gap-12 lg:gap-16 items-center w-full",
+                    reversed ? "lg:flex-row-reverse" : "lg:flex-row",
+                  )}
+                >
+                  {/* Screenshot */}
+                  <div className="w-full lg:w-[58%] shrink-0">
+                    <BrowserFrame>
+                      <div className="relative aspect-[16/10]">
+                        <Image
+                          src={feature.src}
+                          alt={feature.alt}
+                          fill
+                          className="object-cover object-top"
+                          sizes="(max-width: 1024px) 100vw, 58vw"
+                        />
+                      </div>
+                    </BrowserFrame>
+                  </div>
 
-                {/* Text content */}
-                <div className="w-full lg:w-[42%]">
-                  <span className="inline-block px-3 py-1 rounded-full bg-lime-500/10 border border-lime-500/30 text-lime-600 dark:text-lime-400 text-xs font-semibold tracking-wide uppercase mb-4">
-                    {feature.badge}
-                  </span>
-                  <h3 className="text-2xl sm:text-3xl lg:text-4xl font-heading font-bold text-gray-900 dark:text-white mb-4 leading-tight">
-                    {feature.title}
-                  </h3>
-                  <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
-                    {feature.description}
-                  </p>
-                  <Link
-                    href={feature.cta.href}
-                    className="inline-flex items-center gap-2 text-lime-600 dark:text-lime-400 font-semibold hover:text-lime-500 transition-colors group"
-                  >
-                    {feature.cta.label}
-                    <svg
-                      className="w-4 h-4 transition-transform group-hover:translate-x-1"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                  {/* Text content */}
+                  <div className="w-full lg:w-[42%]">
+                    <span className="inline-block px-3 py-1 rounded-full bg-lime-500/10 border border-lime-500/30 text-lime-600 dark:text-lime-400 text-xs font-semibold tracking-wide uppercase mb-4">
+                      {feature.badge}
+                    </span>
+                    <h3 className="text-2xl sm:text-3xl lg:text-4xl font-heading font-bold text-gray-900 dark:text-white mb-4 leading-tight">
+                      {feature.title}
+                    </h3>
+                    <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+                      {feature.description}
+                    </p>
+                    <Link
+                      href={feature.cta.href}
+                      className="inline-flex items-center gap-2 text-lime-600 dark:text-lime-400 font-semibold hover:text-lime-500 transition-colors group"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
-                  </Link>
+                      {feature.cta.label}
+                      <svg
+                        className="w-4 h-4 transition-transform group-hover:translate-x-1"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
+
+            {/* Dark overlay — fades in as next pane covers this one */}
+            {!isLast && (
+              <div
+                ref={(el) => {
+                  overlayRefs.current[i] = el;
+                }}
+                className="absolute inset-0 bg-black pointer-events-none lg:rounded-t-3xl"
+                style={{ opacity: 0 }}
+              />
+            )}
           </div>
         );
       })}
