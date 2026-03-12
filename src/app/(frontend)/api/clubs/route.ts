@@ -106,8 +106,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // Add the creator as owner
-  const { error: memberError } = await supabase.from("club_members").insert({
+  // Add the creator as owner (use service client to bypass RLS)
+  const serviceClient = createServiceClient();
+  const { error: memberError } = await serviceClient.from("club_members").insert({
     club_id: clubId,
     user_id: user.id,
     role: "owner",
@@ -121,7 +122,6 @@ export async function POST(request: Request) {
   }
 
   // Auto-generate a welcome page for the club (fire-and-forget, uses service client to bypass RLS)
-  const serviceClient = createServiceClient();
   serviceClient
     .from("welcome_pages")
     .insert({
