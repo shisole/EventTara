@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import EventsCalendar, { type CalendarEvent } from "@/components/dashboard/EventsCalendar";
 import { Button, UIBadge } from "@/components/ui";
 import { isDuckRaceEnabled } from "@/lib/cms/cached";
 import { createClient } from "@/lib/supabase/server";
@@ -26,27 +27,38 @@ export default async function ClubOverviewPage({ params }: { params: Promise<{ s
   if (!club) notFound();
 
   // Fetch stats in parallel
-  const [{ count: memberCount }, { count: eventCount }, { data: recentEvents }] = await Promise.all(
-    [
-      supabase
-        .from("club_members")
-        .select("id", { count: "exact", head: true })
-        .eq("club_id", club.id),
-      supabase.from("events").select("id", { count: "exact", head: true }).eq("club_id", club.id),
-      supabase
-        .from("events")
-        .select("id, title, date, end_date, status, type")
-        .eq("club_id", club.id)
-        .order("date", { ascending: false })
-        .limit(5),
-    ],
-  );
+  const [{ count: memberCount }, { count: eventCount }, { data: allEvents }] = await Promise.all([
+    supabase
+      .from("club_members")
+      .select("id", { count: "exact", head: true })
+      .eq("club_id", club.id),
+    supabase.from("events").select("id", { count: "exact", head: true }).eq("club_id", club.id),
+    supabase
+      .from("events")
+      .select("id, title, date, end_date, status, type")
+      .eq("club_id", club.id)
+      .order("date", { ascending: false }),
+  ]);
+
+  const recentEvents = (allEvents ?? []).slice(0, 5);
 
   // Count upcoming events
   const now = new Date().toISOString();
-  const upcomingCount = (recentEvents ?? []).filter(
+  const upcomingCount = (allEvents ?? []).filter(
     (e) => e.status === "published" && e.date >= now,
   ).length;
+
+  // Calendar events (all non-cancelled)
+  const calendarEvents: CalendarEvent[] = (allEvents ?? [])
+    .filter((e) => e.status !== "cancelled")
+    .map((e) => ({
+      id: e.id,
+      title: e.title,
+      date: e.date,
+      end_date: e.end_date,
+      type: e.type as CalendarEvent["type"],
+      status: e.status as CalendarEvent["status"],
+    }));
 
   // Fetch total bookings for this club's events
   const { data: clubEvents } = await supabase.from("events").select("id").eq("club_id", club.id);
@@ -80,24 +92,85 @@ export default async function ClubOverviewPage({ params }: { params: Promise<{ s
       </div>
 
       {/* Stats cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-6">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Members</p>
-          <p className="text-3xl font-heading font-bold dark:text-white">{memberCount ?? 0}</p>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl shadow-md dark:shadow-gray-950/30 p-3 sm:p-6">
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Members</p>
+          <p className="text-xl sm:text-3xl font-heading font-bold dark:text-white">
+            {memberCount ?? 0}
+          </p>
         </div>
-        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-6">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Total Events</p>
-          <p className="text-3xl font-heading font-bold dark:text-white">{eventCount ?? 0}</p>
+        <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl shadow-md dark:shadow-gray-950/30 p-3 sm:p-6">
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Total Events</p>
+          <p className="text-xl sm:text-3xl font-heading font-bold dark:text-white">
+            {eventCount ?? 0}
+          </p>
         </div>
-        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-6">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Upcoming</p>
-          <p className="text-3xl font-heading font-bold dark:text-white">{upcomingCount}</p>
+        <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl shadow-md dark:shadow-gray-950/30 p-3 sm:p-6">
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Upcoming</p>
+          <p className="text-xl sm:text-3xl font-heading font-bold dark:text-white">
+            {upcomingCount}
+          </p>
         </div>
-        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-6">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Total Bookings</p>
-          <p className="text-3xl font-heading font-bold dark:text-white">{totalBookings}</p>
+        <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl shadow-md dark:shadow-gray-950/30 p-3 sm:p-6">
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Total Bookings</p>
+          <p className="text-xl sm:text-3xl font-heading font-bold dark:text-white">
+            {totalBookings}
+          </p>
         </div>
       </div>
+
+      {/* Quick actions */}
+      <div>
+        <h2 className="text-xl font-heading font-bold mb-4 dark:text-white">Quick Actions</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+          <Link
+            href={`/dashboard/clubs/${slug}/members`}
+            className="bg-white dark:bg-gray-900 rounded-xl shadow-sm dark:shadow-gray-950/30 p-4 text-center border border-transparent hover:border-lime-500/40 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+          >
+            <p className="font-medium dark:text-white">Manage Members</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">View and manage club members</p>
+          </Link>
+          <Link
+            href={`/dashboard/clubs/${slug}/invites`}
+            className="bg-white dark:bg-gray-900 rounded-xl shadow-sm dark:shadow-gray-950/30 p-4 text-center border border-transparent hover:border-lime-500/40 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+          >
+            <p className="font-medium dark:text-white">Invite Members</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Create and share invite links
+            </p>
+          </Link>
+          <Link
+            href={`/dashboard/clubs/${slug}/settings`}
+            className="bg-white dark:bg-gray-900 rounded-xl shadow-sm dark:shadow-gray-950/30 p-4 text-center border border-transparent hover:border-lime-500/40 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+          >
+            <p className="font-medium dark:text-white">Club Settings</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Update club info and preferences
+            </p>
+          </Link>
+          <Link
+            href={`/dashboard/clubs/${slug}/welcome-qr`}
+            className="bg-white dark:bg-gray-900 rounded-xl shadow-sm dark:shadow-gray-950/30 p-4 text-center border border-transparent hover:border-lime-500/40 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+          >
+            <p className="font-medium dark:text-white">Welcome QR</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Generate scannable QR codes</p>
+          </Link>
+          {duckRaceEnabled && (
+            <Link
+              href={`/dashboard/clubs/${slug}/races/new`}
+              className="bg-white dark:bg-gray-900 rounded-xl shadow-sm dark:shadow-gray-950/30 p-4 text-center border border-transparent hover:border-lime-500/40 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+            >
+              <p className="font-medium dark:text-white">Duck Race</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Run a raffle for club members
+              </p>
+            </Link>
+          )}
+        </div>
+      </div>
+
+      {/* Event calendar */}
+      <EventsCalendar events={calendarEvents} linkPrefix={`/dashboard/clubs/${slug}/events`} />
 
       {/* Recent events */}
       <div>
@@ -142,56 +215,6 @@ export default async function ClubOverviewPage({ params }: { params: Promise<{ s
             </Link>
           </div>
         )}
-      </div>
-
-      {/* Quick actions */}
-      <div>
-        <h2 className="text-xl font-heading font-bold mb-4 dark:text-white">Quick Actions</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-          <Link
-            href={`/dashboard/clubs/${slug}/members`}
-            className="bg-white dark:bg-gray-900 rounded-xl shadow-sm dark:shadow-gray-950/30 p-4 hover:shadow-md transition-shadow text-center"
-          >
-            <p className="font-medium dark:text-white">Manage Members</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">View and manage club members</p>
-          </Link>
-          <Link
-            href={`/dashboard/clubs/${slug}/invites`}
-            className="bg-white dark:bg-gray-900 rounded-xl shadow-sm dark:shadow-gray-950/30 p-4 hover:shadow-md transition-shadow text-center"
-          >
-            <p className="font-medium dark:text-white">Invite Members</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Create and share invite links
-            </p>
-          </Link>
-          <Link
-            href={`/dashboard/clubs/${slug}/settings`}
-            className="bg-white dark:bg-gray-900 rounded-xl shadow-sm dark:shadow-gray-950/30 p-4 hover:shadow-md transition-shadow text-center"
-          >
-            <p className="font-medium dark:text-white">Club Settings</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Update club info and preferences
-            </p>
-          </Link>
-          <Link
-            href={`/dashboard/clubs/${slug}/welcome-qr`}
-            className="bg-white dark:bg-gray-900 rounded-xl shadow-sm dark:shadow-gray-950/30 p-4 hover:shadow-md transition-shadow text-center"
-          >
-            <p className="font-medium dark:text-white">Welcome QR</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Generate scannable QR codes</p>
-          </Link>
-          {duckRaceEnabled && (
-            <Link
-              href={`/dashboard/clubs/${slug}/races/new`}
-              className="bg-white dark:bg-gray-900 rounded-xl shadow-sm dark:shadow-gray-950/30 p-4 hover:shadow-md transition-shadow text-center"
-            >
-              <p className="font-medium dark:text-white">Duck Race</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Run a raffle for club members
-              </p>
-            </Link>
-          )}
-        </div>
       </div>
     </div>
   );

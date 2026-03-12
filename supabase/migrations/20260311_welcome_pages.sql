@@ -30,6 +30,8 @@ CREATE INDEX idx_welcome_claims_page ON welcome_page_claims(welcome_page_id);
 -- RLS
 ALTER TABLE welcome_pages ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "select_active" ON welcome_pages FOR SELECT USING (is_active = true);
+CREATE POLICY "insert_own" ON welcome_pages FOR INSERT WITH CHECK (auth.uid() = created_by);
+CREATE POLICY "update_own" ON welcome_pages FOR UPDATE USING (auth.uid() = created_by);
 
 ALTER TABLE welcome_page_claims ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "select_own" ON welcome_page_claims FOR SELECT USING (auth.uid() = user_id);
