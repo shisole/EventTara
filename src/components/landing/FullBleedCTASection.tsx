@@ -66,7 +66,8 @@ export default function FullBleedCTASection() {
             fill
             className="object-cover scale-110"
             sizes="100vw"
-            quality={80}
+            quality={60}
+            loading="lazy"
           />
         </div>
 

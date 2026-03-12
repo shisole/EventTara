@@ -98,7 +98,7 @@ export default function ClientShell({
     tier: BorderTier | null;
     color: string | null;
   } | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [navLayout] = useState<string>(initialNavLayout);
   const touchStartX = useRef(0);
