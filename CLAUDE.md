@@ -124,7 +124,7 @@ Clubs replaced the old organizer profiles. A club is the organizational unit tha
 
 - **Types & permissions:** `src/lib/clubs/types.ts`, `src/lib/clubs/permissions.ts`
 - **Components:** `src/components/clubs/` — `ClubCard`, `ClubGrid`, `ClubProfileHeader`, `ClubRoleBadge`, `ClubSelector`, `CreateClubForm`, `JoinClubButton`, `JoinViaInviteButton`
-- **Dashboard:** `src/components/dashboard/` — `ClubDashboardSidebar`, `ClubEventsTable`, `ClubMembersList`, `ClubInvitesList`, `ClubSettingsForm`, `ClubSwitcher`
+- **Dashboard:** `src/components/dashboard/` — `ClubEventsTable`, `ClubMembersList`, `ClubInvitesList`, `ClubSettingsForm`, `ClubSwitcher`
 - **Claim flow:** Admin generates claim tokens → `/claim/[token]` page → user claims club ownership
 - **Invite codes:** `/clubs/join/[code]` for joining via shareable invite links
 - **Ownership transfer:** `/api/clubs/[slug]/transfer-ownership`
@@ -249,7 +249,7 @@ Use the `cn()` helper from `@/lib/utils` (combines `clsx` + `tailwind-merge`) fo
 
 ### Z-Index Stack
 
-`Navbar/MobileNav (50)` < `ChatBubble (60)` < `EntryBanner (70)` < `WaitlistModal (80)` < `ChatPanel (999)` < `SplashScreen (100)`
+`Navbar/MobileNav (50)` < `ChatBubble (60)` < `EntryBanner (70)` < `WaitlistModal (80)` < `ChatPanel (999)`
 
 ### Email
 
