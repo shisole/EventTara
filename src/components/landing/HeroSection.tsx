@@ -29,7 +29,11 @@ export default function HeroSection({ heroData }: HeroSectionProps) {
     : [];
 
   return (
-    <section className="relative overflow-hidden min-h-[100dvh] flex items-center">
+    <section
+      className={`relative overflow-hidden min-h-[100dvh] flex items-center ${
+        heroSlides.length > 0 ? "bg-gray-900" : "bg-gray-50 dark:bg-slate-900"
+      }`}
+    >
       {heroSlides.length > 0 ? (
         <>
           <HeroCarousel slides={heroSlides} />
@@ -38,8 +42,12 @@ export default function HeroSection({ heroData }: HeroSectionProps) {
         </>
       ) : (
         <>
-          <div className="absolute inset-0 bg-gray-50 dark:bg-slate-900" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-lime-500/10 rounded-full blur-3xl" />
+          <div
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full"
+            style={{
+              background: "radial-gradient(circle, rgb(132 204 22 / 0.1) 0%, transparent 70%)",
+            }}
+          />
         </>
       )}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 w-full">
