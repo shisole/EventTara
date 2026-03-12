@@ -10,6 +10,7 @@ import FeaturesSection from "@/components/landing/FeaturesSection";
 import FullBleedCTASection from "@/components/landing/FullBleedCTASection";
 import HeroSection from "@/components/landing/HeroSection";
 import PioneerCounterSection from "@/components/landing/PioneerCounterSection";
+import ScrollReveal from "@/components/landing/ScrollReveal";
 import TestimonialsSection from "@/components/landing/TestimonialsSection";
 import WaitlistSection from "@/components/landing/WaitlistSection";
 
@@ -25,23 +26,45 @@ export default function NewLandingPage({ heroData }: NewLandingPageProps) {
   return (
     <>
       <HeroSection heroData={heroData} />
-      <AppPreviewSection />
-      <CocoDemoSection />
-      <FullBleedCTASection />
-      <Suspense>
-        <ClubsSection />
-      </Suspense>
-      <Suspense>
-        <BentoEventsSection />
-      </Suspense>
-      <FeaturesSection />
-      <Suspense>
-        <TestimonialsSection />
-      </Suspense>
-      <PioneerCounterSection />
-      <FAQSection />
-      <WaitlistSection />
-      <ContactCTASection />
+      <ScrollReveal>
+        <AppPreviewSection />
+      </ScrollReveal>
+      <ScrollReveal>
+        <CocoDemoSection />
+      </ScrollReveal>
+      <ScrollReveal>
+        <FullBleedCTASection />
+      </ScrollReveal>
+      <ScrollReveal>
+        <Suspense>
+          <ClubsSection />
+        </Suspense>
+      </ScrollReveal>
+      <ScrollReveal>
+        <Suspense>
+          <BentoEventsSection />
+        </Suspense>
+      </ScrollReveal>
+      <ScrollReveal>
+        <FeaturesSection />
+      </ScrollReveal>
+      <ScrollReveal>
+        <Suspense>
+          <TestimonialsSection />
+        </Suspense>
+      </ScrollReveal>
+      <ScrollReveal>
+        <PioneerCounterSection />
+      </ScrollReveal>
+      <ScrollReveal>
+        <FAQSection />
+      </ScrollReveal>
+      <ScrollReveal>
+        <WaitlistSection />
+      </ScrollReveal>
+      <ScrollReveal>
+        <ContactCTASection />
+      </ScrollReveal>
     </>
   );
 }
