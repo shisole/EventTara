@@ -12,6 +12,7 @@ const FEATURES = [
     cta: { label: "Explore Events", href: "/events" },
     src: "/images/screenshots/events.png",
     alt: "EventTara events listing page showing hiking, biking, and running events",
+    bg: "bg-white dark:bg-slate-800",
   },
   {
     badge: "Booking",
@@ -21,6 +22,7 @@ const FEATURES = [
     cta: { label: "See How It Works", href: "/events" },
     src: "/images/screenshots/event-detail.png",
     alt: "EventTara event detail page with booking and route map",
+    bg: "bg-gray-50 dark:bg-slate-900",
   },
   {
     badge: "Achievements",
@@ -30,6 +32,7 @@ const FEATURES = [
     cta: { label: "View Achievements", href: "/achievements" },
     src: "/images/screenshots/achievements.png",
     alt: "EventTara achievements page showing badges and leaderboards",
+    bg: "bg-white dark:bg-slate-800",
   },
 ];
 
@@ -55,26 +58,41 @@ function BrowserFrame({ children }: { children: React.ReactNode }) {
 
 export default function AppPreviewSection() {
   return (
-    <section className="py-20 sm:py-28 bg-white dark:bg-slate-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16 sm:mb-20">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold text-gray-900 dark:text-white mb-4">
-            See It in Action
-          </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            From discovering your next hike to collecting badges — everything you need for your
-            outdoor adventures.
-          </p>
-        </div>
+    <section>
+      {/* Section header */}
+      <div className="py-16 sm:py-20 bg-white dark:bg-slate-800 text-center px-4 sm:px-6 lg:px-8">
+        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold text-gray-900 dark:text-white mb-4">
+          See It in Action
+        </h2>
+        <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          From discovering your next hike to collecting badges — everything you need for your
+          outdoor adventures.
+        </p>
+      </div>
 
-        <div className="space-y-24 sm:space-y-32">
-          {FEATURES.map((feature, i) => {
-            const reversed = i % 2 === 1;
-            return (
+      {/* Sticky overlapping panes */}
+      {FEATURES.map((feature, i) => {
+        const reversed = i % 2 === 1;
+        return (
+          <div
+            key={feature.badge}
+            className={cn(
+              "lg:sticky lg:top-16",
+              feature.bg,
+              "lg:rounded-t-3xl",
+              "shadow-[0_-8px_30px_-12px_rgba(0,0,0,0.15)] dark:shadow-[0_-8px_30px_-12px_rgba(0,0,0,0.4)]",
+            )}
+            style={{ zIndex: i + 1 }}
+          >
+            <div
+              className={cn(
+                "lg:min-h-[calc(100dvh-4rem)] flex items-center",
+                "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-0",
+              )}
+            >
               <div
-                key={feature.badge}
                 className={cn(
-                  "flex flex-col gap-8 sm:gap-12 lg:gap-16 items-center",
+                  "flex flex-col gap-8 sm:gap-12 lg:gap-16 items-center w-full",
                   reversed ? "lg:flex-row-reverse" : "lg:flex-row",
                 )}
               >
@@ -94,7 +112,7 @@ export default function AppPreviewSection() {
                 </div>
 
                 {/* Text content */}
-                <div className="w-full lg:w-[42%] lg:py-8">
+                <div className="w-full lg:w-[42%]">
                   <span className="inline-block px-3 py-1 rounded-full bg-lime-500/10 border border-lime-500/30 text-lime-600 dark:text-lime-400 text-xs font-semibold tracking-wide uppercase mb-4">
                     {feature.badge}
                   </span>
@@ -125,10 +143,10 @@ export default function AppPreviewSection() {
                   </Link>
                 </div>
               </div>
-            );
-          })}
-        </div>
-      </div>
+            </div>
+          </div>
+        );
+      })}
     </section>
   );
 }
