@@ -8,8 +8,8 @@ test.beforeEach(async ({ page }) => {
 test("homepage loads and shows key content", async ({ page }) => {
   await page.goto("/");
 
-  // Main heading is visible
-  await expect(page.locator("h1")).toContainText("Tara na!");
+  // Main heading is visible (old: "Tara na!", new landing page: "Every Great Adventure")
+  await expect(page.locator("h1")).toContainText(/Tara na!|Every Great Adventure/);
 
   // "Explore Events" link is visible and points to /events
   const exploreLink = page.getByRole("link", { name: /explore events/i }).first();
