@@ -29,7 +29,7 @@ const plusJakarta = Plus_Jakarta_Sans({
 const dancingScript = Dancing_Script({
   subsets: ["latin"],
   variable: "--font-cursive",
-  display: "optional",
+  display: "swap",
 });
 
 export async function generateMetadata(): Promise<Metadata> {
