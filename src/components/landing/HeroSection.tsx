@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import AnimatedLogo from "@/components/landing/AnimatedLogo";
 import HeroCarousel from "@/components/landing/HeroCarousel";
 import HostEventLink from "@/components/landing/HostEventLink";
 
@@ -48,29 +47,23 @@ export default function HeroSection({ heroData }: HeroSectionProps) {
             Beta — Now Live
           </span>
         </div>
-        <div className={`mb-2 ${heroSlides.length > 0 ? "text-lime-400" : "text-lime-500"}`}>
-          <AnimatedLogo />
-        </div>
         <h1
-          className={`text-5xl sm:text-7xl font-heading font-bold mb-4 ${heroSlides.length > 0 ? "text-white" : "text-gray-900 dark:text-white"}`}
+          className={`text-4xl sm:text-6xl lg:text-7xl font-heading font-bold mb-6 leading-tight ${heroSlides.length > 0 ? "text-white" : "text-gray-900 dark:text-white"}`}
         >
-          Tara na!
+          Every Great Adventure
+          <br />
+          Starts with <span className="text-lime-500">Tara</span>
         </h1>
         <p
-          className={`text-lg sm:text-xl mb-6 font-medium tracking-wide ${heroSlides.length > 0 ? "text-lime-300" : "text-lime-600 dark:text-lime-400"}`}
+          className={`text-lg sm:text-xl lg:text-2xl mb-10 max-w-3xl mx-auto leading-relaxed ${heroSlides.length > 0 ? "text-gray-200" : "text-gray-600 dark:text-gray-400"}`}
         >
-          Hiking · Biking · Running · Trail Running
-        </p>
-        <p
-          className={`text-xl sm:text-2xl mb-10 max-w-2xl mx-auto ${heroSlides.length > 0 ? "text-gray-200" : "text-gray-600 dark:text-gray-400"}`}
-        >
-          Book Your Next Adventure. Discover hiking, biking, running events and more across the
-          Philippines.
+          Discover outdoor events, join adventure clubs, and book your spot — hiking, biking,
+          running, and trail running across the Philippines, all in one place.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link
             href="/events"
-            className="inline-flex items-center justify-center font-semibold rounded-xl text-lg py-4 px-8 bg-lime-500 hover:bg-lime-400 text-slate-900 transition-colors"
+            className="inline-flex items-center justify-center font-semibold rounded-xl text-lg py-4 px-8 bg-lime-500 hover:bg-lime-400 text-slate-900 transition-colors shadow-lg shadow-lime-500/25"
           >
             Explore Events
           </Link>
