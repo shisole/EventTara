@@ -1,6 +1,5 @@
 import { CheckCircleIcon, ExploreIcon, StarIcon, StravaIcon } from "@/components/icons";
 import { getStravaShowcaseFlags, isStravaComingSoon } from "@/lib/cms/cached";
-import { createClient } from "@/lib/supabase/server";
 
 import StravaShowcaseRouteMap from "./StravaShowcaseRouteMap";
 
@@ -24,37 +23,11 @@ const FEATURES = [
   },
 ];
 
-async function fetchAggregateStats(): Promise<{
-  totalDistanceKm: number;
-  activitiesLinked: number;
-  routesMapped: number;
-}> {
-  const supabase = await createClient();
-
-  const [activitiesResult, routesResult] = await Promise.all([
-    supabase.from("strava_activities").select("distance"),
-    supabase.from("event_routes").select("id", { count: "exact", head: true }),
-  ]);
-
-  const activities = activitiesResult.data ?? [];
-  const totalDistanceKm = Math.round(
-    activities.reduce((sum, a) => sum + (a.distance || 0), 0) / 1000,
-  );
-
-  return {
-    totalDistanceKm,
-    activitiesLinked: activities.length,
-    routesMapped: routesResult.count ?? 0,
-  };
-}
-
 export default async function StravaShowcaseSection() {
   const [flags, comingSoon] = await Promise.all([getStravaShowcaseFlags(), isStravaComingSoon()]);
   const anyEnabled = flags.features || flags.stats || flags.routeMap;
 
   if (!anyEnabled) return null;
-
-  const stats = flags.stats ? await fetchAggregateStats() : null;
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-orange-50/60 to-white py-16 dark:from-orange-950/20 dark:to-gray-950 sm:py-20">
@@ -95,38 +68,8 @@ export default async function StravaShowcaseSection() {
             </div>
           )}
 
-          {/* Live aggregate stats */}
-          {flags.stats && stats && (
-            <div className="mb-12 grid gap-6 sm:grid-cols-3">
-              {[
-                {
-                  value: stats.totalDistanceKm.toLocaleString(),
-                  unit: "km",
-                  label: "Distance Tracked",
-                },
-                {
-                  value: stats.activitiesLinked.toLocaleString(),
-                  unit: "",
-                  label: "Activities Linked",
-                },
-                { value: stats.routesMapped.toLocaleString(), unit: "", label: "Routes Mapped" },
-              ].map((stat) => (
-                <div key={stat.label} className="text-center">
-                  <div className="text-4xl font-bold text-[#FC4C02]">
-                    {stat.value}
-                    {stat.unit && (
-                      <span className="ml-1 text-lg font-normal text-[#FC4C02]/70">
-                        {stat.unit}
-                      </span>
-                    )}
-                  </div>
-                  <div className="mt-1 text-sm font-medium text-gray-600 dark:text-gray-400">
-                    {stat.label}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          {/* Live aggregate stats — REMOVED for Strava API compliance */}
+          {/* Strava forbids aggregating/displaying Strava Data across multiple users */}
 
           {/* Visual route demo */}
           {flags.routeMap && (
