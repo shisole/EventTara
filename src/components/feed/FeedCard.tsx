@@ -49,53 +49,62 @@ export default function FeedCard({ item, isAuthenticated, currentUserId }: FeedC
         </div>
       )}
 
+      {/* Header: avatar + name + badge + organizer + following */}
+      <div className="flex items-center gap-3">
+        <Link href={item.userUsername ? `/profile/${item.userUsername}` : "#"} className="shrink-0">
+          <UserAvatar
+            src={item.userAvatarUrl}
+            alt={item.userName}
+            size="sm"
+            borderTier={item.borderTier}
+            borderColor={item.borderColor}
+          />
+        </Link>
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {item.userUsername ? (
+              <Link
+                href={`/profile/${item.userUsername}`}
+                className="font-semibold text-gray-900 dark:text-white text-sm truncate hover:underline"
+              >
+                {item.userName}
+              </Link>
+            ) : (
+              <span className="font-semibold text-gray-900 dark:text-white text-sm truncate">
+                {item.userName}
+              </span>
+            )}
+            {item.topBadgeTitle && (
+              <span className="text-[10px] bg-golden-100 dark:bg-golden-900/30 text-golden-700 dark:text-golden-400 px-1.5 py-0.5 rounded-full font-medium truncate max-w-[120px]">
+                {item.topBadgeTitle}
+              </span>
+            )}
+            {item.userRole === "organizer" && (
+              <span className="text-[10px] bg-teal-500 dark:bg-teal-600 text-white px-1.5 py-0.5 rounded-full font-semibold">
+                Organizer
+              </span>
+            )}
+            {item.isFollowing && (
+              <span className="text-[10px] bg-lime-100 dark:bg-lime-900/30 text-lime-700 dark:text-lime-400 px-1.5 py-0.5 rounded-full font-medium">
+                Following
+              </span>
+            )}
+          </div>
+          <p className="text-sm text-gray-600 dark:text-gray-400">{item.text}</p>
+        </div>
+
+        <span className="text-xs text-gray-400 dark:text-gray-500 shrink-0">
+          {formatRelativeTime(item.timestamp)}
+        </span>
+      </div>
+
       {/* Clickable content area */}
       <Link
         href={postHref}
         className="block space-y-3"
         onClick={() => feedCache.set(item.id, item, isAuthenticated, currentUserId)}
       >
-        {/* Header: avatar + name + badge + organizer + following */}
-        <div className="flex items-center gap-3">
-          <div className="shrink-0">
-            <UserAvatar
-              src={item.userAvatarUrl}
-              alt={item.userName}
-              size="sm"
-              borderTier={item.borderTier}
-              borderColor={item.borderColor}
-            />
-          </div>
-
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="font-semibold text-gray-900 dark:text-white text-sm truncate">
-                {item.userName}
-              </span>
-              {item.topBadgeTitle && (
-                <span className="text-[10px] bg-golden-100 dark:bg-golden-900/30 text-golden-700 dark:text-golden-400 px-1.5 py-0.5 rounded-full font-medium truncate max-w-[120px]">
-                  {item.topBadgeTitle}
-                </span>
-              )}
-              {item.userRole === "organizer" && (
-                <span className="text-[10px] bg-teal-500 dark:bg-teal-600 text-white px-1.5 py-0.5 rounded-full font-semibold">
-                  Organizer
-                </span>
-              )}
-              {item.isFollowing && (
-                <span className="text-[10px] bg-lime-100 dark:bg-lime-900/30 text-lime-700 dark:text-lime-400 px-1.5 py-0.5 rounded-full font-medium">
-                  Following
-                </span>
-              )}
-            </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">{item.text}</p>
-          </div>
-
-          <span className="text-xs text-gray-400 dark:text-gray-500 shrink-0">
-            {formatRelativeTime(item.timestamp)}
-          </span>
-        </div>
-
         {/* Review rating + text */}
         {item.activityType === "review" && item.reviewRating && (
           <div className="space-y-2">
