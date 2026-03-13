@@ -105,10 +105,9 @@ function SignupForm() {
   const [code, setCode] = useState<string[]>(emptyCode());
   const [oauthGoogle, setOauthGoogle] = useState(false);
   const [oauthStrava, setOauthStrava] = useState(false);
-  const [oauthFacebook, setOauthFacebook] = useState(false);
+  const [, setOauthFacebook] = useState(false);
   const [avatarShopEnabled, setAvatarShopEnabled] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [showMoreAuth, setShowMoreAuth] = useState(false);
 
   // Store metadata to apply after verification
   const metadataRef = useRef<Record<string, string>>({});
@@ -395,91 +394,62 @@ function SignupForm() {
     <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md p-8 space-y-6">
       <h2 className="text-2xl font-heading font-bold text-center">Join the Adventure!</h2>
 
-      {oauthGoogle ? (
-        <Button
-          disabled
-          className="w-full bg-white/60 cursor-not-allowed border border-gray-300"
-          size="lg"
-        >
-          <GoogleIcon className="w-5 h-5 mr-2" />
-          Continue with Google
-          <span className="ml-2 rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium">
-            Coming Soon
-          </span>
-        </Button>
-      ) : (
-        <Button
-          className="w-full bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
-          size="lg"
-          onClick={handleGoogleSignup}
-          disabled={googleLoading}
-        >
-          <GoogleIcon className="w-5 h-5 mr-2" />
-          {googleLoading ? "Redirecting..." : "Continue with Google"}
-        </Button>
-      )}
+      <div className="space-y-3">
+        {oauthGoogle ? (
+          <Button
+            disabled
+            className="w-full bg-white/60 cursor-not-allowed border border-gray-300"
+            size="lg"
+          >
+            <GoogleIcon className="w-5 h-5 mr-2" />
+            Continue with Google
+            <span className="ml-2 rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium">
+              Coming Soon
+            </span>
+          </Button>
+        ) : (
+          <Button
+            className="w-full bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
+            size="lg"
+            onClick={handleGoogleSignup}
+            disabled={googleLoading}
+          >
+            <GoogleIcon className="w-5 h-5 mr-2" />
+            {googleLoading ? "Redirecting..." : "Continue with Google"}
+          </Button>
+        )}
 
-      {showMoreAuth && (
-        <div className="space-y-3">
-          {oauthFacebook ? (
-            <Button disabled className="w-full bg-[#1877F2]/60 cursor-not-allowed" size="lg">
-              Continue with Facebook
-              <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium">
-                Coming Soon
-              </span>
-            </Button>
-          ) : (
-            <Button
-              className="w-full bg-[#1877F2] hover:bg-[#1565C0] text-white"
-              size="lg"
-              disabled
-            >
-              Continue with Facebook
-            </Button>
-          )}
-
-          {oauthStrava ? (
-            <Button disabled className="w-full bg-[#FC4C02]/60 cursor-not-allowed" size="lg">
-              <StravaIcon className="w-5 h-5 mr-2" />
-              Continue with Strava
-              <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium">
-                Coming Soon
-              </span>
-            </Button>
-          ) : (
-            <Button
-              className="w-full bg-[#FC4C02] hover:bg-[#E34402] text-white"
-              size="lg"
-              onClick={() => {
-                const clientId = process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID;
-                if (!clientId) return;
-                const params = new URLSearchParams({
-                  client_id: clientId,
-                  redirect_uri: `${globalThis.location.origin}/auth/strava/callback`,
-                  response_type: "code",
-                  scope: STRAVA_SCOPES.join(","),
-                  state: JSON.stringify({ flow: "login", returnUrl: next }),
-                  approval_prompt: "auto",
-                });
-                globalThis.location.href = `${STRAVA_AUTH_URL}?${params.toString()}`;
-              }}
-            >
-              <StravaIcon className="w-5 h-5 mr-2" />
-              Continue with Strava
-            </Button>
-          )}
-        </div>
-      )}
-
-      {!showMoreAuth && (
-        <button
-          type="button"
-          onClick={() => setShowMoreAuth(true)}
-          className="w-full text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
-        >
-          More sign-up options
-        </button>
-      )}
+        {oauthStrava ? (
+          <Button disabled className="w-full bg-[#FC4C02]/60 cursor-not-allowed" size="lg">
+            <StravaIcon className="w-5 h-5 mr-2" />
+            Continue with Strava
+            <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium">
+              Coming Soon
+            </span>
+          </Button>
+        ) : (
+          <Button
+            className="w-full bg-[#FC4C02] hover:bg-[#E34402] text-white"
+            size="lg"
+            onClick={() => {
+              const clientId = process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID;
+              if (!clientId) return;
+              const params = new URLSearchParams({
+                client_id: clientId,
+                redirect_uri: `${globalThis.location.origin}/auth/strava/callback`,
+                response_type: "code",
+                scope: STRAVA_SCOPES.join(","),
+                state: JSON.stringify({ flow: "login", returnUrl: next }),
+                approval_prompt: "auto",
+              });
+              globalThis.location.href = `${STRAVA_AUTH_URL}?${params.toString()}`;
+            }}
+          >
+            <StravaIcon className="w-5 h-5 mr-2" />
+            Continue with Strava
+          </Button>
+        )}
+      </div>
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">

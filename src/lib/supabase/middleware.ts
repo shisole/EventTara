@@ -2,6 +2,10 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function updateSession(request: NextRequest) {
+  // Skip auth refresh for unauthenticated visitors — no session cookie means no token to refresh
+  const hasSession = request.cookies.getAll().some((c) => c.name.includes("-auth-token"));
+  if (!hasSession) return NextResponse.next({ request });
+
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(

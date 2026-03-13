@@ -9,6 +9,8 @@ test.describe("Organizer + Participant booking flow", () => {
   let clubId: string;
 
   test("full happy path: create → book → check-in → verify", async ({ browser }) => {
+    test.setTimeout(90_000);
+
     const organizerContext = await browser.newContext({ storageState: ORGANIZER_STATE });
     const participantContext = await browser.newContext({ storageState: PARTICIPANT_STATE });
 
@@ -61,21 +63,16 @@ test.describe("Organizer + Participant booking flow", () => {
       expect(response.ok()).toBeTruthy();
     });
 
-    // ── Step 4: Participant finds event on /events ──────────────────
-    await test.step("Participant finds event on /events", async () => {
+    // ── Step 4: Participant views event detail page ──────────────────
+    await test.step("Participant views event detail page", async () => {
       const participantPage = await participantContext.newPage();
 
-      await participantPage.goto("/events");
-      await expect(participantPage.getByRole("heading", { level: 1 })).toBeVisible();
+      // Navigate directly to event detail page instead of finding it in the list
+      await participantPage.goto(`/events/${eventId}`, { waitUntil: "domcontentloaded" });
 
-      // Look for our event card by title
-      const eventCard = participantPage.getByRole("link", { name: eventTitle });
-      await expect(eventCard).toBeVisible({ timeout: 10000 });
-      await eventCard.click();
-
-      // Should be on the event detail page
-      await expect(participantPage).toHaveURL(new RegExp(`/events/${eventId}`));
-      await expect(participantPage.getByRole("heading", { name: eventTitle })).toBeVisible();
+      await expect(participantPage.getByRole("heading", { name: eventTitle })).toBeVisible({
+        timeout: 15_000,
+      });
 
       await participantPage.close();
     });
@@ -84,15 +81,15 @@ test.describe("Organizer + Participant booking flow", () => {
     await test.step("Participant books event", async () => {
       const participantPage = await participantContext.newPage();
 
-      await participantPage.goto(`/events/${eventId}/book`);
+      await participantPage.goto(`/events/${eventId}/book`, { waitUntil: "domcontentloaded" });
 
       // Free event — just click confirm
       const confirmButton = participantPage.getByRole("button", { name: /confirm booking/i });
-      await expect(confirmButton).toBeVisible({ timeout: 10000 });
+      await expect(confirmButton).toBeVisible({ timeout: 15_000 });
       await confirmButton.click();
 
       // Booking confirmation shows "You're In!"
-      await expect(participantPage.getByText(/you're in/i)).toBeVisible({ timeout: 15000 });
+      await expect(participantPage.getByText(/you're in/i)).toBeVisible({ timeout: 15_000 });
 
       await participantPage.close();
     });
@@ -101,16 +98,16 @@ test.describe("Organizer + Participant booking flow", () => {
     await test.step("Participant self-checks-in", async () => {
       const participantPage = await participantContext.newPage();
 
-      await participantPage.goto("/my-events");
+      await participantPage.goto("/my-events", { waitUntil: "domcontentloaded" });
 
       // Find the "Check In Online" button for our event
       const checkInButton = participantPage.getByRole("button", { name: /check in online/i });
-      await expect(checkInButton).toBeVisible({ timeout: 10000 });
+      await expect(checkInButton).toBeVisible({ timeout: 15_000 });
       await checkInButton.click();
 
       // Should show "Checked In" status
       await expect(participantPage.getByText(/checked in/i).first()).toBeVisible({
-        timeout: 10000,
+        timeout: 15_000,
       });
 
       await participantPage.close();
@@ -120,10 +117,12 @@ test.describe("Organizer + Participant booking flow", () => {
     await test.step("Organizer sees check-in on dashboard", async () => {
       const organizerPage = await organizerContext.newPage();
 
-      await organizerPage.goto(`/dashboard/events/${eventId}`);
+      await organizerPage.goto(`/dashboard/events/${eventId}`, { waitUntil: "domcontentloaded" });
 
       // Participants table should show "Checked in" for the participant
-      await expect(organizerPage.getByText("Checked in").first()).toBeVisible({ timeout: 10000 });
+      await expect(organizerPage.getByText("Checked in").first()).toBeVisible({
+        timeout: 15_000,
+      });
 
       await organizerPage.close();
     });

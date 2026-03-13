@@ -38,6 +38,12 @@ interface AnimalOption {
   image_url: string;
 }
 
+interface PhotoOption {
+  url: string;
+  label: string;
+  source: "strava" | "existing";
+}
+
 interface AvatarConfig {
   animalImageUrl?: string | null;
   accessoryImageUrl?: string | null;
@@ -59,6 +65,7 @@ interface BorderPickerModalProps {
 }
 
 type Tab = "avatar" | "border";
+type AvatarType = "animal" | "photo";
 type BorderSource = "achievement" | "shop" | "none";
 
 export default function BorderPickerModal({
@@ -80,6 +87,12 @@ export default function BorderPickerModal({
   const [selectedBorderSource, setSelectedBorderSource] = useState<BorderSource>("none");
   const [equippedShopBorderId, setEquippedShopBorderId] = useState<string | null>(null);
   const [selectedAnimalId, setSelectedAnimalId] = useState<string | null>(currentAnimalId);
+  const [avatarType, setAvatarType] = useState<AvatarType>(currentAnimalId ? "animal" : "photo");
+  const [initialAvatarType, setInitialAvatarType] = useState<AvatarType>(
+    currentAnimalId ? "animal" : "photo",
+  );
+  const [photoOptions, setPhotoOptions] = useState<PhotoOption[]>([]);
+  const [selectedPhotoUrl, setSelectedPhotoUrl] = useState<string | null>(avatarUrl);
   const [saving, setSaving] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
@@ -110,9 +123,51 @@ export default function BorderPickerModal({
       .maybeSingle();
     if (configRow?.animal_id) {
       setSelectedAnimalId(configRow.animal_id);
+      setAvatarType("animal");
+      setInitialAvatarType("animal");
+    } else {
+      setAvatarType("photo");
+      setInitialAvatarType("photo");
     }
     const currentEquippedShopBorder = configRow?.equipped_border_id ?? null;
     setEquippedShopBorderId(currentEquippedShopBorder);
+
+    // Fetch user's avatar_url and Strava status for photo options
+    const { data: userData } = await supabase
+      .from("users")
+      .select("avatar_url")
+      .eq("id", authUser.id)
+      .single();
+    const userAvatarUrl = userData?.avatar_url ?? null;
+
+    const photos: PhotoOption[] = [];
+    try {
+      const stravaRes = await fetch("/api/strava/status");
+      if (stravaRes.ok) {
+        const stravaData: { connected?: boolean; athlete?: { avatar?: string | null } } =
+          await stravaRes.json();
+        if (stravaData.connected && stravaData.athlete?.avatar) {
+          photos.push({
+            url: stravaData.athlete.avatar,
+            label: "Strava Photo",
+            source: "strava",
+          });
+        }
+      }
+    } catch {
+      // Strava fetch failed — skip
+    }
+
+    if (userAvatarUrl) {
+      const isAlreadyAdded = photos.some((p) => p.url === userAvatarUrl);
+      if (!isAlreadyAdded) {
+        photos.push({ url: userAvatarUrl, label: "Current Photo", source: "existing" });
+      }
+    }
+    setPhotoOptions(photos);
+    if (!configRow?.animal_id && userAvatarUrl) {
+      setSelectedPhotoUrl(userAvatarUrl);
+    }
 
     // Fetch achievement borders
     const { data: awards } = await supabase
@@ -204,7 +259,11 @@ export default function BorderPickerModal({
     return () => document.removeEventListener("keydown", handleKey);
   }, [open, onClose]);
 
-  const animalChanged = selectedAnimalId !== currentAnimalId && selectedAnimalId !== null;
+  const avatarTypeChanged = avatarType !== initialAvatarType;
+  const animalChanged =
+    avatarType === "animal" && selectedAnimalId !== currentAnimalId && selectedAnimalId !== null;
+  const photoChanged =
+    avatarType === "photo" && (avatarTypeChanged || selectedPhotoUrl !== avatarUrl);
 
   // Determine if border selection changed
   const borderChanged = (() => {
@@ -218,13 +277,14 @@ export default function BorderPickerModal({
     return selectedBorderId !== activeBorderId;
   })();
 
-  const hasChanges = borderChanged || animalChanged;
+  const hasChanges = borderChanged || animalChanged || photoChanged;
 
   const selectedAnimal = animals.find((a) => a.id === selectedAnimalId);
   const selectedShopBorder = shopBorders.find((b) => b.id === selectedBorderId);
   const previewConfig: AvatarConfig = {
     ...avatarConfig,
-    animalImageUrl: selectedAnimal?.image_url ?? avatarConfig?.animalImageUrl,
+    animalImageUrl:
+      avatarType === "photo" ? null : (selectedAnimal?.image_url ?? avatarConfig?.animalImageUrl),
     borderImageUrl:
       selectedBorderSource === "shop" && selectedShopBorder
         ? selectedShopBorder.image_url
@@ -232,9 +292,19 @@ export default function BorderPickerModal({
           ? null
           : avatarConfig?.borderImageUrl,
   };
+  const previewAvatarUrl = avatarType === "photo" ? selectedPhotoUrl : avatarUrl;
 
   const handleSave = async () => {
     setSaving(true);
+
+    // Save photo change (switch to photo avatar)
+    if (photoChanged && selectedPhotoUrl) {
+      await fetch("/api/users/avatar-photo", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ photo_url: selectedPhotoUrl }),
+      });
+    }
 
     // Save animal change
     if (animalChanged && selectedAnimalId) {
@@ -309,7 +379,7 @@ export default function BorderPickerModal({
     setSaving(false);
     onClose();
     // Reload to reflect changes
-    if (animalChanged || borderChanged) {
+    if (animalChanged || borderChanged || photoChanged) {
       globalThis.location.reload();
     }
   };
@@ -368,7 +438,7 @@ export default function BorderPickerModal({
         <div className="px-6 py-4 flex justify-center border-b border-gray-100 dark:border-gray-800">
           <div className="text-center space-y-2">
             <CompositeAvatar
-              src={avatarUrl}
+              src={previewAvatarUrl}
               alt={fullName}
               size="xl"
               borderTier={previewBorder?.avatar_borders.tier ?? null}
@@ -377,7 +447,7 @@ export default function BorderPickerModal({
               className="mx-auto"
             />
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              {selectedAnimal?.name ?? "No avatar"}
+              {avatarType === "photo" ? "Your Photo" : (selectedAnimal?.name ?? "No avatar")}
               {borderLabel ? ` · ${borderLabel}` : ""}
             </p>
           </div>
@@ -412,33 +482,83 @@ export default function BorderPickerModal({
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
           {tab === "avatar" && (
-            <div className="grid grid-cols-4 gap-3">
-              {animals.map((animal) => (
-                <button
-                  key={animal.id}
-                  onClick={() => setSelectedAnimalId(animal.id)}
-                  className={cn(
-                    "flex flex-col items-center gap-1 p-2 rounded-xl border transition-all",
-                    selectedAnimalId === animal.id
-                      ? "border-teal-500 bg-teal-50 dark:bg-teal-950/20 ring-1 ring-teal-500"
-                      : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800",
-                  )}
-                >
-                  <div className="w-12 h-12 rounded-full bg-teal-100 dark:bg-teal-900 overflow-hidden flex-shrink-0">
-                    <Image
-                      src={animal.image_url}
-                      alt={animal.name}
-                      width={48}
-                      height={48}
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-                  <span className="text-[11px] font-medium text-gray-700 dark:text-gray-300 truncate w-full text-center">
-                    {animal.name}
+            <>
+              {/* Photo options */}
+              {photoOptions.length > 0 && (
+                <div>
+                  <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 block">
+                    Your Photo
                   </span>
-                </button>
-              ))}
-            </div>
+                  <div className="grid grid-cols-4 gap-3">
+                    {photoOptions.map((photo) => (
+                      <button
+                        key={photo.url}
+                        onClick={() => {
+                          setAvatarType("photo");
+                          setSelectedPhotoUrl(photo.url);
+                          setSelectedAnimalId(null);
+                        }}
+                        className={cn(
+                          "flex flex-col items-center gap-1 p-2 rounded-xl border transition-all",
+                          avatarType === "photo" && selectedPhotoUrl === photo.url
+                            ? "border-teal-500 bg-teal-50 dark:bg-teal-950/20 ring-1 ring-teal-500"
+                            : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800",
+                        )}
+                      >
+                        <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={photo.url}
+                            alt={photo.label}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <span className="text-[11px] font-medium text-gray-700 dark:text-gray-300 truncate w-full text-center">
+                          {photo.label}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Animal avatars */}
+              {photoOptions.length > 0 && (
+                <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 block">
+                  Animal Avatars
+                </span>
+              )}
+              <div className="grid grid-cols-4 gap-3">
+                {animals.map((animal) => (
+                  <button
+                    key={animal.id}
+                    onClick={() => {
+                      setAvatarType("animal");
+                      setSelectedAnimalId(animal.id);
+                    }}
+                    className={cn(
+                      "flex flex-col items-center gap-1 p-2 rounded-xl border transition-all",
+                      avatarType === "animal" && selectedAnimalId === animal.id
+                        ? "border-teal-500 bg-teal-50 dark:bg-teal-950/20 ring-1 ring-teal-500"
+                        : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800",
+                    )}
+                  >
+                    <div className="w-12 h-12 rounded-full bg-teal-100 dark:bg-teal-900 overflow-hidden flex-shrink-0">
+                      <Image
+                        src={animal.image_url}
+                        alt={animal.name}
+                        width={48}
+                        height={48}
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <span className="text-[11px] font-medium text-gray-700 dark:text-gray-300 truncate w-full text-center">
+                      {animal.name}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </>
           )}
 
           {tab === "border" && (

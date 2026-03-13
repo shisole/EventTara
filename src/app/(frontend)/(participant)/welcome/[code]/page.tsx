@@ -15,13 +15,32 @@ export async function generateMetadata({
   const supabase = await createClient();
   const { data: page } = await supabase
     .from("welcome_pages")
-    .select("title, subtitle")
+    .select("title, subtitle, hero_image_url, clubs(name)")
     .eq("code", code)
     .maybeSingle();
 
+  const title = page ? `${page.title} — EventTara` : "Welcome — EventTara";
+  const description = page?.subtitle ?? "Welcome to EventTara!";
+  const clubName = (page?.clubs as { name: string } | null)?.name;
+  const url = `/welcome/${code}`;
+
   return {
-    title: page ? `${page.title} — EventTara` : "Welcome — EventTara",
-    description: page?.subtitle ?? "Welcome to EventTara!",
+    title,
+    description,
+    openGraph: {
+      title,
+      description: clubName ? `${description} — ${clubName}` : description,
+      url,
+      siteName: "EventTara",
+      ...(page?.hero_image_url && {
+        images: [{ url: page.hero_image_url, width: 1200, height: 630, alt: title }],
+      }),
+    },
+    twitter: {
+      card: page?.hero_image_url ? "summary_large_image" : "summary",
+      title,
+      description: clubName ? `${description} — ${clubName}` : description,
+    },
   };
 }
 

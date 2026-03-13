@@ -144,6 +144,7 @@ export default function Navbar({
               width={32}
               height={32}
               className="rounded-lg"
+              unoptimized
             />
             <span
               className="text-3xl font-cursive font-bold text-lime-500"

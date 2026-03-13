@@ -328,6 +328,18 @@ export async function isAvatarShopEnabled(): Promise<boolean> {
 }
 
 /**
+ * Returns whether the new landing page feature is enabled.
+ */
+export async function isNewLandingPageEnabled(): Promise<boolean> {
+  try {
+    const flags = await getCachedFeatureFlags();
+    return flags?.new_landing_page === true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Parse footer sections from JSONB into typed array.
  */
 export function parseFooterSections(nav: CmsNavigation | null): CmsFooterSection[] {

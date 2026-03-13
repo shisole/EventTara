@@ -11,6 +11,7 @@ const navItems = [
   { href: "/admin/hero", label: "Hero Banners", icon: "image" },
   { href: "/admin/sections", label: "Sections", icon: "layers" },
   { href: "/admin/clubs", label: "Clubs", icon: "users" },
+  { href: "/admin/qr-codes", label: "QR Codes", icon: "qrcode" },
 ] as const;
 
 function NavIcon({ icon }: { icon: (typeof navItems)[number]["icon"] }) {
@@ -71,6 +72,18 @@ function NavIcon({ icon }: { icon: (typeof navItems)[number]["icon"] }) {
             strokeLinejoin="round"
             strokeWidth={2}
             d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
+          />
+        </svg>
+      );
+    }
+    case "qrcode": {
+      return (
+        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M3 3h7v7H3V3zm11 0h7v7h-7V3zM3 14h7v7H3v-7zm14 3h.01M17 14h.01M14 17h.01M14 14h3v3h-3v-3zm3 3h3v3h-3v-3z"
           />
         </svg>
       );

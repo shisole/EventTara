@@ -26,6 +26,7 @@ export async function GET() {
     oauthFacebook: flags?.oauth_facebook === true,
     duckRace: flags?.duck_race === true,
     avatarShopEnabled: flags?.avatar_shop_enabled === true,
+    newLandingPage: flags?.new_landing_page === true,
     envOverride: process.env.ACTIVITY_FEED_ENABLED ?? null,
     cmsResult,
     cmsError,

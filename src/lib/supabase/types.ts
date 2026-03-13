@@ -1058,6 +1058,7 @@ export interface Database {
           onboarding_quiz: boolean;
           duck_race: boolean;
           avatar_shop_enabled: boolean;
+          new_landing_page: boolean;
         };
         Insert: {
           id?: number;
@@ -1077,6 +1078,7 @@ export interface Database {
           onboarding_quiz?: boolean;
           duck_race?: boolean;
           avatar_shop_enabled?: boolean;
+          new_landing_page?: boolean;
         };
         Update: {
           id?: number;
@@ -1096,6 +1098,7 @@ export interface Database {
           onboarding_quiz?: boolean;
           duck_race?: boolean;
           avatar_shop_enabled?: boolean;
+          new_landing_page?: boolean;
         };
         Relationships: [];
       };
@@ -2105,6 +2108,93 @@ export interface Database {
           },
         ];
       };
+      qr_claim_batches: {
+        Row: {
+          id: string;
+          badge_id: string;
+          name: string;
+          quantity: number;
+          created_by: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          badge_id: string;
+          name: string;
+          quantity: number;
+          created_by: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          badge_id?: string;
+          name?: string;
+          quantity?: number;
+          created_by?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "qr_claim_batches_badge_id_fkey";
+            columns: ["badge_id"];
+            isOneToOne: false;
+            referencedRelation: "badges";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "qr_claim_batches_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      qr_claim_codes: {
+        Row: {
+          id: string;
+          batch_id: string;
+          token: string;
+          serial_number: number;
+          claimed_by: string | null;
+          claimed_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          batch_id: string;
+          token: string;
+          serial_number: number;
+          claimed_by?: string | null;
+          claimed_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          batch_id?: string;
+          token?: string;
+          serial_number?: number;
+          claimed_by?: string | null;
+          claimed_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "qr_claim_codes_batch_id_fkey";
+            columns: ["batch_id"];
+            isOneToOne: false;
+            referencedRelation: "qr_claim_batches";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "qr_claim_codes_claimed_by_fkey";
+            columns: ["claimed_by"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: Record<never, never>;
     Functions: {
@@ -2130,6 +2220,10 @@ export interface Database {
           p_user_id: string;
           p_item_id: string;
         };
+        Returns: Json;
+      };
+      claim_qr_code: {
+        Args: { p_token: string; p_user_id: string };
         Returns: Json;
       };
     };

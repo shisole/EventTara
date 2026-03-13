@@ -12,6 +12,13 @@ import { cn } from "@/lib/utils";
 
 type AvatarAnimal = Database["public"]["Tables"]["avatar_animals"]["Row"];
 
+interface PhotoOption {
+  url: string;
+  label: string;
+}
+
+type AvatarChoice = { type: "animal"; id: string } | { type: "photo"; url: string };
+
 function SetupAvatarForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -20,6 +27,8 @@ function SetupAvatarForm() {
 
   const [animals, setAnimals] = useState<AvatarAnimal[]>([]);
   const [selectedAnimalId, setSelectedAnimalId] = useState<string | null>(null);
+  const [photoOptions, setPhotoOptions] = useState<PhotoOption[]>([]);
+  const [avatarChoice, setAvatarChoice] = useState<AvatarChoice | null>(null);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState("");
@@ -59,30 +68,72 @@ function SetupAvatarForm() {
         setAnimals(animalData);
       }
 
+      // Build photo options from Strava and/or existing avatar_url
+      const photos: PhotoOption[] = [];
+      try {
+        const stravaRes = await fetch("/api/strava/status");
+        if (stravaRes.ok) {
+          const stravaData: { connected?: boolean; athlete?: { avatar?: string | null } } =
+            await stravaRes.json();
+          if (stravaData.connected && stravaData.athlete?.avatar) {
+            photos.push({ url: stravaData.athlete.avatar, label: "Strava Photo" });
+          }
+        }
+      } catch {
+        // Strava fetch failed — skip
+      }
+
+      const { data: userRow } = await supabase
+        .from("users")
+        .select("avatar_url")
+        .eq("id", user.id)
+        .single();
+      const existingUrl = userRow?.avatar_url ?? null;
+      if (existingUrl) {
+        const alreadyAdded = photos.some((p) => p.url === existingUrl);
+        if (!alreadyAdded) {
+          photos.push({ url: existingUrl, label: "Your Photo" });
+        }
+      }
+      setPhotoOptions(photos);
+
       setInitialLoading(false);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const selectedAnimal = animals.find((a) => a.id === selectedAnimalId) ?? null;
+  const hasSelection = avatarChoice !== null;
 
   const handleContinue = async () => {
-    if (!selectedAnimalId) return;
+    if (!avatarChoice) return;
 
     setError("");
     setLoading(true);
 
     try {
-      const res = await fetch("/api/users/avatar-config", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ animal_id: selectedAnimalId }),
-      });
-
-      if (!res.ok) {
-        const data: { error?: string } = await res.json();
-        setError(data.error ?? "Something went wrong. Please try again.");
-        return;
+      if (avatarChoice.type === "photo") {
+        const res = await fetch("/api/users/avatar-photo", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ photo_url: avatarChoice.url }),
+        });
+        if (!res.ok) {
+          const data: { error?: string } = await res.json();
+          setError(data.error ?? "Something went wrong. Please try again.");
+          return;
+        }
+      } else {
+        const res = await fetch("/api/users/avatar-config", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ animal_id: avatarChoice.id }),
+        });
+        if (!res.ok) {
+          const data: { error?: string } = await res.json();
+          setError(data.error ?? "Something went wrong. Please try again.");
+          return;
+        }
       }
 
       // Mark avatar as picked
@@ -142,7 +193,9 @@ function SetupAvatarForm() {
             Great choice!
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            {selectedAnimal && (
+            {avatarChoice?.type === "photo" ? (
+              "Using your photo. "
+            ) : selectedAnimal ? (
               <>
                 You picked{" "}
                 <span className="font-medium text-gray-900 dark:text-white">
@@ -150,7 +203,7 @@ function SetupAvatarForm() {
                 </span>
                 .{" "}
               </>
-            )}
+            ) : null}
             Redirecting...
           </p>
         </div>
@@ -179,6 +232,44 @@ function SetupAvatarForm() {
         </p>
       </div>
 
+      {/* Photo options */}
+      {photoOptions.length > 0 && (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {photoOptions.map((photo) => (
+            <button
+              key={photo.url}
+              type="button"
+              disabled={loading}
+              onClick={() => {
+                setAvatarChoice({ type: "photo", url: photo.url });
+                setSelectedAnimalId(null);
+              }}
+              className={cn(
+                "group relative flex flex-col items-center gap-2 rounded-xl border-2 p-3 transition-all",
+                avatarChoice?.type === "photo" && avatarChoice.url === photo.url
+                  ? "border-lime-500 bg-lime-50 ring-2 ring-lime-500 dark:border-lime-400 dark:bg-lime-950/30 dark:ring-lime-400"
+                  : "border-gray-200 bg-white hover:border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-gray-600",
+              )}
+            >
+              <div className="relative h-16 w-16 overflow-hidden rounded-full sm:h-20 sm:w-20">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={photo.url} alt={photo.label} className="h-full w-full object-cover" />
+              </div>
+              <span
+                className={cn(
+                  "text-xs font-medium",
+                  avatarChoice?.type === "photo" && avatarChoice.url === photo.url
+                    ? "text-lime-700 dark:text-lime-300"
+                    : "text-gray-600 dark:text-gray-400",
+                )}
+              >
+                {photo.label}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Animal Grid */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {animals.map((animal) => (
@@ -186,10 +277,13 @@ function SetupAvatarForm() {
             key={animal.id}
             type="button"
             disabled={loading}
-            onClick={() => setSelectedAnimalId(animal.id)}
+            onClick={() => {
+              setAvatarChoice({ type: "animal", id: animal.id });
+              setSelectedAnimalId(animal.id);
+            }}
             className={cn(
               "group relative flex flex-col items-center gap-2 rounded-xl border-2 p-3 transition-all",
-              selectedAnimalId === animal.id
+              avatarChoice?.type === "animal" && selectedAnimalId === animal.id
                 ? "border-lime-500 bg-lime-50 ring-2 ring-lime-500 dark:border-lime-400 dark:bg-lime-950/30 dark:ring-lime-400"
                 : "border-gray-200 bg-white hover:border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-gray-600",
             )}
@@ -197,7 +291,9 @@ function SetupAvatarForm() {
             <div
               className={cn(
                 "relative h-16 w-16 transition-transform sm:h-20 sm:w-20",
-                selectedAnimalId === animal.id && "animate-[bounce_0.3s_ease-in-out]",
+                avatarChoice?.type === "animal" &&
+                  selectedAnimalId === animal.id &&
+                  "animate-[bounce_0.3s_ease-in-out]",
               )}
             >
               <Image
@@ -211,7 +307,7 @@ function SetupAvatarForm() {
             <span
               className={cn(
                 "text-xs font-medium",
-                selectedAnimalId === animal.id
+                avatarChoice?.type === "animal" && selectedAnimalId === animal.id
                   ? "text-lime-700 dark:text-lime-300"
                   : "text-gray-600 dark:text-gray-400",
               )}
@@ -223,7 +319,16 @@ function SetupAvatarForm() {
       </div>
 
       {/* Live Preview */}
-      {selectedAnimal && (
+      {avatarChoice?.type === "photo" && (
+        <div className="flex flex-col items-center gap-2">
+          <div className="relative flex h-32 w-32 items-center justify-center overflow-hidden rounded-full bg-lime-100 dark:bg-lime-900/30">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={avatarChoice.url} alt="Your photo" className="h-full w-full object-cover" />
+          </div>
+          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Your Photo</p>
+        </div>
+      )}
+      {avatarChoice?.type === "animal" && selectedAnimal && (
         <div className="flex flex-col items-center gap-2">
           <div className="relative flex h-32 w-32 items-center justify-center rounded-full bg-lime-100 dark:bg-lime-900/30">
             <div className="relative h-24 w-24">
@@ -250,7 +355,7 @@ function SetupAvatarForm() {
           type="button"
           className="w-full"
           size="lg"
-          disabled={loading || !selectedAnimalId}
+          disabled={loading || !hasSelection}
           onClick={handleContinue}
         >
           {loading ? "Saving..." : "Continue"}

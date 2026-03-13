@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 import { generateSlug } from "@/lib/clubs/slug";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
@@ -106,8 +106,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // Add the creator as owner
-  const { error: memberError } = await supabase.from("club_members").insert({
+  // Add the creator as owner (use service client to bypass RLS)
+  const serviceClient = createServiceClient();
+  const { error: memberError } = await serviceClient.from("club_members").insert({
     club_id: clubId,
     user_id: user.id,
     role: "owner",
@@ -120,8 +121,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: memberError.message }, { status: 500 });
   }
 
-  // Auto-generate a welcome page for the club (fire-and-forget)
-  supabase
+  // Auto-generate a welcome page for the club (fire-and-forget, uses service client to bypass RLS)
+  serviceClient
     .from("welcome_pages")
     .insert({
       code: slug,
