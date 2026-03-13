@@ -58,7 +58,6 @@ export default function OnboardingQuizCard({ firstName }: OnboardingQuizCardProp
   // Quiz state
   const [activities, setActivities] = useState<string[]>([]);
   const [experienceLevel, setExperienceLevel] = useState<string | null>(null);
-  const [name, setName] = useState(firstName);
   const [ageRange, setAgeRange] = useState<string | null>(null);
   const [location, setLocation] = useState("");
   const [discoverySource, setDiscoverySource] = useState<string | null>(null);
@@ -129,7 +128,7 @@ export default function OnboardingQuizCard({ firstName }: OnboardingQuizCardProp
           anonymous_id: anonymousId,
           activities,
           experience_level: experienceLevel,
-          first_name: name || null,
+          first_name: firstName || null,
           age_range: ageRange,
           location: location || null,
           discovery_source: discoverySource,
@@ -276,14 +275,6 @@ export default function OnboardingQuizCard({ firstName }: OnboardingQuizCardProp
 
   const renderStepAboutYou = () => (
     <div className="space-y-4">
-      <Input
-        id="quiz-name"
-        label="First Name"
-        placeholder="Your first name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      />
-
       <div className="space-y-2">
         <p className="text-xs font-medium text-gray-700 dark:text-gray-300">Age Range</p>
         <div className="flex flex-wrap gap-2">
@@ -400,7 +391,7 @@ export default function OnboardingQuizCard({ firstName }: OnboardingQuizCardProp
           <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
             Your answers help us recommend events.{" "}
             <Link
-              href="/privacy"
+              href="/privacy-policy"
               className="underline hover:text-gray-600 dark:hover:text-gray-300"
             >
               Privacy Policy
