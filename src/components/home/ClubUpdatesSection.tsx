@@ -41,7 +41,7 @@ export default function ClubUpdatesSection({ events, clubMap }: ClubUpdatesSecti
           {events.map((event) => {
             const club = clubMap.get(event.club_id);
             return (
-              <NavLink key={event.id} href={`/events/${event.id}`}>
+              <NavLink key={event.id} href={`/events/${event.id}`} className="block">
                 <div className="rounded-xl border border-gray-200 bg-white p-3 transition-shadow hover:shadow-sm dark:border-gray-700 dark:bg-gray-800">
                   <div className="flex items-center gap-2">
                     <span
