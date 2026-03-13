@@ -37,7 +37,7 @@ export default function ClubUpdatesSection({ events, clubMap }: ClubUpdatesSecti
           </p>
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {events.map((event) => {
             const club = clubMap.get(event.club_id);
             return (
