@@ -17,6 +17,7 @@ interface InventoryEntry {
 }
 
 interface AvatarConfig {
+  animal_id: string | null;
   equipped_accessory_id: string | null;
   equipped_background_id: string | null;
   equipped_border_id: string | null;
@@ -27,13 +28,14 @@ type CategoryFilter = "all" | ShopItemCategory;
 
 const CATEGORY_TABS: { value: CategoryFilter; label: string }[] = [
   { value: "all", label: "All" },
+  { value: "animal", label: "Animals" },
   { value: "accessory", label: "Accessories" },
   { value: "background", label: "Backgrounds" },
   { value: "border", label: "Borders" },
   { value: "skin", label: "Skins" },
 ];
 
-const CATEGORY_TO_EQUIPPED_KEY: Record<ShopItemCategory, keyof AvatarConfig> = {
+const CATEGORY_TO_EQUIPPED_KEY: Record<Exclude<ShopItemCategory, "animal">, keyof AvatarConfig> = {
   accessory: "equipped_accessory_id",
   background: "equipped_background_id",
   border: "equipped_border_id",
@@ -91,6 +93,9 @@ function ShopContent() {
 
   function isEquipped(item: ShopItem): boolean {
     if (!avatarConfig) return false;
+    if (item.category === "animal") {
+      return avatarConfig.animal_id === item.avatar_animal_id;
+    }
     const key = CATEGORY_TO_EQUIPPED_KEY[item.category];
     return avatarConfig[key] === item.id;
   }
@@ -140,6 +145,28 @@ function ShopContent() {
   /* ----- Equip flow ----- */
 
   async function handleEquip(item: ShopItem) {
+    if (item.category === "animal") {
+      const prevAnimalId = avatarConfig?.animal_id ?? null;
+      setAvatarConfig((prev) =>
+        prev ? { ...prev, animal_id: item.avatar_animal_id ?? null } : null,
+      );
+
+      try {
+        const res = await fetch("/api/users/avatar-config", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ animal_id: item.avatar_animal_id }),
+        });
+
+        if (!res.ok) {
+          setAvatarConfig((prev) => (prev ? { ...prev, animal_id: prevAnimalId } : null));
+        }
+      } catch {
+        setAvatarConfig((prev) => (prev ? { ...prev, animal_id: prevAnimalId } : null));
+      }
+      return;
+    }
+
     const key = CATEGORY_TO_EQUIPPED_KEY[item.category];
 
     // Optimistic update

@@ -1962,7 +1962,7 @@ export interface Database {
           id: string;
           slug: string;
           name: string;
-          category: "accessory" | "background" | "border" | "skin";
+          category: "accessory" | "animal" | "background" | "border" | "skin";
           image_url: string;
           preview_url: string | null;
           price: number;
@@ -1975,7 +1975,7 @@ export interface Database {
           id?: string;
           slug: string;
           name: string;
-          category: "accessory" | "background" | "border" | "skin";
+          category: "accessory" | "animal" | "background" | "border" | "skin";
           image_url: string;
           preview_url?: string | null;
           price: number;
@@ -1988,7 +1988,7 @@ export interface Database {
           id?: string;
           slug?: string;
           name?: string;
-          category?: "accessory" | "background" | "border" | "skin";
+          category?: "accessory" | "animal" | "background" | "border" | "skin";
           image_url?: string;
           preview_url?: string | null;
           price?: number;

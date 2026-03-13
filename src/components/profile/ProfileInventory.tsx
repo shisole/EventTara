@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
-type ItemCategory = "accessory" | "background" | "border" | "skin";
+type ItemCategory = "accessory" | "animal" | "background" | "border" | "skin";
 type ItemRarity = "common" | "uncommon" | "rare" | "legendary";
 
 interface OwnedItem {
@@ -27,6 +27,7 @@ const RARITY_DOT: Record<ItemRarity, string> = {
 
 const CATEGORY_LABELS: Record<ItemCategory, string> = {
   accessory: "Accessories",
+  animal: "Animals",
   background: "Backgrounds",
   border: "Borders",
   skin: "Skins",
@@ -122,7 +123,7 @@ export default function ProfileInventory({ userId, isOwnProfile }: ProfileInvent
   }
 
   // Group by category
-  const categories: ItemCategory[] = ["accessory", "background", "border", "skin"];
+  const categories: ItemCategory[] = ["animal", "accessory", "background", "border", "skin"];
   const grouped = categories
     .map((cat) => ({
       category: cat,

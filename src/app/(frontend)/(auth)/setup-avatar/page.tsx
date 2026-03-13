@@ -134,6 +134,13 @@ function SetupAvatarForm() {
           setError(data.error ?? "Something went wrong. Please try again.");
           return;
         }
+
+        // Grant the starter animal for free in the shop inventory
+        void fetch("/api/shop/grant-animal", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ animal_id: avatarChoice.id }),
+        });
       }
 
       // Mark avatar as picked
@@ -169,6 +176,13 @@ function SetupAvatarForm() {
       // Save config but don't mark as picked
       await fetch("/api/users/avatar-config", {
         method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ animal_id: randomAnimal.id }),
+      });
+
+      // Grant the random animal for free in the shop inventory
+      void fetch("/api/shop/grant-animal", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ animal_id: randomAnimal.id }),
       });

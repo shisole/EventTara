@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 
 import { CoinIcon } from "./TokenBalanceBar";
 
-type ShopItemCategory = "accessory" | "background" | "border" | "skin";
+type ShopItemCategory = "accessory" | "animal" | "background" | "border" | "skin";
 type ShopItemRarity = "common" | "uncommon" | "rare" | "legendary";
 
 interface ShopItem {
@@ -21,6 +21,7 @@ interface ShopItem {
   rarity: ShopItemRarity;
   is_active: boolean;
   sort_order: number;
+  avatar_animal_id?: string | null;
 }
 
 interface ShopItemCardProps {
@@ -73,6 +74,7 @@ export default function ShopItemCard({ item, owned, equipped, onBuy, onEquip }: 
           "mx-auto mb-3 flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl",
           "bg-gray-50 dark:bg-gray-800",
           item.category === "border" && "rounded-full",
+          item.category === "animal" && "rounded-full bg-teal-100 dark:bg-teal-900",
         )}
       >
         <Image

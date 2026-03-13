@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import { CompositeAvatar, Button } from "@/components/ui";
@@ -93,6 +94,7 @@ export default function BorderPickerModal({
   );
   const [photoOptions, setPhotoOptions] = useState<PhotoOption[]>([]);
   const [selectedPhotoUrl, setSelectedPhotoUrl] = useState<string | null>(avatarUrl);
+  const [ownedAnimalSlugs, setOwnedAnimalSlugs] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
@@ -197,10 +199,10 @@ export default function BorderPickerModal({
       setBorders([]);
     }
 
-    // Fetch shop borders from inventory
+    // Fetch shop items from inventory (borders + animals)
     const { data: inventoryData } = await supabase
       .from("user_inventory")
-      .select("shop_item_id, shop_items(id, name, category, image_url, rarity)")
+      .select("shop_item_id, shop_items(id, slug, name, category, image_url, rarity)")
       .eq("user_id", authUser.id);
 
     const ownedShopBorders: ShopBorder[] = (inventoryData ?? [])
@@ -218,6 +220,30 @@ export default function BorderPickerModal({
           (si && typeof si === "object" && "rarity" in si ? si.rarity : "common") ?? "common";
         return { id, name, image_url, rarity };
       });
+
+    // Build owned animal slugs set
+    const animalSlugs = new Set<string>();
+    for (const row of inventoryData ?? []) {
+      const si = row.shop_items;
+      if (
+        si &&
+        typeof si === "object" &&
+        "category" in si &&
+        si.category === "animal" &&
+        "slug" in si &&
+        typeof si.slug === "string"
+      ) {
+        animalSlugs.add(si.slug);
+      }
+    }
+    // Always include the currently equipped animal so existing users aren't locked out
+    if (configRow?.animal_id) {
+      const equippedAnimal = (animalData ?? []).find((a) => a.id === configRow.animal_id);
+      if (equippedAnimal) {
+        animalSlugs.add(equippedAnimal.slug);
+      }
+    }
+    setOwnedAnimalSlugs(animalSlugs);
 
     setShopBorders(ownedShopBorders);
 
@@ -529,35 +555,72 @@ export default function BorderPickerModal({
                 </span>
               )}
               <div className="grid grid-cols-4 gap-3">
-                {animals.map((animal) => (
-                  <button
-                    key={animal.id}
-                    onClick={() => {
-                      setAvatarType("animal");
-                      setSelectedAnimalId(animal.id);
-                    }}
-                    className={cn(
-                      "flex flex-col items-center gap-1 p-2 rounded-xl border transition-all",
-                      avatarType === "animal" && selectedAnimalId === animal.id
-                        ? "border-teal-500 bg-teal-50 dark:bg-teal-950/20 ring-1 ring-teal-500"
-                        : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800",
-                    )}
-                  >
-                    <div className="w-12 h-12 rounded-full bg-teal-100 dark:bg-teal-900 overflow-hidden flex-shrink-0">
-                      <Image
-                        src={animal.image_url}
-                        alt={animal.name}
-                        width={48}
-                        height={48}
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                    <span className="text-[11px] font-medium text-gray-700 dark:text-gray-300 truncate w-full text-center">
-                      {animal.name}
-                    </span>
-                  </button>
-                ))}
+                {animals.map((animal) => {
+                  const owned = ownedAnimalSlugs.has(animal.slug);
+                  return (
+                    <button
+                      key={animal.id}
+                      disabled={!owned}
+                      onClick={() => {
+                        if (!owned) return;
+                        setAvatarType("animal");
+                        setSelectedAnimalId(animal.id);
+                      }}
+                      className={cn(
+                        "relative flex flex-col items-center gap-1 p-2 rounded-xl border transition-all",
+                        !owned && "opacity-40 cursor-not-allowed",
+                        owned &&
+                          avatarType === "animal" &&
+                          selectedAnimalId === animal.id &&
+                          "border-teal-500 bg-teal-50 dark:bg-teal-950/20 ring-1 ring-teal-500",
+                        owned &&
+                          !(avatarType === "animal" && selectedAnimalId === animal.id) &&
+                          "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800",
+                        !owned && "border-gray-200 dark:border-gray-700",
+                      )}
+                    >
+                      {!owned && (
+                        <div className="absolute top-1 right-1 flex items-center gap-0.5 rounded-full bg-gray-900/70 px-1.5 py-0.5 text-[9px] font-bold text-white">
+                          <svg
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                            className="h-2.5 w-2.5"
+                            aria-hidden="true"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          25
+                        </div>
+                      )}
+                      <div className="w-12 h-12 rounded-full bg-teal-100 dark:bg-teal-900 overflow-hidden flex-shrink-0">
+                        <Image
+                          src={animal.image_url}
+                          alt={animal.name}
+                          width={48}
+                          height={48}
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <span className="text-[11px] font-medium text-gray-700 dark:text-gray-300 truncate w-full text-center">
+                        {animal.name}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
+              {ownedAnimalSlugs.size < animals.length && (
+                <Link
+                  href="/shop"
+                  className="mt-2 block text-center text-xs font-medium text-teal-600 hover:text-teal-700 dark:text-teal-400 dark:hover:text-teal-300"
+                  onClick={onClose}
+                >
+                  Unlock more in the Shop &rarr;
+                </Link>
+              )}
             </>
           )}
 
