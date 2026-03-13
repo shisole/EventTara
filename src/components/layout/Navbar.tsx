@@ -313,8 +313,30 @@ export default function Navbar({
             )}
           </div>
 
-          {/* Mobile: bell + hamburger */}
+          {/* Mobile: coin + bell + hamburger */}
           <div className="md:hidden flex items-center gap-1">
+            {user && avatarShopEnabled && tokenBalance !== null && (
+              <NavLink
+                href="/shop"
+                className="flex items-center gap-1 rounded-lg px-1.5 py-1 text-sm font-medium text-amber-600 dark:text-amber-400"
+                title="TaraTokens"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 16 16" fill="currentColor">
+                  <circle cx="8" cy="8" r="7" fill="#F59E0B" />
+                  <text
+                    x="8"
+                    y="11"
+                    textAnchor="middle"
+                    fontSize="9"
+                    fontWeight="bold"
+                    fill="white"
+                  >
+                    T
+                  </text>
+                </svg>
+                {tokenBalance.toLocaleString()}
+              </NavLink>
+            )}
             {user && <NotificationBell userId={user.id} />}
             <button
               onClick={onMenuOpen}
