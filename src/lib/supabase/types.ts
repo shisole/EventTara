@@ -13,6 +13,7 @@ export interface Database {
           role: "user" | "guest" | "organizer" | "participant";
           is_guest: boolean;
           active_border_id: string | null;
+          has_picked_avatar: boolean;
           created_at: string;
         };
         Insert: {
@@ -24,6 +25,7 @@ export interface Database {
           role?: "user" | "guest" | "organizer" | "participant";
           is_guest?: boolean;
           active_border_id?: string | null;
+          has_picked_avatar?: boolean;
           created_at?: string;
         };
         Update: {
@@ -35,6 +37,7 @@ export interface Database {
           role?: "user" | "guest" | "organizer" | "participant";
           is_guest?: boolean;
           active_border_id?: string | null;
+          has_picked_avatar?: boolean;
           created_at?: string;
         };
         Relationships: [];
