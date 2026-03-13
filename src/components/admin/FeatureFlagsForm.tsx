@@ -73,10 +73,6 @@ const FLAG_META: Record<string, { label: string; description: string }> = {
     description:
       "Enable the duck race raffle feature for clubs (create & run races from dashboard).",
   },
-  new_landing_page: {
-    label: "New Landing Page",
-    description: "Enable the redesigned landing page at / with improved layout and features.",
-  },
 };
 
 export default function FeatureFlagsForm() {
