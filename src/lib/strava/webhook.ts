@@ -1,3 +1,4 @@
+import { checkAndAwardSystemBadges } from "@/lib/badges/check-system-badges";
 import { createServiceClient } from "@/lib/supabase/server";
 
 import { getStravaClient } from "./client";
@@ -78,47 +79,44 @@ export async function handleActivityCreate(
   const eventType =
     STRAVA_TO_EVENT_TYPE[activity.sport_type] ?? STRAVA_TO_EVENT_TYPE[activity.type];
 
-  if (!eventType) {
+  // 5. Try to match to a confirmed booking (only if we have a known event type)
+  let matchedBookingId: string | null = null;
+
+  if (eventType) {
+    const activityStartMs = new Date(activity.start_date).getTime();
+    const windowStart = new Date(activityStartMs - MATCH_WINDOW_MS).toISOString();
+    const windowEnd = new Date(activityStartMs + MATCH_WINDOW_MS).toISOString();
+
+    const { data: bookings, error: bookingsError } = await supabase
+      .from("bookings")
+      .select("id, event_id, events!inner(id, date, type)")
+      .eq("user_id", userId)
+      .eq("status", "confirmed")
+      .gte("events.date", windowStart)
+      .lte("events.date", windowEnd)
+      .eq("events.type", eventType);
+
+    if (bookingsError) {
+      console.error(`${LOG_PREFIX} Failed to query bookings for user ${userId}:`, bookingsError);
+      return;
+    }
+
+    if (bookings && bookings.length > 0) {
+      matchedBookingId = bookings[0].id;
+    }
+  }
+
+  if (!matchedBookingId) {
     console.log(
-      `${LOG_PREFIX} Activity type "${activity.sport_type}" / "${activity.type}" has no EventTara mapping, skipping`,
+      `${LOG_PREFIX} No matching booking for activity ${String(activityId)}, storing without booking link`,
     );
-    return;
   }
 
-  // 5. Find confirmed bookings for this user whose event date is within 24h of the activity
-  const activityStartMs = new Date(activity.start_date).getTime();
-  const windowStart = new Date(activityStartMs - MATCH_WINDOW_MS).toISOString();
-  const windowEnd = new Date(activityStartMs + MATCH_WINDOW_MS).toISOString();
-
-  const { data: bookings, error: bookingsError } = await supabase
-    .from("bookings")
-    .select("id, event_id, events!inner(id, date, type)")
-    .eq("user_id", userId)
-    .eq("status", "confirmed")
-    .gte("events.date", windowStart)
-    .lte("events.date", windowEnd)
-    .eq("events.type", eventType);
-
-  if (bookingsError) {
-    console.error(`${LOG_PREFIX} Failed to query bookings for user ${userId}:`, bookingsError);
-    return;
-  }
-
-  if (!bookings || bookings.length === 0) {
-    console.log(
-      `${LOG_PREFIX} No matching bookings for activity ${String(activityId)} (type: ${eventType}), skipping auto-match`,
-    );
-    return;
-  }
-
-  // Use the first matching booking
-  const matchedBooking = bookings[0];
-
-  // 6. Insert the strava_activities row
+  // 6. Insert the strava_activities row (always — even without a booking match)
   const { error: insertError } = await supabase.from("strava_activities").insert({
     user_id: userId,
     strava_activity_id: activityId,
-    booking_id: matchedBooking.id,
+    booking_id: matchedBookingId,
     name: activity.name,
     type: activity.sport_type || activity.type,
     distance: activity.distance,
@@ -127,7 +125,7 @@ export async function handleActivityCreate(
     total_elevation_gain: activity.total_elevation_gain,
     start_date: activity.start_date,
     summary_polyline: activity.map?.summary_polyline ?? null,
-    matched_automatically: true,
+    matched_automatically: matchedBookingId !== null,
   });
 
   if (insertError) {
@@ -139,6 +137,11 @@ export async function handleActivityCreate(
   }
 
   console.log(
-    `${LOG_PREFIX} Auto-matched activity ${String(activityId)} to booking ${matchedBooking.id}`,
+    matchedBookingId
+      ? `${LOG_PREFIX} Auto-matched activity ${String(activityId)} to booking ${matchedBookingId}`
+      : `${LOG_PREFIX} Stored activity ${String(activityId)} without booking match`,
   );
+
+  // 7. Re-evaluate system badges (fire-and-forget)
+  checkAndAwardSystemBadges(userId, supabase).catch(() => null);
 }

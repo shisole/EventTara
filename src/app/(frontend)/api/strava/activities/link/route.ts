@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { checkAndAwardSystemBadges } from "@/lib/badges/check-system-badges";
 import { getStravaClient } from "@/lib/strava/client";
 import { createClient } from "@/lib/supabase/server";
 
@@ -87,6 +88,9 @@ export async function POST(request: Request) {
       console.error("[Strava] Failed to insert activity:", insertError);
       return NextResponse.json({ error: insertError.message }, { status: 500 });
     }
+
+    // Re-evaluate system badges (fire-and-forget)
+    checkAndAwardSystemBadges(user.id, supabase).catch(() => null);
 
     return NextResponse.json({ activity: inserted });
   } catch (error) {
