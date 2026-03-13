@@ -1,8 +1,16 @@
-import { type NextRequest } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
 import { updateSession } from "@/lib/supabase/middleware";
 
 export async function middleware(request: NextRequest) {
+  // Redirect logged-in users from landing page to home feed
+  if (request.nextUrl.pathname === "/") {
+    const hasSession = request.cookies.getAll().some((c) => c.name.includes("-auth-token"));
+    if (hasSession) {
+      return NextResponse.redirect(new URL("/home", request.url));
+    }
+  }
+
   return await updateSession(request);
 }
 
