@@ -1,15 +1,14 @@
+import dynamic from "next/dynamic";
 import { Suspense } from "react";
 
 import AppPreviewSection from "@/components/landing/AppPreviewSection";
 import BentoEventsSection from "@/components/landing/BentoEventsSection";
 import CategoriesSection from "@/components/landing/CategoriesSection";
 import ClubsSection from "@/components/landing/ClubsSection";
-import CocoDemoSection from "@/components/landing/CocoDemoSection";
 import ContactCTASection from "@/components/landing/ContactCTASection";
 import FAQSection from "@/components/landing/FAQSection";
 import FeaturesSection from "@/components/landing/FeaturesSection";
 import FeedShowcaseSection from "@/components/landing/FeedShowcaseSection";
-import FullBleedCTASection from "@/components/landing/FullBleedCTASection";
 import GamificationSection from "@/components/landing/GamificationSection";
 import HeroSection from "@/components/landing/HeroSection";
 import HowItWorksSection from "@/components/landing/HowItWorksSection";
@@ -28,6 +27,10 @@ import {
   parseHomepageSections,
 } from "@/lib/cms/cached";
 import { type CmsHomepageSection } from "@/lib/cms/types";
+
+// Heavy interactive client components — dynamically imported to reduce initial JS bundle
+const CocoDemoSection = dynamic(() => import("@/components/landing/CocoDemoSection"));
+const FullBleedCTASection = dynamic(() => import("@/components/landing/FullBleedCTASection"));
 
 export const metadata = {
   title: "EventTara — Every Great Adventure Starts Here",
