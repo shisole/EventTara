@@ -225,15 +225,13 @@ function BorderShowcase({ item }: { item: FeedItem }) {
     <div className="flex flex-col items-center gap-3 py-4">
       {/* Border preview ring */}
       <div
-        className="w-24 h-24 rounded-full flex items-center justify-center"
+        className="w-24 h-24 rounded-full"
         style={{
           background: `conic-gradient(${color}, ${color}88, ${color})`,
           padding: "3px",
         }}
       >
-        <div className="w-full h-full rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-          <span className="text-3xl">✨</span>
-        </div>
+        <div className="w-full h-full rounded-full bg-gray-100 dark:bg-gray-800" />
       </div>
 
       {/* Border name */}
