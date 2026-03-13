@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import type { BorderTier } from "@/lib/constants/avatar-borders";
+import { TIER_COLORS } from "@/lib/constants/avatar-borders";
 import type { BadgeCategory, BadgeRarity } from "@/lib/constants/badge-rarity";
 import type { ActivityType, FeedItem } from "@/lib/feed/types";
 import { createClient } from "@/lib/supabase/server";
@@ -18,6 +19,9 @@ interface RawActivity {
   badgeImageUrl: string | null;
   badgeRarity: BadgeRarity | null;
   badgeCategory: BadgeCategory | null;
+  awardedBorderName: string | null;
+  awardedBorderTier: BorderTier | null;
+  awardedBorderColor: string | null;
   reviewRating: number | null;
   reviewText: string | null;
   timestamp: string;
@@ -72,7 +76,9 @@ export async function GET(request: Request) {
       .limit(fetchLimit),
     supabase
       .from("user_avatar_borders")
-      .select("id, user_id, awarded_at, avatar_borders(name, tier), users!inner(is_guest)")
+      .select(
+        "id, user_id, awarded_at, avatar_borders(name, tier, border_color), users!inner(is_guest)",
+      )
       .eq("users.is_guest", false)
       .order("awarded_at", { ascending: false })
       .limit(fetchLimit),
@@ -102,6 +108,12 @@ export async function GET(request: Request) {
     badgeCategory: null,
   } as const;
 
+  const nullBorder = {
+    awardedBorderName: null,
+    awardedBorderTier: null,
+    awardedBorderColor: null,
+  } as const;
+
   const nullReview = {
     reviewRating: null,
     reviewText: null,
@@ -116,6 +128,7 @@ export async function GET(request: Request) {
       text: `is joining ${event?.title || "an event"}`,
       contextImageUrl: event?.cover_image_url || null,
       ...nullBadge,
+      ...nullBorder,
       ...nullReview,
       timestamp: b.booked_at,
     });
@@ -130,6 +143,7 @@ export async function GET(request: Request) {
       text: `completed ${event?.title || "an event"}`,
       contextImageUrl: event?.cover_image_url || null,
       ...nullBadge,
+      ...nullBorder,
       ...nullReview,
       timestamp: c.checked_in_at,
     });
@@ -148,6 +162,7 @@ export async function GET(request: Request) {
       badgeImageUrl: badge?.image_url || null,
       badgeRarity: badge?.rarity || null,
       badgeCategory: badge?.category || null,
+      ...nullBorder,
       ...nullReview,
       timestamp: ub.awarded_at,
     });
@@ -155,13 +170,17 @@ export async function GET(request: Request) {
 
   for (const ab of userBorders || []) {
     const border = ab.avatar_borders as any;
+    const tier = (border?.tier as BorderTier) || null;
     activities.push({
       id: ab.id,
       activityType: "border",
       userId: ab.user_id,
-      text: `unlocked ${border?.tier || ""} ${border?.name || "border"}`,
+      text: `unlocked ${border?.name || "a new border"}`,
       contextImageUrl: null,
       ...nullBadge,
+      awardedBorderName: border?.name || null,
+      awardedBorderTier: tier,
+      awardedBorderColor: border?.border_color || (tier ? TIER_COLORS[tier] : null),
       ...nullReview,
       timestamp: ab.awarded_at,
     });
@@ -176,6 +195,7 @@ export async function GET(request: Request) {
       text: `reviewed ${event?.title || "an event"}`,
       contextImageUrl: event?.cover_image_url || null,
       ...nullBadge,
+      ...nullBorder,
       reviewRating: r.rating,
       reviewText: r.text || null,
       timestamp: r.created_at,
@@ -387,6 +407,9 @@ export async function GET(request: Request) {
       badgeImageUrl: a.badgeImageUrl,
       badgeRarity: a.badgeRarity,
       badgeCategory: a.badgeCategory,
+      awardedBorderName: a.awardedBorderName,
+      awardedBorderTier: a.awardedBorderTier,
+      awardedBorderColor: a.awardedBorderColor,
       reviewRating: a.reviewRating,
       reviewText: a.reviewText,
       timestamp: a.timestamp,
