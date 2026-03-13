@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState, useEffect, useRef, useCallback } from "react";
 
 import { CheckCircleIcon, GoogleIcon, StravaIcon } from "@/components/icons";
-import { Button, Input, OtpCodeInput } from "@/components/ui";
+import { Button, Input, OtpCodeInput, TokenRewardToast } from "@/components/ui";
 import { isReservedUsername } from "@/lib/constants/reserved-usernames";
 import { STRAVA_AUTH_URL, STRAVA_SCOPES } from "@/lib/strava/constants";
 import { createClient } from "@/lib/supabase/client";
@@ -108,6 +108,7 @@ function SignupForm() {
   const [, setOauthFacebook] = useState(false);
   const [avatarShopEnabled, setAvatarShopEnabled] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [tokenReward, setTokenReward] = useState<number | null>(null);
 
   // Store metadata to apply after verification
   const metadataRef = useRef<Record<string, string>>({});
@@ -144,8 +145,13 @@ function SignupForm() {
       ? supabase.from("users").update({ username: trimmedUsername }).eq("id", userId)
       : generateUsername(supabase, userId, email));
 
-    // Award signup bonus tokens (fire-and-forget)
-    void fetch("/api/tokens/signup-bonus", { method: "POST" }).catch(() => null);
+    // Award signup bonus tokens
+    void fetch("/api/tokens/signup-bonus", { method: "POST" })
+      .then((r) => r.json())
+      .then((d: { tokens_earned?: number }) => {
+        if (d.tokens_earned) setTokenReward(d.tokens_earned);
+      })
+      .catch(() => null);
 
     // Link onboarding quiz response to the new account
     try {
@@ -375,21 +381,30 @@ function SignupForm() {
 
   if (state === "success") {
     return (
-      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md p-8 space-y-6">
-        <div className="text-center space-y-3">
-          <div className="w-14 h-14 bg-lime-100 dark:bg-lime-900/30 rounded-full flex items-center justify-center mx-auto">
-            <CheckCircleIcon className="w-7 h-7 text-lime-600 dark:text-lime-400" />
+      <>
+        {tokenReward && (
+          <TokenRewardToast
+            amount={tokenReward}
+            label="Signup Bonus"
+            onDone={() => setTokenReward(null)}
+          />
+        )}
+        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md p-8 space-y-6">
+          <div className="text-center space-y-3">
+            <div className="w-14 h-14 bg-lime-100 dark:bg-lime-900/30 rounded-full flex items-center justify-center mx-auto">
+              <CheckCircleIcon className="w-7 h-7 text-lime-600 dark:text-lime-400" />
+            </div>
+            <h2 className="text-xl font-heading font-bold text-gray-900 dark:text-white">
+              You&apos;re all set!
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Welcome,{" "}
+              <span className="font-medium text-gray-900 dark:text-white">{fullName || email}</span>
+              ! Redirecting...
+            </p>
           </div>
-          <h2 className="text-xl font-heading font-bold text-gray-900 dark:text-white">
-            You&apos;re all set!
-          </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Welcome,{" "}
-            <span className="font-medium text-gray-900 dark:text-white">{fullName || email}</span>!
-            Redirecting...
-          </p>
         </div>
-      </div>
+      </>
     );
   }
 

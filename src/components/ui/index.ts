@@ -11,6 +11,7 @@ export { default as DateRangePicker } from "./DateRangePicker";
 export { default as DemoBadge } from "./DemoBadge";
 export { default as OtpCodeInput } from "./OtpCodeInput";
 export { default as Toggle } from "./Toggle";
+export { default as TokenRewardToast } from "./TokenRewardToast";
 export {
   Skeleton,
   SkeletonText,

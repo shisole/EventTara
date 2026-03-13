@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import Input from "@/components/ui/Input";
+import TokenRewardToast from "@/components/ui/TokenRewardToast";
 import { createClient } from "@/lib/supabase/client";
+import { TOKEN_REWARDS } from "@/lib/tokens/constants";
 import { cn } from "@/lib/utils";
 
 /* ------------------------------------------------------------------ */
@@ -54,6 +56,7 @@ export default function OnboardingQuizCard({ firstName }: OnboardingQuizCardProp
   const [currentStep, setCurrentStep] = useState(0);
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
+  const [tokenReward, setTokenReward] = useState<number | null>(null);
 
   // Quiz state
   const [activities, setActivities] = useState<string[]>([]);
@@ -142,6 +145,7 @@ export default function OnboardingQuizCard({ firstName }: OnboardingQuizCardProp
 
     if (skippedAt == null) {
       setDone(true);
+      setTokenReward(TOKEN_REWARDS.quiz_completed);
     } else {
       setVisible(false);
     }
@@ -164,14 +168,23 @@ export default function OnboardingQuizCard({ firstName }: OnboardingQuizCardProp
 
   if (done) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm ring-1 ring-gray-100 dark:ring-gray-700 p-6 text-center space-y-2">
-        <p className="text-lg font-heading font-bold text-gray-900 dark:text-white">
-          Thanks for sharing!
-        </p>
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          We&apos;ll use this to personalize your experience.
-        </p>
-      </div>
+      <>
+        {tokenReward && (
+          <TokenRewardToast
+            amount={tokenReward}
+            label="Quiz Completed"
+            onDone={() => setTokenReward(null)}
+          />
+        )}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm ring-1 ring-gray-100 dark:ring-gray-700 p-6 text-center space-y-2">
+          <p className="text-lg font-heading font-bold text-gray-900 dark:text-white">
+            Thanks for sharing!
+          </p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            We&apos;ll use this to personalize your experience.
+          </p>
+        </div>
+      </>
     );
   }
 
