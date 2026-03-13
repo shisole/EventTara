@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <linearGradient id="sunset" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FF6B35"/>
+      <stop offset="35%" stop-color="#F7931E"/>
+      <stop offset="65%" stop-color="#E8547C"/>
+      <stop offset="100%" stop-color="#8B5CF6"/>
+    </linearGradient>
+  </defs>
+  <!-- Sunset gradient background -->
+  <rect width="128" height="128" fill="url(#sunset)"/>
+  <!-- Sun -->
+  <circle cx="64" cy="50" r="18" fill="#FFD93D" opacity="0.7"/>
+  <circle cx="64" cy="50" r="12" fill="#FFE873" opacity="0.5"/>
+  <!-- Horizon clouds -->
+  <ellipse cx="30" cy="80" rx="24" ry="6" fill="#FF8C5A" opacity="0.4"/>
+  <ellipse cx="90" cy="74" rx="28" ry="5" fill="#FF8C5A" opacity="0.3"/>
+  <ellipse cx="60" cy="86" rx="32" ry="5" fill="#E8547C" opacity="0.3"/>
+</svg>

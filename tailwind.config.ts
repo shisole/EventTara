@@ -79,6 +79,18 @@ const config: Config = {
           "0%, 100%": { opacity: "1" },
           "50%": { opacity: "0.7" },
         },
+        spinSlow: {
+          "0%": { transform: "rotate(0deg)" },
+          "100%": { transform: "rotate(360deg)" },
+        },
+        float: {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-4px)" },
+        },
+        hueShift: {
+          "0%": { filter: "hue-rotate(0deg)" },
+          "100%": { filter: "hue-rotate(360deg)" },
+        },
       },
       animation: {
         "fade-up": "fadeUp 0.4s ease-out forwards",
@@ -86,6 +98,9 @@ const config: Config = {
         "logo-pulse": "logoPulse 1.2s ease-in-out infinite",
         shimmer: "shimmer 3s linear infinite",
         "border-pulse": "borderPulse 2s ease-in-out infinite",
+        "spin-slow": "spinSlow 6s linear infinite",
+        float: "float 3s ease-in-out infinite",
+        "hue-shift": "hueShift 4s linear infinite",
       },
     },
   },

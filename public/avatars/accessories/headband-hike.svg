@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Headband at top of head -->
+  <!-- Main band -->
+  <path d="M22 42 Q22 34 30 30 Q64 22 98 30 Q106 34 106 42 Q106 48 98 46 Q64 38 30 46 Q22 48 22 42 Z" fill="#FF6B35"/>
+  <!-- Band texture/stripe -->
+  <path d="M26 38 Q64 28 102 38" stroke="#E05020" stroke-width="2" fill="none" opacity="0.5"/>
+  <!-- Small logo/emblem -->
+  <circle cx="64" cy="36" r="6" fill="#E05020"/>
+  <!-- Mountain icon on emblem -->
+  <polygon points="60,39 64,32 68,39" fill="#FFFFFF" opacity="0.9"/>
+  <polygon points="63,39 66,34 69,39" fill="#FFD0B0" opacity="0.5"/>
+  <!-- Sweat-wicking dots -->
+  <circle cx="40" cy="38" r="1" fill="#E05020" opacity="0.4"/>
+  <circle cx="48" cy="36" r="1" fill="#E05020" opacity="0.4"/>
+  <circle cx="80" cy="36" r="1" fill="#E05020" opacity="0.4"/>
+  <circle cx="88" cy="38" r="1" fill="#E05020" opacity="0.4"/>
+</svg>

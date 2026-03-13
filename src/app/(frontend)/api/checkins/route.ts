@@ -6,6 +6,8 @@ import { sendEmail } from "@/lib/email/send";
 import { badgesEarnedHtml } from "@/lib/email/templates/badges-earned";
 import { createNotifications } from "@/lib/notifications/create";
 import { createClient } from "@/lib/supabase/server";
+import { awardTokens } from "@/lib/tokens/award";
+import { TOKEN_REWARDS } from "@/lib/tokens/constants";
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -191,6 +193,21 @@ export async function POST(request: Request) {
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  // Award TaraTokens for check-in (non-blocking)
+  awardTokens(supabase, user_id, TOKEN_REWARDS.check_in, "check_in", event_id).catch(() => null);
+
+  // Check if first ever check-in → award first_event bonus
+  const { count: totalCheckins } = await supabase
+    .from("event_checkins")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user_id);
+
+  if (totalCheckins === 1) {
+    awardTokens(supabase, user_id, TOKEN_REWARDS.first_event, "first_event", event_id).catch(
+      () => null,
+    );
   }
 
   // Trigger border checks in background (non-blocking)

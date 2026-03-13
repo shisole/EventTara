@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Big eyes on top -->
+  <circle cx="42" cy="30" r="18" fill="#5CB85C"/>
+  <circle cx="86" cy="30" r="18" fill="#5CB85C"/>
+  <!-- Eye whites -->
+  <circle cx="42" cy="28" r="12" fill="#FFFFFF"/>
+  <circle cx="86" cy="28" r="12" fill="#FFFFFF"/>
+  <!-- Pupils -->
+  <circle cx="42" cy="28" r="7" fill="#1A1A1A"/>
+  <circle cx="86" cy="28" r="7" fill="#1A1A1A"/>
+  <!-- Eye shine -->
+  <circle cx="44" cy="25" r="3" fill="#FFFFFF"/>
+  <circle cx="88" cy="25" r="3" fill="#FFFFFF"/>
+  <!-- Body/head -->
+  <ellipse cx="64" cy="74" rx="46" ry="40" fill="#5CB85C"/>
+  <!-- Belly -->
+  <ellipse cx="64" cy="82" rx="30" ry="24" fill="#8FD88F"/>
+  <!-- Smile -->
+  <path d="M38 78 Q64 98 90 78" stroke="#3D8B3D" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <!-- Nostrils -->
+  <circle cx="56" cy="68" r="2" fill="#3D8B3D"/>
+  <circle cx="72" cy="68" r="2" fill="#3D8B3D"/>
+  <!-- Blush -->
+  <circle cx="38" cy="78" r="6" fill="#FF9090" opacity="0.35"/>
+  <circle cx="90" cy="78" r="6" fill="#FF9090" opacity="0.35"/>
+</svg>

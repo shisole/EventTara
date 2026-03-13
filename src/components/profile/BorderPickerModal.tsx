@@ -1,8 +1,10 @@
 "use client";
 
+import Image from "next/image";
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
-import { UserAvatar, Button } from "@/components/ui";
+import { CompositeAvatar, Button } from "@/components/ui";
 import type { BorderTier } from "@/lib/constants/avatar-borders";
 import { TIER_LABELS, TIER_LABEL_COLORS } from "@/lib/constants/avatar-borders";
 import { createClient } from "@/lib/supabase/client";
@@ -23,14 +25,49 @@ interface EarnedBorder {
   };
 }
 
+interface ShopBorder {
+  id: string;
+  name: string;
+  image_url: string;
+  rarity: string;
+}
+
+interface AnimalOption {
+  id: string;
+  slug: string;
+  name: string;
+  image_url: string;
+}
+
+interface PhotoOption {
+  url: string;
+  label: string;
+  source: "strava" | "existing";
+}
+
+interface AvatarConfig {
+  animalImageUrl?: string | null;
+  accessoryImageUrl?: string | null;
+  backgroundImageUrl?: string | null;
+  borderImageUrl?: string | null;
+  skinImageUrl?: string | null;
+}
+
 interface BorderPickerModalProps {
   open: boolean;
   onClose: () => void;
   avatarUrl: string | null;
   fullName: string;
   activeBorderId: string | null;
+  avatarConfig?: AvatarConfig | null;
+  currentAnimalId?: string | null;
   onBorderChange: (borderId: string | null, tier: BorderTier | null, color: string | null) => void;
+  onAnimalChange?: (animalId: string, imageUrl: string) => void;
 }
+
+type Tab = "avatar" | "border";
+type AvatarType = "animal" | "photo";
+type BorderSource = "achievement" | "shop" | "none";
 
 export default function BorderPickerModal({
   open,
@@ -38,16 +75,32 @@ export default function BorderPickerModal({
   avatarUrl,
   fullName,
   activeBorderId,
+  avatarConfig = null,
+  currentAnimalId = null,
   onBorderChange,
+  onAnimalChange,
 }: BorderPickerModalProps) {
+  const [tab, setTab] = useState<Tab>("avatar");
   const [borders, setBorders] = useState<EarnedBorder[]>([]);
-  const [selectedId, setSelectedId] = useState<string | null>(activeBorderId);
+  const [shopBorders, setShopBorders] = useState<ShopBorder[]>([]);
+  const [animals, setAnimals] = useState<AnimalOption[]>([]);
+  const [selectedBorderId, setSelectedBorderId] = useState<string | null>(activeBorderId);
+  const [selectedBorderSource, setSelectedBorderSource] = useState<BorderSource>("none");
+  const [equippedShopBorderId, setEquippedShopBorderId] = useState<string | null>(null);
+  const [selectedAnimalId, setSelectedAnimalId] = useState<string | null>(currentAnimalId);
+  const [avatarType, setAvatarType] = useState<AvatarType>(currentAnimalId ? "animal" : "photo");
+  const [initialAvatarType, setInitialAvatarType] = useState<AvatarType>(
+    currentAnimalId ? "animal" : "photo",
+  );
+  const [photoOptions, setPhotoOptions] = useState<PhotoOption[]>([]);
+  const [selectedPhotoUrl, setSelectedPhotoUrl] = useState<string | null>(avatarUrl);
+  const [ownedAnimalSlugs, setOwnedAnimalSlugs] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
   const supabase = createClient();
 
-  const fetchBorders = useCallback(async () => {
+  const fetchData = useCallback(async () => {
     const {
       data: { user: authUser },
     } = await supabase.auth.getUser();
@@ -57,46 +110,170 @@ export default function BorderPickerModal({
       return;
     }
 
+    // Fetch animals
+    const { data: animalData } = await supabase
+      .from("avatar_animals")
+      .select("id, slug, name, image_url")
+      .order("sort_order");
+    setAnimals(animalData ?? []);
+
+    // Fetch current avatar config (animal + equipped shop border)
+    const { data: configRow } = await supabase
+      .from("user_avatar_config")
+      .select("animal_id, equipped_border_id")
+      .eq("user_id", authUser.id)
+      .maybeSingle();
+    if (configRow?.animal_id) {
+      setSelectedAnimalId(configRow.animal_id);
+      setAvatarType("animal");
+      setInitialAvatarType("animal");
+    } else {
+      setAvatarType("photo");
+      setInitialAvatarType("photo");
+    }
+    const currentEquippedShopBorder = configRow?.equipped_border_id ?? null;
+    setEquippedShopBorderId(currentEquippedShopBorder);
+
+    // Fetch user's avatar_url and Strava status for photo options
+    const { data: userData } = await supabase
+      .from("users")
+      .select("avatar_url")
+      .eq("id", authUser.id)
+      .single();
+    const userAvatarUrl = userData?.avatar_url ?? null;
+
+    const photos: PhotoOption[] = [];
+    try {
+      const stravaRes = await fetch("/api/strava/status");
+      if (stravaRes.ok) {
+        const stravaData: { connected?: boolean; athlete?: { avatar?: string | null } } =
+          await stravaRes.json();
+        if (stravaData.connected && stravaData.athlete?.avatar) {
+          photos.push({
+            url: stravaData.athlete.avatar,
+            label: "Strava Photo",
+            source: "strava",
+          });
+        }
+      }
+    } catch {
+      // Strava fetch failed — skip
+    }
+
+    if (userAvatarUrl) {
+      const isAlreadyAdded = photos.some((p) => p.url === userAvatarUrl);
+      if (!isAlreadyAdded) {
+        photos.push({ url: userAvatarUrl, label: "Current Photo", source: "existing" });
+      }
+    }
+    setPhotoOptions(photos);
+    if (!configRow?.animal_id && userAvatarUrl) {
+      setSelectedPhotoUrl(userAvatarUrl);
+    }
+
+    // Fetch achievement borders
     const { data: awards } = await supabase
       .from("user_avatar_borders")
       .select("id, border_id, awarded_at")
       .eq("user_id", authUser.id)
       .order("awarded_at", { ascending: true });
 
-    if (!awards || awards.length === 0) {
+    if (awards && awards.length > 0) {
+      const borderIds = awards.map((a) => a.border_id);
+      const { data: borderDefs } = await supabase
+        .from("avatar_borders")
+        .select("id, slug, name, description, tier, border_color, sort_order")
+        .in("id", borderIds);
+
+      const borderMap = new Map((borderDefs ?? []).map((b) => [b.id, b]));
+
+      const earned: EarnedBorder[] = awards
+        .filter((a) => borderMap.has(a.border_id))
+        .map((a) => ({
+          ...a,
+          avatar_borders: borderMap.get(a.border_id)!,
+        }));
+
+      setBorders(earned);
+    } else {
       setBorders([]);
-      setLoaded(true);
-      return;
     }
 
-    const borderIds = awards.map((a) => a.border_id);
-    const { data: borderDefs } = await supabase
-      .from("avatar_borders")
-      .select("id, slug, name, description, tier, border_color, sort_order")
-      .in("id", borderIds);
+    // Fetch shop items from inventory (borders + animals)
+    const { data: inventoryData } = await supabase
+      .from("user_inventory")
+      .select("shop_item_id, shop_items(id, slug, name, category, image_url, rarity)")
+      .eq("user_id", authUser.id);
 
-    const borderMap = new Map((borderDefs ?? []).map((b) => [b.id, b]));
+    const ownedShopBorders: ShopBorder[] = (inventoryData ?? [])
+      .filter((row) => {
+        const si = row.shop_items;
+        return si && typeof si === "object" && "category" in si && si.category === "border";
+      })
+      .map((row) => {
+        const si = row.shop_items;
+        const id: string = (si && typeof si === "object" && "id" in si ? si.id : "") ?? "";
+        const name: string = (si && typeof si === "object" && "name" in si ? si.name : "") ?? "";
+        const image_url: string =
+          (si && typeof si === "object" && "image_url" in si ? si.image_url : "") ?? "";
+        const rarity: string =
+          (si && typeof si === "object" && "rarity" in si ? si.rarity : "common") ?? "common";
+        return { id, name, image_url, rarity };
+      });
 
-    const earned: EarnedBorder[] = awards
-      .filter((a) => borderMap.has(a.border_id))
-      .map((a) => ({
-        ...a,
-        avatar_borders: borderMap.get(a.border_id)!,
-      }));
+    // Build owned animal slugs set
+    const animalSlugs = new Set<string>();
+    for (const row of inventoryData ?? []) {
+      const si = row.shop_items;
+      if (
+        si &&
+        typeof si === "object" &&
+        "category" in si &&
+        si.category === "animal" &&
+        "slug" in si &&
+        typeof si.slug === "string"
+      ) {
+        animalSlugs.add(si.slug);
+      }
+    }
+    // Always include the currently equipped animal so existing users aren't locked out
+    if (configRow?.animal_id) {
+      const equippedAnimal = (animalData ?? []).find((a) => a.id === configRow.animal_id);
+      if (equippedAnimal) {
+        animalSlugs.add(equippedAnimal.slug);
+      }
+    }
+    setOwnedAnimalSlugs(animalSlugs);
 
-    setBorders(earned);
+    setShopBorders(ownedShopBorders);
+
+    // Determine initial selected border source
+    if (
+      currentEquippedShopBorder &&
+      ownedShopBorders.some((b) => b.id === currentEquippedShopBorder)
+    ) {
+      setSelectedBorderId(currentEquippedShopBorder);
+      setSelectedBorderSource("shop");
+    } else if (activeBorderId) {
+      setSelectedBorderSource("achievement");
+    }
+
     setLoaded(true);
-  }, [supabase]);
+  }, [supabase, activeBorderId]);
 
   useEffect(() => {
     if (open && !loaded) {
-      void fetchBorders();
+      void fetchData();
     }
-  }, [open, loaded, fetchBorders]);
+  }, [open, loaded, fetchData]);
 
   useEffect(() => {
-    setSelectedId(activeBorderId);
+    setSelectedBorderId(activeBorderId);
   }, [activeBorderId]);
+
+  useEffect(() => {
+    if (currentAnimalId) setSelectedAnimalId(currentAnimalId);
+  }, [currentAnimalId]);
 
   // Close on escape
   useEffect(() => {
@@ -108,32 +285,128 @@ export default function BorderPickerModal({
     return () => document.removeEventListener("keydown", handleKey);
   }, [open, onClose]);
 
-  const hasChanges = selectedId !== activeBorderId;
+  const avatarTypeChanged = avatarType !== initialAvatarType;
+  const animalChanged =
+    avatarType === "animal" && selectedAnimalId !== currentAnimalId && selectedAnimalId !== null;
+  const photoChanged =
+    avatarType === "photo" && (avatarTypeChanged || selectedPhotoUrl !== avatarUrl);
+
+  // Determine if border selection changed
+  const borderChanged = (() => {
+    if (selectedBorderSource === "none") {
+      return activeBorderId !== null || equippedShopBorderId !== null;
+    }
+    if (selectedBorderSource === "shop") {
+      return selectedBorderId !== equippedShopBorderId;
+    }
+    // achievement
+    return selectedBorderId !== activeBorderId;
+  })();
+
+  const hasChanges = borderChanged || animalChanged || photoChanged;
+
+  const selectedAnimal = animals.find((a) => a.id === selectedAnimalId);
+  const selectedShopBorder = shopBorders.find((b) => b.id === selectedBorderId);
+  const previewConfig: AvatarConfig = {
+    ...avatarConfig,
+    animalImageUrl:
+      avatarType === "photo" ? null : (selectedAnimal?.image_url ?? avatarConfig?.animalImageUrl),
+    borderImageUrl:
+      selectedBorderSource === "shop" && selectedShopBorder
+        ? selectedShopBorder.image_url
+        : selectedBorderSource === "none"
+          ? null
+          : avatarConfig?.borderImageUrl,
+  };
+  const previewAvatarUrl = avatarType === "photo" ? selectedPhotoUrl : avatarUrl;
 
   const handleSave = async () => {
     setSaving(true);
 
-    const res = await fetch("/api/users/active-border", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ border_id: selectedId }),
-    });
+    // Save photo change (switch to photo avatar)
+    if (photoChanged && selectedPhotoUrl) {
+      await fetch("/api/users/avatar-photo", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ photo_url: selectedPhotoUrl }),
+      });
+    }
 
-    setSaving(false);
-    if (res.ok) {
-      if (selectedId === null) {
+    // Save animal change
+    if (animalChanged && selectedAnimalId) {
+      await fetch("/api/users/avatar-config", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ animal_id: selectedAnimalId }),
+      });
+      const animal = animals.find((a) => a.id === selectedAnimalId);
+      if (animal && onAnimalChange) {
+        onAnimalChange(selectedAnimalId, animal.image_url);
+      }
+    }
+
+    // Save border change
+    if (borderChanged) {
+      if (selectedBorderSource === "shop" && selectedBorderId) {
+        // Equip shop border via avatar-config + clear achievement border
+        await Promise.all([
+          fetch("/api/users/avatar-config", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ equipped_border_id: selectedBorderId }),
+          }),
+          fetch("/api/users/active-border", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ border_id: null }),
+          }),
+        ]);
         onBorderChange(null, null, null);
-      } else {
-        const border = borders.find((b) => b.border_id === selectedId);
+      } else if (selectedBorderSource === "achievement" && selectedBorderId) {
+        // Set achievement border + clear shop border
+        await Promise.all([
+          fetch("/api/users/active-border", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ border_id: selectedBorderId }),
+          }),
+          fetch("/api/users/avatar-config", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ equipped_border_id: null }),
+          }),
+        ]);
+        const border = borders.find((b) => b.border_id === selectedBorderId);
         if (border) {
           onBorderChange(
-            selectedId,
+            selectedBorderId,
             border.avatar_borders.tier,
             border.avatar_borders.border_color,
           );
         }
+      } else {
+        // No border — clear both
+        await Promise.all([
+          fetch("/api/users/active-border", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ border_id: null }),
+          }),
+          fetch("/api/users/avatar-config", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ equipped_border_id: null }),
+          }),
+        ]);
+        onBorderChange(null, null, null);
       }
-      onClose();
+    }
+
+    setSaving(false);
+    onClose();
+    // Reload to reflect changes
+    if (animalChanged || borderChanged || photoChanged) {
+      globalThis.location.reload();
     }
   };
 
@@ -148,7 +421,25 @@ export default function BorderPickerModal({
     }))
     .filter((g) => g.borders.length > 0);
 
-  const previewBorder = borders.find((b) => b.border_id === selectedId);
+  const previewBorder =
+    selectedBorderSource === "achievement"
+      ? borders.find((b) => b.border_id === selectedBorderId)
+      : null;
+
+  // Label for preview
+  const borderLabel =
+    selectedBorderSource === "shop" && selectedShopBorder
+      ? selectedShopBorder.name
+      : previewBorder
+        ? previewBorder.avatar_borders.name
+        : "";
+
+  const RARITY_COLORS: Record<string, string> = {
+    common: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
+    uncommon: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+    rare: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+    legendary: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+  };
 
   return (
     <div
@@ -160,7 +451,7 @@ export default function BorderPickerModal({
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl max-w-md w-full max-h-[80vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
-          <h2 className="text-lg font-heading font-bold">Choose Avatar Border</h2>
+          <h2 className="text-lg font-heading font-bold">Customize Avatar</h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-xl leading-none"
@@ -172,94 +463,303 @@ export default function BorderPickerModal({
         {/* Preview */}
         <div className="px-6 py-4 flex justify-center border-b border-gray-100 dark:border-gray-800">
           <div className="text-center space-y-2">
-            <UserAvatar
-              src={avatarUrl}
+            <CompositeAvatar
+              src={previewAvatarUrl}
               alt={fullName}
               size="xl"
               borderTier={previewBorder?.avatar_borders.tier ?? null}
               borderColor={previewBorder?.avatar_borders.border_color}
+              avatarConfig={previewConfig}
               className="mx-auto"
             />
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              {previewBorder?.avatar_borders.name ?? "No border"}
+              {avatarType === "photo" ? "Your Photo" : (selectedAnimal?.name ?? "No avatar")}
+              {borderLabel ? ` · ${borderLabel}` : ""}
             </p>
           </div>
         </div>
 
-        {/* Border grid */}
-        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
-          {/* No border option */}
+        {/* Tabs */}
+        <div className="flex border-b border-gray-100 dark:border-gray-800">
           <button
-            onClick={() => setSelectedId(null)}
+            onClick={() => setTab("avatar")}
             className={cn(
-              "w-full flex items-center gap-3 p-3 rounded-xl border transition-colors",
-              selectedId === null
-                ? "border-lime-500 bg-lime-50 dark:bg-lime-950/20"
-                : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800",
+              "flex-1 px-4 py-2.5 text-sm font-medium transition-colors",
+              tab === "avatar"
+                ? "text-teal-600 dark:text-teal-400 border-b-2 border-teal-500"
+                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300",
             )}
           >
-            <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
-                />
-              </svg>
-            </div>
-            <span className="text-sm font-medium">No Border</span>
+            Avatar
           </button>
+          <button
+            onClick={() => setTab("border")}
+            className={cn(
+              "flex-1 px-4 py-2.5 text-sm font-medium transition-colors",
+              tab === "border"
+                ? "text-teal-600 dark:text-teal-400 border-b-2 border-teal-500"
+                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300",
+            )}
+          >
+            Border
+          </button>
+        </div>
 
-          {grouped.map(({ tier, borders: tierBorders }) => (
-            <div key={tier}>
-              <div className="flex items-center gap-2 mb-2">
-                <span
-                  className={cn(
-                    "text-xs font-semibold px-2 py-0.5 rounded-full",
-                    TIER_LABEL_COLORS[tier],
-                  )}
-                >
-                  {TIER_LABELS[tier]}
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+          {tab === "avatar" && (
+            <>
+              {/* Photo options */}
+              {photoOptions.length > 0 && (
+                <div>
+                  <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 block">
+                    Your Photo
+                  </span>
+                  <div className="grid grid-cols-4 gap-3">
+                    {photoOptions.map((photo) => (
+                      <button
+                        key={photo.url}
+                        onClick={() => {
+                          setAvatarType("photo");
+                          setSelectedPhotoUrl(photo.url);
+                          setSelectedAnimalId(null);
+                        }}
+                        className={cn(
+                          "flex flex-col items-center gap-1 p-2 rounded-xl border transition-all",
+                          avatarType === "photo" && selectedPhotoUrl === photo.url
+                            ? "border-teal-500 bg-teal-50 dark:bg-teal-950/20 ring-1 ring-teal-500"
+                            : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800",
+                        )}
+                      >
+                        <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={photo.url}
+                            alt={photo.label}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <span className="text-[11px] font-medium text-gray-700 dark:text-gray-300 truncate w-full text-center">
+                          {photo.label}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Animal avatars */}
+              {photoOptions.length > 0 && (
+                <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 block">
+                  Animal Avatars
                 </span>
-              </div>
-              <div className="grid grid-cols-1 gap-2">
-                {tierBorders.map((border) => (
-                  <button
-                    key={border.border_id}
-                    onClick={() => setSelectedId(border.border_id)}
-                    className={cn(
-                      "flex items-center gap-3 p-3 rounded-xl border transition-colors text-left",
-                      selectedId === border.border_id
-                        ? "border-lime-500 bg-lime-50 dark:bg-lime-950/20"
-                        : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800",
-                    )}
-                  >
-                    <UserAvatar
-                      src={avatarUrl}
-                      alt={fullName}
-                      size="sm"
-                      borderTier={border.avatar_borders.tier}
-                      borderColor={border.avatar_borders.border_color}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{border.avatar_borders.name}</p>
-                      {border.avatar_borders.description && (
-                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                          {border.avatar_borders.description}
-                        </p>
+              )}
+              <div className="grid grid-cols-4 gap-3">
+                {animals.map((animal) => {
+                  const owned = ownedAnimalSlugs.has(animal.slug);
+                  return (
+                    <button
+                      key={animal.id}
+                      disabled={!owned}
+                      onClick={() => {
+                        if (!owned) return;
+                        setAvatarType("animal");
+                        setSelectedAnimalId(animal.id);
+                      }}
+                      className={cn(
+                        "relative flex flex-col items-center gap-1 p-2 rounded-xl border transition-all",
+                        !owned && "opacity-40 cursor-not-allowed",
+                        owned &&
+                          avatarType === "animal" &&
+                          selectedAnimalId === animal.id &&
+                          "border-teal-500 bg-teal-50 dark:bg-teal-950/20 ring-1 ring-teal-500",
+                        owned &&
+                          !(avatarType === "animal" && selectedAnimalId === animal.id) &&
+                          "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800",
+                        !owned && "border-gray-200 dark:border-gray-700",
                       )}
-                    </div>
-                  </button>
-                ))}
+                    >
+                      {!owned && (
+                        <div className="absolute top-1 right-1 flex items-center gap-0.5 rounded-full bg-gray-900/70 px-1.5 py-0.5 text-[9px] font-bold text-white">
+                          <svg
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                            className="h-2.5 w-2.5"
+                            aria-hidden="true"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          25
+                        </div>
+                      )}
+                      <div className="w-12 h-12 rounded-full bg-teal-100 dark:bg-teal-900 overflow-hidden flex-shrink-0">
+                        <Image
+                          src={animal.image_url}
+                          alt={animal.name}
+                          width={48}
+                          height={48}
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <span className="text-[11px] font-medium text-gray-700 dark:text-gray-300 truncate w-full text-center">
+                        {animal.name}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
-            </div>
-          ))}
+              {ownedAnimalSlugs.size < animals.length && (
+                <Link
+                  href="/shop"
+                  className="mt-2 block text-center text-xs font-medium text-teal-600 hover:text-teal-700 dark:text-teal-400 dark:hover:text-teal-300"
+                  onClick={onClose}
+                >
+                  Unlock more in the Shop &rarr;
+                </Link>
+              )}
+            </>
+          )}
 
-          {loaded && borders.length === 0 && (
-            <p className="text-center text-sm text-gray-500 dark:text-gray-400 py-4">
-              No borders earned yet. Keep adventuring to unlock borders!
-            </p>
+          {tab === "border" && (
+            <>
+              {/* No border option */}
+              <button
+                onClick={() => {
+                  setSelectedBorderId(null);
+                  setSelectedBorderSource("none");
+                }}
+                className={cn(
+                  "w-full flex items-center gap-3 p-3 rounded-xl border transition-colors",
+                  selectedBorderSource === "none"
+                    ? "border-lime-500 bg-lime-50 dark:bg-lime-950/20"
+                    : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800",
+                )}
+              >
+                <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
+                    />
+                  </svg>
+                </div>
+                <span className="text-sm font-medium">No Border</span>
+              </button>
+
+              {/* Shop borders */}
+              {shopBorders.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+                      Shop Borders
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 gap-2">
+                    {shopBorders.map((sb) => (
+                      <button
+                        key={sb.id}
+                        onClick={() => {
+                          setSelectedBorderId(sb.id);
+                          setSelectedBorderSource("shop");
+                        }}
+                        className={cn(
+                          "flex items-center gap-3 p-3 rounded-xl border transition-colors text-left",
+                          selectedBorderId === sb.id && selectedBorderSource === "shop"
+                            ? "border-lime-500 bg-lime-50 dark:bg-lime-950/20"
+                            : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800",
+                        )}
+                      >
+                        <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-50 dark:bg-gray-800 flex-shrink-0">
+                          <Image
+                            src={sb.image_url}
+                            alt={sb.name}
+                            width={40}
+                            height={40}
+                            className="w-full h-full object-contain animate-spin-slow"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{sb.name}</p>
+                          <span
+                            className={cn(
+                              "text-[10px] font-semibold px-1.5 py-0.5 rounded-full",
+                              RARITY_COLORS[sb.rarity] ?? RARITY_COLORS.common,
+                            )}
+                          >
+                            {sb.rarity.charAt(0).toUpperCase() + sb.rarity.slice(1)}
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Achievement borders */}
+              {grouped.map(({ tier, borders: tierBorders }) => (
+                <div key={tier}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span
+                      className={cn(
+                        "text-xs font-semibold px-2 py-0.5 rounded-full",
+                        TIER_LABEL_COLORS[tier],
+                      )}
+                    >
+                      {TIER_LABELS[tier]}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 gap-2">
+                    {tierBorders.map((border) => (
+                      <button
+                        key={border.border_id}
+                        onClick={() => {
+                          setSelectedBorderId(border.border_id);
+                          setSelectedBorderSource("achievement");
+                        }}
+                        className={cn(
+                          "flex items-center gap-3 p-3 rounded-xl border transition-colors text-left",
+                          selectedBorderId === border.border_id &&
+                            selectedBorderSource === "achievement"
+                            ? "border-lime-500 bg-lime-50 dark:bg-lime-950/20"
+                            : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800",
+                        )}
+                      >
+                        <CompositeAvatar
+                          src={avatarUrl}
+                          alt={fullName}
+                          size="sm"
+                          borderTier={border.avatar_borders.tier}
+                          borderColor={border.avatar_borders.border_color}
+                          avatarConfig={previewConfig}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">
+                            {border.avatar_borders.name}
+                          </p>
+                          {border.avatar_borders.description && (
+                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                              {border.avatar_borders.description}
+                            </p>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+
+              {loaded && borders.length === 0 && shopBorders.length === 0 && (
+                <p className="text-center text-sm text-gray-500 dark:text-gray-400 py-4">
+                  No borders yet. Earn borders through adventures or buy them in the shop!
+                </p>
+              )}
+            </>
           )}
         </div>
 

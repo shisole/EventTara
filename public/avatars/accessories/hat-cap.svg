@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Baseball cap positioned at top -->
+  <!-- Cap dome -->
+  <path d="M30 44 Q30 14 64 12 Q98 14 98 44 Z" fill="#4169E1"/>
+  <!-- Cap panel line -->
+  <line x1="64" y1="12" x2="64" y2="44" stroke="#3050B0" stroke-width="1.5" opacity="0.5"/>
+  <!-- Brim/visor -->
+  <path d="M22 44 Q20 42 24 38 L104 38 Q108 42 106 44 L110 52 Q64 56 18 52 Z" fill="#3458C0"/>
+  <!-- Brim underside shadow -->
+  <path d="M24 44 L104 44 L108 50 Q64 54 20 50 Z" fill="#2A48A0" opacity="0.3"/>
+  <!-- Button on top -->
+  <circle cx="64" cy="14" r="3" fill="#3050B0"/>
+  <!-- Logo placeholder (simple star) -->
+  <polygon points="64,24 66,30 72,30 67,34 69,40 64,36 59,40 61,34 56,30 62,30" fill="#FFFFFF" opacity="0.8"/>
+</svg>

@@ -6,6 +6,8 @@ import { fetchEventEnrichments, mapEventToCard } from "@/lib/events/map-event-ca
 import { findOverlappingEvent, formatOverlapDate } from "@/lib/events/overlap";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
+import { awardTokens } from "@/lib/tokens/award";
+import { TOKEN_REWARDS } from "@/lib/tokens/constants";
 
 type EventType = Database["public"]["Tables"]["events"]["Row"]["type"];
 
@@ -361,6 +363,9 @@ export async function POST(request: Request) {
     }
     distances = insertedDistances ?? [];
   }
+
+  // Award TaraTokens for hosting an event (non-blocking)
+  awardTokens(supabase, user.id, TOKEN_REWARDS.hosting, "hosting", event.id).catch(() => null);
 
   return NextResponse.json({ event, distances });
 }

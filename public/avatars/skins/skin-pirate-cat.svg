@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Pirate cat - dark gray with eyepatch -->
+  <!-- Pointed ears -->
+  <polygon points="30,48 22,12 50,38" fill="#505050"/>
+  <polygon points="34,44 28,18 48,38" fill="#707070"/>
+  <polygon points="98,48 106,12 78,38" fill="#505050"/>
+  <polygon points="94,44 100,18 80,38" fill="#707070"/>
+  <!-- Body/head -->
+  <circle cx="64" cy="68" r="44" fill="#505050"/>
+  <!-- Inner face -->
+  <ellipse cx="64" cy="76" rx="22" ry="16" fill="#707070"/>
+  <!-- Right eye (visible) -->
+  <ellipse cx="80" cy="60" rx="6" ry="7" fill="#FFD700"/>
+  <ellipse cx="80" cy="60" rx="3" ry="6" fill="#1A1A1A"/>
+  <circle cx="82" cy="58" r="2" fill="#FFFFFF"/>
+  <!-- Left eye - eyepatch -->
+  <circle cx="48" cy="60" r="10" fill="#1A1A1A"/>
+  <!-- Eyepatch strap -->
+  <line x1="38" y1="55" x2="22" y2="40" stroke="#1A1A1A" stroke-width="3" stroke-linecap="round"/>
+  <line x1="58" y1="55" x2="90" y2="30" stroke="#1A1A1A" stroke-width="3" stroke-linecap="round"/>
+  <!-- Skull on eyepatch -->
+  <circle cx="48" cy="58" r="3" fill="#FFFFFF" opacity="0.6"/>
+  <line x1="44" y1="62" x2="52" y2="62" stroke="#FFFFFF" stroke-width="1.5" opacity="0.6"/>
+  <!-- Nose -->
+  <polygon points="64,72 60,68 68,68" fill="#FF8080"/>
+  <!-- Mouth - sly grin -->
+  <path d="M56 76 Q64 84 72 76" stroke="#888888" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <!-- Whiskers -->
+  <line x1="20" y1="68" x2="42" y2="72" stroke="#888888" stroke-width="1" stroke-linecap="round"/>
+  <line x1="20" y1="76" x2="42" y2="76" stroke="#888888" stroke-width="1" stroke-linecap="round"/>
+  <line x1="86" y1="72" x2="108" y2="68" stroke="#888888" stroke-width="1" stroke-linecap="round"/>
+  <line x1="86" y1="76" x2="108" y2="76" stroke="#888888" stroke-width="1" stroke-linecap="round"/>
+  <!-- Scar on right cheek -->
+  <line x1="88" y1="68" x2="94" y2="80" stroke="#808080" stroke-width="1.5" stroke-linecap="round"/>
+</svg>

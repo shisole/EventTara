@@ -76,6 +76,8 @@ export interface CmsFeatureFlags {
   oauth_facebook: boolean;
   onboarding_quiz: boolean;
   duck_race: boolean;
+  avatar_shop_enabled: boolean;
+  new_landing_page: boolean;
 }
 
 /** A single homepage section entry inside cms_homepage_sections.sections JSONB */

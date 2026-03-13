@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Ninja fox - dark/black with mask -->
+  <!-- Pointed ears -->
+  <polygon points="28,50 18,8 52,36" fill="#2A2A2A"/>
+  <polygon points="32,46 24,16 48,36" fill="#3A3A3A"/>
+  <polygon points="100,50 110,8 76,36" fill="#2A2A2A"/>
+  <polygon points="96,46 104,16 80,36" fill="#3A3A3A"/>
+  <!-- Body/head -->
+  <circle cx="64" cy="68" r="44" fill="#2A2A2A"/>
+  <!-- Dark snout area -->
+  <ellipse cx="64" cy="82" rx="22" ry="16" fill="#3A3A3A"/>
+  <!-- Ninja mask band -->
+  <rect x="18" y="50" width="92" height="18" rx="4" fill="#1A1A1A"/>
+  <!-- Mask tail ends -->
+  <path d="M106 54 L118 48 L120 56 L108 58" fill="#1A1A1A"/>
+  <path d="M106 60 L122 62 L120 70 L108 66" fill="#1A1A1A"/>
+  <!-- Eyes visible through mask - glowing -->
+  <ellipse cx="46" cy="58" rx="7" ry="4" fill="#FF4444"/>
+  <ellipse cx="82" cy="58" rx="7" ry="4" fill="#FF4444"/>
+  <!-- Eye inner glow -->
+  <ellipse cx="46" cy="58" rx="4" ry="2.5" fill="#FF6666"/>
+  <ellipse cx="82" cy="58" rx="4" ry="2.5" fill="#FF6666"/>
+  <!-- Eye shine -->
+  <circle cx="48" cy="57" r="1.5" fill="#FFFFFF" opacity="0.6"/>
+  <circle cx="84" cy="57" r="1.5" fill="#FFFFFF" opacity="0.6"/>
+  <!-- Nose -->
+  <ellipse cx="64" cy="76" rx="4" ry="3" fill="#1A1A1A"/>
+  <!-- Subtle mouth line -->
+  <path d="M58 80 Q64 84 70 80" stroke="#4A4A4A" stroke-width="1" fill="none" stroke-linecap="round"/>
+  <!-- Throwing star on forehead -->
+  <g transform="translate(64, 42)">
+    <polygon points="0,-5 1.5,-1.5 5,0 1.5,1.5 0,5 -1.5,1.5 -5,0 -1.5,-1.5" fill="#808080"/>
+    <circle cx="0" cy="0" r="1.5" fill="#606060"/>
+  </g>
+</svg>
