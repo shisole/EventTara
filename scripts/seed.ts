@@ -3825,13 +3825,13 @@ async function main() {
     // Step 15: Grant TaraTokens to all seeded users
     log("🪙", "Granting 9999 TaraTokens to all seeded users...");
     for (const [, userId] of userMap) {
-      await admin
+      await supabase
         .from("tara_tokens")
         .upsert(
           { user_id: userId, balance: 9999, updated_at: new Date().toISOString() },
           { onConflict: "user_id" },
         );
-      await admin.from("token_transactions").insert({
+      await supabase.from("token_transactions").insert({
         user_id: userId,
         amount: 9999,
         reason: "admin_grant",
