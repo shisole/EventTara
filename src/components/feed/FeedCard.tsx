@@ -10,6 +10,7 @@ import ShareButton from "@/components/feed/ShareButton";
 import { RepostIcon } from "@/components/icons";
 import StarRating from "@/components/reviews/StarRating";
 import { UserAvatar } from "@/components/ui";
+import { TIER_LABELS, TIER_LABEL_COLORS } from "@/lib/constants/avatar-borders";
 import { resolvePresetImage } from "@/lib/constants/avatars";
 import { CATEGORY_STYLES, RARITY_STYLES } from "@/lib/constants/badge-rarity";
 import { feedCache } from "@/lib/feed/cache";
@@ -120,18 +121,23 @@ export default function FeedCard({ item, isAuthenticated, currentUserId }: FeedC
         {/* Badge showcase */}
         {item.activityType === "badge" && item.badgeImageUrl && <BadgeShowcase item={item} />}
 
-        {/* Context image (non-badge activities) */}
-        {item.activityType !== "badge" && item.contextImageUrl && (
-          <div className="relative w-full h-40 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800">
-            <Image
-              src={item.contextImageUrl}
-              alt=""
-              fill
-              className="object-cover"
-              sizes="(max-width: 640px) 100vw, 600px"
-            />
-          </div>
-        )}
+        {/* Border showcase */}
+        {item.activityType === "border" && item.awardedBorderName && <BorderShowcase item={item} />}
+
+        {/* Context image (non-badge/border activities) */}
+        {item.activityType !== "badge" &&
+          item.activityType !== "border" &&
+          item.contextImageUrl && (
+            <div className="relative w-full h-40 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800">
+              <Image
+                src={item.contextImageUrl}
+                alt=""
+                fill
+                className="object-cover"
+                sizes="(max-width: 640px) 100vw, 600px"
+              />
+            </div>
+          )}
       </Link>
 
       {/* Action bar: like, repost, share */}
@@ -214,6 +220,40 @@ function BadgeShowcase({ item }: { item: FeedItem }) {
           </span>
         )}
       </div>
+    </div>
+  );
+}
+
+function BorderShowcase({ item }: { item: FeedItem }) {
+  const tier = item.awardedBorderTier || "common";
+  const color = item.awardedBorderColor || "#22c55e";
+  const tierLabel = TIER_LABELS[tier];
+  const tierColor = TIER_LABEL_COLORS[tier];
+
+  return (
+    <div className="flex flex-col items-center gap-3 py-4">
+      {/* Border preview ring */}
+      <div
+        className="w-24 h-24 rounded-full"
+        style={{
+          background: `conic-gradient(${color}, ${color}88, ${color})`,
+          padding: "3px",
+        }}
+      >
+        <div className="w-full h-full rounded-full bg-gray-100 dark:bg-gray-800" />
+      </div>
+
+      {/* Border name */}
+      {item.awardedBorderName && (
+        <p className="font-semibold text-gray-900 dark:text-white text-sm">
+          {item.awardedBorderName}
+        </p>
+      )}
+
+      {/* Tier pill */}
+      <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${tierColor}`}>
+        {tierLabel}
+      </span>
     </div>
   );
 }
