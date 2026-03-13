@@ -1,6 +1,10 @@
+-- Add 'animal' to shop_items category check constraint
+ALTER TABLE shop_items DROP CONSTRAINT shop_items_category_check;
+ALTER TABLE shop_items ADD CONSTRAINT shop_items_category_check
+  CHECK (category IN ('accessory', 'animal', 'background', 'border', 'skin'));
+
 -- Add 8 animal avatars as shop items (25 tokens each)
 -- These match the existing avatar_animals rows by slug
-
 INSERT INTO shop_items (slug, name, category, image_url, price, rarity, sort_order) VALUES
   ('bear',  'Bear',  'animal', '/avatars/animals/bear.svg',  25, 'common', 1),
   ('cat',   'Cat',   'animal', '/avatars/animals/cat.svg',   25, 'common', 2),
