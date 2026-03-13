@@ -154,7 +154,7 @@ export const SYSTEM_BADGES: SystemBadge[] = [
     title: "Check-in Pioneer",
     description: "Among the first 100 users to check in on EventTara",
     category: "special",
-    rarity: "legendary",
+    rarity: "epic",
     imageUrl: "🚀",
   },
   // Pioneer (signup)
@@ -163,8 +163,8 @@ export const SYSTEM_BADGES: SystemBadge[] = [
     title: "Pioneer Participant",
     description: "Among the first 250 users to join EventTara",
     category: "special",
-    rarity: "legendary",
-    imageUrl: "🌟",
+    rarity: "epic",
+    imageUrl: "⭐",
   },
   // Pioneer (club creator)
   {
@@ -172,8 +172,8 @@ export const SYSTEM_BADGES: SystemBadge[] = [
     title: "Pioneer Club Creator",
     description: "Among the first 50 clubs created on EventTara",
     category: "special",
-    rarity: "legendary",
-    imageUrl: "🏔️",
+    rarity: "epic",
+    imageUrl: "🏕️",
   },
   // First review
   {

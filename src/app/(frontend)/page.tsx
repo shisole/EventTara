@@ -1,3 +1,4 @@
+import dynamic from "next/dynamic";
 import { Suspense } from "react";
 
 import AppPreviewSection from "@/components/landing/AppPreviewSection";
@@ -5,7 +6,6 @@ import BentoEventsSection from "@/components/landing/BentoEventsSection";
 import CategoriesSection from "@/components/landing/CategoriesSection";
 import ClubsSection from "@/components/landing/ClubsSection";
 import ContactCTASection from "@/components/landing/ContactCTASection";
-import EntryBanner from "@/components/landing/EntryBanner";
 import FAQSection from "@/components/landing/FAQSection";
 import FeaturesSection from "@/components/landing/FeaturesSection";
 import FeedShowcaseSection from "@/components/landing/FeedShowcaseSection";
@@ -13,9 +13,9 @@ import GamificationSection from "@/components/landing/GamificationSection";
 import HeroSection from "@/components/landing/HeroSection";
 import HowItWorksSection from "@/components/landing/HowItWorksSection";
 import LeaderboardPreviewSection from "@/components/landing/LeaderboardPreviewSection";
-import NewLandingPage from "@/components/landing/NewLandingPage";
 import ParallaxMountain from "@/components/landing/ParallaxMountain";
 import PioneerCounterSection from "@/components/landing/PioneerCounterSection";
+import ScrollReveal from "@/components/landing/ScrollReveal";
 import StravaShowcaseSection from "@/components/landing/StravaShowcaseSection";
 import TestimonialsSection from "@/components/landing/TestimonialsSection";
 import WaitlistSection from "@/components/landing/WaitlistSection";
@@ -23,11 +23,14 @@ import {
   getCachedHeroCarousel,
   getCachedHomepageSections,
   getCachedSiteSettings,
-  isNewLandingPageEnabled,
   parseHeroSlides,
   parseHomepageSections,
 } from "@/lib/cms/cached";
 import { type CmsHomepageSection } from "@/lib/cms/types";
+
+// Heavy interactive client components — dynamically imported to reduce initial JS bundle
+const CocoDemoSection = dynamic(() => import("@/components/landing/CocoDemoSection"));
+const FullBleedCTASection = dynamic(() => import("@/components/landing/FullBleedCTASection"));
 
 export const metadata = {
   title: "EventTara — Every Great Adventure Starts Here",
@@ -44,181 +47,41 @@ export const metadata = {
 export const revalidate = 300;
 
 const DEFAULT_SECTIONS: CmsHomepageSection[] = [
-  // 1. Hook
   { key: "hero", label: "Hero", enabled: true, order: 0 },
-  // 2. Show the product
-  { key: "app_preview", label: "App Preview", enabled: true, order: 1 },
-  // 3. Social proof — clubs/organizers
-  { key: "clubs", label: "Community Clubs", enabled: true, order: 2 },
-  // 4. What's available
-  { key: "upcoming_events", label: "Upcoming Events", enabled: true, order: 3 },
-  { key: "categories", label: "Event Categories", enabled: true, order: 4 },
-  // 5. How it works
-  { key: "how_it_works", label: "How It Works", enabled: true, order: 5 },
-  // 6. Why it's awesome — features grid
-  { key: "features", label: "Features", enabled: true, order: 6 },
-  // 7. More social proof
-  { key: "testimonials", label: "Testimonials", enabled: true, order: 7 },
-  { key: "pioneer_counter", label: "Pioneer Counter", enabled: true, order: 8 },
-  // 8. Convert
-  { key: "faq", label: "FAQ", enabled: true, order: 9 },
-  { key: "waitlist", label: "Early Access Waitlist", enabled: true, order: 10 },
-  { key: "contact_cta", label: "Contact CTA", enabled: true, order: 11 },
-  // Demoted — still renderable via CMS but off by default
-  { key: "strava_showcase", label: "Strava Showcase", enabled: false, order: 20 },
-  { key: "feed_showcase", label: "Activity Feed Showcase", enabled: false, order: 21 },
-  { key: "gamification", label: "Badges & Gamification", enabled: false, order: 22 },
-  { key: "leaderboard_preview", label: "Leaderboard Preview", enabled: false, order: 23 },
+  { key: "coco_demo", label: "Coco Demo", enabled: true, order: 1 },
+  { key: "full_bleed_cta", label: "Full Bleed CTA", enabled: true, order: 2 },
+  { key: "clubs", label: "Community Clubs", enabled: true, order: 3 },
+  { key: "upcoming_events", label: "Upcoming Events", enabled: true, order: 4 },
+  { key: "features", label: "Features", enabled: true, order: 5 },
+  { key: "testimonials", label: "Testimonials", enabled: true, order: 6 },
+  { key: "pioneer_counter", label: "Pioneer Counter", enabled: true, order: 7 },
+  { key: "faq", label: "FAQ", enabled: true, order: 8 },
+  { key: "waitlist", label: "Early Access Waitlist", enabled: true, order: 9 },
+  { key: "contact_cta", label: "Contact CTA", enabled: true, order: 10 },
+  // Available via CMS but off by default
+  { key: "app_preview", label: "App Preview", enabled: false, order: 20 },
+  { key: "categories", label: "Event Categories", enabled: false, order: 21 },
+  { key: "how_it_works", label: "How It Works", enabled: false, order: 22 },
+  { key: "strava_showcase", label: "Strava Showcase", enabled: false, order: 23 },
+  { key: "feed_showcase", label: "Activity Feed Showcase", enabled: false, order: 24 },
+  { key: "gamification", label: "Badges & Gamification", enabled: false, order: 25 },
+  { key: "leaderboard_preview", label: "Leaderboard Preview", enabled: false, order: 26 },
 ];
 
-function BentoEventsSkeleton() {
-  return (
-    <section className="bg-white py-12 dark:bg-slate-800">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-6 flex items-center justify-between">
-          <div className="h-9 w-56 animate-pulse rounded-lg bg-gray-200 dark:bg-slate-700" />
-          <div className="h-5 w-16 animate-pulse rounded bg-gray-200 dark:bg-slate-700" />
-        </div>
-        <div className="mb-6 flex gap-2">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div
-              key={i}
-              className="h-9 w-24 animate-pulse rounded-full bg-gray-200 dark:bg-slate-700"
-            />
-          ))}
-        </div>
-        <div className="hidden gap-4 md:grid md:grid-cols-3 md:grid-rows-2" style={{ height: 480 }}>
-          <div className="col-span-1 row-span-2 animate-pulse rounded-2xl bg-gray-100 dark:bg-slate-700" />
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="animate-pulse rounded-2xl bg-gray-100 dark:bg-slate-700" />
-          ))}
-        </div>
-        <div className="flex gap-4 overflow-hidden md:hidden">
-          {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="h-[280px] min-w-[280px] flex-shrink-0 animate-pulse rounded-2xl bg-gray-100 dark:bg-slate-700"
-            />
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function ClubsSkeleton() {
-  return (
-    <section className="bg-white py-12 dark:bg-slate-800">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto mb-8 h-4 w-40 animate-pulse rounded bg-gray-200 dark:bg-slate-700" />
-        <div className="flex flex-wrap justify-center gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div
-              key={i}
-              className="flex w-36 flex-col items-center rounded-xl border border-gray-100 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-gray-900/50"
-            >
-              <div className="mb-3 h-16 w-16 animate-pulse rounded-full bg-gray-200 dark:bg-slate-700" />
-              <div className="mb-1 h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-slate-700" />
-              <div className="h-3 w-14 animate-pulse rounded bg-gray-200 dark:bg-slate-700" />
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function TestimonialsSkeleton() {
-  return (
-    <section className="py-12 bg-gray-50 dark:bg-slate-900">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="h-9 w-64 bg-gray-200 dark:bg-slate-700 rounded-lg animate-pulse mx-auto mb-4" />
-        <div className="h-5 w-80 bg-gray-200 dark:bg-slate-700 rounded animate-pulse mx-auto mb-12" />
-        <div className="flex gap-4 overflow-hidden">
-          {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="min-w-[300px] h-[180px] bg-white dark:bg-slate-800 rounded-2xl animate-pulse flex-shrink-0"
-            />
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function GamificationSkeleton() {
-  return (
-    <section className="py-12 bg-gray-50 dark:bg-slate-900">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="h-9 w-80 bg-gray-200 dark:bg-slate-700 rounded-lg animate-pulse mx-auto mb-4" />
-        <div className="h-5 w-96 bg-gray-200 dark:bg-slate-700 rounded animate-pulse mx-auto mb-12" />
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-3xl mx-auto mb-16">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div
-              key={i}
-              className="bg-gray-50 dark:bg-gray-900 rounded-2xl p-4 flex flex-col items-center"
-            >
-              <div className="w-16 h-16 rounded-full bg-gray-200 dark:bg-slate-700 animate-pulse mb-2" />
-              <div className="h-4 w-20 bg-gray-200 dark:bg-slate-700 rounded animate-pulse" />
-            </div>
-          ))}
-        </div>
-        <div className="flex justify-center gap-8">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="flex flex-col items-center gap-2">
-              <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-slate-700 animate-pulse" />
-              <div className="h-4 w-16 bg-gray-200 dark:bg-slate-700 rounded animate-pulse" />
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function LeaderboardPreviewSkeleton() {
-  return (
-    <section className="bg-white py-12 dark:bg-slate-800">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto mb-4 h-9 w-56 animate-pulse rounded-lg bg-gray-200 dark:bg-slate-700" />
-        <div className="mx-auto mb-10 h-5 w-80 animate-pulse rounded bg-gray-200 dark:bg-slate-700" />
-        <div className="flex items-end justify-center gap-5">
-          {[64, 96, 64].map((size, i) => (
-            <div key={i} className={i === 1 ? "pt-0" : "pt-8"}>
-              <div className="flex flex-col items-center rounded-2xl border border-gray-100 bg-gray-50/50 p-5 dark:border-gray-800 dark:bg-gray-900/50">
-                <div
-                  className="animate-pulse rounded-full bg-gray-200 dark:bg-slate-700"
-                  style={{ width: size, height: size }}
-                />
-                <div className="mt-3 h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-slate-700" />
-                <div className="mt-2 h-3 w-14 animate-pulse rounded bg-gray-200 dark:bg-slate-700" />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function StravaShowcaseSkeleton() {
-  return (
-    <div className="bg-gradient-to-b from-orange-50/60 to-white py-16 dark:from-orange-950/20 dark:to-gray-950 sm:py-20">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-12 text-center">
-          <div className="mx-auto h-8 w-48 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700" />
-          <div className="mx-auto mt-4 h-10 w-96 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
-        </div>
-      </div>
-    </div>
-  );
+interface HeroData {
+  slides: { image: { url: string; mobileUrl?: string; alt: string } }[];
 }
 
 function renderSection(key: string, parallaxImageUrl: string, heroData: HeroData | null) {
   switch (key) {
     case "hero": {
       return <HeroSection heroData={heroData} />;
+    }
+    case "coco_demo": {
+      return <CocoDemoSection />;
+    }
+    case "full_bleed_cta": {
+      return <FullBleedCTASection />;
     }
     case "app_preview": {
       return <AppPreviewSection />;
@@ -228,14 +91,14 @@ function renderSection(key: string, parallaxImageUrl: string, heroData: HeroData
     }
     case "upcoming_events": {
       return (
-        <Suspense fallback={<BentoEventsSkeleton />}>
+        <Suspense>
           <BentoEventsSection />
         </Suspense>
       );
     }
     case "strava_showcase": {
       return (
-        <Suspense fallback={<StravaShowcaseSkeleton />}>
+        <Suspense>
           <StravaShowcaseSection />
         </Suspense>
       );
@@ -252,14 +115,14 @@ function renderSection(key: string, parallaxImageUrl: string, heroData: HeroData
     }
     case "gamification": {
       return (
-        <Suspense fallback={<GamificationSkeleton />}>
+        <Suspense>
           <GamificationSection />
         </Suspense>
       );
     }
     case "leaderboard_preview": {
       return (
-        <Suspense fallback={<LeaderboardPreviewSkeleton />}>
+        <Suspense>
           <LeaderboardPreviewSection />
         </Suspense>
       );
@@ -270,7 +133,7 @@ function renderSection(key: string, parallaxImageUrl: string, heroData: HeroData
     case "clubs":
     case "organizers": {
       return (
-        <Suspense fallback={<ClubsSkeleton />}>
+        <Suspense>
           <ClubsSection />
         </Suspense>
       );
@@ -280,7 +143,7 @@ function renderSection(key: string, parallaxImageUrl: string, heroData: HeroData
     }
     case "testimonials": {
       return (
-        <Suspense fallback={<TestimonialsSkeleton />}>
+        <Suspense>
           <TestimonialsSection />
         </Suspense>
       );
@@ -300,16 +163,11 @@ function renderSection(key: string, parallaxImageUrl: string, heroData: HeroData
   }
 }
 
-interface HeroData {
-  slides: { image: { url: string; mobileUrl?: string; alt: string } }[];
-}
-
 export default async function Home() {
-  const [heroData, settings, sectionsData, useNewLanding] = await Promise.all([
+  const [heroData, settings, sectionsData] = await Promise.all([
     getCachedHeroCarousel(),
     getCachedSiteSettings(),
     getCachedHomepageSections(),
-    isNewLandingPageEnabled(),
   ]);
 
   const heroSlides = parseHeroSlides(heroData);
@@ -322,14 +180,6 @@ export default async function Home() {
         }
       : null;
 
-  if (useNewLanding) {
-    return (
-      <main>
-        <NewLandingPage heroData={transformedHeroData} />
-      </main>
-    );
-  }
-
   const parallaxImageUrl =
     settings?.parallax_image_url ??
     "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80";
@@ -340,13 +190,21 @@ export default async function Home() {
 
   return (
     <main>
-      {process.env.NEXT_PUBLIC_DEMO_MODE === "true" && <EntryBanner />}
+      {enabledSections.map((section) => {
+        const content = renderSection(section.key, parallaxImageUrl, transformedHeroData);
+        if (!content) return null;
 
-      {enabledSections.map((section) => (
-        <div key={section.key}>
-          {renderSection(section.key, parallaxImageUrl, transformedHeroData)}
-        </div>
-      ))}
+        // Hero renders without ScrollReveal
+        if (section.key === "hero") {
+          return <div key={section.key}>{content}</div>;
+        }
+
+        return (
+          <ScrollReveal key={section.key}>
+            <div>{content}</div>
+          </ScrollReveal>
+        );
+      })}
     </main>
   );
 }

@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import PostView from "@/components/feed/PostView";
 import { Breadcrumbs } from "@/components/ui";
 import { isActivityFeedEnabled } from "@/lib/cms/cached";
-import { type BorderTier } from "@/lib/constants/avatar-borders";
+import { type BorderTier, TIER_COLORS } from "@/lib/constants/avatar-borders";
 import { type BadgeCategory, type BadgeRarity } from "@/lib/constants/badge-rarity";
 import { type ActivityType, type FeedItem } from "@/lib/feed/types";
 import { createClient } from "@/lib/supabase/server";
@@ -25,6 +25,9 @@ interface RawActivity {
   badgeImageUrl: string | null;
   badgeRarity: BadgeRarity | null;
   badgeCategory: BadgeCategory | null;
+  awardedBorderName: string | null;
+  awardedBorderTier: BorderTier | null;
+  awardedBorderColor: string | null;
   reviewRating: number | null;
   reviewText: string | null;
   timestamp: string;
@@ -67,7 +70,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
       .maybeSingle(),
     supabase
       .from("user_avatar_borders")
-      .select("id, user_id, awarded_at, avatar_borders(name, tier)")
+      .select("id, user_id, awarded_at, avatar_borders(name, tier, border_color)")
       .eq("id", id)
       .maybeSingle(),
     supabase
@@ -88,6 +91,12 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
     badgeCategory: null,
   } as const;
 
+  const nullBorder = {
+    awardedBorderName: null,
+    awardedBorderTier: null,
+    awardedBorderColor: null,
+  } as const;
+
   const nullReview = {
     reviewRating: null,
     reviewText: null,
@@ -102,6 +111,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
       text: `is joining ${event?.title || "an event"}`,
       contextImageUrl: event?.cover_image_url || null,
       ...nullBadge,
+      ...nullBorder,
       ...nullReview,
       timestamp: booking.booked_at,
     };
@@ -114,6 +124,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
       text: `completed ${event?.title || "an event"}`,
       contextImageUrl: event?.cover_image_url || null,
       ...nullBadge,
+      ...nullBorder,
       ...nullReview,
       timestamp: checkin.checked_in_at,
     };
@@ -130,18 +141,23 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
       badgeImageUrl: badge?.image_url || null,
       badgeRarity: badge?.rarity || null,
       badgeCategory: badge?.category || null,
+      ...nullBorder,
       ...nullReview,
       timestamp: userBadge.awarded_at,
     };
   } else if (userBorder) {
     const border = userBorder.avatar_borders as any;
+    const tier = (border?.tier as BorderTier) || null;
     activity = {
       id: userBorder.id,
       activityType: "border",
       userId: userBorder.user_id,
-      text: `unlocked ${border?.tier || ""} ${border?.name || "border"}`,
+      text: `unlocked ${border?.name || "a new border"}`,
       contextImageUrl: null,
       ...nullBadge,
+      awardedBorderName: border?.name || null,
+      awardedBorderTier: tier,
+      awardedBorderColor: border?.border_color || (tier ? TIER_COLORS[tier] : null),
       ...nullReview,
       timestamp: userBorder.awarded_at,
     };
@@ -154,6 +170,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
       text: `reviewed ${event?.title || "an event"}`,
       contextImageUrl: event?.cover_image_url || null,
       ...nullBadge,
+      ...nullBorder,
       reviewRating: review.rating,
       reviewText: review.text || null,
       timestamp: review.created_at,
@@ -261,6 +278,9 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
     badgeImageUrl: activity.badgeImageUrl,
     badgeRarity: activity.badgeRarity,
     badgeCategory: activity.badgeCategory,
+    awardedBorderName: activity.awardedBorderName,
+    awardedBorderTier: activity.awardedBorderTier,
+    awardedBorderColor: activity.awardedBorderColor,
     reviewRating: activity.reviewRating,
     reviewText: activity.reviewText,
     timestamp: activity.timestamp,

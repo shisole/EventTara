@@ -10,6 +10,7 @@ import ShareButton from "@/components/feed/ShareButton";
 import { RepostIcon } from "@/components/icons";
 import StarRating from "@/components/reviews/StarRating";
 import { UserAvatar } from "@/components/ui";
+import { TIER_LABELS, TIER_LABEL_COLORS } from "@/lib/constants/avatar-borders";
 import { resolvePresetImage } from "@/lib/constants/avatars";
 import { CATEGORY_STYLES, RARITY_STYLES } from "@/lib/constants/badge-rarity";
 import { feedCache } from "@/lib/feed/cache";
@@ -49,53 +50,62 @@ export default function FeedCard({ item, isAuthenticated, currentUserId }: FeedC
         </div>
       )}
 
+      {/* Header: avatar + name + badge + organizer + following */}
+      <div className="flex items-center gap-3">
+        <Link href={item.userUsername ? `/profile/${item.userUsername}` : "#"} className="shrink-0">
+          <UserAvatar
+            src={item.userAvatarUrl}
+            alt={item.userName}
+            size="sm"
+            borderTier={item.borderTier}
+            borderColor={item.borderColor}
+          />
+        </Link>
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {item.userUsername ? (
+              <Link
+                href={`/profile/${item.userUsername}`}
+                className="font-semibold text-gray-900 dark:text-white text-sm truncate hover:underline"
+              >
+                {item.userName}
+              </Link>
+            ) : (
+              <span className="font-semibold text-gray-900 dark:text-white text-sm truncate">
+                {item.userName}
+              </span>
+            )}
+            {item.topBadgeTitle && (
+              <span className="text-[10px] bg-golden-100 dark:bg-golden-900/30 text-golden-700 dark:text-golden-400 px-1.5 py-0.5 rounded-full font-medium truncate max-w-[120px]">
+                {item.topBadgeTitle}
+              </span>
+            )}
+            {item.userRole === "organizer" && (
+              <span className="text-[10px] bg-teal-500 dark:bg-teal-600 text-white px-1.5 py-0.5 rounded-full font-semibold">
+                Organizer
+              </span>
+            )}
+            {item.isFollowing && (
+              <span className="text-[10px] bg-lime-100 dark:bg-lime-900/30 text-lime-700 dark:text-lime-400 px-1.5 py-0.5 rounded-full font-medium">
+                Following
+              </span>
+            )}
+          </div>
+          <p className="text-sm text-gray-600 dark:text-gray-400">{item.text}</p>
+        </div>
+
+        <span className="text-xs text-gray-400 dark:text-gray-500 shrink-0">
+          {formatRelativeTime(item.timestamp)}
+        </span>
+      </div>
+
       {/* Clickable content area */}
       <Link
         href={postHref}
         className="block space-y-3"
         onClick={() => feedCache.set(item.id, item, isAuthenticated, currentUserId)}
       >
-        {/* Header: avatar + name + badge + organizer + following */}
-        <div className="flex items-center gap-3">
-          <div className="shrink-0">
-            <UserAvatar
-              src={item.userAvatarUrl}
-              alt={item.userName}
-              size="sm"
-              borderTier={item.borderTier}
-              borderColor={item.borderColor}
-            />
-          </div>
-
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="font-semibold text-gray-900 dark:text-white text-sm truncate">
-                {item.userName}
-              </span>
-              {item.topBadgeTitle && (
-                <span className="text-[10px] bg-golden-100 dark:bg-golden-900/30 text-golden-700 dark:text-golden-400 px-1.5 py-0.5 rounded-full font-medium truncate max-w-[120px]">
-                  {item.topBadgeTitle}
-                </span>
-              )}
-              {item.userRole === "organizer" && (
-                <span className="text-[10px] bg-teal-500 dark:bg-teal-600 text-white px-1.5 py-0.5 rounded-full font-semibold">
-                  Organizer
-                </span>
-              )}
-              {item.isFollowing && (
-                <span className="text-[10px] bg-lime-100 dark:bg-lime-900/30 text-lime-700 dark:text-lime-400 px-1.5 py-0.5 rounded-full font-medium">
-                  Following
-                </span>
-              )}
-            </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">{item.text}</p>
-          </div>
-
-          <span className="text-xs text-gray-400 dark:text-gray-500 shrink-0">
-            {formatRelativeTime(item.timestamp)}
-          </span>
-        </div>
-
         {/* Review rating + text */}
         {item.activityType === "review" && item.reviewRating && (
           <div className="space-y-2">
@@ -111,18 +121,23 @@ export default function FeedCard({ item, isAuthenticated, currentUserId }: FeedC
         {/* Badge showcase */}
         {item.activityType === "badge" && item.badgeImageUrl && <BadgeShowcase item={item} />}
 
-        {/* Context image (non-badge activities) */}
-        {item.activityType !== "badge" && item.contextImageUrl && (
-          <div className="relative w-full h-40 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800">
-            <Image
-              src={item.contextImageUrl}
-              alt=""
-              fill
-              className="object-cover"
-              sizes="(max-width: 640px) 100vw, 600px"
-            />
-          </div>
-        )}
+        {/* Border showcase */}
+        {item.activityType === "border" && item.awardedBorderName && <BorderShowcase item={item} />}
+
+        {/* Context image (non-badge/border activities) */}
+        {item.activityType !== "badge" &&
+          item.activityType !== "border" &&
+          item.contextImageUrl && (
+            <div className="relative w-full h-40 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800">
+              <Image
+                src={item.contextImageUrl}
+                alt=""
+                fill
+                className="object-cover"
+                sizes="(max-width: 640px) 100vw, 600px"
+              />
+            </div>
+          )}
       </Link>
 
       {/* Action bar: like, repost, share */}
@@ -205,6 +220,40 @@ function BadgeShowcase({ item }: { item: FeedItem }) {
           </span>
         )}
       </div>
+    </div>
+  );
+}
+
+function BorderShowcase({ item }: { item: FeedItem }) {
+  const tier = item.awardedBorderTier || "common";
+  const color = item.awardedBorderColor || "#22c55e";
+  const tierLabel = TIER_LABELS[tier];
+  const tierColor = TIER_LABEL_COLORS[tier];
+
+  return (
+    <div className="flex flex-col items-center gap-3 py-4">
+      {/* Border preview ring */}
+      <div
+        className="w-24 h-24 rounded-full"
+        style={{
+          background: `conic-gradient(${color}, ${color}88, ${color})`,
+          padding: "3px",
+        }}
+      >
+        <div className="w-full h-full rounded-full bg-gray-100 dark:bg-gray-800" />
+      </div>
+
+      {/* Border name */}
+      {item.awardedBorderName && (
+        <p className="font-semibold text-gray-900 dark:text-white text-sm">
+          {item.awardedBorderName}
+        </p>
+      )}
+
+      {/* Tier pill */}
+      <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${tierColor}`}>
+        {tierLabel}
+      </span>
     </div>
   );
 }
