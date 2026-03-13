@@ -109,6 +109,13 @@ function SignupForm() {
   const [avatarShopEnabled, setAvatarShopEnabled] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [tokenReward, setTokenReward] = useState<number | null>(null);
+  const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const doRedirect = useCallback(() => {
+    if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current);
+    router.push(avatarShopEnabled ? `/setup-avatar?next=${encodeURIComponent(next)}` : next);
+    router.refresh();
+  }, [avatarShopEnabled, next, router]);
 
   // Store metadata to apply after verification
   const metadataRef = useRef<Record<string, string>>({});
@@ -237,12 +244,8 @@ function SignupForm() {
             await handlePostSignup(data.user.id);
           }
           setState("success");
-          setTimeout(() => {
-            router.push(
-              avatarShopEnabled ? `/setup-avatar?next=${encodeURIComponent(next)}` : next,
-            );
-            router.refresh();
-          }, 2000);
+          // Fallback redirect if no token modal appears
+          redirectTimerRef.current = setTimeout(doRedirect, 3000);
         } else {
           // Email confirmation required — show OTP verification screen
           setState("verify-code");
@@ -302,10 +305,8 @@ function SignupForm() {
 
       setState("success");
 
-      setTimeout(() => {
-        router.push(`/setup-avatar?next=${encodeURIComponent(next)}`);
-        router.refresh();
-      }, 2000);
+      // Fallback redirect if no token modal appears
+      redirectTimerRef.current = setTimeout(doRedirect, 3000);
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -386,7 +387,10 @@ function SignupForm() {
           <TokenRewardToast
             amount={tokenReward}
             label="Signup Bonus"
-            onDone={() => setTokenReward(null)}
+            onDone={() => {
+              setTokenReward(null);
+              doRedirect();
+            }}
           />
         )}
         <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md p-8 space-y-6">

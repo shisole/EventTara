@@ -11,18 +11,18 @@ interface TokenRewardToastProps {
   amount: number;
   /** Label shown below the amount (e.g. "Signup Bonus") */
   label?: string;
-  /** Called after the toast finishes its exit animation */
+  /** Called when the user dismisses the modal */
   onDone?: () => void;
 }
 
 /**
- * Self-contained token reward celebration.
+ * Small celebratory modal for token rewards.
  *
- * When mounted it fires gold confetti and shows a floating "+X TaraTokens"
- * toast that auto-dismisses after ~3 s. Render conditionally:
+ * Fires gold confetti on mount and shows a centered modal with the
+ * token amount + a dismiss button. Render conditionally:
  *
  * ```tsx
- * {reward && <TokenRewardToast amount={reward} onDone={() => setReward(null)} />}
+ * {reward && <TokenRewardToast amount={reward} label="Signup Bonus" onDone={() => setReward(null)} />}
  * ```
  */
 export default function TokenRewardToast({ amount, label, onDone }: TokenRewardToastProps) {
@@ -32,41 +32,64 @@ export default function TokenRewardToast({ amount, label, onDone }: TokenRewardT
   useEffect(() => {
     if (hasFired.current) return;
     hasFired.current = true;
-
     void fireConfetti("token");
+  }, []);
 
-    // Start exit after 2.5 s, then call onDone after exit animation (400 ms)
-    const exitTimer = setTimeout(() => setPhase("exit"), 2500);
-    const doneTimer = setTimeout(() => onDone?.(), 2900);
-
-    return () => {
-      clearTimeout(exitTimer);
-      clearTimeout(doneTimer);
-    };
-  }, [onDone]);
+  const handleDismiss = () => {
+    setPhase("exit");
+    setTimeout(() => onDone?.(), 250);
+  };
 
   return (
     <div
       className={cn(
-        "fixed inset-x-0 top-24 z-[100] flex justify-center pointer-events-none",
-        "transition-all duration-400",
-        phase === "enter" ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4",
+        "fixed inset-0 z-[100] flex items-center justify-center p-4",
+        "transition-opacity duration-250",
+        phase === "enter" ? "opacity-100" : "opacity-0",
       )}
     >
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+        onClick={handleDismiss}
+        aria-hidden="true"
+      />
+
+      {/* Modal */}
       <div
         className={cn(
-          "pointer-events-auto flex items-center gap-2.5 rounded-2xl px-5 py-3",
-          "bg-white/95 shadow-lg ring-1 ring-amber-200 backdrop-blur-md",
-          "dark:bg-gray-900/95 dark:ring-amber-700",
+          "relative flex flex-col items-center gap-3 rounded-2xl px-8 py-6",
+          "bg-white shadow-xl ring-1 ring-amber-100",
+          "dark:bg-gray-900 dark:ring-amber-800",
+          "transition-transform duration-250",
+          phase === "enter" ? "scale-100" : "scale-95",
         )}
       >
-        <CoinIcon className="h-7 w-7" />
-        <div className="flex flex-col">
-          <span className="font-heading text-lg font-bold text-amber-600 dark:text-amber-400">
-            +{amount} TaraTokens
-          </span>
-          {label && <span className="text-xs text-gray-500 dark:text-gray-400">{label}</span>}
+        {/* Coin icon */}
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-amber-50 dark:bg-amber-950/40">
+          <CoinIcon className="h-8 w-8" />
         </div>
+
+        {/* Amount */}
+        <p className="font-heading text-2xl font-bold text-amber-600 dark:text-amber-400">
+          +{amount} TaraTokens
+        </p>
+
+        {/* Label */}
+        {label && <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>}
+
+        {/* Dismiss */}
+        <button
+          type="button"
+          onClick={handleDismiss}
+          className={cn(
+            "mt-1 rounded-xl px-8 py-2.5 text-sm font-semibold transition-colors",
+            "bg-amber-500 text-white hover:bg-amber-600",
+            "dark:bg-amber-600 dark:hover:bg-amber-500",
+          )}
+        >
+          Nice!
+        </button>
       </div>
     </div>
   );
