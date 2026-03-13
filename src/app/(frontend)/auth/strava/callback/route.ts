@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { checkAndAwardSystemBadges } from "@/lib/badges/check-system-badges";
+import { createNotifications } from "@/lib/notifications/create";
 import { STRAVA_TOKEN_URL } from "@/lib/strava/constants";
 import { type StravaTokenResponse } from "@/lib/strava/types";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
@@ -129,8 +130,20 @@ export async function GET(request: Request) {
       { onConflict: "user_id" },
     );
 
-    // Award "Connected Athlete" badge (fire-and-forget)
-    void checkAndAwardSystemBadges(currentUser.id, serviceClient);
+    // Award "Connected Athlete" badge + notify
+    const connectBadges = await checkAndAwardSystemBadges(currentUser.id, serviceClient);
+    if (connectBadges.length > 0) {
+      await createNotifications(
+        serviceClient,
+        connectBadges.map((b) => ({
+          userId: currentUser.id,
+          type: "badge_earned" as const,
+          title: "Badge Unlocked!",
+          body: `You earned: ${b.title}`,
+          href: "/achievements",
+        })),
+      );
+    }
 
     const returnUrl = state.returnUrl || "/profile/" + currentUser.id;
     return NextResponse.redirect(`${origin}${returnUrl}?strava=connected`);
@@ -286,8 +299,20 @@ export async function GET(request: Request) {
     athlete_data: athlete as unknown as Json,
   });
 
-  // Award "Connected Athlete" badge (fire-and-forget)
-  void checkAndAwardSystemBadges(newUserId, serviceClient);
+  // Award "Connected Athlete" badge + notify
+  const awardedBadges = await checkAndAwardSystemBadges(newUserId, serviceClient);
+  if (awardedBadges.length > 0) {
+    await createNotifications(
+      serviceClient,
+      awardedBadges.map((b) => ({
+        userId: newUserId,
+        type: "badge_earned" as const,
+        title: "Badge Unlocked!",
+        body: `You earned: ${b.title}`,
+        href: "/achievements",
+      })),
+    );
+  }
 
   // Sign the new user in by generating a magic link and verifying it
   const { data: linkData, error: linkError } = await serviceClient.auth.admin.generateLink({
@@ -312,5 +337,5 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/login?message=account_created`);
   }
 
-  return NextResponse.redirect(`${origin}/events`);
+  return NextResponse.redirect(`${origin}/setup-avatar?next=${encodeURIComponent("/welcome")}`);
 }
