@@ -53,7 +53,7 @@ export async function GET(request: Request) {
         if (!profile?.username) {
           console.log("[auth/callback] redirecting to /setup-username");
           return NextResponse.redirect(
-            `${origin}/setup-username?next=${encodeURIComponent("/onboarding")}`,
+            `${origin}/setup-username?next=${encodeURIComponent("/welcome")}`,
           );
         }
       }

@@ -337,5 +337,5 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/login?message=account_created`);
   }
 
-  return NextResponse.redirect(`${origin}/setup-avatar?next=${encodeURIComponent("/onboarding")}`);
+  return NextResponse.redirect(`${origin}/setup-avatar?next=${encodeURIComponent("/welcome")}`);
 }

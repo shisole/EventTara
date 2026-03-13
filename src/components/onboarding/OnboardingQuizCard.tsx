@@ -1,7 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 
 import Input from "@/components/ui/Input";
 import { createClient } from "@/lib/supabase/client";
@@ -37,60 +37,51 @@ const DISCOVERY_SOURCES = [
 ] as const;
 
 const TOTAL_STEPS = 3;
+const DISMISSED_KEY = "onboarding_quiz_dismissed";
 
 /* ------------------------------------------------------------------ */
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
 
-function OnboardingQuizForm() {
-  const router = useRouter();
+interface OnboardingQuizCardProps {
+  firstName: string;
+}
+
+export default function OnboardingQuizCard({ firstName }: OnboardingQuizCardProps) {
   const supabase = createClient();
 
-  const [ready, setReady] = useState(false);
+  const [visible, setVisible] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [done, setDone] = useState(false);
 
   // Quiz state
   const [activities, setActivities] = useState<string[]>([]);
   const [experienceLevel, setExperienceLevel] = useState<string | null>(null);
-  const [firstName, setFirstName] = useState("");
+  const [name, setName] = useState(firstName);
   const [ageRange, setAgeRange] = useState<string | null>(null);
   const [location, setLocation] = useState("");
   const [discoverySource, setDiscoverySource] = useState<string | null>(null);
 
-  // Auth check + pre-fill + skip if already completed
   useEffect(() => {
-    void supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) {
-        router.replace("/login");
-        return;
-      }
+    // Don't show if already dismissed or completed
+    try {
+      if (localStorage.getItem(DISMISSED_KEY) || localStorage.getItem("quiz_completed")) return;
+    } catch {
+      // localStorage unavailable
+    }
 
-      // Check if quiz already completed
+    // Check DB for existing completed quiz
+    void supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return;
       void supabase
         .from("quiz_responses")
         .select("id")
         .eq("user_id", user.id)
         .not("completed_at", "is", null)
         .maybeSingle()
-        .then(({ data: existingQuiz }) => {
-          if (existingQuiz) {
-            router.replace("/welcome");
-            return;
-          }
-
-          // Pre-fill name from profile
-          void supabase
-            .from("users")
-            .select("full_name")
-            .eq("id", user.id)
-            .single()
-            .then(({ data: profile }) => {
-              if (profile?.full_name) {
-                setFirstName(profile.full_name.split(" ")[0]);
-              }
-              setReady(true);
-            });
+        .then(({ data }) => {
+          if (!data) setVisible(true);
         });
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -108,15 +99,24 @@ function OnboardingQuizForm() {
     setActivities(allSelected ? [] : ACTIVITIES.map((a) => a.id));
   };
 
-  const saveAndRedirect = async (skippedAt?: number) => {
+  const dismiss = () => {
+    try {
+      localStorage.setItem(DISMISSED_KEY, "true");
+    } catch {
+      // localStorage unavailable
+    }
+    setVisible(false);
+  };
+
+  const saveResponses = async (skippedAt?: number) => {
     setSaving(true);
 
-    // Generate or reuse anonymous_id for the quiz response
     let anonymousId: string;
     try {
-      anonymousId = localStorage.getItem("quiz_anonymous_id") || crypto.randomUUID();
+      anonymousId = localStorage.getItem("quiz_anonymous_id") ?? crypto.randomUUID();
       localStorage.setItem("quiz_anonymous_id", anonymousId);
       localStorage.setItem("quiz_completed", "true");
+      localStorage.setItem(DISMISSED_KEY, "true");
     } catch {
       anonymousId = crypto.randomUUID();
     }
@@ -129,7 +129,7 @@ function OnboardingQuizForm() {
           anonymous_id: anonymousId,
           activities,
           experience_level: experienceLevel,
-          first_name: firstName || null,
+          first_name: name || null,
           age_range: ageRange,
           location: location || null,
           discovery_source: discoverySource,
@@ -141,7 +141,12 @@ function OnboardingQuizForm() {
       // fire-and-forget
     }
 
-    router.push("/welcome");
+    if (skippedAt == null) {
+      setDone(true);
+    } else {
+      setVisible(false);
+    }
+    setSaving(false);
   };
 
   const handleNext = () => {
@@ -152,14 +157,21 @@ function OnboardingQuizForm() {
     if (currentStep > 0) setCurrentStep((s) => s - 1);
   };
 
-  /* --- loading state ------------------------------------------------- */
+  /* --- not visible --------------------------------------------------- */
 
-  if (!ready) {
+  if (!visible) return null;
+
+  /* --- completion state ---------------------------------------------- */
+
+  if (done) {
     return (
-      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md p-8">
-        <div className="flex justify-center py-12">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-300 border-t-lime-500" />
-        </div>
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm ring-1 ring-gray-100 dark:ring-gray-700 p-6 text-center space-y-2">
+        <p className="text-lg font-heading font-bold text-gray-900 dark:text-white">
+          Thanks for sharing!
+        </p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          We&apos;ll use this to personalize your experience.
+        </p>
       </div>
     );
   }
@@ -167,15 +179,8 @@ function OnboardingQuizForm() {
   /* --- step renderers ------------------------------------------------ */
 
   const renderStepActivities = () => (
-    <div className="space-y-5">
-      <div className="text-center">
-        <h2 className="text-xl font-heading font-bold text-gray-900 dark:text-white sm:text-2xl">
-          What adventures interest you?
-        </h2>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Select all that apply</p>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
         {ACTIVITIES.map((activity) => {
           const selected = activities.includes(activity.id);
           return (
@@ -185,20 +190,20 @@ function OnboardingQuizForm() {
               onClick={() => toggleActivity(activity.id)}
               className={cn(
                 "relative flex flex-col items-center justify-center gap-1 rounded-2xl bg-gradient-to-br p-3 transition-all",
-                "h-24 sm:h-28",
+                "h-20 sm:h-24",
                 activity.gradient,
                 selected
-                  ? "ring-2 ring-lime-400 ring-offset-2 dark:ring-offset-slate-800"
+                  ? "ring-2 ring-lime-400 ring-offset-2 dark:ring-offset-gray-800"
                   : "opacity-80 hover:opacity-100",
               )}
             >
               {selected && (
-                <div className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-lime-400 text-slate-900">
+                <div className="absolute right-1.5 top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-lime-400 text-slate-900">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 20 20"
                     fill="currentColor"
-                    className="h-3.5 w-3.5"
+                    className="h-3 w-3"
                   >
                     <path
                       fillRule="evenodd"
@@ -208,10 +213,10 @@ function OnboardingQuizForm() {
                   </svg>
                 </div>
               )}
-              <span className="text-3xl" role="img" aria-label={activity.label}>
+              <span className="text-2xl" role="img" aria-label={activity.label}>
                 {activity.icon}
               </span>
-              <span className="text-sm font-bold text-white">{activity.label}</span>
+              <span className="text-xs font-bold text-white">{activity.label}</span>
             </button>
           );
         })}
@@ -222,10 +227,10 @@ function OnboardingQuizForm() {
           type="button"
           onClick={toggleAll}
           className={cn(
-            "rounded-full border px-5 py-2 text-sm font-medium transition-colors",
+            "rounded-full border px-4 py-1.5 text-xs font-medium transition-colors",
             allSelected
               ? "border-lime-500 bg-lime-500 text-slate-900"
-              : "border-gray-300 text-gray-600 hover:border-gray-400 dark:border-gray-600 dark:text-gray-300 dark:hover:border-gray-500",
+              : "border-gray-300 text-gray-600 hover:border-gray-400 dark:border-gray-600 dark:text-gray-300",
           )}
         >
           All of the above
@@ -233,7 +238,7 @@ function OnboardingQuizForm() {
       </div>
 
       <div className="space-y-2">
-        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Experience Level</p>
+        <p className="text-xs font-medium text-gray-700 dark:text-gray-300">Experience Level</p>
         <div className="flex flex-wrap gap-2">
           {EXPERIENCE_LEVELS.map((level) => (
             <button
@@ -241,10 +246,10 @@ function OnboardingQuizForm() {
               type="button"
               onClick={() => setExperienceLevel(experienceLevel === level ? null : level)}
               className={cn(
-                "rounded-full border px-4 py-2 text-sm font-medium transition-colors",
+                "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
                 experienceLevel === level
                   ? "border-lime-500 bg-lime-500 text-slate-900"
-                  : "border-gray-300 text-gray-600 hover:border-gray-400 dark:border-gray-600 dark:text-gray-300 dark:hover:border-gray-500",
+                  : "border-gray-300 text-gray-600 hover:border-gray-400 dark:border-gray-600 dark:text-gray-300",
               )}
             >
               {level}
@@ -258,7 +263,7 @@ function OnboardingQuizForm() {
         onClick={handleNext}
         disabled={activities.length === 0}
         className={cn(
-          "w-full rounded-xl py-3 text-center font-semibold transition-colors",
+          "w-full rounded-xl py-2.5 text-center text-sm font-semibold transition-colors",
           activities.length > 0
             ? "bg-lime-500 text-slate-900 hover:bg-lime-400"
             : "cursor-not-allowed bg-gray-300 text-gray-500 dark:bg-slate-600 dark:text-slate-400",
@@ -270,23 +275,17 @@ function OnboardingQuizForm() {
   );
 
   const renderStepAboutYou = () => (
-    <div className="space-y-5">
-      <div className="text-center">
-        <h2 className="text-xl font-heading font-bold text-gray-900 dark:text-white sm:text-2xl">
-          Tell us about yourself
-        </h2>
-      </div>
-
+    <div className="space-y-4">
       <Input
         id="quiz-name"
         label="First Name"
         placeholder="Your first name"
-        value={firstName}
-        onChange={(e) => setFirstName(e.target.value)}
+        value={name}
+        onChange={(e) => setName(e.target.value)}
       />
 
       <div className="space-y-2">
-        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Age Range</p>
+        <p className="text-xs font-medium text-gray-700 dark:text-gray-300">Age Range</p>
         <div className="flex flex-wrap gap-2">
           {AGE_RANGES.map((range) => (
             <button
@@ -294,10 +293,10 @@ function OnboardingQuizForm() {
               type="button"
               onClick={() => setAgeRange(ageRange === range ? null : range)}
               className={cn(
-                "rounded-full border px-4 py-2 text-sm font-medium transition-colors",
+                "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
                 ageRange === range
                   ? "border-lime-500 bg-lime-500 text-slate-900"
-                  : "border-gray-300 text-gray-600 hover:border-gray-400 dark:border-gray-600 dark:text-gray-300 dark:hover:border-gray-500",
+                  : "border-gray-300 text-gray-600 hover:border-gray-400 dark:border-gray-600 dark:text-gray-300",
               )}
             >
               {range}
@@ -318,14 +317,14 @@ function OnboardingQuizForm() {
         <button
           type="button"
           onClick={handleBack}
-          className="flex-1 rounded-xl border border-gray-300 py-3 text-center font-semibold text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-slate-700"
+          className="flex-1 rounded-xl border border-gray-300 py-2.5 text-center text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-slate-700"
         >
           Back
         </button>
         <button
           type="button"
           onClick={handleNext}
-          className="flex-1 rounded-xl bg-lime-500 py-3 text-center font-semibold text-slate-900 transition-colors hover:bg-lime-400"
+          className="flex-1 rounded-xl bg-lime-500 py-2.5 text-center text-sm font-semibold text-slate-900 transition-colors hover:bg-lime-400"
         >
           Next
         </button>
@@ -334,14 +333,8 @@ function OnboardingQuizForm() {
   );
 
   const renderStepDiscovery = () => (
-    <div className="space-y-5">
-      <div className="text-center">
-        <h2 className="text-xl font-heading font-bold text-gray-900 dark:text-white sm:text-2xl">
-          How did you discover EventTara?
-        </h2>
-      </div>
-
-      <div className="grid gap-3 sm:grid-cols-2">
+    <div className="space-y-4">
+      <div className="grid gap-2.5 sm:grid-cols-2">
         {DISCOVERY_SOURCES.map((source) => {
           const selected = discoverySource === source.id;
           return (
@@ -350,13 +343,13 @@ function OnboardingQuizForm() {
               type="button"
               onClick={() => setDiscoverySource(selected ? null : source.id)}
               className={cn(
-                "flex items-center gap-3 rounded-xl border px-4 py-3 text-left transition-colors",
+                "flex items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors",
                 selected
                   ? "border-lime-500 bg-lime-50 dark:bg-lime-950/30"
                   : "border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600",
               )}
             >
-              <span className="text-xl" role="img" aria-label={source.label}>
+              <span className="text-lg" role="img" aria-label={source.label}>
                 {source.icon}
               </span>
               <span
@@ -378,15 +371,15 @@ function OnboardingQuizForm() {
         <button
           type="button"
           onClick={handleBack}
-          className="flex-1 rounded-xl border border-gray-300 py-3 text-center font-semibold text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-slate-700"
+          className="flex-1 rounded-xl border border-gray-300 py-2.5 text-center text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-slate-700"
         >
           Back
         </button>
         <button
           type="button"
-          onClick={() => void saveAndRedirect()}
+          onClick={() => void saveResponses()}
           disabled={saving}
-          className="flex-1 rounded-xl bg-lime-500 py-3 text-center font-semibold text-slate-900 transition-colors hover:bg-lime-400 disabled:opacity-50"
+          className="flex-1 rounded-xl bg-lime-500 py-2.5 text-center text-sm font-semibold text-slate-900 transition-colors hover:bg-lime-400 disabled:opacity-50"
         >
           {saving ? "Saving..." : "Done"}
         </button>
@@ -397,38 +390,50 @@ function OnboardingQuizForm() {
   /* --- render -------------------------------------------------------- */
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md p-6 sm:p-8">
-      {/* Progress bar */}
-      <div className="flex items-center justify-between mb-1">
-        <p className="text-xs text-gray-400">
-          Step {currentStep + 1} of {TOTAL_STEPS}
-        </p>
+    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm ring-1 ring-gray-100 dark:ring-gray-700 p-5 sm:p-6 space-y-4">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <h3 className="text-sm font-heading font-bold text-gray-900 dark:text-white">
+            Help us personalize your adventure
+          </h3>
+          <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
+            Your answers help us recommend events.{" "}
+            <Link
+              href="/privacy"
+              className="underline hover:text-gray-600 dark:hover:text-gray-300"
+            >
+              Privacy Policy
+            </Link>
+          </p>
+        </div>
         <button
           type="button"
-          onClick={() => void saveAndRedirect(currentStep)}
-          className="text-sm text-gray-400 transition-colors hover:text-gray-600 dark:hover:text-gray-300"
+          onClick={dismiss}
+          className="shrink-0 text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+          aria-label="Dismiss quiz"
         >
           Skip
         </button>
       </div>
-      <div className="mb-6 h-1 rounded-full bg-gray-200 dark:bg-gray-700">
-        <div
-          className="h-1 rounded-full bg-lime-500 transition-all duration-300"
-          style={{ width: `${String(((currentStep + 1) / TOTAL_STEPS) * 100)}%` }}
-        />
+
+      {/* Progress */}
+      <div className="space-y-1">
+        <p className="text-[10px] text-gray-400">
+          {currentStep + 1} of {TOTAL_STEPS}
+        </p>
+        <div className="h-1 rounded-full bg-gray-200 dark:bg-gray-700">
+          <div
+            className="h-1 rounded-full bg-lime-500 transition-all duration-300"
+            style={{ width: `${String(((currentStep + 1) / TOTAL_STEPS) * 100)}%` }}
+          />
+        </div>
       </div>
 
+      {/* Steps */}
       {currentStep === 0 && renderStepActivities()}
       {currentStep === 1 && renderStepAboutYou()}
       {currentStep === 2 && renderStepDiscovery()}
     </div>
-  );
-}
-
-export default function OnboardingPage() {
-  return (
-    <Suspense>
-      <OnboardingQuizForm />
-    </Suspense>
   );
 }

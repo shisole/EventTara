@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import OnboardingQuizCard from "@/components/onboarding/OnboardingQuizCard";
 import { RARITY_STYLES } from "@/lib/constants/badge-rarity";
 import { createClient } from "@/lib/supabase/server";
 
@@ -141,6 +142,11 @@ export default async function WelcomePage() {
             </p>
           </div>
         )}
+
+        {/* Onboarding quiz (optional, dismissible) */}
+        <div className="animate-fadeUp text-left" style={{ animationDelay: "400ms" }}>
+          <OnboardingQuizCard firstName={firstName} />
+        </div>
 
         {/* CTA */}
         <div className="animate-fadeUp" style={{ animationDelay: "500ms" }}>
