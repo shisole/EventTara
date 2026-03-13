@@ -26,6 +26,10 @@ export interface FeedItem {
   badgeImageUrl: string | null;
   badgeRarity: BadgeRarity | null;
   badgeCategory: BadgeCategory | null;
+  /** Avatar border fields (for border activity showcase) */
+  awardedBorderName: string | null;
+  awardedBorderTier: BorderTier | null;
+  awardedBorderColor: string | null;
   reviewRating: number | null;
   reviewText: string | null;
   timestamp: string;
