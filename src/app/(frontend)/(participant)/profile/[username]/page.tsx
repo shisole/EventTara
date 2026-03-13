@@ -314,8 +314,8 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
 
       <ProfileClubs clubs={profileClubs} isOwnProfile={isOwnProfile} />
 
-      {/* Strava stats — shown to everyone if connected */}
-      {hasStrava && (
+      {/* Strava stats — only shown on own profile when connected (Strava API compliance) */}
+      {isOwnProfile && hasStrava && (
         <StravaStatsBar athleteData={stravaAthleteData} stravaAthleteId={stravaAthleteId} />
       )}
 

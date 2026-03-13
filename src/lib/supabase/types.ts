@@ -1048,6 +1048,7 @@ export interface Database {
           oauth_facebook: boolean;
           onboarding_quiz: boolean;
           duck_race: boolean;
+          new_landing_page: boolean;
         };
         Insert: {
           id?: number;
@@ -1066,6 +1067,7 @@ export interface Database {
           oauth_facebook?: boolean;
           onboarding_quiz?: boolean;
           duck_race?: boolean;
+          new_landing_page?: boolean;
         };
         Update: {
           id?: number;
@@ -1084,6 +1086,7 @@ export interface Database {
           oauth_facebook?: boolean;
           onboarding_quiz?: boolean;
           duck_race?: boolean;
+          new_landing_page?: boolean;
         };
         Relationships: [];
       };

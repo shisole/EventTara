@@ -63,6 +63,14 @@ const CRITERIA_EVALUATORS: Record<
   summits_all: (stats) =>
     stats.totalMountainCount > 0 && stats.summitedMountainNames.size >= stats.totalMountainCount,
   igbaras_graduate: (stats) => IGBARAS_PEAKS.every((peak) => stats.summitedMountainNames.has(peak)),
+  // Strava activity milestones
+  strava_activities_1: (stats) => stats.stravaActivityCount >= 1,
+  strava_distance_50k: (stats) => stats.stravaTotalDistanceKm >= 50,
+  strava_distance_100k: (stats) => stats.stravaTotalDistanceKm >= 100,
+  strava_distance_500k: (stats) => stats.stravaTotalDistanceKm >= 500,
+  strava_elevation_5000m: (stats) => stats.stravaTotalElevationM >= 5000,
+  strava_elevation_10000m: (stats) => stats.stravaTotalElevationM >= 10_000,
+  strava_elevation_29000m: (stats) => stats.stravaTotalElevationM >= 29_032,
 };
 
 interface CheckinStats {
@@ -74,6 +82,12 @@ interface CheckinStats {
   summitedMountainNames: Set<string>;
   /** Total number of mountains in the mountains table */
   totalMountainCount: number;
+  /** Number of rows in strava_activities for this user */
+  stravaActivityCount: number;
+  /** Cumulative Strava distance in km */
+  stravaTotalDistanceKm: number;
+  /** Cumulative Strava elevation gain in meters */
+  stravaTotalElevationM: number;
 }
 
 /**
@@ -96,6 +110,7 @@ export async function checkAndAwardSystemBadges(
       stravaResult,
       mountainCheckinsResult,
       mountainCountResult,
+      stravaActivitiesResult,
     ] = await Promise.all([
       // User's check-ins joined to events for type and status
       supabase
@@ -137,6 +152,12 @@ export async function checkAndAwardSystemBadges(
 
       // Total mountain count in the system
       supabase.from("mountains").select("id", { count: "exact", head: true }),
+
+      // All Strava activities for cumulative distance/elevation badges
+      supabase
+        .from("strava_activities")
+        .select("distance, total_elevation_gain")
+        .eq("user_id", userId),
     ]);
 
     // Build check-in stats
@@ -183,6 +204,16 @@ export async function checkAndAwardSystemBadges(
     }
 
     const hasStravaConnection = (stravaResult.data?.length ?? 0) > 0;
+
+    // Compute cumulative Strava distance (meters → km) and elevation (meters)
+    const stravaActivities = stravaActivitiesResult.data ?? [];
+    let stravaTotalDistanceKm = 0;
+    let stravaTotalElevationM = 0;
+    for (const sa of stravaActivities) {
+      stravaTotalDistanceKm += (sa.distance ?? 0) / 1000;
+      stravaTotalElevationM += sa.total_elevation_gain ?? 0;
+    }
+
     const stats: CheckinStats = {
       totalCheckins,
       eventCountByType,
@@ -190,6 +221,9 @@ export async function checkAndAwardSystemBadges(
       hasStravaConnection,
       summitedMountainNames,
       totalMountainCount: mountainCountResult.count ?? 0,
+      stravaActivityCount: stravaActivities.length,
+      stravaTotalDistanceKm,
+      stravaTotalElevationM,
     };
 
     // Build set of already-earned criteria keys
