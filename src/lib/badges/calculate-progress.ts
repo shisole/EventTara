@@ -24,6 +24,7 @@ const BINARY_CRITERIA = new Set([
   "pioneer_participant",
   "pioneer_organizer",
   "first_review",
+  "strava_activities_1",
 ]);
 
 /**
@@ -148,6 +149,60 @@ export async function calculateBadgeProgress(
       target: ACTIVITY_TYPES.length,
       percent: Math.min((current / ACTIVITY_TYPES.length) * 100, 99),
       progressText: `${current}/${ACTIVITY_TYPES.length} activity types`,
+    };
+  }
+
+  // Strava cumulative distance badges
+  if (key.startsWith("strava_distance_")) {
+    const targetMap: Record<string, number> = {
+      strava_distance_50k: 50,
+      strava_distance_100k: 100,
+      strava_distance_500k: 500,
+    };
+    const target = targetMap[key] || 100;
+
+    const { data: activities } = await supabase
+      .from("strava_activities")
+      .select("distance")
+      .eq("user_id", userId);
+
+    let totalKm = 0;
+    for (const a of activities ?? []) {
+      totalKm += (a.distance ?? 0) / 1000;
+    }
+
+    return {
+      current: Math.round(totalKm * 10) / 10,
+      target,
+      percent: Math.min((totalKm / target) * 100, 99),
+      progressText: `${totalKm.toFixed(1)}km / ${String(target)}km`,
+    };
+  }
+
+  // Strava cumulative elevation badges
+  if (key.startsWith("strava_elevation_")) {
+    const targetMap: Record<string, number> = {
+      strava_elevation_5000m: 5000,
+      strava_elevation_10000m: 10_000,
+      strava_elevation_29000m: 29_032,
+    };
+    const target = targetMap[key] || 5000;
+
+    const { data: activities } = await supabase
+      .from("strava_activities")
+      .select("total_elevation_gain")
+      .eq("user_id", userId);
+
+    let totalM = 0;
+    for (const a of activities ?? []) {
+      totalM += a.total_elevation_gain ?? 0;
+    }
+
+    return {
+      current: Math.round(totalM),
+      target,
+      percent: Math.min((totalM / target) * 100, 99),
+      progressText: `${Math.round(totalM).toLocaleString()}m / ${target.toLocaleString()}m`,
     };
   }
 
