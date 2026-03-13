@@ -7,6 +7,7 @@ import UpcomingBookings from "@/components/participant/UpcomingBookings";
 import FollowButton from "@/components/profile/FollowButton";
 import ProfileClubs, { type ProfileClub } from "@/components/profile/ProfileClubs";
 import ProfileHeader from "@/components/profile/ProfileHeader";
+import ProfileInventory from "@/components/profile/ProfileInventory";
 import ProfileStats from "@/components/profile/ProfileStats";
 import StravaActivityFeed from "@/components/strava/StravaActivityFeed";
 import StravaConnectButton from "@/components/strava/StravaConnectButton";
@@ -92,6 +93,25 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
   if (isOwnProfile) {
     await checkAndAwardBorders(user.id, supabase).catch(() => null);
   }
+
+  // Fetch avatar config (animal + equipped items)
+  const { data: avatarConfigRow } = await supabase
+    .from("user_avatar_config")
+    .select(
+      "animal_id, equipped_accessory_id, equipped_background_id, equipped_border_id, equipped_skin_id, avatar_animals(image_url), accessory:shop_items!user_avatar_config_equipped_accessory_id_fkey(image_url), background:shop_items!user_avatar_config_equipped_background_id_fkey(image_url), border:shop_items!user_avatar_config_equipped_border_id_fkey(image_url), skin:shop_items!user_avatar_config_equipped_skin_id_fkey(image_url)",
+    )
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  const avatarConfig = avatarConfigRow
+    ? {
+        animalImageUrl: (avatarConfigRow.avatar_animals as any)?.image_url ?? null,
+        accessoryImageUrl: (avatarConfigRow.accessory as any)?.image_url ?? null,
+        backgroundImageUrl: (avatarConfigRow.background as any)?.image_url ?? null,
+        borderImageUrl: (avatarConfigRow.border as any)?.image_url ?? null,
+        skinImageUrl: (avatarConfigRow.skin as any)?.image_url ?? null,
+      }
+    : null;
 
   // Fetch active border data
   const activeBorderId: string | null = user.active_border_id ?? null;
@@ -298,6 +318,8 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
         activeBorderId={activeBorderId}
         activeBorderTier={activeBorderTier}
         activeBorderColor={activeBorderColor}
+        avatarConfig={avatarConfig}
+        currentAnimalId={avatarConfigRow?.animal_id ?? null}
       />
 
       {authUser && !isOwnProfile && (
@@ -374,6 +396,18 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
         </div>
         <BadgeGrid badges={badges} />
       </div>
+
+      <section>
+        <div className="flex items-center justify-center gap-3 mb-4">
+          <h2 className="text-xl font-heading font-bold text-center">Inventory</h2>
+          {isOwnProfile && (
+            <Link href="/shop" className="text-sm text-teal-600 dark:text-teal-400 hover:underline">
+              Visit Shop
+            </Link>
+          )}
+        </div>
+        <ProfileInventory userId={user.id} isOwnProfile={isOwnProfile} />
+      </section>
 
       {!isOwnProfile && (
         <div className="text-center pt-6 border-t border-gray-100 dark:border-gray-800">

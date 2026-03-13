@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Winter bear - white/ice blue variant -->
+  <!-- Ears -->
+  <circle cx="38" cy="30" r="16" fill="#B0D4E8"/>
+  <circle cx="38" cy="30" r="10" fill="#D0E8F4"/>
+  <circle cx="90" cy="30" r="16" fill="#B0D4E8"/>
+  <circle cx="90" cy="30" r="10" fill="#D0E8F4"/>
+  <!-- Body/head -->
+  <circle cx="64" cy="68" r="44" fill="#E8F0F8"/>
+  <!-- Snout -->
+  <ellipse cx="64" cy="78" rx="18" ry="14" fill="#F0F6FC"/>
+  <!-- Eyes -->
+  <circle cx="50" cy="62" r="5" fill="#4A7090"/>
+  <circle cx="78" cy="62" r="5" fill="#4A7090"/>
+  <!-- Eye shine -->
+  <circle cx="52" cy="60" r="2" fill="#FFFFFF"/>
+  <circle cx="80" cy="60" r="2" fill="#FFFFFF"/>
+  <!-- Nose -->
+  <ellipse cx="64" cy="74" rx="5" ry="4" fill="#6090B0"/>
+  <!-- Mouth -->
+  <path d="M60 80 Q64 86 68 80" stroke="#6090B0" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <!-- Blush -->
+  <circle cx="42" cy="74" r="6" fill="#A0C0E0" opacity="0.5"/>
+  <circle cx="86" cy="74" r="6" fill="#A0C0E0" opacity="0.5"/>
+  <!-- Snowflake on forehead -->
+  <g transform="translate(64, 48)" stroke="#B0D4E8" stroke-width="1.5" stroke-linecap="round">
+    <line x1="0" y1="-5" x2="0" y2="5"/>
+    <line x1="-4.3" y1="-2.5" x2="4.3" y2="2.5"/>
+    <line x1="-4.3" y1="2.5" x2="4.3" y2="-2.5"/>
+  </g>
+</svg>

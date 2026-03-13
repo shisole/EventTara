@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 
 import { createClient } from "@/lib/supabase/server";
+import { awardTokens } from "@/lib/tokens/award";
+import { TOKEN_REWARDS } from "@/lib/tokens/constants";
 
 export async function POST(request: Request) {
   try {
@@ -46,6 +48,28 @@ export async function POST(request: Request) {
     if (error) {
       console.error("[Quiz] Insert error:", error);
       return NextResponse.json({ error: "Failed to save" }, { status: 500 });
+    }
+
+    // Award quiz completion tokens (idempotent)
+    if (completed_at && user?.id) {
+      void (async () => {
+        const { data: existingTx } = await supabase
+          .from("token_transactions")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("reference_id", "quiz_completed")
+          .limit(1)
+          .maybeSingle();
+        if (!existingTx) {
+          await awardTokens(
+            supabase,
+            user.id,
+            TOKEN_REWARDS.quiz_completed,
+            "milestone",
+            "quiz_completed",
+          );
+        }
+      })().catch(() => null);
     }
 
     return NextResponse.json({ success: true });

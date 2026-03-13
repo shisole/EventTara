@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#93C5FD"/>
+    </linearGradient>
+  </defs>
+  <!-- Sky background -->
+  <rect width="128" height="128" fill="url(#sky)"/>
+  <!-- Clouds -->
+  <ellipse cx="28" cy="24" rx="16" ry="6" fill="#FFFFFF" opacity="0.5"/>
+  <ellipse cx="96" cy="18" rx="20" ry="7" fill="#FFFFFF" opacity="0.4"/>
+  <!-- Back mountain range -->
+  <polygon points="0,128 0,70 20,52 40,68 60,40 80,55 100,42 120,60 128,50 128,128" fill="#6B7280" opacity="0.5"/>
+  <!-- Snow caps on back range -->
+  <polygon points="56,44 60,40 64,44" fill="#FFFFFF" opacity="0.5"/>
+  <polygon points="96,46 100,42 104,46" fill="#FFFFFF" opacity="0.5"/>
+  <!-- Front mountain range -->
+  <polygon points="0,128 0,90 15,78 35,88 55,65 75,80 95,62 115,76 128,70 128,128" fill="#4B5563"/>
+  <!-- Snow caps on front range -->
+  <polygon points="50,70 55,65 60,70" fill="#FFFFFF" opacity="0.7"/>
+  <polygon points="90,67 95,62 100,67" fill="#FFFFFF" opacity="0.7"/>
+  <!-- Foreground -->
+  <rect x="0" y="110" width="128" height="18" fill="#374151" opacity="0.4"/>
+</svg>

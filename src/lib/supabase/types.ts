@@ -14,6 +14,8 @@ export interface Database {
           is_guest: boolean;
           active_border_id: string | null;
           has_picked_avatar: boolean;
+          last_daily_login: string | null;
+          login_streak: number;
           created_at: string;
         };
         Insert: {
@@ -26,6 +28,8 @@ export interface Database {
           is_guest?: boolean;
           active_border_id?: string | null;
           has_picked_avatar?: boolean;
+          last_daily_login?: string | null;
+          login_streak?: number;
           created_at?: string;
         };
         Update: {
@@ -38,6 +42,8 @@ export interface Database {
           is_guest?: boolean;
           active_border_id?: string | null;
           has_picked_avatar?: boolean;
+          last_daily_login?: string | null;
+          login_streak?: number;
           created_at?: string;
         };
         Relationships: [];
@@ -1051,6 +1057,8 @@ export interface Database {
           oauth_facebook: boolean;
           onboarding_quiz: boolean;
           duck_race: boolean;
+          avatar_shop_enabled: boolean;
+          new_landing_page: boolean;
         };
         Insert: {
           id?: number;
@@ -1069,6 +1077,8 @@ export interface Database {
           oauth_facebook?: boolean;
           onboarding_quiz?: boolean;
           duck_race?: boolean;
+          avatar_shop_enabled?: boolean;
+          new_landing_page?: boolean;
         };
         Update: {
           id?: number;
@@ -1087,6 +1097,8 @@ export interface Database {
           oauth_facebook?: boolean;
           onboarding_quiz?: boolean;
           duck_race?: boolean;
+          avatar_shop_enabled?: boolean;
+          new_landing_page?: boolean;
         };
         Relationships: [];
       };
@@ -1830,6 +1842,272 @@ export interface Database {
           },
         ];
       };
+      avatar_animals: {
+        Row: {
+          id: string;
+          slug: string;
+          name: string;
+          image_url: string;
+          sort_order: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          slug: string;
+          name: string;
+          image_url: string;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          slug?: string;
+          name?: string;
+          image_url?: string;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      tara_tokens: {
+        Row: {
+          user_id: string;
+          balance: number;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          balance?: number;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          balance?: number;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "tara_tokens_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: true;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      token_transactions: {
+        Row: {
+          id: string;
+          user_id: string;
+          amount: number;
+          reason:
+            | "check_in"
+            | "hosting"
+            | "daily_login"
+            | "streak_bonus"
+            | "milestone"
+            | "purchase"
+            | "badge_earned"
+            | "first_event"
+            | "admin_grant";
+          reference_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          amount: number;
+          reason:
+            | "check_in"
+            | "hosting"
+            | "daily_login"
+            | "streak_bonus"
+            | "milestone"
+            | "purchase"
+            | "badge_earned"
+            | "first_event"
+            | "admin_grant";
+          reference_id?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          amount?: number;
+          reason?:
+            | "check_in"
+            | "hosting"
+            | "daily_login"
+            | "streak_bonus"
+            | "milestone"
+            | "purchase"
+            | "badge_earned"
+            | "first_event"
+            | "admin_grant";
+          reference_id?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "token_transactions_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      shop_items: {
+        Row: {
+          id: string;
+          slug: string;
+          name: string;
+          category: "accessory" | "animal" | "background" | "border" | "skin";
+          image_url: string;
+          preview_url: string | null;
+          price: number;
+          rarity: "common" | "uncommon" | "rare" | "legendary";
+          is_active: boolean;
+          sort_order: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          slug: string;
+          name: string;
+          category: "accessory" | "animal" | "background" | "border" | "skin";
+          image_url: string;
+          preview_url?: string | null;
+          price: number;
+          rarity?: "common" | "uncommon" | "rare" | "legendary";
+          is_active?: boolean;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          slug?: string;
+          name?: string;
+          category?: "accessory" | "animal" | "background" | "border" | "skin";
+          image_url?: string;
+          preview_url?: string | null;
+          price?: number;
+          rarity?: "common" | "uncommon" | "rare" | "legendary";
+          is_active?: boolean;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      user_inventory: {
+        Row: {
+          id: string;
+          user_id: string;
+          shop_item_id: string;
+          purchased_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          shop_item_id: string;
+          purchased_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          shop_item_id?: string;
+          purchased_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "user_inventory_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "user_inventory_shop_item_id_fkey";
+            columns: ["shop_item_id"];
+            isOneToOne: false;
+            referencedRelation: "shop_items";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      user_avatar_config: {
+        Row: {
+          user_id: string;
+          animal_id: string | null;
+          equipped_accessory_id: string | null;
+          equipped_background_id: string | null;
+          equipped_border_id: string | null;
+          equipped_skin_id: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          animal_id?: string | null;
+          equipped_accessory_id?: string | null;
+          equipped_background_id?: string | null;
+          equipped_border_id?: string | null;
+          equipped_skin_id?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          animal_id?: string | null;
+          equipped_accessory_id?: string | null;
+          equipped_background_id?: string | null;
+          equipped_border_id?: string | null;
+          equipped_skin_id?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "user_avatar_config_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: true;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "user_avatar_config_animal_id_fkey";
+            columns: ["animal_id"];
+            isOneToOne: false;
+            referencedRelation: "avatar_animals";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "user_avatar_config_equipped_accessory_id_fkey";
+            columns: ["equipped_accessory_id"];
+            isOneToOne: false;
+            referencedRelation: "shop_items";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "user_avatar_config_equipped_background_id_fkey";
+            columns: ["equipped_background_id"];
+            isOneToOne: false;
+            referencedRelation: "shop_items";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "user_avatar_config_equipped_border_id_fkey";
+            columns: ["equipped_border_id"];
+            isOneToOne: false;
+            referencedRelation: "shop_items";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "user_avatar_config_equipped_skin_id_fkey";
+            columns: ["equipped_skin_id"];
+            isOneToOne: false;
+            referencedRelation: "shop_items";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       qr_claim_batches: {
         Row: {
           id: string;
@@ -1926,6 +2204,22 @@ export interface Database {
       };
       claim_club: {
         Args: { p_token: string; p_user_id: string };
+        Returns: Json;
+      };
+      award_tokens: {
+        Args: {
+          p_user_id: string;
+          p_amount: number;
+          p_reason: string;
+          p_reference_id?: string;
+        };
+        Returns: number;
+      };
+      purchase_shop_item: {
+        Args: {
+          p_user_id: string;
+          p_item_id: string;
+        };
         Returns: Json;
       };
       claim_qr_code: {

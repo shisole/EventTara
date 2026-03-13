@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Sunglasses in middle/eye area -->
+  <!-- Frame bridge -->
+  <path d="M54 56 Q64 52 74 56" stroke="#1A1A1A" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- Left temple (arm) -->
+  <line x1="28" y1="54" x2="36" y2="56" stroke="#1A1A1A" stroke-width="3" stroke-linecap="round"/>
+  <!-- Right temple (arm) -->
+  <line x1="92" y1="56" x2="100" y2="54" stroke="#1A1A1A" stroke-width="3" stroke-linecap="round"/>
+  <!-- Left lens -->
+  <ellipse cx="44" cy="60" rx="16" ry="14" fill="#1A1A1A" stroke="#1A1A1A" stroke-width="2.5"/>
+  <!-- Left lens shine -->
+  <ellipse cx="40" cy="56" rx="6" ry="4" fill="#333333" opacity="0.6" transform="rotate(-15 40 56)"/>
+  <!-- Right lens -->
+  <ellipse cx="84" cy="60" rx="16" ry="14" fill="#1A1A1A" stroke="#1A1A1A" stroke-width="2.5"/>
+  <!-- Right lens shine -->
+  <ellipse cx="80" cy="56" rx="6" ry="4" fill="#333333" opacity="0.6" transform="rotate(-15 80 56)"/>
+</svg>

@@ -10,8 +10,9 @@ import { ChevronDownIcon, MenuIcon } from "@/components/icons";
 import ExploreDropdown from "@/components/layout/ExploreDropdown";
 import ThemeToggle from "@/components/layout/ThemeToggle";
 import { NavLink } from "@/components/navigation/NavigationContext";
-import { UserAvatar, Button } from "@/components/ui";
+import { CompositeAvatar, Button } from "@/components/ui";
 import type { BorderTier } from "@/lib/constants/avatar-borders";
+import { createClient } from "@/lib/supabase/client";
 
 const BorderPickerModal = dynamic(() => import("@/components/profile/BorderPickerModal"));
 const NotificationBell = dynamic(() => import("@/components/notifications/NotificationBell"));
@@ -37,6 +38,7 @@ interface NavbarProps {
   navLayout: string;
   activeBorder?: ActiveBorderData | null;
   activityFeedEnabled?: boolean;
+  avatarShopEnabled?: boolean;
   isAdmin?: boolean;
   onLogout: () => void;
   onMenuOpen: () => void;
@@ -51,6 +53,7 @@ export default function Navbar({
   navLayout,
   activeBorder,
   activityFeedEnabled = false,
+  avatarShopEnabled = false,
   isAdmin = false,
   onLogout,
   onMenuOpen,
@@ -60,6 +63,51 @@ export default function Navbar({
   const [profileOpen, setProfileOpen] = useState(false);
   const [exploreOpen, setExploreOpen] = useState(false);
   const [borderPickerOpen, setBorderPickerOpen] = useState(false);
+  const [tokenBalance, setTokenBalance] = useState<number | null>(null);
+  const [avatarConfig, setAvatarConfig] = useState<{
+    animalImageUrl: string | null;
+    accessoryImageUrl: string | null;
+    backgroundImageUrl: string | null;
+    borderImageUrl: string | null;
+    skinImageUrl: string | null;
+  } | null>(null);
+
+  // Fetch TaraTokens balance + avatar config
+  useEffect(() => {
+    if (!user || !avatarShopEnabled) return;
+    const supabase = createClient();
+    supabase
+      .from("tara_tokens")
+      .select("balance")
+      .eq("user_id", user.id)
+      .single()
+      .then(({ data }) => {
+        setTokenBalance(data?.balance ?? 0);
+      });
+    fetch("/api/users/avatar-config")
+      .then((r) => r.json())
+      .then(
+        (data: {
+          animal_image_url?: string | null;
+          accessory_image_url?: string | null;
+          background_image_url?: string | null;
+          border_image_url?: string | null;
+          skin_image_url?: string | null;
+        }) => {
+          if (data.animal_image_url) {
+            setAvatarConfig({
+              animalImageUrl: data.animal_image_url,
+              accessoryImageUrl: data.accessory_image_url ?? null,
+              backgroundImageUrl: data.background_image_url ?? null,
+              borderImageUrl: data.border_image_url ?? null,
+              skinImageUrl: data.skin_image_url ?? null,
+            });
+          }
+        },
+      )
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      .catch(() => {});
+  }, [user, avatarShopEnabled]);
 
   // Close dropdowns on route change
   useEffect(() => {
@@ -146,6 +194,28 @@ export default function Navbar({
               <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 animate-pulse" />
             ) : user ? (
               <div className="flex items-center gap-3">
+                {avatarShopEnabled && tokenBalance !== null && (
+                  <NavLink
+                    href="/shop"
+                    className="flex items-center gap-1 rounded-lg px-2 py-1 text-sm font-medium text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors"
+                    title="TaraTokens"
+                  >
+                    <svg className="w-4 h-4" viewBox="0 0 16 16" fill="currentColor">
+                      <circle cx="8" cy="8" r="7" fill="#F59E0B" />
+                      <text
+                        x="8"
+                        y="11"
+                        textAnchor="middle"
+                        fontSize="9"
+                        fontWeight="bold"
+                        fill="white"
+                      >
+                        T
+                      </text>
+                    </svg>
+                    {tokenBalance.toLocaleString()}
+                  </NavLink>
+                )}
                 <NotificationBell userId={user.id} />
                 <div className="relative" data-profile-dropdown>
                   <button
@@ -154,12 +224,13 @@ export default function Navbar({
                     }}
                     className="flex items-center gap-1 rounded-full hover:ring-2 hover:ring-lime-200 dark:hover:ring-lime-800 transition-all"
                   >
-                    <UserAvatar
+                    <CompositeAvatar
                       src={user.user_metadata?.avatar_url}
                       alt={user.user_metadata?.full_name || "User"}
                       size="sm"
                       borderTier={activeBorder?.tier ?? null}
                       borderColor={activeBorder?.color ?? null}
+                      avatarConfig={avatarConfig}
                     />
                     <ChevronDownIcon
                       className={`w-4 h-4 text-gray-400 transition-transform ${profileOpen ? "rotate-180" : ""}`}

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Fluffy round ears -->
+  <circle cx="30" cy="38" r="20" fill="#A0A0A0"/>
+  <circle cx="30" cy="38" r="13" fill="#C8C8C8"/>
+  <circle cx="98" cy="38" r="20" fill="#A0A0A0"/>
+  <circle cx="98" cy="38" r="13" fill="#C8C8C8"/>
+  <!-- Body/head -->
+  <circle cx="64" cy="68" r="44" fill="#A0A0A0"/>
+  <!-- Face area -->
+  <ellipse cx="64" cy="76" rx="24" ry="18" fill="#D0D0D0"/>
+  <!-- Eyes -->
+  <circle cx="50" cy="60" r="5" fill="#2D2D2D"/>
+  <circle cx="78" cy="60" r="5" fill="#2D2D2D"/>
+  <!-- Eye shine -->
+  <circle cx="52" cy="58" r="2" fill="#FFFFFF"/>
+  <circle cx="80" cy="58" r="2" fill="#FFFFFF"/>
+  <!-- Big nose -->
+  <ellipse cx="64" cy="74" rx="9" ry="6" fill="#4A4A4A"/>
+  <!-- Nose highlight -->
+  <ellipse cx="62" cy="72" rx="3" ry="2" fill="#666666"/>
+  <!-- Mouth -->
+  <path d="M58 82 Q64 86 70 82" stroke="#666666" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <!-- Blush -->
+  <circle cx="40" cy="74" r="5" fill="#F0A0A0" opacity="0.35"/>
+  <circle cx="88" cy="74" r="5" fill="#F0A0A0" opacity="0.35"/>
+</svg>

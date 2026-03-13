@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <linearGradient id="night" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1E1B4B"/>
+      <stop offset="50%" stop-color="#312E81"/>
+      <stop offset="100%" stop-color="#4C1D95"/>
+    </linearGradient>
+  </defs>
+  <!-- Night sky background -->
+  <rect width="128" height="128" fill="url(#night)"/>
+  <!-- Stars - various sizes -->
+  <circle cx="12" cy="14" r="1.5" fill="#FFFFFF" opacity="0.9"/>
+  <circle cx="38" cy="8" r="1" fill="#FFFFFF" opacity="0.7"/>
+  <circle cx="62" cy="18" r="1.5" fill="#FFFFFF" opacity="0.8"/>
+  <circle cx="88" cy="10" r="1" fill="#FFFFFF" opacity="0.6"/>
+  <circle cx="108" cy="22" r="1.5" fill="#FFFFFF" opacity="0.9"/>
+  <circle cx="20" cy="38" r="1" fill="#FFFFFF" opacity="0.5"/>
+  <circle cx="48" cy="32" r="2" fill="#FFFFFF" opacity="0.8"/>
+  <circle cx="76" cy="36" r="1" fill="#FFFFFF" opacity="0.7"/>
+  <circle cx="100" cy="42" r="1.5" fill="#FFFFFF" opacity="0.6"/>
+  <circle cx="8" cy="60" r="1" fill="#FFFFFF" opacity="0.7"/>
+  <circle cx="30" cy="56" r="1.5" fill="#FFFFFF" opacity="0.5"/>
+  <circle cx="54" cy="50" r="1" fill="#FFFFFF" opacity="0.8"/>
+  <circle cx="82" cy="58" r="2" fill="#FFFFFF" opacity="0.7"/>
+  <circle cx="116" cy="52" r="1" fill="#FFFFFF" opacity="0.9"/>
+  <circle cx="18" cy="80" r="1.5" fill="#FFFFFF" opacity="0.6"/>
+  <circle cx="42" cy="76" r="1" fill="#FFFFFF" opacity="0.8"/>
+  <circle cx="68" cy="72" r="1.5" fill="#FFFFFF" opacity="0.5"/>
+  <circle cx="96" cy="78" r="1" fill="#FFFFFF" opacity="0.7"/>
+  <circle cx="120" cy="70" r="1.5" fill="#FFFFFF" opacity="0.8"/>
+  <circle cx="10" cy="100" r="1" fill="#FFFFFF" opacity="0.6"/>
+  <circle cx="36" cy="96" r="1.5" fill="#FFFFFF" opacity="0.7"/>
+  <circle cx="58" cy="92" r="1" fill="#FFFFFF" opacity="0.9"/>
+  <circle cx="84" cy="98" r="1.5" fill="#FFFFFF" opacity="0.5"/>
+  <circle cx="110" cy="94" r="1" fill="#FFFFFF" opacity="0.8"/>
+  <circle cx="24" cy="116" r="1.5" fill="#FFFFFF" opacity="0.7"/>
+  <circle cx="52" cy="112" r="1" fill="#FFFFFF" opacity="0.6"/>
+  <circle cx="78" cy="118" r="1.5" fill="#FFFFFF" opacity="0.8"/>
+  <circle cx="104" cy="114" r="1" fill="#FFFFFF" opacity="0.7"/>
+  <!-- Twinkling star (larger) -->
+  <polygon points="64,64 66,60 68,64 66,68" fill="#FFFFFF" opacity="0.9"/>
+  <polygon points="64,64 60,66 64,68 68,66" fill="#FFFFFF" opacity="0.7"/>
+</svg>

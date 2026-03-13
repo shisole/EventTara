@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 
+import { isAvatarShopEnabled } from "@/lib/cms/cached";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
+import { awardTokens } from "@/lib/tokens/award";
+import { TOKEN_REWARDS } from "@/lib/tokens/constants";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -38,17 +41,43 @@ export async function GET(request: Request) {
           console.error("[auth/callback] upsert error:", upsertErr.message);
         }
 
-        // Check if user needs to set up username
+        // Award signup bonus tokens (idempotent — skips if already awarded)
+        void (async () => {
+          const { data: existingTx } = await admin
+            .from("token_transactions")
+            .select("id")
+            .eq("user_id", user.id)
+            .eq("reference_id", "signup")
+            .limit(1)
+            .maybeSingle();
+          if (!existingTx) {
+            await awardTokens(admin, user.id, TOKEN_REWARDS.signup, "milestone", "signup");
+          }
+        })().catch(() => null);
+
+        // Check if user needs onboarding steps (avatar picker, username)
         const { data: profile, error: profileErr } = await admin
           .from("users")
-          .select("username")
+          .select("username, has_picked_avatar")
           .eq("id", user.id)
           .maybeSingle();
 
-        console.log("[auth/callback] username check:", {
+        console.log("[auth/callback] onboarding check:", {
           username: profile?.username,
+          has_picked_avatar: profile?.has_picked_avatar,
           error: profileErr?.message,
         });
+
+        // Chain: /setup-avatar → /setup-username → destination (only if avatar shop enabled)
+        const avatarShopOn = await isAvatarShopEnabled();
+        if (avatarShopOn && !profile?.has_picked_avatar) {
+          const avatarNext = profile?.username
+            ? next
+            : `/setup-username?next=${encodeURIComponent(next)}`;
+          return NextResponse.redirect(
+            `${origin}/setup-avatar?next=${encodeURIComponent(avatarNext)}`,
+          );
+        }
 
         if (!profile?.username) {
           console.log("[auth/callback] redirecting to /setup-username");
