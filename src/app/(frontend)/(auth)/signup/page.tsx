@@ -23,7 +23,7 @@ type AuthMethod = "password" | "otp";
 function SignupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") || "/events";
+  const next = searchParams.get("next") || "/onboarding";
   const supabase = createClient();
 
   const [state, setState] = useState<SignupState>("details");
