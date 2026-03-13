@@ -6,6 +6,8 @@ import { STRAVA_TOKEN_URL } from "@/lib/strava/constants";
 import { type StravaTokenResponse } from "@/lib/strava/types";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { type Json } from "@/lib/supabase/types";
+import { awardTokens } from "@/lib/tokens/award";
+import { TOKEN_REWARDS } from "@/lib/tokens/constants";
 
 interface OAuthState {
   flow: "login" | "connect";
@@ -298,6 +300,11 @@ export async function GET(request: Request) {
     scope: "read,activity:read_all,activity:write",
     athlete_data: athlete as unknown as Json,
   });
+
+  // Award signup bonus tokens
+  void awardTokens(serviceClient, newUserId, TOKEN_REWARDS.signup, "milestone", "signup").catch(
+    () => null,
+  );
 
   // Award "Connected Athlete" badge + notify
   const awardedBadges = await checkAndAwardSystemBadges(newUserId, serviceClient);

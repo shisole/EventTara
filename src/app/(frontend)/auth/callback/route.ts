@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 
 import { isAvatarShopEnabled } from "@/lib/cms/cached";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
+import { awardTokens } from "@/lib/tokens/award";
+import { TOKEN_REWARDS } from "@/lib/tokens/constants";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -38,6 +40,20 @@ export async function GET(request: Request) {
         if (upsertErr) {
           console.error("[auth/callback] upsert error:", upsertErr.message);
         }
+
+        // Award signup bonus tokens (idempotent — skips if already awarded)
+        void (async () => {
+          const { data: existingTx } = await admin
+            .from("token_transactions")
+            .select("id")
+            .eq("user_id", user.id)
+            .eq("reference_id", "signup")
+            .limit(1)
+            .maybeSingle();
+          if (!existingTx) {
+            await awardTokens(admin, user.id, TOKEN_REWARDS.signup, "milestone", "signup");
+          }
+        })().catch(() => null);
 
         // Check if user needs onboarding steps (avatar picker, username)
         const { data: profile, error: profileErr } = await admin

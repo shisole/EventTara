@@ -144,6 +144,9 @@ function SignupForm() {
       ? supabase.from("users").update({ username: trimmedUsername }).eq("id", userId)
       : generateUsername(supabase, userId, email));
 
+    // Award signup bonus tokens (fire-and-forget)
+    void fetch("/api/tokens/signup-bonus", { method: "POST" }).catch(() => null);
+
     // Link onboarding quiz response to the new account
     try {
       const anonymousId = localStorage.getItem("quiz_anonymous_id");

@@ -7,6 +7,8 @@ export const TOKEN_REWARDS = {
   badge_earned_rare: 100,
   badge_earned_legendary: 200,
   first_event: 100,
+  signup: 50,
+  quiz_completed: 25,
 } as const;
 
 export type TokenReason =
