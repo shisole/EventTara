@@ -42,12 +42,15 @@ export async function DELETE() {
     // Continue with local cleanup regardless
   }
 
-  // Delete the connection row
+  // Delete the connection row and all Strava activity data (Strava API compliance)
   const { error } = await supabase.from("strava_connections").delete().eq("user_id", user.id);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  // Delete stored Strava activities — required by Strava API Agreement on deauthorization
+  await supabase.from("strava_activities").delete().eq("user_id", user.id);
 
   return NextResponse.json({ disconnected: true });
 }
