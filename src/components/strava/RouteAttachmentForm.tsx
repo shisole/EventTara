@@ -139,6 +139,7 @@ export default function RouteAttachmentForm({
       <div className="flex gap-1 rounded-lg bg-gray-100 dark:bg-gray-800 p-1">
         {tabs.map((tab) => (
           <button
+            type="button"
             key={tab.key}
             onClick={() => {
               setActiveTab(tab.key);
