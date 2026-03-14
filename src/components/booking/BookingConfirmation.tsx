@@ -25,6 +25,7 @@ interface BookingConfirmationProps {
   mode?: "self" | "friend";
   paymentPaused?: boolean;
   contactUrl?: string | null;
+  clubSlug?: string | null;
 }
 
 export default function BookingConfirmation({
@@ -39,6 +40,7 @@ export default function BookingConfirmation({
   mode = "self",
   paymentPaused,
   contactUrl,
+  clubSlug,
 }: BookingConfirmationProps) {
   const isPendingEwallet =
     paymentStatus === "pending" && paymentMethod !== "cash" && !paymentPaused;
@@ -130,13 +132,15 @@ export default function BookingConfirmation({
               </>
             )}
           </p>
-          <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+          <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 space-y-1">
             <p className="text-sm text-amber-700 dark:text-amber-300">
-              Contact the organizer directly to arrange payment. Your booking will be confirmed once
-              payment is verified.
+              Contact the organizer directly to arrange payment.
+            </p>
+            <p className="text-xs text-amber-600 dark:text-amber-400">
+              You&apos;ll receive your QR code once payment is verified.
             </p>
           </div>
-          {contactUrl && (
+          {contactUrl ? (
             <a
               href={contactUrl}
               target="_blank"
@@ -158,6 +162,15 @@ export default function BookingConfirmation({
               </svg>
               Contact Organizer
             </a>
+          ) : (
+            clubSlug && (
+              <Link
+                href={`/clubs/${clubSlug}`}
+                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-6 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+              >
+                Visit the club page for contact details
+              </Link>
+            )
           )}
           {companions.length > 0 && (
             <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">

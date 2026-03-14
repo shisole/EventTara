@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useState } from "react";
 
 import { Button } from "@/components/ui";
@@ -40,6 +41,7 @@ interface BookingFormProps {
   waiverText?: string | null;
   paymentPaused?: boolean;
   contactUrl?: string | null;
+  clubSlug?: string | null;
 }
 
 export default function BookingForm({
@@ -55,6 +57,7 @@ export default function BookingForm({
   waiverText,
   paymentPaused,
   contactUrl,
+  clubSlug,
 }: BookingFormProps) {
   const [paymentMethod, setPaymentMethod] = useState("");
   const [proofFile, setProofFile] = useState<File | null>(null);
@@ -241,6 +244,7 @@ export default function BookingForm({
         mode={mode}
         paymentPaused={paymentPaused}
         contactUrl={contactUrl}
+        clubSlug={clubSlug}
       />
     );
   }
@@ -417,7 +421,7 @@ export default function BookingForm({
                 Reserve your spot now and contact the organizer directly to arrange payment.
               </p>
             </div>
-            {contactUrl && (
+            {contactUrl ? (
               <a
                 href={contactUrl}
                 target="_blank"
@@ -439,6 +443,15 @@ export default function BookingForm({
                 </svg>
                 Contact Organizer
               </a>
+            ) : (
+              clubSlug && (
+                <Link
+                  href={`/clubs/${clubSlug}`}
+                  className="flex items-center justify-center gap-2 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                >
+                  Visit the club page for contact details
+                </Link>
+              )
             )}
           </div>
         ) : (

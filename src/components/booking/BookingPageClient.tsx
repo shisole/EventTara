@@ -25,6 +25,7 @@ interface BookingPageClientProps {
   waiverText?: string | null;
   paymentPaused?: boolean;
   contactUrl?: string | null;
+  clubSlug?: string | null;
 }
 
 export default function BookingPageClient({
@@ -41,6 +42,7 @@ export default function BookingPageClient({
   waiverText,
   paymentPaused,
   contactUrl,
+  clubSlug,
 }: BookingPageClientProps) {
   const [authenticated, setAuthenticated] = useState(initialAuth);
 
@@ -72,6 +74,7 @@ export default function BookingPageClient({
           waiverText={waiverText}
           paymentPaused={paymentPaused}
           contactUrl={contactUrl}
+          clubSlug={clubSlug}
         />
       </div>
     </>

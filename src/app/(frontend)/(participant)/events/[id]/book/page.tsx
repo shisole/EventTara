@@ -164,10 +164,11 @@ export default async function BookEventPage({
 
   let paymentInfo: { gcash_number?: string; maya_number?: string; facebook_url?: string } | null =
     null;
+  let clubSlug: string | null = null;
   if ((hasNonZeroPrice || event.payment_paused) && event.club_id) {
     const { data: clubData } = await supabase
       .from("clubs")
-      .select("payment_info")
+      .select("payment_info, slug")
       .eq("id", event.club_id)
       .single();
     paymentInfo = clubData?.payment_info as {
@@ -175,6 +176,7 @@ export default async function BookEventPage({
       maya_number?: string;
       facebook_url?: string;
     } | null;
+    clubSlug = clubData?.slug ?? null;
   }
 
   // Resolve contact URL: event-level override > club facebook_url
@@ -206,6 +208,7 @@ export default async function BookEventPage({
           waiverText={event.waiver_text}
           paymentPaused={event.payment_paused}
           contactUrl={resolvedContactUrl}
+          clubSlug={clubSlug}
         />
       </div>
     </div>
