@@ -68,14 +68,12 @@ export async function GET(request: Request) {
           error: profileErr?.message,
         });
 
-        // Chain: /setup-avatar → /setup-username → destination (only if avatar shop enabled)
+        // Chain: /setup-avatar → /setup-username → destination
+        // Only show avatar picker for NEW users (no username yet) when avatar shop is enabled
         const avatarShopOn = await isAvatarShopEnabled();
-        if (avatarShopOn && !profile?.has_picked_avatar) {
-          const avatarNext = profile?.username
-            ? next
-            : `/setup-username?next=${encodeURIComponent(next)}`;
+        if (avatarShopOn && !profile?.has_picked_avatar && !profile?.username) {
           return NextResponse.redirect(
-            `${origin}/setup-avatar?next=${encodeURIComponent(avatarNext)}`,
+            `${origin}/setup-avatar?next=${encodeURIComponent(`/setup-username?next=${encodeURIComponent(next)}`)}`,
           );
         }
 
