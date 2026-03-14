@@ -340,6 +340,18 @@ export async function isNewLandingPageEnabled(): Promise<boolean> {
 }
 
 /**
+ * Returns whether the payment pause feature is enabled.
+ */
+export async function isPaymentPauseEnabled(): Promise<boolean> {
+  try {
+    const flags = await getCachedFeatureFlags();
+    return flags?.payment_pause === true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Parse footer sections from JSONB into typed array.
  */
 export function parseFooterSections(nav: CmsNavigation | null): CmsFooterSection[] {

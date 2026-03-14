@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import EventForm from "@/components/dashboard/EventForm";
 import { ChevronLeftIcon } from "@/components/icons";
+import { isPaymentPauseEnabled } from "@/lib/cms/cached";
 import { BreadcrumbTitle } from "@/lib/contexts/BreadcrumbContext";
 import { createClient } from "@/lib/supabase/server";
 
@@ -76,6 +77,8 @@ export default async function ClubEditEventPage({
     }
   }
 
+  const paymentPauseFlag = await isPaymentPauseEnabled();
+
   const eventsBase = `/dashboard/clubs/${slug}/events`;
 
   return (
@@ -91,6 +94,7 @@ export default async function ClubEditEventPage({
       <h1 className="text-2xl font-heading font-bold mb-8 dark:text-white">Edit Event</h1>
       <EventForm
         mode="edit"
+        paymentPauseEnabled={paymentPauseFlag}
         initialData={{
           id: event.id,
           title: event.title,
@@ -109,6 +113,8 @@ export default async function ClubEditEventPage({
           difficulty_level: event.difficulty_level,
           waiver_text: event.waiver_text,
           members_only: event.members_only,
+          payment_paused: event.payment_paused,
+          contact_url: event.contact_url,
         }}
       />
     </div>
