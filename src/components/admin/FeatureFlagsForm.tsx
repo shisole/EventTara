@@ -81,6 +81,11 @@ const FLAG_META: Record<string, { label: string; description: string }> = {
     label: "New Landing Page",
     description: "Enable the redesigned landing page at / with improved layout and features.",
   },
+  payment_pause: {
+    label: "Payment Pause",
+    description:
+      "Allow organizers to pause online payments per event. Participants reserve spots and pay later.",
+  },
 };
 
 export default function FeatureFlagsForm() {

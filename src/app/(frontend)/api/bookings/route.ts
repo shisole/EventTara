@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { isPaymentPauseEnabled } from "@/lib/cms/cached";
 import { sendEmail } from "@/lib/email/send";
 import { bookingConfirmationHtml } from "@/lib/email/templates/booking-confirmation";
 import { findOverlappingEvent, formatOverlapDate } from "@/lib/events/overlap";
@@ -216,7 +217,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Please add at least one companion" }, { status: 400 });
   }
 
-  const isPaymentPaused = event.payment_paused;
+  const paymentPauseFlagEnabled = await isPaymentPauseEnabled();
+  const isPaymentPaused = paymentPauseFlagEnabled && event.payment_paused;
   const isFree = !isPaymentPaused && (event.price === 0 || paymentMethod === "free");
   const isEwallet = !isPaymentPaused && (paymentMethod === "gcash" || paymentMethod === "maya");
   const isCash = !isPaymentPaused && paymentMethod === "cash";

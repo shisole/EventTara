@@ -2,10 +2,13 @@ import Link from "next/link";
 
 import EventForm from "@/components/dashboard/EventForm";
 import { ChevronLeftIcon } from "@/components/icons";
+import { isPaymentPauseEnabled } from "@/lib/cms/cached";
 
 export const metadata = { title: "Create Event — EventTara" };
 
-export default function NewEventPage() {
+export default async function NewEventPage() {
+  const paymentPauseFlag = await isPaymentPauseEnabled();
+
   return (
     <div className="max-w-2xl mx-auto">
       <Link
@@ -16,7 +19,7 @@ export default function NewEventPage() {
         Back to Events
       </Link>
       <h1 className="text-2xl font-heading font-bold mb-8 dark:text-white">Create New Event</h1>
-      <EventForm mode="create" />
+      <EventForm mode="create" paymentPauseEnabled={paymentPauseFlag} />
     </div>
   );
 }

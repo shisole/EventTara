@@ -1068,6 +1068,7 @@ export interface Database {
           duck_race: boolean;
           avatar_shop_enabled: boolean;
           new_landing_page: boolean;
+          payment_pause: boolean;
         };
         Insert: {
           id?: number;
@@ -1088,6 +1089,7 @@ export interface Database {
           duck_race?: boolean;
           avatar_shop_enabled?: boolean;
           new_landing_page?: boolean;
+          payment_pause?: boolean;
         };
         Update: {
           id?: number;
@@ -1108,6 +1110,7 @@ export interface Database {
           duck_race?: boolean;
           avatar_shop_enabled?: boolean;
           new_landing_page?: boolean;
+          payment_pause?: boolean;
         };
         Relationships: [];
       };

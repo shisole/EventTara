@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import EventForm from "@/components/dashboard/EventForm";
 import { ChevronLeftIcon } from "@/components/icons";
+import { isPaymentPauseEnabled } from "@/lib/cms/cached";
 import { BreadcrumbTitle } from "@/lib/contexts/BreadcrumbContext";
 import { createClient } from "@/lib/supabase/server";
 
@@ -72,6 +73,8 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
     }
   }
 
+  const paymentPauseFlag = await isPaymentPauseEnabled();
+
   return (
     <div className="max-w-2xl mx-auto">
       <BreadcrumbTitle title={event.title} />
@@ -85,6 +88,7 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
       <h1 className="text-2xl font-heading font-bold mb-8 dark:text-white">Edit Event</h1>
       <EventForm
         mode="edit"
+        paymentPauseEnabled={paymentPauseFlag}
         initialData={{
           id: event.id,
           title: event.title,

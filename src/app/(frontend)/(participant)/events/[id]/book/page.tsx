@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 
 import BookingPageClient from "@/components/booking/BookingPageClient";
 import { Breadcrumbs } from "@/components/ui";
+import { isPaymentPauseEnabled } from "@/lib/cms/cached";
 import { BreadcrumbTitle } from "@/lib/contexts/BreadcrumbContext";
 import { createClient } from "@/lib/supabase/server";
 
@@ -159,13 +160,17 @@ export default async function BookEventPage({
   });
   const spotsLeft = event.max_participants - (totalParticipants || 0);
 
+  // Gate payment_paused behind feature flag
+  const paymentPauseFlagEnabled = await isPaymentPauseEnabled();
+  const effectivePaymentPaused = paymentPauseFlagEnabled && event.payment_paused;
+
   // Fetch payment info from club
   const hasNonZeroPrice = event.price > 0 || (distancesWithSpots ?? []).some((d) => d.price > 0);
 
   let paymentInfo: { gcash_number?: string; maya_number?: string; facebook_url?: string } | null =
     null;
   let clubSlug: string | null = null;
-  if ((hasNonZeroPrice || event.payment_paused) && event.club_id) {
+  if ((hasNonZeroPrice || effectivePaymentPaused) && event.club_id) {
     const { data: clubData } = await supabase
       .from("clubs")
       .select("payment_info, slug")
@@ -180,7 +185,7 @@ export default async function BookEventPage({
   }
 
   // Resolve contact URL: event-level override > club facebook_url
-  const resolvedContactUrl = event.payment_paused
+  const resolvedContactUrl = effectivePaymentPaused
     ? event.contact_url || paymentInfo?.facebook_url || null
     : null;
 
@@ -206,7 +211,7 @@ export default async function BookEventPage({
           distances={distancesWithSpots}
           mode={mode}
           waiverText={event.waiver_text}
-          paymentPaused={event.payment_paused}
+          paymentPaused={effectivePaymentPaused}
           contactUrl={resolvedContactUrl}
           clubSlug={clubSlug}
         />
