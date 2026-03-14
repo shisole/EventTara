@@ -173,7 +173,7 @@ class StravaApiClient {
   }
 
   /** Get a route by ID. */
-  async getRoute(routeId: number): Promise<StravaRoute> {
+  async getRoute(routeId: string | number): Promise<StravaRoute> {
     return this.request<StravaRoute>(`/routes/${String(routeId)}`);
   }
 

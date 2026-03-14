@@ -1237,7 +1237,7 @@ export interface Database {
         Row: {
           id: string;
           event_id: string;
-          strava_route_id: number | null;
+          strava_route_id: string | null;
           gpx_url: string | null;
           source: "strava" | "gpx";
           name: string;
@@ -1249,7 +1249,7 @@ export interface Database {
         Insert: {
           id?: string;
           event_id: string;
-          strava_route_id?: number | null;
+          strava_route_id?: string | null;
           gpx_url?: string | null;
           source: "strava" | "gpx";
           name: string;
@@ -1261,7 +1261,7 @@ export interface Database {
         Update: {
           id?: string;
           event_id?: string;
-          strava_route_id?: number | null;
+          strava_route_id?: string | null;
           gpx_url?: string | null;
           source?: "strava" | "gpx";
           name?: string;
