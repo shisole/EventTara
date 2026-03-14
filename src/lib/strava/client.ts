@@ -237,3 +237,40 @@ export async function getStravaClient(userId: string): Promise<StravaApiClient> 
     data.strava_athlete_id,
   );
 }
+
+/**
+ * Try to get a Strava client for the given user, falling back to any
+ * available Strava connection in the system. Useful for fetching public
+ * resources (e.g. routes) when the current user has no Strava connection.
+ *
+ * @throws If no Strava connections exist at all.
+ */
+export async function getStravaClientWithFallback(userId: string): Promise<StravaApiClient> {
+  try {
+    return await getStravaClient(userId);
+  } catch {
+    // Fall back to any available connection
+    const supabase = createServiceClient();
+
+    const { data, error } = await supabase
+      .from("strava_connections")
+      .select("user_id, access_token, refresh_token, expires_at, strava_athlete_id")
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .single();
+
+    if (error) {
+      throw new Error("[Strava] No Strava connections available in the system");
+    }
+
+    const expiresAtUnix = Math.floor(new Date(data.expires_at).getTime() / 1000);
+
+    return new StravaApiClient(
+      data.access_token,
+      data.refresh_token,
+      expiresAtUnix,
+      data.user_id,
+      data.strava_athlete_id,
+    );
+  }
+}

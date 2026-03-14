@@ -2,7 +2,7 @@ import { encode } from "@mapbox/polyline";
 import { type NextRequest, NextResponse } from "next/server";
 
 import { checkClubPermissionServer, CLUB_PERMISSIONS } from "@/lib/clubs/permissions";
-import { getStravaClient } from "@/lib/strava/client";
+import { getStravaClientWithFallback } from "@/lib/strava/client";
 import { parseGPX } from "@/lib/strava/gpx";
 import { createClient } from "@/lib/supabase/server";
 
@@ -107,7 +107,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     // Fetch route data from Strava API
     let stravaRoute;
     try {
-      const client = await getStravaClient(user.id);
+      const client = await getStravaClientWithFallback(user.id);
       stravaRoute = await client.getRoute(routeId);
     } catch (error_) {
       const message = error_ instanceof Error ? error_.message : "Failed to fetch Strava route";
