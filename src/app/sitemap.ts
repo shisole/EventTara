@@ -43,17 +43,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { data: guides },
     { data: clubs },
   ] = await Promise.all([
-    // Published events
+    // Published events (only from public clubs)
     supabase
       .from("events")
-      .select("id, created_at")
+      .select("id, created_at, clubs!inner(id)")
       .eq("status", "published")
+      .eq("clubs.visibility", "public")
       .order("created_at", { ascending: false }),
-    // Completed events (still indexable)
+    // Completed events (only from public clubs, still indexable)
     supabase
       .from("events")
-      .select("id, created_at")
+      .select("id, created_at, clubs!inner(id)")
       .eq("status", "completed")
+      .eq("clubs.visibility", "public")
       .order("created_at", { ascending: false }),
     // User profiles
     supabase.from("users").select("username, created_at").not("username", "is", null),

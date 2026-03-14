@@ -49,6 +49,62 @@ export default async function ClubProfilePage({ params }: { params: Promise<{ sl
     data: { user },
   } = await supabase.auth.getUser();
 
+  // Private club gate — non-members see a limited view
+  if (club.visibility === "private") {
+    let isMember = false;
+    if (user) {
+      const { data: mem } = await supabase
+        .from("club_members")
+        .select("id")
+        .eq("club_id", club.id)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      isMember = !!mem;
+    }
+
+    if (!isMember) {
+      return (
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-0 pb-8 space-y-8">
+          <ClubProfileHeader
+            name={club.name}
+            slug={club.slug}
+            description={null}
+            logo_url={club.logo_url}
+            cover_url={club.cover_url}
+            activity_types={club.activity_types ?? []}
+            visibility={club.visibility}
+            location={club.location}
+            member_count={0}
+            event_count={0}
+            currentUserId={user?.id ?? null}
+            currentMembership={null}
+          />
+          <div className="text-center py-16 bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30">
+            <svg
+              className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-3"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
+              />
+            </svg>
+            <p className="text-gray-700 dark:text-gray-300 font-heading font-bold text-lg">
+              This club is private
+            </p>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
+              Only members can see events, discussions, and member lists
+            </p>
+          </div>
+        </div>
+      );
+    }
+  }
+
   // Fetch counts, members, events, and current membership in parallel
   const today = new Date().toISOString().split("T")[0];
 

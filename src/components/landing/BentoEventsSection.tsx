@@ -32,12 +32,13 @@ export default async function BentoEventsSection() {
   const now = new Date().toISOString();
   const today = now.split("T")[0];
 
-  // Try featured events first
+  // Try featured events first (only from public clubs)
   const { data: featuredEvents } = await supabase
     .from("events")
-    .select("*, bookings(count), clubs(name)")
+    .select("*, bookings(count), clubs!inner(name)")
     .eq("status", "published")
     .eq("is_featured", true)
+    .eq("clubs.visibility", "public")
     .gte("date", now)
     .order("date", { ascending: true })
     .limit(10);
@@ -49,8 +50,9 @@ export default async function BentoEventsSection() {
   if (!featuredEvents || featuredEvents.length === 0) {
     const { data: upcomingEvents } = await supabase
       .from("events")
-      .select("*, bookings(count), clubs(name)")
+      .select("*, bookings(count), clubs!inner(name)")
       .eq("status", "published")
+      .eq("clubs.visibility", "public")
       .gte("date", now)
       .order("date", { ascending: true })
       .limit(10);
@@ -60,11 +62,12 @@ export default async function BentoEventsSection() {
 
   if (!events || events.length === 0) return <ComingSoonPlaceholder />;
 
-  // Count total upcoming for mobile "+N more" card
+  // Count total upcoming for mobile "+N more" card (only public clubs)
   const { count: totalUpcoming } = await supabase
     .from("events")
-    .select("*", { count: "exact", head: true })
+    .select("id, clubs!inner(id)", { count: "exact", head: true })
     .eq("status", "published")
+    .eq("clubs.visibility", "public")
     .gte("date", now);
 
   const enrichments = await fetchEventEnrichments(supabase, events);

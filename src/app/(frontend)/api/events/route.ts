@@ -29,17 +29,19 @@ export async function GET(request: NextRequest) {
   const supabase = await createClient();
   const today = new Date().toISOString().split("T")[0];
 
-  // Count query
+  // Count query (inner join clubs to exclude private club events)
   let countQuery = supabase
     .from("events")
-    .select("id", { count: "exact", head: true })
-    .in("status", ["published", "completed"]);
+    .select("id, clubs!inner(id)", { count: "exact", head: true })
+    .in("status", ["published", "completed"])
+    .eq("clubs.visibility", "public");
 
-  // Data query
+  // Data query (inner join clubs to exclude private club events)
   let dataQuery = supabase
     .from("events")
-    .select("*, bookings(count), clubs(id, name, slug, logo_url)")
-    .in("status", ["published", "completed"]);
+    .select("*, bookings(count), clubs!inner(id, name, slug, logo_url)")
+    .in("status", ["published", "completed"])
+    .eq("clubs.visibility", "public");
 
   // Apply filters to both queries
   switch (when) {

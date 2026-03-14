@@ -54,7 +54,7 @@ export async function GET(request: Request) {
     supabase
       .from("bookings")
       .select(
-        "id, user_id, booked_at, status, events(title, cover_image_url), users!inner(is_guest)",
+        "id, user_id, booked_at, status, events(title, cover_image_url, clubs(visibility)), users!inner(is_guest)",
       )
       .in("status", ["pending", "confirmed"])
       .eq("users.is_guest", false)
@@ -62,7 +62,9 @@ export async function GET(request: Request) {
       .limit(fetchLimit),
     supabase
       .from("event_checkins")
-      .select("id, user_id, checked_in_at, events(title, cover_image_url), users!inner(is_guest)")
+      .select(
+        "id, user_id, checked_in_at, events(title, cover_image_url, clubs(visibility)), users!inner(is_guest)",
+      )
       .eq("users.is_guest", false)
       .order("checked_in_at", { ascending: false })
       .limit(fetchLimit),
@@ -85,7 +87,7 @@ export async function GET(request: Request) {
     supabase
       .from("event_reviews")
       .select(
-        "id, user_id, rating, text, created_at, events(title, cover_image_url), users!inner(is_guest)",
+        "id, user_id, rating, text, created_at, events(title, cover_image_url, clubs(visibility)), users!inner(is_guest)",
       )
       .eq("users.is_guest", false)
       .order("created_at", { ascending: false })
@@ -121,6 +123,8 @@ export async function GET(request: Request) {
 
   for (const b of bookings || []) {
     const event = b.events as any;
+    // Skip events from private clubs
+    if (event?.clubs?.visibility === "private") continue;
     activities.push({
       id: b.id,
       activityType: "booking",
@@ -136,6 +140,8 @@ export async function GET(request: Request) {
 
   for (const c of checkins || []) {
     const event = c.events as any;
+    // Skip events from private clubs
+    if (event?.clubs?.visibility === "private") continue;
     activities.push({
       id: c.id,
       activityType: "checkin",
@@ -188,6 +194,8 @@ export async function GET(request: Request) {
 
   for (const r of reviews || []) {
     const event = r.events as any;
+    // Skip events from private clubs
+    if (event?.clubs?.visibility === "private") continue;
     activities.push({
       id: r.id,
       activityType: "review",
