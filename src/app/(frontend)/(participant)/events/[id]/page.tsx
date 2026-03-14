@@ -133,6 +133,19 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
     userBooking = existingBooking;
   }
 
+  // Check membership for members-only events
+  const isMembersOnly = event.members_only;
+  let isMember = false;
+  if (isMembersOnly && authUser && club) {
+    const { data: membership } = await supabase
+      .from("club_members")
+      .select("id")
+      .eq("club_id", club.id)
+      .eq("user_id", authUser.id)
+      .maybeSingle();
+    isMember = !!membership;
+  }
+
   const eventBadges = badgeData || [];
   let earnedBadgeIds = new Set<string>();
 
@@ -526,6 +539,10 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
                 price={event.price}
                 isPast={event.status === "completed"}
                 userBooking={userBooking}
+                membersOnly={isMembersOnly}
+                isMember={isMember}
+                clubSlug={club?.slug}
+                clubName={club?.name}
               />
             </div>
           </div>

@@ -13,18 +13,11 @@ export async function GET(request: NextRequest) {
 
   const supabase = await createClient();
 
-  // Count query
-  let countQuery = supabase
-    .from("clubs")
-    .select("id", { count: "exact", head: true })
-    .eq("visibility", "public");
+  // Count query (all clubs are discoverable, including private)
+  let countQuery = supabase.from("clubs").select("id", { count: "exact", head: true });
 
   // Data query
-  let dataQuery = supabase
-    .from("clubs")
-    .select("*")
-    .eq("visibility", "public")
-    .order("created_at", { ascending: false });
+  let dataQuery = supabase.from("clubs").select("*").order("created_at", { ascending: false });
 
   if (search) {
     const pattern = `%${search.trim().replaceAll(/\s+/g, "%")}%`;

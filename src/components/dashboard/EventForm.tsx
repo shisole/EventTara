@@ -65,6 +65,7 @@ interface EventFormProps {
     difficulty_level?: number | null;
     initialDistances?: DistanceCategory[];
     waiver_text?: string | null;
+    members_only?: boolean;
   };
 }
 
@@ -483,6 +484,9 @@ export default function EventForm({ mode, clubId, initialData }: EventFormProps)
     setDifficultyLevel(maxDifficulty);
   }, [selectedMountains]);
 
+  // Members only state
+  const [membersOnly, setMembersOnly] = useState(initialData?.members_only ?? false);
+
   // Waiver state
   const [waiverEnabled, setWaiverEnabled] = useState(!!initialData?.waiver_text);
   const [waiverText, setWaiverText] = useState(initialData?.waiver_text ?? "");
@@ -592,6 +596,7 @@ export default function EventForm({ mode, clubId, initialData }: EventFormProps)
       cover_image_url: coverImageUrl,
       difficulty_level: difficultyLevel,
       waiver_text: waiverEnabled ? waiverText : null,
+      members_only: membersOnly,
     };
 
     if (clubId) {
@@ -1176,6 +1181,19 @@ export default function EventForm({ mode, clubId, initialData }: EventFormProps)
                   placeholder="Write your waiver or liability release text..."
                 />
               )}
+            </div>
+
+            {/* Members Only Toggle */}
+            <div className="flex items-center justify-between">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Members Only
+                </label>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                  Only club members can book this event. It will still appear publicly with a badge.
+                </p>
+              </div>
+              <Toggle checked={membersOnly} onChange={setMembersOnly} id="members-only-toggle" />
             </div>
 
             {type === "hiking" && (

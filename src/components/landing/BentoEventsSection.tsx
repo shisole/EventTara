@@ -63,7 +63,7 @@ export default async function BentoEventsSection() {
   // Count total upcoming for mobile "+N more" card
   const { count: totalUpcoming } = await supabase
     .from("events")
-    .select("*", { count: "exact", head: true })
+    .select("id", { count: "exact", head: true })
     .eq("status", "published")
     .gte("date", now);
 

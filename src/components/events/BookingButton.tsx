@@ -10,6 +10,10 @@ interface BookingButtonProps {
   price: number;
   isPast?: boolean;
   userBooking?: { id: string; status: string; payment_status: string } | null;
+  membersOnly?: boolean;
+  isMember?: boolean;
+  clubSlug?: string;
+  clubName?: string;
 }
 
 export default function BookingButton({
@@ -18,12 +22,34 @@ export default function BookingButton({
   price,
   isPast,
   userBooking,
+  membersOnly,
+  isMember,
+  clubSlug,
+  clubName,
 }: BookingButtonProps) {
   if (isPast) {
     return (
       <Button disabled className="w-full" size="lg">
         Event Ended
       </Button>
+    );
+  }
+
+  // Members-only gate: non-members see a join prompt instead of booking
+  if (membersOnly && !isMember) {
+    return (
+      <div className="space-y-3">
+        <Button disabled className="w-full" size="lg">
+          Members Only
+        </Button>
+        {clubSlug && (
+          <Link href={`/clubs/${clubSlug}`} className="block">
+            <Button variant="secondary" className="w-full" size="sm">
+              Join {clubName || "Club"} to Book
+            </Button>
+          </Link>
+        )}
+      </div>
     );
   }
 

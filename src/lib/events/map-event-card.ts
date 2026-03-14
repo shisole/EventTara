@@ -28,6 +28,7 @@ export interface EventCardData {
   hasRoute?: boolean;
   is_featured?: boolean;
   is_demo?: boolean;
+  members_only?: boolean;
 }
 
 export interface EventEnrichments {
@@ -141,5 +142,6 @@ export function mapEventToCard(
     hasRoute: enrichments.routeEventIds.has(event.id),
     is_featured: event.is_featured ?? false,
     is_demo: event.is_demo ?? false,
+    members_only: event.members_only ?? false,
   };
 }
