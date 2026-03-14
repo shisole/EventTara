@@ -66,6 +66,8 @@ interface EventFormProps {
     initialDistances?: DistanceCategory[];
     waiver_text?: string | null;
     members_only?: boolean;
+    payment_paused?: boolean;
+    contact_url?: string | null;
   };
 }
 
@@ -487,6 +489,10 @@ export default function EventForm({ mode, clubId, initialData }: EventFormProps)
   // Members only state
   const [membersOnly, setMembersOnly] = useState(initialData?.members_only ?? false);
 
+  // Payment pause state
+  const [paymentPaused, setPaymentPaused] = useState(initialData?.payment_paused ?? false);
+  const [contactUrl, setContactUrl] = useState(initialData?.contact_url ?? "");
+
   // Waiver state
   const [waiverEnabled, setWaiverEnabled] = useState(!!initialData?.waiver_text);
   const [waiverText, setWaiverText] = useState(initialData?.waiver_text ?? "");
@@ -597,6 +603,8 @@ export default function EventForm({ mode, clubId, initialData }: EventFormProps)
       difficulty_level: difficultyLevel,
       waiver_text: waiverEnabled ? waiverText : null,
       members_only: membersOnly,
+      payment_paused: paymentPaused,
+      contact_url: paymentPaused && contactUrl.trim() ? contactUrl.trim() : null,
     };
 
     if (clubId) {
@@ -1194,6 +1202,43 @@ export default function EventForm({ mode, clubId, initialData }: EventFormProps)
                 </p>
               </div>
               <Toggle checked={membersOnly} onChange={setMembersOnly} id="members-only-toggle" />
+            </div>
+
+            {/* Pause Payments Toggle */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Pause Payments
+                  </label>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    Participants reserve spots without paying online. They contact you directly to
+                    arrange payment.
+                  </p>
+                </div>
+                <Toggle
+                  checked={paymentPaused}
+                  onChange={setPaymentPaused}
+                  id="payment-paused-toggle"
+                />
+              </div>
+              {paymentPaused && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Contact URL{" "}
+                    <span className="font-normal text-gray-400 dark:text-gray-500">(optional)</span>
+                  </label>
+                  <Input
+                    value={contactUrl}
+                    onChange={(e) => setContactUrl(e.target.value)}
+                    placeholder="https://facebook.com/yourpage"
+                  />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Link shown to participants for arranging payment (e.g. Facebook page). Falls
+                    back to club Facebook URL if empty.
+                  </p>
+                </div>
+              )}
             </div>
 
             {type === "hiking" && (

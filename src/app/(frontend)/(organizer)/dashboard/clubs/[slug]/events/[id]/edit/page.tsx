@@ -109,6 +109,8 @@ export default async function ClubEditEventPage({
           difficulty_level: event.difficulty_level,
           waiver_text: event.waiver_text,
           members_only: event.members_only,
+          payment_paused: event.payment_paused,
+          contact_url: event.contact_url,
         }}
       />
     </div>

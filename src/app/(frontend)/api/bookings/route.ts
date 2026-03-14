@@ -62,7 +62,7 @@ export async function POST(request: Request) {
     waiverAcceptedAt = body.waiver_accepted_at || null;
   }
 
-  if (!eventId || !paymentMethod) {
+  if (!eventId) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
@@ -216,16 +216,26 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Please add at least one companion" }, { status: 400 });
   }
 
-  const isFree = event.price === 0 || paymentMethod === "free";
-  const isEwallet = paymentMethod === "gcash" || paymentMethod === "maya";
-  const isCash = paymentMethod === "cash";
+  const isPaymentPaused = event.payment_paused;
+  const isFree = !isPaymentPaused && (event.price === 0 || paymentMethod === "free");
+  const isEwallet = !isPaymentPaused && (paymentMethod === "gcash" || paymentMethod === "maya");
+  const isCash = !isPaymentPaused && paymentMethod === "cash";
+
+  // Validate payment method when not paused
+  if (!isPaymentPaused && !paymentMethod) {
+    return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+  }
 
   // Determine booking status and payment status
   let bookingStatus: "confirmed" | "pending";
   let paymentStatus: "paid" | "pending";
   let qrCode: string | null = null;
 
-  if (isFree) {
+  if (isPaymentPaused) {
+    bookingStatus = "pending";
+    paymentStatus = "pending";
+    qrCode = null;
+  } else if (isFree) {
     bookingStatus = "confirmed";
     paymentStatus = "paid";
     qrCode = `eventtara:checkin:${eventId}:${user.id}`;
@@ -249,7 +259,8 @@ export async function POST(request: Request) {
       .insert({
         event_id: eventId,
         user_id: user.id,
-        payment_method: isFree ? null : (paymentMethod as "gcash" | "maya" | "cash"),
+        payment_method:
+          isFree || isPaymentPaused ? null : (paymentMethod as "gcash" | "maya" | "cash"),
         qr_code: qrCode,
         status: bookingStatus,
         payment_status: paymentStatus,

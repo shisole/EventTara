@@ -38,7 +38,7 @@ export default async function BookEventPage({
   const { data: event, error: eventError } = await supabase
     .from("events")
     .select(
-      "id, title, date, end_date, price, max_participants, club_id, waiver_text, members_only",
+      "id, title, date, end_date, price, max_participants, club_id, waiver_text, members_only, payment_paused, contact_url",
     )
     .eq("id", id)
     .eq("status", "published")
@@ -162,8 +162,9 @@ export default async function BookEventPage({
   // Fetch payment info from club
   const hasNonZeroPrice = event.price > 0 || (distancesWithSpots ?? []).some((d) => d.price > 0);
 
-  let paymentInfo: { gcash_number?: string; maya_number?: string } | null = null;
-  if (hasNonZeroPrice && event.club_id) {
+  let paymentInfo: { gcash_number?: string; maya_number?: string; facebook_url?: string } | null =
+    null;
+  if ((hasNonZeroPrice || event.payment_paused) && event.club_id) {
     const { data: clubData } = await supabase
       .from("clubs")
       .select("payment_info")
@@ -172,8 +173,14 @@ export default async function BookEventPage({
     paymentInfo = clubData?.payment_info as {
       gcash_number?: string;
       maya_number?: string;
+      facebook_url?: string;
     } | null;
   }
+
+  // Resolve contact URL: event-level override > club facebook_url
+  const resolvedContactUrl = event.payment_paused
+    ? event.contact_url || paymentInfo?.facebook_url || null
+    : null;
 
   const mode = isFriendMode && existingBooking ? "friend" : "self";
 
@@ -197,6 +204,8 @@ export default async function BookEventPage({
           distances={distancesWithSpots}
           mode={mode}
           waiverText={event.waiver_text}
+          paymentPaused={event.payment_paused}
+          contactUrl={resolvedContactUrl}
         />
       </div>
     </div>

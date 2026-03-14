@@ -327,6 +327,8 @@ export async function POST(request: Request) {
       difficulty_level: body.difficulty_level ?? null,
       waiver_text: body.waiver_text ?? null,
       members_only: body.members_only ?? false,
+      payment_paused: body.payment_paused ?? false,
+      contact_url: body.contact_url ?? null,
       status: "draft",
     })
     .select()

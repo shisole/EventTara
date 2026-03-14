@@ -67,6 +67,8 @@ export interface Database {
           is_featured: boolean;
           is_demo: boolean;
           members_only: boolean;
+          payment_paused: boolean;
+          contact_url: string | null;
           waiver_text: string | null;
           created_at: string;
         };
@@ -88,6 +90,8 @@ export interface Database {
           is_featured?: boolean;
           is_demo?: boolean;
           members_only?: boolean;
+          payment_paused?: boolean;
+          contact_url?: string | null;
           waiver_text?: string | null;
           created_at?: string;
         };
@@ -109,6 +113,8 @@ export interface Database {
           is_featured?: boolean;
           is_demo?: boolean;
           members_only?: boolean;
+          payment_paused?: boolean;
+          contact_url?: string | null;
           waiver_text?: string | null;
           created_at?: string;
         };

@@ -513,6 +513,14 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
               </div>
             )}
 
+            {event.payment_paused && event.price > 0 && (
+              <div className="text-center">
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 px-3 py-1 text-xs font-medium text-amber-700 dark:text-amber-300">
+                  Payments offline &mdash; reserve &amp; pay later
+                </span>
+              </div>
+            )}
+
             <LiveBookingCount
               eventId={id}
               maxParticipants={event.max_participants}

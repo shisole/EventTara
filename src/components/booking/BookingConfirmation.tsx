@@ -23,6 +23,8 @@ interface BookingConfirmationProps {
   paymentMethod?: string;
   companions?: CompanionConfirmation[];
   mode?: "self" | "friend";
+  paymentPaused?: boolean;
+  contactUrl?: string | null;
 }
 
 export default function BookingConfirmation({
@@ -35,8 +37,11 @@ export default function BookingConfirmation({
   paymentMethod,
   companions = [],
   mode = "self",
+  paymentPaused,
+  contactUrl,
 }: BookingConfirmationProps) {
-  const isPendingEwallet = paymentStatus === "pending" && paymentMethod !== "cash";
+  const isPendingEwallet =
+    paymentStatus === "pending" && paymentMethod !== "cash" && !paymentPaused;
   const isPendingCash = paymentStatus === "pending" && paymentMethod === "cash";
   const isFriendMode = mode === "friend";
   const hasFired = useRef(false);
@@ -107,7 +112,65 @@ export default function BookingConfirmation({
 
   return (
     <div className="text-center space-y-6">
-      {isPendingEwallet ? (
+      {paymentPaused ? (
+        <>
+          <div className="text-5xl">{isFriendMode ? "👥" : "🎉"}</div>
+          <h2 className="text-2xl font-heading font-bold">
+            {isFriendMode ? "Friends Registered!" : "Spot Reserved!"}
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400">
+            {isFriendMode ? (
+              <>
+                Spots for your companions at <span className="font-semibold">{eventTitle}</span> are
+                reserved.
+              </>
+            ) : (
+              <>
+                Your spot for <span className="font-semibold">{eventTitle}</span> is reserved.
+              </>
+            )}
+          </p>
+          <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+            <p className="text-sm text-amber-700 dark:text-amber-300">
+              Contact the organizer directly to arrange payment. Your booking will be confirmed once
+              payment is verified.
+            </p>
+          </div>
+          {contactUrl && (
+            <a
+              href={contactUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-6 py-3 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-300 dark:hover:bg-blue-950/50"
+            >
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                />
+              </svg>
+              Contact Organizer
+            </a>
+          )}
+          {companions.length > 0 && (
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
+              <p className="text-sm font-medium mb-2">Companions registered:</p>
+              <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                {companions.map((c, i) => (
+                  <li key={i}>{c.full_name}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </>
+      ) : isPendingEwallet ? (
         <>
           <div className="text-5xl">{isFriendMode ? "👥" : "✉️"}</div>
           <h2 className="text-2xl font-heading font-bold">

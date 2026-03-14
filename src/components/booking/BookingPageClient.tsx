@@ -23,6 +23,8 @@ interface BookingPageClientProps {
   distances?: EventDistance[];
   mode: "self" | "friend";
   waiverText?: string | null;
+  paymentPaused?: boolean;
+  contactUrl?: string | null;
 }
 
 export default function BookingPageClient({
@@ -37,6 +39,8 @@ export default function BookingPageClient({
   distances,
   mode,
   waiverText,
+  paymentPaused,
+  contactUrl,
 }: BookingPageClientProps) {
   const [authenticated, setAuthenticated] = useState(initialAuth);
 
@@ -66,6 +70,8 @@ export default function BookingPageClient({
           distances={distances}
           mode={mode}
           waiverText={waiverText}
+          paymentPaused={paymentPaused}
+          contactUrl={contactUrl}
         />
       </div>
     </>
