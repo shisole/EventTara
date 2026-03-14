@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import BadgeAwarder from "@/components/dashboard/BadgeAwarder";
 import CompleteEventButton from "@/components/dashboard/CompleteEventButton";
 import CopyLinkButton from "@/components/dashboard/CopyLinkButton";
+import EmbedCodeButton from "@/components/dashboard/EmbedCodeButton";
 import EventDashboardTabs from "@/components/dashboard/EventDashboardTabs";
 import ParticipantsSection from "@/components/dashboard/ParticipantsSection";
 import PublishButton from "@/components/dashboard/PublishButton";
@@ -152,6 +153,7 @@ export default async function ClubEventDetailPage({
         </div>
         <div className="flex flex-wrap gap-3">
           <CopyLinkButton path={`/events/${id}`} />
+          <EmbedCodeButton eventId={id} eventTitle={event.title} />
           <Link href={`${eventsBase}/${id}/edit`}>
             <Button variant="outline">Edit</Button>
           </Link>
