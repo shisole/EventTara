@@ -46,12 +46,12 @@ interface GpxBody {
 
 type PostBody = StravaBody | GpxBody;
 
-/** Extract a numeric route ID from a Strava route URL. */
-function extractStravaRouteId(url: string): number | null {
+/** Extract the route ID string from a Strava route URL. */
+function extractStravaRouteId(url: string): string | null {
   // Supports: https://www.strava.com/routes/12345 or strava.com/routes/12345
   const match = /strava\.com\/routes\/(\d+)/i.exec(url);
   if (!match) return null;
-  return Number.parseInt(match[1], 10);
+  return match[1];
 }
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
