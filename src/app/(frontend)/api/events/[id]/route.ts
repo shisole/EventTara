@@ -113,6 +113,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       cover_image_url: body.cover_image_url,
       ...(body.difficulty_level !== undefined && { difficulty_level: body.difficulty_level }),
       ...(body.waiver_text !== undefined && { waiver_text: body.waiver_text }),
+      ...(body.members_only !== undefined && { members_only: body.members_only }),
       ...(body.status && { status: body.status }),
     })
     .eq("id", id)

@@ -29,19 +29,17 @@ export async function GET(request: NextRequest) {
   const supabase = await createClient();
   const today = new Date().toISOString().split("T")[0];
 
-  // Count query (inner join clubs to exclude private club events)
+  // Count query
   let countQuery = supabase
     .from("events")
-    .select("id, clubs!inner(id)", { count: "exact", head: true })
-    .in("status", ["published", "completed"])
-    .eq("clubs.visibility", "public");
+    .select("id", { count: "exact", head: true })
+    .in("status", ["published", "completed"]);
 
-  // Data query (inner join clubs to exclude private club events)
+  // Data query
   let dataQuery = supabase
     .from("events")
-    .select("*, bookings(count), clubs!inner(id, name, slug, logo_url)")
-    .in("status", ["published", "completed"])
-    .eq("clubs.visibility", "public");
+    .select("*, bookings(count), clubs(id, name, slug, logo_url)")
+    .in("status", ["published", "completed"]);
 
   // Apply filters to both queries
   switch (when) {
@@ -328,6 +326,7 @@ export async function POST(request: Request) {
       cover_image_url: body.cover_image_url,
       difficulty_level: body.difficulty_level ?? null,
       waiver_text: body.waiver_text ?? null,
+      members_only: body.members_only ?? false,
       status: "draft",
     })
     .select()

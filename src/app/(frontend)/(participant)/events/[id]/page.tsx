@@ -28,15 +28,11 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const supabase = await createClient();
   const { data: event } = await supabase
     .from("events")
-    .select("title, description, type, cover_image_url, date, location, clubs(visibility)")
+    .select("title, description, type, cover_image_url, date, location")
     .eq("id", id)
     .single();
 
   if (!event) return { title: "Event Not Found" };
-
-  // Don't expose metadata for private club events
-  const metaClub = event.clubs as { visibility: string } | null;
-  if (metaClub?.visibility === "private") return { title: "Event Not Found" };
 
   const description = event.description
     ? event.description.slice(0, 160)
@@ -70,41 +66,15 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
   const { id } = await params;
   const supabase = await createClient();
 
-  // Fetch event with club (include visibility for access check)
+  // Fetch event with club
   const { data: event } = await supabase
     .from("events")
-    .select("*, clubs(id, name, slug, logo_url, visibility)")
+    .select("*, clubs(id, name, slug, logo_url)")
     .eq("id", id)
     .single();
 
   if (!event || (event.status !== "published" && event.status !== "completed")) {
     notFound();
-  }
-
-  // Gate private club events — only club members can view
-  const clubData = event.clubs as {
-    id: string;
-    name: string;
-    slug: string;
-    logo_url: string | null;
-    visibility: string;
-  } | null;
-  if (clubData?.visibility === "private") {
-    const {
-      data: { user: viewer },
-    } = await supabase.auth.getUser();
-    if (!viewer) {
-      notFound();
-    }
-    const { data: membership } = await supabase
-      .from("club_members")
-      .select("id")
-      .eq("club_id", clubData.id)
-      .eq("user_id", viewer.id)
-      .maybeSingle();
-    if (!membership) {
-      notFound();
-    }
   }
 
   // Fetch distance categories
@@ -161,6 +131,19 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
       .in("status", ["pending", "confirmed"])
       .single();
     userBooking = existingBooking;
+  }
+
+  // Check membership for members-only events
+  const isMembersOnly = event.members_only;
+  let isMember = false;
+  if (isMembersOnly && authUser && club) {
+    const { data: membership } = await supabase
+      .from("club_members")
+      .select("id")
+      .eq("club_id", club.id)
+      .eq("user_id", authUser.id)
+      .maybeSingle();
+    isMember = !!membership;
   }
 
   const eventBadges = badgeData || [];
@@ -556,6 +539,10 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
                 price={event.price}
                 isPast={event.status === "completed"}
                 userBooking={userBooking}
+                membersOnly={isMembersOnly}
+                isMember={isMember}
+                clubSlug={club?.slug}
+                clubName={club?.name}
               />
             </div>
           </div>

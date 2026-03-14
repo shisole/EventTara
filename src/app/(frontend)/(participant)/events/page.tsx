@@ -23,7 +23,6 @@ async function fetchClubOptions(
   const { data } = await supabase
     .from("clubs")
     .select("id, name, events!inner(id)")
-    .eq("visibility", "public")
     .eq("events.status", "published");
 
   if (!data) return [];
@@ -86,19 +85,17 @@ export default async function EventsPage({
   const supabase = await createClient();
   const today = new Date().toISOString().split("T")[0];
 
-  // Count query for total (inner join clubs to exclude private club events)
+  // Count query for total
   let countQuery = supabase
     .from("events")
-    .select("id, clubs!inner(id)", { count: "exact", head: true })
-    .in("status", ["published", "completed"])
-    .eq("clubs.visibility", "public");
+    .select("id", { count: "exact", head: true })
+    .in("status", ["published", "completed"]);
 
-  // Data query for first batch (inner join clubs to exclude private club events)
+  // Data query for first batch
   let dataQuery = supabase
     .from("events")
-    .select("*, bookings(count), clubs!inner(name, slug, logo_url)")
+    .select("*, bookings(count), clubs(name, slug, logo_url)")
     .in("status", ["published", "completed"])
-    .eq("clubs.visibility", "public")
     .order("date", { ascending: true });
 
   // Apply filters to both

@@ -102,6 +102,7 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
           initialMountains: initialMountains,
           difficulty_level: event.difficulty_level,
           waiver_text: event.waiver_text,
+          members_only: event.members_only,
         }}
       />
     </div>
