@@ -2,7 +2,7 @@ import { encode } from "@mapbox/polyline";
 import { type NextRequest, NextResponse } from "next/server";
 
 import { checkClubPermissionServer, CLUB_PERMISSIONS } from "@/lib/clubs/permissions";
-import { getStravaClientWithFallback } from "@/lib/strava/client";
+import { getStravaClient } from "@/lib/strava/client";
 import { parseGPX } from "@/lib/strava/gpx";
 import { createClient } from "@/lib/supabase/server";
 
@@ -104,14 +104,22 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       );
     }
 
-    // Fetch route data from Strava API
+    // Fetch route data from Strava API (requires user to have Strava connected)
     let stravaRoute;
     try {
-      const client = await getStravaClientWithFallback(user.id);
+      const client = await getStravaClient(user.id);
       stravaRoute = await client.getRoute(routeId);
     } catch (error_) {
       const message = error_ instanceof Error ? error_.message : "Failed to fetch Strava route";
-      return NextResponse.json({ error: message }, { status: 502 });
+      const isNoConnection = message.includes("No Strava connection");
+      return NextResponse.json(
+        {
+          error: isNoConnection
+            ? "Please connect your Strava account in Profile Settings to import routes."
+            : message,
+        },
+        { status: isNoConnection ? 400 : 502 },
+      );
     }
 
     // Pick the best polyline available
