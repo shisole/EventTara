@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import EventForm from "@/components/dashboard/EventForm";
 import { ChevronLeftIcon } from "@/components/icons";
+import { isPaymentPauseEnabled } from "@/lib/cms/cached";
 import { createClient } from "@/lib/supabase/server";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
@@ -34,7 +35,11 @@ export default async function ClubNewEventPage({ params }: { params: Promise<{ s
         Back to Events
       </Link>
       <h1 className="text-2xl font-heading font-bold mb-8 dark:text-white">Create New Event</h1>
-      <EventForm mode="create" clubId={club.id} />
+      <EventForm
+        mode="create"
+        clubId={club.id}
+        paymentPauseEnabled={await isPaymentPauseEnabled()}
+      />
     </div>
   );
 }

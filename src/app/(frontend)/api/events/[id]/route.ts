@@ -114,6 +114,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       ...(body.difficulty_level !== undefined && { difficulty_level: body.difficulty_level }),
       ...(body.waiver_text !== undefined && { waiver_text: body.waiver_text }),
       ...(body.members_only !== undefined && { members_only: body.members_only }),
+      ...(body.payment_paused !== undefined && { payment_paused: body.payment_paused }),
+      ...(body.contact_url !== undefined && { contact_url: body.contact_url }),
       ...(body.status && { status: body.status }),
     })
     .eq("id", id)

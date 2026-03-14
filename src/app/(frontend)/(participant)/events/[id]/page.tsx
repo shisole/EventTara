@@ -15,6 +15,7 @@ import ReviewForm from "@/components/reviews/ReviewForm";
 import ReviewList from "@/components/reviews/ReviewList";
 import EventRouteSection from "@/components/strava/EventRouteSection";
 import { Breadcrumbs, DemoBadge, UIBadge } from "@/components/ui";
+import { isPaymentPauseEnabled } from "@/lib/cms/cached";
 import { ACTIVITY_TYPE_LABELS } from "@/lib/constants/activity-types";
 import { resolvePresetImage } from "@/lib/constants/avatars";
 import { BreadcrumbTitle } from "@/lib/contexts/BreadcrumbContext";
@@ -292,6 +293,10 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
     }
   }
 
+  // Gate payment_paused behind feature flag
+  const paymentPauseFlagEnabled = await isPaymentPauseEnabled();
+  const effectivePaymentPaused = paymentPauseFlagEnabled && event.payment_paused;
+
   const spotsLeft = event.max_participants - bookingCount;
   const formattedDate = formatEventDate(event.date, event.end_date, {
     includeTime: true,
@@ -509,6 +514,14 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
               <div className="text-center">
                 <span className="text-3xl font-bold text-lime-600 dark:text-lime-400">
                   {event.price === 0 ? "Free" : `\u20B1${event.price.toLocaleString()}`}
+                </span>
+              </div>
+            )}
+
+            {effectivePaymentPaused && event.price > 0 && (
+              <div className="text-center">
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 px-3 py-1 text-xs font-medium text-amber-700 dark:text-amber-300">
+                  Payments offline &mdash; reserve &amp; pay later
                 </span>
               </div>
             )}

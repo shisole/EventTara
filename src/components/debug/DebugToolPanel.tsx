@@ -48,6 +48,7 @@ const FLAG_LABELS: Record<keyof Omit<CmsFeatureFlags, "id">, string> = {
   duck_race: "Duck Race",
   avatar_shop_enabled: "Avatar Shop",
   new_landing_page: "New Landing Page",
+  payment_pause: "Payment Pause",
 };
 
 type FlagKey = keyof Omit<CmsFeatureFlags, "id">;
@@ -71,6 +72,7 @@ const FLAG_KEYS: FlagKey[] = [
   "duck_race",
   "avatar_shop_enabled",
   "new_landing_page",
+  "payment_pause",
 ];
 
 /* ------------------------------------------------------------------ */
