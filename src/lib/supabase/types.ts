@@ -66,6 +66,7 @@ export interface Database {
           difficulty_level: number | null;
           is_featured: boolean;
           is_demo: boolean;
+          members_only: boolean;
           waiver_text: string | null;
           created_at: string;
         };
@@ -86,6 +87,7 @@ export interface Database {
           difficulty_level?: number | null;
           is_featured?: boolean;
           is_demo?: boolean;
+          members_only?: boolean;
           waiver_text?: string | null;
           created_at?: string;
         };
@@ -106,6 +108,7 @@ export interface Database {
           difficulty_level?: number | null;
           is_featured?: boolean;
           is_demo?: boolean;
+          members_only?: boolean;
           waiver_text?: string | null;
           created_at?: string;
         };

@@ -59,12 +59,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     supabase.from("users").select("username, created_at").not("username", "is", null),
     // Guides
     supabase.from("guides").select("id, created_at").order("created_at", { ascending: false }),
-    // Clubs
-    supabase
-      .from("clubs")
-      .select("slug, created_at")
-      .eq("visibility", "public")
-      .order("created_at", { ascending: false }),
+    // Clubs (all clubs are discoverable)
+    supabase.from("clubs").select("slug, created_at").order("created_at", { ascending: false }),
   ]);
 
   const eventPages: MetadataRoute.Sitemap = [...(events || []), ...(completedEvents || [])].map(

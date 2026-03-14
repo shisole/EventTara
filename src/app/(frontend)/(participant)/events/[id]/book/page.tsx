@@ -37,7 +37,9 @@ export default async function BookEventPage({
 
   const { data: event, error: eventError } = await supabase
     .from("events")
-    .select("id, title, date, end_date, price, max_participants, club_id, waiver_text")
+    .select(
+      "id, title, date, end_date, price, max_participants, club_id, waiver_text, members_only",
+    )
     .eq("id", id)
     .eq("status", "published")
     .single();
@@ -51,6 +53,23 @@ export default async function BookEventPage({
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  // Members-only gate: redirect non-members back to event page
+  if (event.members_only) {
+    let isMember = false;
+    if (user && event.club_id) {
+      const { data: membership } = await supabase
+        .from("club_members")
+        .select("id")
+        .eq("club_id", event.club_id)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      isMember = !!membership;
+    }
+    if (!isMember) {
+      redirect(`/events/${id}`);
+    }
+  }
 
   // Check if user already booked
   let existingBooking: { id: string } | null = null;

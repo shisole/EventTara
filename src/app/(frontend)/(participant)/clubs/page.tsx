@@ -69,18 +69,16 @@ export default async function ClubsPage() {
     myClubMemberCounts = {};
   }
 
-  // Fetch initial public clubs
+  // Fetch initial clubs (all clubs are discoverable, including private)
   const { data: clubs } = await supabase
     .from("clubs")
     .select("*")
-    .eq("visibility", "public")
     .order("created_at", { ascending: false })
     .range(0, 11);
 
   const { count: total } = await supabase
     .from("clubs")
-    .select("id", { count: "exact", head: true })
-    .eq("visibility", "public");
+    .select("id", { count: "exact", head: true });
 
   const clubList = clubs ?? [];
 
