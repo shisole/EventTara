@@ -114,7 +114,7 @@ export default function BookingForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (hasDistances && !selectedDistanceId) {
+    if (hasDistances && mode === "self" && !selectedDistanceId) {
       setError("Please select a distance category");
       return;
     }
@@ -256,7 +256,9 @@ export default function BookingForm({
         {(() => {
           const steps = [
             { label: "Event", done: true },
-            ...(hasDistances ? [{ label: "Distance", done: !!selectedDistanceId }] : []),
+            ...(hasDistances && mode === "self"
+              ? [{ label: "Distance", done: !!selectedDistanceId }]
+              : []),
             ...(paymentPaused || isFree ? [] : [{ label: "Payment", done: !!paymentMethod }]),
             ...(!paymentPaused && isEwallet ? [{ label: "Proof", done: !!proofFile }] : []),
             ...(hasWaiver ? [{ label: "Waiver", done: waiverAccepted }] : []),
@@ -297,7 +299,7 @@ export default function BookingForm({
           )}
         </div>
 
-        {hasDistances && (
+        {hasDistances && mode === "self" && (
           <div className="space-y-3">
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
               Select Distance

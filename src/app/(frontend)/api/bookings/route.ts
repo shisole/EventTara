@@ -94,22 +94,25 @@ export async function POST(request: Request) {
     .in("status", ["pending", "confirmed"]);
 
   if (userBookings && userBookings.length > 0) {
-    const bookedEventIds = userBookings.map((b) => b.event_id);
-    const { data: bookedEvents } = await supabase
-      .from("events")
-      .select("id, title, date, end_date")
-      .in("id", bookedEventIds)
-      .in("status", ["published"]);
+    const bookedEventIds = userBookings.map((b) => b.event_id).filter((id) => id !== eventId);
 
-    if (bookedEvents) {
-      const overlap = findOverlappingEvent(event.date, event.end_date, bookedEvents);
-      if (overlap) {
-        return NextResponse.json(
-          {
-            error: `You can't book this event — you already have "${overlap.title}" on ${formatOverlapDate(overlap.date, overlap.end_date)}. Cancel that booking first if you'd like to join this one instead.`,
-          },
-          { status: 409 },
-        );
+    if (bookedEventIds.length > 0) {
+      const { data: bookedEvents } = await supabase
+        .from("events")
+        .select("id, title, date, end_date")
+        .in("id", bookedEventIds)
+        .in("status", ["published"]);
+
+      if (bookedEvents) {
+        const overlap = findOverlappingEvent(event.date, event.end_date, bookedEvents);
+        if (overlap) {
+          return NextResponse.json(
+            {
+              error: `You can't book this event — you already have "${overlap.title}" on ${formatOverlapDate(overlap.date, overlap.end_date)}. Cancel that booking first if you'd like to join this one instead.`,
+            },
+            { status: 409 },
+          );
+        }
       }
     }
   }
