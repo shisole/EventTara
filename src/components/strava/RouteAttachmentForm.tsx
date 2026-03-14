@@ -193,6 +193,7 @@ export default function RouteAttachmentForm({
             </p>
           </div>
           <Button
+            type="button"
             size="sm"
             onClick={() => void handleSubmitStrava()}
             disabled={loading || !stravaUrl.trim()}
@@ -253,6 +254,7 @@ export default function RouteAttachmentForm({
             </div>
           </div>
           <Button
+            type="button"
             size="sm"
             onClick={() => void handleSubmitGpx()}
             disabled={loading || !gpxContent}
