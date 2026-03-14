@@ -110,8 +110,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       const client = await getStravaClientWithFallback(user.id);
       stravaRoute = await client.getRoute(routeId);
     } catch (error_) {
-      const message = error_ instanceof Error ? error_.message : "Failed to fetch Strava route";
-      return NextResponse.json({ error: message }, { status: 502 });
+      console.error("[route-data] Strava route fetch failed:", error_);
+      return NextResponse.json(
+        { error: "Failed to fetch route from Strava. Please check the URL and try again." },
+        { status: 502 },
+      );
     }
 
     // Pick the best polyline available
