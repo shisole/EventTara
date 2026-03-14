@@ -40,8 +40,11 @@ export default function ClubSettingsForm({ club, isOwner }: ClubSettingsFormProp
     typeof club.payment_info?.gcash_name === "string" ? club.payment_info.gcash_name : "";
   const gcashNumberValue: string =
     typeof club.payment_info?.gcash_number === "string" ? club.payment_info.gcash_number : "";
+  const facebookUrlValue: string =
+    typeof club.payment_info?.facebook_url === "string" ? club.payment_info.facebook_url : "";
   const [gcashName, setGcashName] = useState(gcashNameValue);
   const [gcashNumber, setGcashNumber] = useState(gcashNumberValue);
+  const [facebookUrl, setFacebookUrl] = useState(facebookUrlValue);
 
   function toggleActivity(type: string) {
     setActivityTypes((prev) =>
@@ -68,6 +71,7 @@ export default function ClubSettingsForm({ club, isOwner }: ClubSettingsFormProp
       payload.payment_info = {
         gcash_name: gcashName.trim() || null,
         gcash_number: gcashNumber.trim() || null,
+        facebook_url: facebookUrl.trim() || null,
       };
     }
 
@@ -216,6 +220,20 @@ export default function ClubSettingsForm({ club, isOwner }: ClubSettingsFormProp
                 onChange={(e) => setGcashNumber(e.target.value)}
                 placeholder="09XX XXX XXXX"
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Facebook URL
+              </label>
+              <Input
+                value={facebookUrl}
+                onChange={(e) => setFacebookUrl(e.target.value)}
+                placeholder="https://facebook.com/yourpage"
+              />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Used as fallback contact link when event payments are paused.
+              </p>
             </div>
           </div>
         )}

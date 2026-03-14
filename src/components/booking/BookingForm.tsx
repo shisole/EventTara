@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useState } from "react";
 
 import { Button } from "@/components/ui";
@@ -38,6 +39,9 @@ interface BookingFormProps {
   distances?: EventDistance[];
   mode?: "self" | "friend";
   waiverText?: string | null;
+  paymentPaused?: boolean;
+  contactUrl?: string | null;
+  clubSlug?: string | null;
 }
 
 export default function BookingForm({
@@ -51,6 +55,9 @@ export default function BookingForm({
   distances,
   mode = "self",
   waiverText,
+  paymentPaused,
+  contactUrl,
+  clubSlug,
 }: BookingFormProps) {
   const [paymentMethod, setPaymentMethod] = useState("");
   const [proofFile, setProofFile] = useState<File | null>(null);
@@ -107,7 +114,7 @@ export default function BookingForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (hasDistances && !selectedDistanceId) {
+    if (hasDistances && mode === "self" && !selectedDistanceId) {
       setError("Please select a distance category");
       return;
     }
@@ -135,12 +142,12 @@ export default function BookingForm({
       return;
     }
 
-    if (!isFree && !paymentMethod) {
+    if (!paymentPaused && !isFree && !paymentMethod) {
       setError("Please select a payment method");
       return;
     }
 
-    if (isEwallet && !proofFile) {
+    if (!paymentPaused && isEwallet && !proofFile) {
       setError("Please upload your payment screenshot");
       return;
     }
@@ -156,7 +163,21 @@ export default function BookingForm({
         event_distance_id: c.event_distance_id || null,
       }));
 
-      if (isEwallet && proofFile) {
+      if (paymentPaused) {
+        res = await fetch("/api/bookings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            event_id: eventId,
+            payment_method: null,
+            mode,
+            event_distance_id: selectedDistanceId || undefined,
+            companions: companionData.length > 0 ? companionData : undefined,
+            participant_notes: participantNotes.trim() || null,
+            waiver_accepted_at: waiverAccepted ? new Date().toISOString() : null,
+          }),
+        });
+      } else if (isEwallet && proofFile) {
         const formData = new FormData();
         formData.append("event_id", eventId);
         formData.append("payment_method", paymentMethod);
@@ -221,6 +242,9 @@ export default function BookingForm({
         paymentMethod={booking.payment_method ?? undefined}
         companions={booking.companions}
         mode={mode}
+        paymentPaused={paymentPaused}
+        contactUrl={contactUrl}
+        clubSlug={clubSlug}
       />
     );
   }
@@ -232,9 +256,11 @@ export default function BookingForm({
         {(() => {
           const steps = [
             { label: "Event", done: true },
-            ...(hasDistances ? [{ label: "Distance", done: !!selectedDistanceId }] : []),
-            ...(isFree ? [] : [{ label: "Payment", done: !!paymentMethod }]),
-            ...(isEwallet ? [{ label: "Proof", done: !!proofFile }] : []),
+            ...(hasDistances && mode === "self"
+              ? [{ label: "Distance", done: !!selectedDistanceId }]
+              : []),
+            ...(paymentPaused || isFree ? [] : [{ label: "Payment", done: !!paymentMethod }]),
+            ...(!paymentPaused && isEwallet ? [{ label: "Proof", done: !!proofFile }] : []),
             ...(hasWaiver ? [{ label: "Waiver", done: waiverAccepted }] : []),
           ];
           const completed = steps.filter((s) => s.done).length;
@@ -273,7 +299,7 @@ export default function BookingForm({
           )}
         </div>
 
-        {hasDistances && (
+        {hasDistances && mode === "self" && (
           <div className="space-y-3">
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
               Select Distance
@@ -387,25 +413,74 @@ export default function BookingForm({
           />
         )}
 
-        {!isFree && <PaymentMethodPicker selected={paymentMethod} onSelect={setPaymentMethod} />}
-
-        {isEwallet && paymentInfo && (
-          <PaymentInstructions
-            method={paymentMethod}
-            paymentInfo={paymentInfo}
-            amount={totalPrice}
-          />
-        )}
-
-        {isEwallet && <PaymentProofUpload file={proofFile} onFileChange={setProofFile} />}
-
-        {isCash && (
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              You&apos;ll pay <strong>₱{totalPrice.toLocaleString()}</strong> in cash on the event
-              day. Your spot will be reserved.
-            </p>
+        {paymentPaused ? (
+          <div className="space-y-3">
+            <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+              <p className="text-sm font-medium text-amber-700 dark:text-amber-300 mb-1">
+                Online payments are not yet available for this event.
+              </p>
+              <p className="text-sm text-amber-600 dark:text-amber-400">
+                Reserve your spot now and contact the organizer directly to arrange payment.
+              </p>
+            </div>
+            {contactUrl ? (
+              <a
+                href={contactUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 w-full rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-300 dark:hover:bg-blue-950/50"
+              >
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                  />
+                </svg>
+                Contact Organizer
+              </a>
+            ) : (
+              clubSlug && (
+                <Link
+                  href={`/clubs/${clubSlug}`}
+                  className="flex items-center justify-center gap-2 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                >
+                  Visit the club page for contact details
+                </Link>
+              )
+            )}
           </div>
+        ) : (
+          <>
+            {!isFree && (
+              <PaymentMethodPicker selected={paymentMethod} onSelect={setPaymentMethod} />
+            )}
+
+            {isEwallet && paymentInfo && (
+              <PaymentInstructions
+                method={paymentMethod}
+                paymentInfo={paymentInfo}
+                amount={totalPrice}
+              />
+            )}
+
+            {isEwallet && <PaymentProofUpload file={proofFile} onFileChange={setProofFile} />}
+
+            {isCash && (
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  You&apos;ll pay <strong>₱{totalPrice.toLocaleString()}</strong> in cash on the
+                  event day. Your spot will be reserved.
+                </p>
+              </div>
+            )}
+          </>
         )}
 
         {/* Participant Notes */}
@@ -472,13 +547,15 @@ export default function BookingForm({
         >
           {loading
             ? "Booking..."
-            : isFree
-              ? "Confirm Booking"
-              : isCash
-                ? "Reserve Spot"
-                : isEwallet
-                  ? "Submit Booking & Proof"
-                  : "Confirm Booking"}
+            : paymentPaused
+              ? "Reserve Spot"
+              : isFree
+                ? "Confirm Booking"
+                : isCash
+                  ? "Reserve Spot"
+                  : isEwallet
+                    ? "Submit Booking & Proof"
+                    : "Confirm Booking"}
         </Button>
 
         {/* Waiver Modal */}

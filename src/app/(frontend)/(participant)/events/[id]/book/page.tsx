@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 
 import BookingPageClient from "@/components/booking/BookingPageClient";
 import { Breadcrumbs } from "@/components/ui";
+import { isPaymentPauseEnabled } from "@/lib/cms/cached";
 import { BreadcrumbTitle } from "@/lib/contexts/BreadcrumbContext";
 import { createClient } from "@/lib/supabase/server";
 
@@ -38,7 +39,7 @@ export default async function BookEventPage({
   const { data: event, error: eventError } = await supabase
     .from("events")
     .select(
-      "id, title, date, end_date, price, max_participants, club_id, waiver_text, members_only",
+      "id, title, date, end_date, price, max_participants, club_id, waiver_text, members_only, payment_paused, contact_url",
     )
     .eq("id", id)
     .eq("status", "published")
@@ -159,21 +160,34 @@ export default async function BookEventPage({
   });
   const spotsLeft = event.max_participants - (totalParticipants || 0);
 
+  // Gate payment_paused behind feature flag
+  const paymentPauseFlagEnabled = await isPaymentPauseEnabled();
+  const effectivePaymentPaused = paymentPauseFlagEnabled && event.payment_paused;
+
   // Fetch payment info from club
   const hasNonZeroPrice = event.price > 0 || (distancesWithSpots ?? []).some((d) => d.price > 0);
 
-  let paymentInfo: { gcash_number?: string; maya_number?: string } | null = null;
-  if (hasNonZeroPrice && event.club_id) {
+  let paymentInfo: { gcash_number?: string; maya_number?: string; facebook_url?: string } | null =
+    null;
+  let clubSlug: string | null = null;
+  if ((hasNonZeroPrice || effectivePaymentPaused) && event.club_id) {
     const { data: clubData } = await supabase
       .from("clubs")
-      .select("payment_info")
+      .select("payment_info, slug")
       .eq("id", event.club_id)
       .single();
     paymentInfo = clubData?.payment_info as {
       gcash_number?: string;
       maya_number?: string;
+      facebook_url?: string;
     } | null;
+    clubSlug = clubData?.slug ?? null;
   }
+
+  // Resolve contact URL: event-level override > club facebook_url
+  const resolvedContactUrl = effectivePaymentPaused
+    ? event.contact_url || paymentInfo?.facebook_url || null
+    : null;
 
   const mode = isFriendMode && existingBooking ? "friend" : "self";
 
@@ -197,6 +211,9 @@ export default async function BookEventPage({
           distances={distancesWithSpots}
           mode={mode}
           waiverText={event.waiver_text}
+          paymentPaused={effectivePaymentPaused}
+          contactUrl={resolvedContactUrl}
+          clubSlug={clubSlug}
         />
       </div>
     </div>

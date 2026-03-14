@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { isPaymentPauseEnabled } from "@/lib/cms/cached";
 import { sendEmail } from "@/lib/email/send";
 import { bookingConfirmationHtml } from "@/lib/email/templates/booking-confirmation";
 import { findOverlappingEvent, formatOverlapDate } from "@/lib/events/overlap";
@@ -62,7 +63,7 @@ export async function POST(request: Request) {
     waiverAcceptedAt = body.waiver_accepted_at || null;
   }
 
-  if (!eventId || !paymentMethod) {
+  if (!eventId) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
@@ -93,22 +94,25 @@ export async function POST(request: Request) {
     .in("status", ["pending", "confirmed"]);
 
   if (userBookings && userBookings.length > 0) {
-    const bookedEventIds = userBookings.map((b) => b.event_id);
-    const { data: bookedEvents } = await supabase
-      .from("events")
-      .select("id, title, date, end_date")
-      .in("id", bookedEventIds)
-      .in("status", ["published"]);
+    const bookedEventIds = userBookings.map((b) => b.event_id).filter((id) => id !== eventId);
 
-    if (bookedEvents) {
-      const overlap = findOverlappingEvent(event.date, event.end_date, bookedEvents);
-      if (overlap) {
-        return NextResponse.json(
-          {
-            error: `You can't book this event — you already have "${overlap.title}" on ${formatOverlapDate(overlap.date, overlap.end_date)}. Cancel that booking first if you'd like to join this one instead.`,
-          },
-          { status: 409 },
-        );
+    if (bookedEventIds.length > 0) {
+      const { data: bookedEvents } = await supabase
+        .from("events")
+        .select("id, title, date, end_date")
+        .in("id", bookedEventIds)
+        .in("status", ["published"]);
+
+      if (bookedEvents) {
+        const overlap = findOverlappingEvent(event.date, event.end_date, bookedEvents);
+        if (overlap) {
+          return NextResponse.json(
+            {
+              error: `You can't book this event — you already have "${overlap.title}" on ${formatOverlapDate(overlap.date, overlap.end_date)}. Cancel that booking first if you'd like to join this one instead.`,
+            },
+            { status: 409 },
+          );
+        }
       }
     }
   }
@@ -216,16 +220,27 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Please add at least one companion" }, { status: 400 });
   }
 
-  const isFree = event.price === 0 || paymentMethod === "free";
-  const isEwallet = paymentMethod === "gcash" || paymentMethod === "maya";
-  const isCash = paymentMethod === "cash";
+  const paymentPauseFlagEnabled = await isPaymentPauseEnabled();
+  const isPaymentPaused = paymentPauseFlagEnabled && event.payment_paused;
+  const isFree = !isPaymentPaused && (event.price === 0 || paymentMethod === "free");
+  const isEwallet = !isPaymentPaused && (paymentMethod === "gcash" || paymentMethod === "maya");
+  const isCash = !isPaymentPaused && paymentMethod === "cash";
+
+  // Validate payment method when not paused
+  if (!isPaymentPaused && !paymentMethod) {
+    return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+  }
 
   // Determine booking status and payment status
   let bookingStatus: "confirmed" | "pending";
   let paymentStatus: "paid" | "pending";
   let qrCode: string | null = null;
 
-  if (isFree) {
+  if (isPaymentPaused) {
+    bookingStatus = "pending";
+    paymentStatus = "pending";
+    qrCode = null;
+  } else if (isFree) {
     bookingStatus = "confirmed";
     paymentStatus = "paid";
     qrCode = `eventtara:checkin:${eventId}:${user.id}`;
@@ -249,7 +264,8 @@ export async function POST(request: Request) {
       .insert({
         event_id: eventId,
         user_id: user.id,
-        payment_method: isFree ? null : (paymentMethod as "gcash" | "maya" | "cash"),
+        payment_method:
+          isFree || isPaymentPaused ? null : (paymentMethod as "gcash" | "maya" | "cash"),
         qr_code: qrCode,
         status: bookingStatus,
         payment_status: paymentStatus,
