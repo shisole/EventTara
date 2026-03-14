@@ -34,6 +34,7 @@ export default function ClubManager() {
   const [creating, setCreating] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [regeneratingId, setRegeneratingId] = useState<string | null>(null);
+  const [managingId, setManagingId] = useState<string | null>(null);
 
   // Create form state
   const [newName, setNewName] = useState("");
@@ -70,6 +71,23 @@ export default function ClubManager() {
     await navigator.clipboard.writeText(getClaimUrl(token));
     setCopiedId(clubId);
     setTimeout(() => setCopiedId(null), 2000);
+  }
+
+  async function handleManageClub(clubId: string) {
+    setManagingId(clubId);
+    try {
+      const res = await fetch(`/api/admin/clubs/${clubId}/manage`, { method: "POST" });
+      if (!res.ok) {
+        const data: { error?: string } = await res.json();
+        throw new Error(data.error ?? "Failed to manage club");
+      }
+      const data: { slug: string } = await res.json();
+      window.open(`/dashboard/clubs/${data.slug}`, "_blank");
+    } catch (error_) {
+      setError(error_ instanceof Error ? error_.message : "Failed to manage club");
+    } finally {
+      setManagingId(null);
+    }
   }
 
   async function handleRegenerateToken(clubId: string) {
@@ -490,32 +508,41 @@ export default function ClubManager() {
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      {!club.is_claimed && club.claim_token && (
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => handleCopyClaimLink(club.id, club.claim_token!)}
-                            className="rounded-md bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
-                          >
-                            {copiedId === club.id ? "Copied!" : "Copy Link"}
-                          </button>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <button
+                          onClick={() => handleManageClub(club.id)}
+                          disabled={managingId === club.id}
+                          className="rounded-md bg-teal-100 px-2.5 py-1 text-xs font-medium text-teal-700 hover:bg-teal-200 dark:bg-teal-900/40 dark:text-teal-300 dark:hover:bg-teal-800/60 transition-colors disabled:opacity-50"
+                        >
+                          {managingId === club.id ? "..." : "Manage"}
+                        </button>
+                        {!club.is_claimed && club.claim_token && (
+                          <>
+                            <button
+                              onClick={() => handleCopyClaimLink(club.id, club.claim_token!)}
+                              className="rounded-md bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
+                            >
+                              {copiedId === club.id ? "Copied!" : "Copy Link"}
+                            </button>
+                            <button
+                              onClick={() => handleRegenerateToken(club.id)}
+                              disabled={regeneratingId === club.id}
+                              className="rounded-md bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+                            >
+                              {regeneratingId === club.id ? "..." : "Regenerate"}
+                            </button>
+                          </>
+                        )}
+                        {!club.is_claimed && !club.claim_token && (
                           <button
                             onClick={() => handleRegenerateToken(club.id)}
                             disabled={regeneratingId === club.id}
-                            className="rounded-md bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+                            className="rounded-md bg-teal-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-teal-700 transition-colors disabled:opacity-50"
                           >
-                            {regeneratingId === club.id ? "..." : "Regenerate"}
+                            {regeneratingId === club.id ? "..." : "Generate Claim Link"}
                           </button>
-                        </div>
-                      )}
-                      {!club.is_claimed && !club.claim_token && (
-                        <button
-                          onClick={() => handleRegenerateToken(club.id)}
-                          disabled={regeneratingId === club.id}
-                          className="rounded-md bg-teal-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-teal-700 transition-colors disabled:opacity-50"
-                        >
-                          {regeneratingId === club.id ? "..." : "Generate Claim Link"}
-                        </button>
-                      )}
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
