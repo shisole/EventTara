@@ -153,7 +153,7 @@ export default async function ClubEventDetailPage({
         </div>
         <div className="flex flex-wrap gap-3">
           <CopyLinkButton path={`/events/${id}`} />
-          <EmbedCodeButton eventId={id} eventTitle={event.title} />
+          <EmbedCodeButton eventId={id} />
           <Link href={`${eventsBase}/${id}/edit`}>
             <Button variant="outline">Edit</Button>
           </Link>

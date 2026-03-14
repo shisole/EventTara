@@ -7,20 +7,18 @@ import { Button } from "@/components/ui";
 
 interface EmbedCodeButtonProps {
   eventId: string;
-  eventTitle: string;
 }
 
-function generateEmbedCode(origin: string, eventId: string, eventTitle: string): string {
-  const url = `${origin}/events/${eventId}`;
-  const safeTitle = eventTitle.replaceAll('"', "&quot;").replaceAll("<", "&lt;");
-  return `<a href="${url}" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:12px 24px;background:#14b8a6;color:#fff;border-radius:8px;text-decoration:none;font-family:system-ui,sans-serif;font-weight:600;font-size:14px">Join ${safeTitle} on EventTara</a>`;
+function generateEmbedCode(origin: string, eventId: string): string {
+  const embedUrl = `${origin}/embed/events/${eventId}`;
+  return `<iframe src="${embedUrl}" width="400" height="220" frameborder="0" style="border:none;border-radius:12px;overflow:hidden" allowtransparency="true"></iframe>`;
 }
 
-export default function EmbedCodeButton({ eventId, eventTitle }: EmbedCodeButtonProps) {
+export default function EmbedCodeButton({ eventId }: EmbedCodeButtonProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
-    const code = generateEmbedCode(globalThis.location.origin, eventId, eventTitle);
+    const code = generateEmbedCode(globalThis.location.origin, eventId);
     try {
       await navigator.clipboard.writeText(code);
     } catch {

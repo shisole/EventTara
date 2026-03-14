@@ -162,7 +162,7 @@ export default async function ManageEventPage({ params }: { params: Promise<{ id
         </div>
         <div className="flex flex-wrap gap-3">
           <CopyLinkButton path={`/events/${id}`} />
-          <EmbedCodeButton eventId={id} eventTitle={event.title} />
+          <EmbedCodeButton eventId={id} />
           <Link href={`/dashboard/events/${id}/edit`}>
             <Button variant="outline">Edit</Button>
           </Link>
