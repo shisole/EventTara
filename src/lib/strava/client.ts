@@ -237,3 +237,24 @@ export async function getStravaClient(userId: string): Promise<StravaApiClient> 
     data.strava_athlete_id,
   );
 }
+
+/**
+ * Try to get a Strava client for the given user, falling back to the
+ * platform owner's connection (STRAVA_FALLBACK_USER_ID env var).
+ * Used for read-only operations like fetching public route data.
+ *
+ * @throws If neither the user nor the fallback has a Strava connection.
+ */
+export async function getStravaClientWithFallback(userId: string): Promise<StravaApiClient> {
+  try {
+    return await getStravaClient(userId);
+  } catch {
+    const fallbackUserId = process.env.STRAVA_FALLBACK_USER_ID;
+    if (!fallbackUserId) {
+      throw new Error(
+        "[Strava] No Strava connection found. Please connect your Strava account in Profile Settings.",
+      );
+    }
+    return getStravaClient(fallbackUserId);
+  }
+}
