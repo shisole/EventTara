@@ -11,6 +11,7 @@ import { createClient } from "@/lib/supabase/client";
 import { generateUsername } from "@/lib/utils/generate-username";
 
 type ModalState = "form" | "verify-code" | "success";
+type AuthMode = "signin" | "signup";
 type AuthMethod = "password" | "otp";
 
 const CODE_LENGTH = 6;
@@ -29,9 +30,12 @@ export default function AuthBookingModal({
 }: AuthBookingModalProps) {
   const router = useRouter();
   const [state, setState] = useState<ModalState>("form");
+  const [authMode, setAuthMode] = useState<AuthMode>("signin");
   const [authMethod, setAuthMethod] = useState<AuthMethod>("password");
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [code, setCode] = useState<string[]>(emptyCode());
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -105,6 +109,70 @@ export default function AuthBookingModal({
       const displayName = data.user?.user_metadata?.full_name || data.user?.email || trimmed;
       setUserDisplay(displayName);
       setState("success");
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    const trimmedName = fullName.trim();
+    if (!trimmedName) {
+      setError("Please enter your name.");
+      return;
+    }
+
+    const trimmed = email.trim();
+    if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const supabase = createClient();
+      const { data, error: signupError } = await supabase.auth.signUp({
+        email: trimmed,
+        password,
+        options: { data: { full_name: trimmedName } },
+      });
+
+      if (signupError) {
+        if (signupError.message?.includes("already registered")) {
+          setError("This email is already registered. Try signing in instead.");
+        } else {
+          setError(signupError.message || "Something went wrong. Please try again.");
+        }
+        return;
+      }
+
+      if (data.session && data.user) {
+        // Auto-confirmed — generate username and finish
+        await generateUsername(supabase, data.user.id, trimmed);
+        await supabase.from("users").update({ full_name: trimmedName }).eq("id", data.user.id);
+
+        const displayName = trimmedName || trimmed;
+        setUserDisplay(displayName);
+        setState("success");
+      } else {
+        // Email confirmation required — show OTP screen
+        setUserDisplay(trimmed);
+        setState("verify-code");
+      }
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -241,7 +309,7 @@ export default function AuthBookingModal({
           </button>
         )}
 
-        {state === "form" && (
+        {state === "form" && authMode === "signin" && (
           <form onSubmit={authMethod === "password" ? handlePasswordLogin : handleOtpSubmit}>
             <fieldset disabled={loading} className="min-w-0 space-y-5">
               <div className="text-center">
@@ -322,7 +390,7 @@ export default function AuthBookingModal({
                     : "Send Code"}
               </Button>
 
-              <div className="text-center">
+              <div className="text-center space-y-2">
                 <button
                   type="button"
                   onClick={() => {
@@ -342,6 +410,140 @@ export default function AuthBookingModal({
                   We&apos;ll send a 6-digit code to your email. Works for new and existing accounts.
                 </p>
               )}
+
+              <p className="text-center text-sm text-gray-500 dark:text-gray-400">
+                Don&apos;t have an account?{" "}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthMode("signup");
+                    setError("");
+                  }}
+                  className="text-lime-600 dark:text-lime-400 hover:text-lime-700 dark:hover:text-lime-300 font-medium"
+                >
+                  Sign Up
+                </button>
+              </p>
+            </fieldset>
+          </form>
+        )}
+
+        {state === "form" && authMode === "signup" && (
+          <form onSubmit={handleSignup}>
+            <fieldset disabled={loading} className="min-w-0 space-y-5">
+              <div className="text-center">
+                <div className="w-14 h-14 bg-lime-100 dark:bg-lime-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <EnvelopeIcon className="w-7 h-7 text-lime-600 dark:text-lime-400" />
+                </div>
+                <h2
+                  id="auth-modal-title"
+                  className="text-xl font-heading font-bold text-gray-900 dark:text-white"
+                >
+                  Create an account
+                </h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{eventName}</p>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="auth-fullname"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
+                >
+                  Full name
+                </label>
+                <input
+                  id="auth-fullname"
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => {
+                    setFullName(e.target.value);
+                  }}
+                  placeholder="Juan Dela Cruz"
+                  autoFocus
+                  className={inputClassName}
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="auth-signup-email"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
+                >
+                  Email address
+                </label>
+                <input
+                  id="auth-signup-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                  }}
+                  placeholder="you@example.com"
+                  className={inputClassName}
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="auth-signup-password"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
+                >
+                  Password
+                </label>
+                <input
+                  id="auth-signup-password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                  }}
+                  placeholder="At least 6 characters"
+                  className={inputClassName}
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="auth-signup-confirm"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
+                >
+                  Confirm password
+                </label>
+                <input
+                  id="auth-signup-confirm"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => {
+                    setConfirmPassword(e.target.value);
+                  }}
+                  placeholder="Re-enter your password"
+                  className={inputClassName}
+                />
+              </div>
+
+              {error && (
+                <p className="text-sm text-red-500" role="alert">
+                  {error}
+                </p>
+              )}
+
+              <Button type="submit" className="w-full" size="lg" disabled={loading}>
+                {loading ? "Creating account..." : "Create Account"}
+              </Button>
+
+              <p className="text-center text-sm text-gray-500 dark:text-gray-400">
+                Already have an account?{" "}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthMode("signin");
+                    setError("");
+                  }}
+                  className="text-lime-600 dark:text-lime-400 hover:text-lime-700 dark:hover:text-lime-300 font-medium"
+                >
+                  Sign In
+                </button>
+              </p>
             </fieldset>
           </form>
         )}
