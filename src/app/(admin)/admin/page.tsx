@@ -25,6 +25,12 @@ const cards = [
     href: "/admin/clubs",
     count: "Clubs",
   },
+  {
+    title: "Activity Types",
+    description: "Manage activity types available on the platform.",
+    href: "/admin/activity-types",
+    count: "Types",
+  },
 ];
 
 export default function AdminOverview() {
