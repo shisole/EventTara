@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   COLOR_PRESET_KEYS,
@@ -12,6 +12,7 @@ import {
   type ActivityTypeCategory,
   type ActivityTypeRow,
 } from "@/lib/activity-types/types";
+import { uploadImage } from "@/lib/upload";
 import { cn } from "@/lib/utils";
 
 import { DragHandleButton, SortableList } from "../ui";
@@ -68,6 +69,9 @@ function ActivityTypeForm({
 }) {
   const [form, setForm] = useState<FormState>(initial);
   const [slugManual, setSlugManual] = useState(initial.slug !== "");
+  const [uploading, setUploading] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const set = (patch: Partial<FormState>) => {
     setForm((prev) => {
@@ -77,6 +81,20 @@ function ActivityTypeForm({
       }
       return next;
     });
+  };
+
+  const handleImageFile = async (file: File) => {
+    if (!file.type.startsWith("image/")) return;
+    setUploading(true);
+    try {
+      const url = await uploadImage(file, "activity-types");
+      set({ image_url: url });
+    } catch {
+      // Upload failed — user can still paste a URL
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   };
 
   return (
@@ -176,30 +194,91 @@ function ActivityTypeForm({
         </div>
       </div>
 
-      {/* Row 4: Image URL */}
+      {/* Row 4: Image */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          Image URL
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Image
         </label>
-        <div className="flex gap-3 items-start">
-          <input
-            type="text"
-            value={form.image_url}
-            onChange={(e) => set({ image_url: e.target.value })}
-            placeholder="https://images.unsplash.com/..."
-            className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-          />
-          {form.image_url && (
-            <img
-              src={form.image_url}
-              alt="Preview"
-              className="h-10 w-10 rounded-lg object-cover shrink-0 border border-gray-200 dark:border-gray-700"
+        <div className="flex gap-4 items-start">
+          {/* Upload zone / preview */}
+          <div
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragOver(true);
+            }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setDragOver(false);
+              const file = e.dataTransfer.files[0];
+              if (file) void handleImageFile(file);
+            }}
+            onClick={() => fileInputRef.current?.click()}
+            className={cn(
+              "relative h-20 w-20 shrink-0 rounded-xl border-2 border-dashed cursor-pointer transition-all overflow-hidden flex items-center justify-center",
+              dragOver
+                ? "border-lime-500 bg-lime-50 dark:bg-lime-950/20 scale-105"
+                : "border-gray-300 bg-gray-50 hover:border-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-gray-600",
+            )}
+          >
+            {uploading ? (
+              <div className="flex flex-col items-center gap-1">
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-lime-500 border-t-transparent" />
+                <span className="text-[10px] text-gray-400">Uploading</span>
+              </div>
+            ) : form.image_url ? (
+              <img src={form.image_url} alt="Preview" className="h-full w-full object-cover" />
+            ) : (
+              <div className="flex flex-col items-center gap-0.5 text-gray-400 dark:text-gray-500">
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                <span className="text-[10px]">Upload</span>
+              </div>
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) void handleImageFile(file);
+              }}
             />
-          )}
+          </div>
+
+          {/* URL input + clear */}
+          <div className="flex-1 space-y-1">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={form.image_url}
+                onChange={(e) => set({ image_url: e.target.value })}
+                placeholder="or paste an image URL"
+                className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              />
+              {form.image_url && (
+                <button
+                  type="button"
+                  onClick={() => set({ image_url: "" })}
+                  className="shrink-0 rounded-lg border border-gray-300 px-2 py-2 text-xs text-gray-500 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+            <p className="text-xs text-gray-400 dark:text-gray-500">
+              Drag & drop, click to upload, or paste a URL. Used for category cards and filter
+              bubbles.
+            </p>
+          </div>
         </div>
-        <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-          Used for category cards and filter bubbles on the events page.
-        </p>
       </div>
 
       {/* Row 5: Color preset */}
