@@ -6,6 +6,7 @@ export interface ActivityTypeRow {
   short_label: string;
   plural_label: string;
   icon: string;
+  image_url: string | null;
   color_preset: string;
   supports_distance: boolean;
   category: ActivityTypeCategory;
@@ -14,10 +15,9 @@ export interface ActivityTypeRow {
   created_at: string;
 }
 
-export type ActivityTypeCategory = "outdoor" | "indoor" | "fitness";
+export type ActivityTypeCategory = "outdoor" | "indoor";
 
 export const ACTIVITY_TYPE_CATEGORIES: readonly ActivityTypeCategory[] = [
   "outdoor",
   "indoor",
-  "fitness",
 ] as const;

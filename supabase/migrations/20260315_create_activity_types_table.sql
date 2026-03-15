@@ -6,9 +6,10 @@ CREATE TABLE IF NOT EXISTS activity_types (
   short_label text NOT NULL,
   plural_label text NOT NULL,
   icon text NOT NULL DEFAULT '🏃',
+  image_url text,
   color_preset text NOT NULL DEFAULT 'gray',
   supports_distance boolean NOT NULL DEFAULT false,
-  category text NOT NULL DEFAULT 'outdoor' CHECK (category IN ('outdoor', 'indoor', 'fitness')),
+  category text NOT NULL DEFAULT 'outdoor' CHECK (category IN ('outdoor', 'indoor')),
   sort_order integer NOT NULL DEFAULT 0,
   enabled boolean NOT NULL DEFAULT true,
   created_at timestamptz NOT NULL DEFAULT now()
@@ -38,10 +39,10 @@ CREATE POLICY "Authenticated users can delete activity types"
   USING (true);
 
 -- Seed with existing 5 activity types matching current constants
-INSERT INTO activity_types (slug, label, short_label, plural_label, icon, color_preset, supports_distance, category, sort_order)
+INSERT INTO activity_types (slug, label, short_label, plural_label, icon, image_url, color_preset, supports_distance, category, sort_order)
 VALUES
-  ('hiking', 'Hiking', 'Hiking', 'Hikes', '🥾', 'emerald', false, 'outdoor', 1),
-  ('mtb', 'Mountain Biking', 'MTB', 'MTB Rides', '🚵', 'amber', false, 'outdoor', 2),
-  ('road_bike', 'Road Biking', 'Road Bike', 'Road Rides', '🚴', 'blue', true, 'outdoor', 3),
-  ('running', 'Running', 'Running', 'Runs', '🏃', 'orange', true, 'outdoor', 4),
-  ('trail_run', 'Trail Running', 'Trail Run', 'Trail Runs', '🏔️', 'yellow', true, 'outdoor', 5);
+  ('hiking', 'Hiking', 'Hiking', 'Hikes', '🥾', 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=600&h=400&fit=crop', 'emerald', false, 'outdoor', 1),
+  ('mtb', 'Mountain Biking', 'MTB', 'MTB Rides', '🚵', 'https://images.unsplash.com/photo-1544191696-102dbdaeeaa0?w=600&h=400&fit=crop', 'amber', false, 'outdoor', 2),
+  ('road_bike', 'Road Biking', 'Road Bike', 'Road Rides', '🚴', 'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=600&h=400&fit=crop', 'blue', true, 'outdoor', 3),
+  ('running', 'Running', 'Running', 'Runs', '🏃', 'https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=600&h=400&fit=crop', 'orange', true, 'outdoor', 4),
+  ('trail_run', 'Trail Running', 'Trail Run', 'Trail Runs', '🏔️', 'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=600&h=400&fit=crop', 'yellow', true, 'outdoor', 5);

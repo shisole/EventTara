@@ -14,6 +14,9 @@ import {
 } from "@/lib/activity-types/types";
 import { cn } from "@/lib/utils";
 
+import { DragHandleButton, SortableList } from "../ui";
+import { type SortableRowProps } from "../ui/SortableList";
+
 function slugify(text: string): string {
   return text
     .toLowerCase()
@@ -24,7 +27,6 @@ function slugify(text: string): string {
 const CATEGORY_BADGE: Record<ActivityTypeCategory, string> = {
   outdoor: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
   indoor: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
-  fitness: "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300",
 };
 
 // ── Create / Edit Form ──────────────────────────────────────────────────────
@@ -35,10 +37,10 @@ interface FormState {
   short_label: string;
   plural_label: string;
   icon: string;
+  image_url: string;
   color_preset: string;
   supports_distance: boolean;
   category: ActivityTypeCategory;
-  sort_order: number;
 }
 
 const EMPTY_FORM: FormState = {
@@ -47,10 +49,10 @@ const EMPTY_FORM: FormState = {
   short_label: "",
   plural_label: "",
   icon: "🏃",
+  image_url: "",
   color_preset: "gray",
   supports_distance: false,
   category: "outdoor",
-  sort_order: 0,
 };
 
 function ActivityTypeForm({
@@ -70,7 +72,6 @@ function ActivityTypeForm({
   const set = (patch: Partial<FormState>) => {
     setForm((prev) => {
       const next = { ...prev, ...patch };
-      // Auto-generate slug from label unless user edited slug manually
       if ("label" in patch && !slugManual) {
         next.slug = slugify(patch.label ?? "");
       }
@@ -139,8 +140,8 @@ function ActivityTypeForm({
         </div>
       </div>
 
-      {/* Row 3: Icon + Category + Sort order */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* Row 3: Icon + Category */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Icon (emoji)
@@ -160,7 +161,7 @@ function ActivityTypeForm({
             value={form.category}
             onChange={(e) => {
               const val = e.target.value;
-              if (val === "outdoor" || val === "indoor" || val === "fitness") {
+              if (val === "outdoor" || val === "indoor") {
                 set({ category: val });
               }
             }}
@@ -173,20 +174,35 @@ function ActivityTypeForm({
             ))}
           </select>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Sort Order
-          </label>
-          <input
-            type="number"
-            value={form.sort_order}
-            onChange={(e) => set({ sort_order: Number(e.target.value) })}
-            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-          />
-        </div>
       </div>
 
-      {/* Row 4: Color preset */}
+      {/* Row 4: Image URL */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Image URL
+        </label>
+        <div className="flex gap-3 items-start">
+          <input
+            type="text"
+            value={form.image_url}
+            onChange={(e) => set({ image_url: e.target.value })}
+            placeholder="https://images.unsplash.com/..."
+            className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+          />
+          {form.image_url && (
+            <img
+              src={form.image_url}
+              alt="Preview"
+              className="h-10 w-10 rounded-lg object-cover shrink-0 border border-gray-200 dark:border-gray-700"
+            />
+          )}
+        </div>
+        <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+          Used for category cards and filter bubbles on the events page.
+        </p>
+      </div>
+
+      {/* Row 5: Color preset */}
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Color Preset
@@ -246,6 +262,145 @@ function ActivityTypeForm({
   );
 }
 
+// ── Sortable Row ────────────────────────────────────────────────────────────
+
+function ActivityTypeRow({
+  item,
+  index,
+  dragHandleProps,
+  editingId,
+  saving,
+  deletingId,
+  onEdit,
+  onUpdate,
+  onCancelEdit,
+  onToggleEnabled,
+  onDelete,
+}: SortableRowProps<ActivityTypeRow> & {
+  editingId: string | null;
+  saving: string | null;
+  deletingId: string | null;
+  onEdit: (id: string) => void;
+  onUpdate: (id: string, form: FormState) => void;
+  onCancelEdit: () => void;
+  onToggleEnabled: (row: ActivityTypeRow) => void;
+  onDelete: (id: string) => void;
+}) {
+  if (editingId === item.id) {
+    return (
+      <div className="p-2">
+        <ActivityTypeForm
+          initial={{
+            label: item.label,
+            slug: item.slug,
+            short_label: item.short_label,
+            plural_label: item.plural_label,
+            icon: item.icon,
+            image_url: item.image_url ?? "",
+            color_preset: item.color_preset,
+            supports_distance: item.supports_distance,
+            category: item.category,
+          }}
+          onSubmit={(form) => onUpdate(item.id, form)}
+          onCancel={onCancelEdit}
+          submitting={saving === item.id}
+        />
+      </div>
+    );
+  }
+
+  const preset = getColorPreset(item.color_preset);
+
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-3 rounded-xl border px-4 py-3 transition-all duration-200",
+        "border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900",
+      )}
+    >
+      {/* Drag handle */}
+      <DragHandleButton dragHandleProps={dragHandleProps} />
+
+      {/* Position number */}
+      <span className="text-xs font-mono text-gray-400 dark:text-gray-500 w-5 text-right shrink-0">
+        {index + 1}
+      </span>
+
+      {/* Image + Icon + color dot + label */}
+      <div className="flex items-center gap-2 min-w-0 flex-1">
+        {item.image_url ? (
+          <img
+            src={item.image_url}
+            alt=""
+            className="h-7 w-7 rounded-full object-cover shrink-0 border border-gray-200 dark:border-gray-700"
+          />
+        ) : (
+          <span className={cn("h-3 w-3 rounded-full shrink-0", preset.dot)} />
+        )}
+        <span className="text-lg shrink-0">{item.icon}</span>
+        <span className="font-medium text-sm text-gray-900 dark:text-white truncate">
+          {item.label}
+        </span>
+        <span className="font-mono text-xs text-gray-400 dark:text-gray-500 hidden sm:inline">
+          {item.slug}
+        </span>
+      </div>
+
+      {/* Category badge */}
+      <span
+        className={cn(
+          "hidden sm:inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium shrink-0",
+          CATEGORY_BADGE[item.category] ?? CATEGORY_BADGE.outdoor,
+        )}
+      >
+        {item.category}
+      </span>
+
+      {/* Distance indicator */}
+      <span className="hidden sm:inline text-xs shrink-0">
+        {item.supports_distance ? (
+          <span className="text-emerald-600 dark:text-emerald-400">dist</span>
+        ) : (
+          <span className="text-gray-300 dark:text-gray-600">—</span>
+        )}
+      </span>
+
+      {/* Enabled toggle */}
+      <button
+        onClick={() => onToggleEnabled(item)}
+        className={cn(
+          "relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors",
+          item.enabled ? "bg-lime-500" : "bg-gray-300 dark:bg-gray-600",
+        )}
+      >
+        <span
+          className={cn(
+            "pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow transition-transform",
+            item.enabled ? "translate-x-4" : "translate-x-0",
+          )}
+        />
+      </button>
+
+      {/* Actions */}
+      <div className="flex items-center gap-1 shrink-0">
+        <button
+          onClick={() => onEdit(item.id)}
+          className="rounded px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors"
+        >
+          Edit
+        </button>
+        <button
+          onClick={() => onDelete(item.id)}
+          disabled={deletingId === item.id}
+          className="rounded px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950 disabled:opacity-50 transition-colors"
+        >
+          {deletingId === item.id ? "..." : "Delete"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ── Main Manager ────────────────────────────────────────────────────────────
 
 export function ActivityTypeManager() {
@@ -257,6 +412,7 @@ export function ActivityTypeManager() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [reordering, setReordering] = useState(false);
 
   const loadTypes = useCallback(async () => {
     try {
@@ -319,8 +475,33 @@ export function ActivityTypeManager() {
     }
   };
 
+  const handleReorder = useCallback(
+    (reordered: ActivityTypeRow[]) => {
+      // Optimistic update
+      const withOrder = reordered.map((t, i) => ({ ...t, sort_order: i }));
+      setTypes(withOrder);
+
+      // Persist each updated sort_order
+      setReordering(true);
+      const updates = withOrder.map((t, i) =>
+        fetch(`/api/admin/activity-types/${t.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sort_order: i }),
+        }),
+      );
+
+      void Promise.all(updates)
+        .catch(() => {
+          setError("Failed to save new order");
+          void loadTypes(); // Rollback
+        })
+        .finally(() => setReordering(false));
+    },
+    [loadTypes],
+  );
+
   const handleToggleEnabled = async (row: ActivityTypeRow) => {
-    // Optimistic update
     setTypes((prev) => prev.map((t) => (t.id === row.id ? { ...t, enabled: !t.enabled } : t)));
     try {
       const res = await fetch(`/api/admin/activity-types/${row.id}`, {
@@ -329,13 +510,11 @@ export function ActivityTypeManager() {
         body: JSON.stringify({ enabled: !row.enabled }),
       });
       if (!res.ok) {
-        // Rollback
         setTypes((prev) => prev.map((t) => (t.id === row.id ? { ...t, enabled: row.enabled } : t)));
         const data: { error?: string } = await res.json();
         setError(data.error ?? "Failed to toggle");
       }
     } catch {
-      // Rollback
       setTypes((prev) => prev.map((t) => (t.id === row.id ? { ...t, enabled: row.enabled } : t)));
       setError("Failed to toggle enabled state");
     }
@@ -402,145 +581,31 @@ export function ActivityTypeManager() {
         />
       )}
 
-      {/* Table */}
-      <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-800">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-900">
-              <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
-                Type
-              </th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
-                Slug
-              </th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
-                Category
-              </th>
-              <th className="px-4 py-3 text-center font-medium text-gray-500 dark:text-gray-400">
-                Distance
-              </th>
-              <th className="px-4 py-3 text-center font-medium text-gray-500 dark:text-gray-400">
-                Order
-              </th>
-              <th className="px-4 py-3 text-center font-medium text-gray-500 dark:text-gray-400">
-                Enabled
-              </th>
-              <th className="px-4 py-3 text-right font-medium text-gray-500 dark:text-gray-400">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
-            {types.map((row) => {
-              if (editingId === row.id) {
-                return (
-                  <tr key={row.id}>
-                    <td colSpan={7} className="p-4">
-                      <ActivityTypeForm
-                        initial={{
-                          label: row.label,
-                          slug: row.slug,
-                          short_label: row.short_label,
-                          plural_label: row.plural_label,
-                          icon: row.icon,
-                          color_preset: row.color_preset,
-                          supports_distance: row.supports_distance,
-                          category: row.category,
-                          sort_order: row.sort_order,
-                        }}
-                        onSubmit={(form) => handleUpdate(row.id, form)}
-                        onCancel={() => setEditingId(null)}
-                        submitting={saving === row.id}
-                      />
-                    </td>
-                  </tr>
-                );
-              }
+      {/* Sortable list */}
+      <SortableList
+        items={types}
+        onReorder={handleReorder}
+        disabled={reordering}
+        renderRow={(props) => (
+          <ActivityTypeRow
+            {...props}
+            editingId={editingId}
+            saving={saving}
+            deletingId={deletingId}
+            onEdit={setEditingId}
+            onUpdate={handleUpdate}
+            onCancelEdit={() => setEditingId(null)}
+            onToggleEnabled={handleToggleEnabled}
+            onDelete={handleDelete}
+          />
+        )}
+      />
 
-              const preset = getColorPreset(row.color_preset);
-              return (
-                <tr
-                  key={row.id}
-                  className="bg-white hover:bg-gray-50 dark:bg-gray-950 dark:hover:bg-gray-900 transition-colors"
-                >
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <span className={cn("h-3 w-3 rounded-full", preset.dot)} />
-                      <span className="text-lg" title={row.icon}>
-                        {row.icon}
-                      </span>
-                      <span className="font-medium text-gray-900 dark:text-white">{row.label}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 font-mono text-xs text-gray-500 dark:text-gray-400">
-                    {row.slug}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={cn(
-                        "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
-                        CATEGORY_BADGE[row.category] ?? CATEGORY_BADGE.outdoor,
-                      )}
-                    >
-                      {row.category}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    {row.supports_distance ? (
-                      <span className="text-emerald-600 dark:text-emerald-400">Yes</span>
-                    ) : (
-                      <span className="text-gray-400">No</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-center text-gray-500 dark:text-gray-400">
-                    {row.sort_order}
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <button
-                      onClick={() => handleToggleEnabled(row)}
-                      className={cn(
-                        "relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors",
-                        row.enabled ? "bg-lime-500" : "bg-gray-300 dark:bg-gray-600",
-                      )}
-                    >
-                      <span
-                        className={cn(
-                          "pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow transition-transform",
-                          row.enabled ? "translate-x-4" : "translate-x-0",
-                        )}
-                      />
-                    </button>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <button
-                        onClick={() => setEditingId(row.id)}
-                        className="rounded px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(row.id)}
-                        disabled={deletingId === row.id}
-                        className="rounded px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950 disabled:opacity-50 transition-colors"
-                      >
-                        {deletingId === row.id ? "..." : "Delete"}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-            {types.length === 0 && (
-              <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-gray-400 dark:text-gray-500">
-                  No activity types found. Create one above.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      {types.length === 0 && (
+        <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-8">
+          No activity types found. Create one above.
+        </p>
+      )}
     </div>
   );
 }
