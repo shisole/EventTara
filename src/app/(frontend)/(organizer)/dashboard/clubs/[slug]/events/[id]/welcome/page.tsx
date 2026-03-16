@@ -147,7 +147,7 @@ function GenerateButton({
 
     const code = `${club.slug}-${eventId.slice(0, 8)}`;
 
-    await supabase.from("welcome_pages").insert({
+    const { error } = await supabase.from("welcome_pages").insert({
       code,
       title: `Welcome to ${event.title}!`,
       subtitle: `Hosted by ${clubName}`,
@@ -157,6 +157,30 @@ function GenerateButton({
       is_active: true,
       created_by: user.id,
     });
+
+    if (error) {
+      // Code collision — append random suffix and retry once
+      if (error.code === "23505") {
+        const retryCode = `${code}-${Math.random().toString(36).slice(2, 6)}`;
+        const { error: retryError } = await supabase.from("welcome_pages").insert({
+          code: retryCode,
+          title: `Welcome to ${event.title}!`,
+          subtitle: `Hosted by ${clubName}`,
+          club_id: club.id,
+          event_id: eventId,
+          redirect_url: `/events/${eventId}`,
+          is_active: true,
+          created_by: user.id,
+        });
+        if (retryError) {
+          console.error("[event-welcome] Insert retry failed:", retryError.message);
+          return;
+        }
+      } else {
+        console.error("[event-welcome] Insert failed:", error.message);
+        return;
+      }
+    }
 
     redirect(`/dashboard/clubs/${clubSlug}/events/${eventId}/welcome`);
   }
