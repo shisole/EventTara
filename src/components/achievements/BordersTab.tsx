@@ -21,6 +21,11 @@ export default function BordersTab({ borders, earnedBorderIds }: BordersTabProps
   const [selectedBorder, setSelectedBorder] = useState<Border | null>(null);
 
   const sortedBorders = [...borders].sort((a, b) => {
+    // Earned borders first
+    const aEarned = earnedBorderIds.has(a.id) ? 0 : 1;
+    const bEarned = earnedBorderIds.has(b.id) ? 0 : 1;
+    if (aEarned !== bEarned) return aEarned - bEarned;
+    // Then by tier (legendary first)
     const tierOrder: Record<string, number> = { common: 0, rare: 1, epic: 2, legendary: 3 };
     return (tierOrder[b.tier] ?? 0) - (tierOrder[a.tier] ?? 0);
   });
