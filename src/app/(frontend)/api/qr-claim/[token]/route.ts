@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { sendEmail } from "@/lib/email/send";
+import { welcomeQrClaimHtml } from "@/lib/email/templates/welcome-qr-claim";
 import { createNotification } from "@/lib/notifications/create";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 
@@ -117,6 +119,24 @@ export async function POST(request: Request, { params }: { params: Promise<{ tok
       title: "Badge Earned!",
       body: `You earned the "${result.badge_title}" badge`,
       href: "/achievements",
+    });
+  }
+
+  // Send welcome + badge email to new users (fire-and-forget)
+  if (isNewUser && email && full_name && result.badge_title) {
+    void sendEmail({
+      to: email,
+      subject: `Welcome to EventTara! You claimed the "${result.badge_title}" badge`,
+      html: welcomeQrClaimHtml({
+        userName: full_name,
+        email,
+        badgeTitle: result.badge_title,
+        badgeDescription: result.badge_description ?? null,
+        badgeImageUrl: result.badge_image_url ?? null,
+        badgeRarity: result.badge_rarity ?? "common",
+        serialNumber: result.serial_number ?? 0,
+        batchQuantity: result.batch_quantity ?? 0,
+      }),
     });
   }
 
