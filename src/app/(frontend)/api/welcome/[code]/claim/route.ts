@@ -2,6 +2,8 @@ import { randomUUID } from "node:crypto";
 
 import { NextResponse } from "next/server";
 
+import { sendEmail } from "@/lib/email/send";
+import { bookingConfirmationHtml } from "@/lib/email/templates/booking-confirmation";
 import { createNotification } from "@/lib/notifications/create";
 import { createClient } from "@/lib/supabase/server";
 import { matchBookingByName } from "@/lib/welcome/match-booking";
@@ -181,6 +183,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ cod
     [];
 
   if (page.event_id) {
+    // Fetch event details for notification/email
+    const { data: eventData } = await supabase
+      .from("events")
+      .select("id, title, date, location")
+      .eq("id", page.event_id)
+      .single();
+
     // Fetch unclaimed bookings for this event
     const { data: unclaimed } = await supabase
       .from("bookings")
@@ -195,22 +204,19 @@ export async function POST(request: Request, { params }: { params: Promise<{ cod
       event_distance_id: string | null;
     }[];
 
+    // Fetch user data for name matching and email
+    const { data: userData } = await supabase
+      .from("users")
+      .select("full_name, email")
+      .eq("id", user.id)
+      .single();
+
     if (available.length > 0) {
       let targetBooking: (typeof available)[number] | null = null;
 
-      if (bookingId) {
-        // Manual pick: verify the booking is in the unclaimed list
-        targetBooking = available.find((b) => b.id === bookingId) ?? null;
-      } else {
-        // Auto-match by name
-        const { data: userData } = await supabase
-          .from("users")
-          .select("full_name")
-          .eq("id", user.id)
-          .single();
-
-        targetBooking = matchBookingByName(available, userData?.full_name) as typeof targetBooking;
-      }
+      targetBooking = bookingId
+        ? (available.find((b) => b.id === bookingId) ?? null)
+        : (matchBookingByName(available, userData?.full_name) as typeof targetBooking);
 
       if (targetBooking) {
         const qrCode = `eventtara:checkin:${page.event_id}:${user.id}:${randomUUID().slice(0, 8)}`;
@@ -220,6 +226,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ cod
             user_id: user.id,
             status: "confirmed" as const,
             qr_code: qrCode,
+            booked_at: new Date().toISOString(),
           })
           .eq("id", targetBooking.id)
           .is("user_id", null);
@@ -229,6 +236,33 @@ export async function POST(request: Request, { params }: { params: Promise<{ cod
         } else {
           bookingLinked = true;
           linkedBookingId = targetBooking.id;
+
+          // Send booking confirmation notification (fire-and-forget)
+          if (eventData) {
+            createNotification(supabase, {
+              userId: user.id,
+              type: "booking_confirmed",
+              title: "Booking Confirmed",
+              body: `Your booking for ${eventData.title} has been confirmed.`,
+              href: `/events/${page.event_id}`,
+            }).catch(() => null);
+          }
+
+          // Send booking confirmation email (fire-and-forget)
+          if (userData?.email && eventData) {
+            sendEmail({
+              to: userData.email,
+              subject: "Booking Confirmed",
+              html: bookingConfirmationHtml({
+                userName: userData.full_name ?? "Adventurer",
+                eventTitle: eventData.title,
+                eventDate: eventData.date,
+                eventLocation: eventData.location,
+                bookingId: targetBooking.id,
+                qrCode,
+              }),
+            }).catch(() => null);
+          }
         }
       } else if (!bookingId) {
         // No auto-match — return unclaimed list for manual pick
