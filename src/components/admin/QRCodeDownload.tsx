@@ -70,6 +70,12 @@ export default function QRCodeDownload({ token, serialNumber, batchName }: QRCod
               marginSize={4}
               bgColor="#ffffff"
               fgColor="#0f172a"
+              imageSettings={{
+                src: "/favicon-192x192.png",
+                height: 32,
+                width: 32,
+                excavate: true,
+              }}
             />
           </div>
           <button

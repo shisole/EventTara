@@ -45,10 +45,16 @@ export default function ReviewQRCode({ clubSlug, clubName }: ReviewQRCodeProps):
           <QRCodeCanvas
             value={reviewUrl}
             size={200}
-            level="M"
+            level="H"
             marginSize={8}
             bgColor="#ffffff"
             fgColor="#0f172a"
+            imageSettings={{
+              src: "/favicon-192x192.png",
+              height: 40,
+              width: 40,
+              excavate: true,
+            }}
           />
         </div>
 
