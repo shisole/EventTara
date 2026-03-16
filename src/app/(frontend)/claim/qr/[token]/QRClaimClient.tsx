@@ -4,9 +4,11 @@ import confetti from "canvas-confetti";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { type FormEvent, useEffect, useRef, useState } from "react";
 
-import { Button } from "@/components/ui";
+import { GoogleIcon, StravaIcon } from "@/components/icons";
+import { Button, Input } from "@/components/ui";
+import { STRAVA_AUTH_URL, STRAVA_SCOPES } from "@/lib/strava/constants";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -57,6 +59,13 @@ export default function QRClaimClient({
   const [alreadyHadBadge, setAlreadyHadBadge] = useState(false);
   const confettiFired = useRef(false);
 
+  // Signup form state
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [confirmEmail, setConfirmEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [googleLoading, setGoogleLoading] = useState(false);
+
   useEffect(() => {
     async function checkAuth() {
       const supabase = createClient();
@@ -71,13 +80,81 @@ export default function QRClaimClient({
     void checkAuth();
   }, []);
 
-  async function handleClaim() {
+  const claimRedirectUrl = `/claim/qr/${token}`;
+
+  async function handleGoogleSignup() {
+    setGoogleLoading(true);
+    const supabase = createClient();
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${globalThis.location.origin}/auth/callback?next=${encodeURIComponent(claimRedirectUrl)}`,
+      },
+    });
+    if (oauthError) {
+      setError(oauthError.message);
+      setGoogleLoading(false);
+    }
+  }
+
+  function handleStravaSignup() {
+    const clientId = process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID;
+    if (!clientId) return;
+    const params = new URLSearchParams({
+      client_id: clientId,
+      redirect_uri: `${globalThis.location.origin}/auth/strava/callback`,
+      response_type: "code",
+      scope: STRAVA_SCOPES.join(","),
+      state: JSON.stringify({ flow: "login", returnUrl: claimRedirectUrl }),
+      approval_prompt: "auto",
+    });
+    globalThis.location.href = `${STRAVA_AUTH_URL}?${params.toString()}`;
+  }
+
+  function fireConfetti() {
+    if (confettiFired.current) return;
+    confettiFired.current = true;
+    const colors = ["#a3e635", "#22d3ee", "#f59e0b", "#ec4899", "#8b5cf6"];
+    void confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 }, colors });
+    const end = Date.now() + 2500;
+    const frame = () => {
+      void confetti({
+        particleCount: 3,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0, y: 0.6 },
+        colors,
+      });
+      void confetti({
+        particleCount: 3,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1, y: 0.6 },
+        colors,
+      });
+      if (Date.now() < end) requestAnimationFrame(frame);
+    };
+    requestAnimationFrame(frame);
+  }
+
+  async function handleClaim(e?: FormEvent) {
+    if (e) e.preventDefault();
+    if (!userId && email !== confirmEmail) {
+      setError("Email addresses do not match.");
+      return;
+    }
     setClaiming(true);
     setError("");
 
     try {
+      const payload = userId
+        ? { existing_user_id: userId }
+        : { email, password, full_name: fullName };
+
       const res = await fetch(`/api/qr-claim/${token}`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
@@ -88,34 +165,22 @@ export default function QRClaimClient({
         return;
       }
 
+      // If new user was created, sign them in
+      if (data.is_new_user && email && password) {
+        const supabase = createClient();
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (signInError) {
+          // Non-critical — badge was still claimed
+          console.error("[qr-claim] Auto sign-in failed:", signInError.message);
+        }
+      }
+
       setAlreadyHadBadge(!!data.already_had_badge);
       setSuccess(true);
-
-      // Fire confetti
-      if (!confettiFired.current) {
-        confettiFired.current = true;
-        const colors = ["#a3e635", "#22d3ee", "#f59e0b", "#ec4899", "#8b5cf6"];
-        void confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 }, colors });
-        const end = Date.now() + 2500;
-        const frame = () => {
-          void confetti({
-            particleCount: 3,
-            angle: 60,
-            spread: 55,
-            origin: { x: 0, y: 0.6 },
-            colors,
-          });
-          void confetti({
-            particleCount: 3,
-            angle: 120,
-            spread: 55,
-            origin: { x: 1, y: 0.6 },
-            colors,
-          });
-          if (Date.now() < end) requestAnimationFrame(frame);
-        };
-        requestAnimationFrame(frame);
-      }
+      fireConfetti();
 
       setTimeout(() => {
         router.push("/achievements");
@@ -196,7 +261,7 @@ export default function QRClaimClient({
     );
   }
 
-  // Badge preview + claim/login
+  // Badge preview + claim/signup
   return (
     <div className="space-y-6 text-center">
       {/* Badge image */}
@@ -274,18 +339,105 @@ export default function QRClaimClient({
 
       {/* Action */}
       {userId ? (
-        <Button onClick={handleClaim} disabled={claiming} className="w-full">
+        <Button onClick={() => handleClaim()} disabled={claiming} className="w-full">
           {claiming ? "Claiming..." : "Claim Badge"}
         </Button>
       ) : (
-        <div className="space-y-3">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Log in to claim this badge</p>
-          <Link
-            href={`/login?redirect=/claim/qr/${token}`}
-            className="inline-block w-full rounded-xl bg-lime-500 px-6 py-3 text-center font-semibold text-gray-900 transition-colors hover:bg-lime-400"
-          >
-            Log in to Claim
-          </Link>
+        <div className="space-y-4">
+          <p className="text-center text-sm text-gray-500 dark:text-gray-400">
+            Sign up to claim this badge
+          </p>
+
+          {/* OAuth buttons */}
+          <div className="space-y-3">
+            <Button
+              className="w-full bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
+              size="lg"
+              onClick={handleGoogleSignup}
+              disabled={googleLoading}
+            >
+              <GoogleIcon className="mr-2 h-5 w-5" />
+              {googleLoading ? "Redirecting..." : "Continue with Google"}
+            </Button>
+
+            <Button
+              className="w-full bg-[#FC4C02] hover:bg-[#E34402] text-white"
+              size="lg"
+              onClick={handleStravaSignup}
+            >
+              <StravaIcon className="mr-2 h-5 w-5" />
+              Continue with Strava
+            </Button>
+          </div>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200 dark:border-gray-700" />
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="bg-white px-4 text-gray-400 dark:bg-gray-900 dark:text-gray-500">
+                or
+              </span>
+            </div>
+          </div>
+
+          <form onSubmit={handleClaim}>
+            <fieldset disabled={claiming} className="space-y-4 text-left">
+              <Input
+                id="full-name"
+                label="Full Name"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Your full name"
+                required
+              />
+
+              <Input
+                id="email"
+                label="Email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                required
+              />
+
+              <Input
+                id="confirm-email"
+                label="Confirm Email"
+                type="email"
+                value={confirmEmail}
+                onChange={(e) => setConfirmEmail(e.target.value)}
+                placeholder="Re-enter your email"
+                required
+              />
+
+              <Input
+                id="password"
+                label="Password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Min. 6 characters"
+                minLength={6}
+                required
+              />
+
+              <Button type="submit" disabled={claiming} className="w-full">
+                {claiming ? "Creating Account..." : "Create Account & Claim Badge"}
+              </Button>
+            </fieldset>
+          </form>
+
+          <p className="text-center text-xs text-gray-400 dark:text-gray-500">
+            Already have an account?{" "}
+            <Link
+              href={`/login?redirect=/claim/qr/${token}`}
+              className="text-teal-600 hover:underline dark:text-teal-400"
+            >
+              Log in
+            </Link>
+          </p>
         </div>
       )}
     </div>
