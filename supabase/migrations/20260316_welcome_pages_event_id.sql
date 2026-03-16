@@ -2,3 +2,6 @@
 ALTER TABLE welcome_pages ADD COLUMN event_id UUID REFERENCES events(id);
 
 CREATE INDEX idx_welcome_pages_event_id ON welcome_pages(event_id);
+
+-- Reload PostgREST schema cache so the new column is immediately available
+NOTIFY pgrst, 'reload schema';

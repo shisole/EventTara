@@ -44,13 +44,17 @@ export default async function EventWelcomePage({
   if (event?.club_id !== club.id) notFound();
 
   // Fetch welcome page for this event
-  const { data: welcomePage } = await supabase
+  const { data: welcomePage, error: wpError } = await supabase
     .from("welcome_pages")
     .select("*")
     .eq("event_id", id)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
+
+  if (wpError) {
+    console.error("[event-welcome] Query failed:", wpError.message, wpError.code);
+  }
 
   // Get claim count if welcome page exists
   let claimCount = 0;
