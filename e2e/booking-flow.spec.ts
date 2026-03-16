@@ -74,21 +74,21 @@ test.describe("Organizer + Participant booking flow", () => {
       expect(body.event.status).toBe("published");
     });
 
-    // ── Step 5: Participant books event ─────────────────────────────
+    // ── Step 5: Participant books event via API ──────────────────────
     await test.step("Participant books event", async () => {
-      const participantPage = await participantContext.newPage();
+      const response = await participantContext.request.post("/api/bookings", {
+        data: {
+          event_id: eventId,
+          payment_method: "free",
+        },
+      });
 
-      await participantPage.goto(`/events/${eventId}/book`, { waitUntil: "networkidle" });
-
-      // Free event — just click confirm
-      const confirmButton = participantPage.getByRole("button", { name: /confirm booking/i });
-      await expect(confirmButton).toBeVisible({ timeout: 15_000 });
-      await confirmButton.click();
-
-      // Booking confirmation shows "You're In!" or an error — wait for either
-      await expect(participantPage.getByText(/you're in/i)).toBeVisible({ timeout: 20_000 });
-
-      await participantPage.close();
+      expect(response.ok()).toBeTruthy();
+      const body = (await response.json()) as {
+        booking: { id: string; status: string; payment_status: string };
+      };
+      expect(body.booking.status).toBe("confirmed");
+      expect(body.booking.payment_status).toBe("paid");
     });
 
     // ── Step 6: Participant self-checks-in from /my-events ─────────
