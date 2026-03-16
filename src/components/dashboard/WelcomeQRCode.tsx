@@ -51,6 +51,12 @@ export default function WelcomeQRCode({ code, clubName, title }: WelcomeQRCodePr
             marginSize={4}
             bgColor="#ffffff"
             fgColor="#0f172a"
+            imageSettings={{
+              src: "/favicon-192x192.png",
+              height: 40,
+              width: 40,
+              excavate: true,
+            }}
           />
         </div>
 

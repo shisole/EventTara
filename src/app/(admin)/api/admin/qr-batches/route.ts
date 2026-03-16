@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
         category: new_badge.category ?? "special",
         rarity: new_badge.rarity ?? "legendary",
         type: "system",
-        criteria_key: "qr_claim",
+        criteria_key: `qr_claim_${crypto.randomBytes(6).toString("hex")}`,
       })
       .select("id")
       .single();
