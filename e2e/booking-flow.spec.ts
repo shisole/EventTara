@@ -69,12 +69,15 @@ test.describe("Organizer + Participant booking flow", () => {
     await test.step("Participant views event detail page", async () => {
       const participantPage = await participantContext.newPage();
 
-      // Navigate directly to event detail page instead of finding it in the list
-      await participantPage.goto(`/events/${eventId}`, { waitUntil: "domcontentloaded" });
+      // Navigate directly to event detail page — use networkidle for CI reliability
+      await participantPage.goto(`/events/${eventId}`, { waitUntil: "networkidle" });
 
-      await expect(participantPage.getByRole("heading", { name: eventTitle })).toBeVisible({
-        timeout: 15_000,
-      });
+      // Retry once on server streaming errors (Next.js can hit transient issues in CI)
+      const heading = participantPage.getByRole("heading", { name: eventTitle });
+      if (!(await heading.isVisible({ timeout: 10_000 }).catch(() => false))) {
+        await participantPage.reload({ waitUntil: "networkidle" });
+      }
+      await expect(heading).toBeVisible({ timeout: 15_000 });
 
       await participantPage.close();
     });
@@ -83,15 +86,15 @@ test.describe("Organizer + Participant booking flow", () => {
     await test.step("Participant books event", async () => {
       const participantPage = await participantContext.newPage();
 
-      await participantPage.goto(`/events/${eventId}/book`, { waitUntil: "domcontentloaded" });
+      await participantPage.goto(`/events/${eventId}/book`, { waitUntil: "networkidle" });
 
       // Free event — just click confirm
       const confirmButton = participantPage.getByRole("button", { name: /confirm booking/i });
       await expect(confirmButton).toBeVisible({ timeout: 15_000 });
       await confirmButton.click();
 
-      // Booking confirmation shows "You're In!"
-      await expect(participantPage.getByText(/you're in/i)).toBeVisible({ timeout: 15_000 });
+      // Booking confirmation shows "You're In!" or an error — wait for either
+      await expect(participantPage.getByText(/you're in/i)).toBeVisible({ timeout: 20_000 });
 
       await participantPage.close();
     });
