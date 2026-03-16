@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import EventForm from "@/components/dashboard/EventForm";
 import { ChevronLeftIcon } from "@/components/icons";
+import { getCachedActivityTypes } from "@/lib/activity-types/cached";
 import { isPaymentPauseEnabled } from "@/lib/cms/cached";
 import { createClient } from "@/lib/supabase/server";
 
@@ -39,6 +40,10 @@ export default async function ClubNewEventPage({ params }: { params: Promise<{ s
         mode="create"
         clubId={club.id}
         paymentPauseEnabled={await isPaymentPauseEnabled()}
+        eventTypes={(await getCachedActivityTypes()).map((at) => ({
+          value: at.slug,
+          label: at.label,
+        }))}
       />
     </div>
   );
