@@ -405,16 +405,15 @@ function ActivityTypeRow({
         {index + 1}
       </span>
 
-      {/* Image + Icon + color dot + label */}
+      {/* Color dot + image + icon + label */}
       <div className="flex items-center gap-2 min-w-0 flex-1">
-        {item.image_url ? (
+        <span className={cn("h-3 w-3 rounded-full shrink-0", preset.dot)} />
+        {item.image_url && (
           <img
             src={item.image_url}
             alt=""
             className="h-7 w-7 rounded-full object-cover shrink-0 border border-gray-200 dark:border-gray-700"
           />
-        ) : (
-          <span className={cn("h-3 w-3 rounded-full shrink-0", preset.dot)} />
         )}
         <span className="text-lg shrink-0">{item.icon}</span>
         <span className="font-medium text-sm text-gray-900 dark:text-white truncate">
