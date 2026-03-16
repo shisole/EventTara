@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 import { sendEmail } from "@/lib/email/send";
 import { bookingConfirmationHtml } from "@/lib/email/templates/booking-confirmation";
 import { createNotification } from "@/lib/notifications/create";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { matchBookingByName } from "@/lib/welcome/match-booking";
 import { validateWelcomePage } from "@/lib/welcome/validate";
 
@@ -183,6 +183,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ cod
     [];
 
   if (page.event_id) {
+    // Use service client for booking operations — RLS blocks updates on
+    // bookings where user_id IS NULL (no policy matches the claiming user)
+    const serviceClient = createServiceClient();
+
     // Fetch event details for notification/email
     const { data: eventData } = await supabase
       .from("events")
@@ -190,8 +194,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ cod
       .eq("id", page.event_id)
       .single();
 
-    // Fetch unclaimed bookings for this event
-    const { data: unclaimed } = await supabase
+    // Fetch unclaimed bookings for this event (service client bypasses RLS)
+    const { data: unclaimed } = await serviceClient
       .from("bookings")
       .select("id, manual_name, event_distance_id")
       .eq("event_id", page.event_id)
@@ -220,7 +224,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ cod
 
       if (targetBooking) {
         const qrCode = `eventtara:checkin:${page.event_id}:${user.id}:${randomUUID().slice(0, 8)}`;
-        const { error: linkError } = await supabase
+        const { error: linkError } = await serviceClient
           .from("bookings")
           .update({
             user_id: user.id,
