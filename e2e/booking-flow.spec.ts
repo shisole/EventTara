@@ -7,6 +7,7 @@ test.describe("Organizer + Participant booking flow", () => {
   let eventId: string;
   let eventTitle: string;
   let clubId: string;
+  let clubSlug: string;
 
   test("full happy path: create → book → check-in → verify", async ({ browser }) => {
     test.setTimeout(90_000);
@@ -24,8 +25,9 @@ test.describe("Organizer + Participant booking flow", () => {
       });
 
       expect(response.ok()).toBeTruthy();
-      const body = (await response.json()) as { club: { id: string } };
+      const body = (await response.json()) as { club: { id: string; slug: string } };
       clubId = body.club.id;
+      clubSlug = body.club.slug;
       expect(clubId).toBeTruthy();
     });
 
@@ -133,10 +135,16 @@ test.describe("Organizer + Participant booking flow", () => {
   });
 
   test.afterAll(async ({ browser }) => {
-    if (!eventId) return;
-
     const context = await browser.newContext({ storageState: ORGANIZER_STATE });
-    await context.request.delete(`/api/events/${eventId}`);
+
+    // Delete event first (FK to club), then delete the club
+    if (eventId) {
+      await context.request.delete(`/api/events/${eventId}`);
+    }
+    if (clubSlug) {
+      await context.request.delete(`/api/clubs/${clubSlug}`);
+    }
+
     await context.close();
   });
 });
