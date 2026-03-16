@@ -3,6 +3,12 @@ import { notFound, redirect } from "next/navigation";
 import WelcomePageEditor from "@/components/dashboard/WelcomePageEditor";
 import WelcomeQRCode from "@/components/dashboard/WelcomeQRCode";
 import { createClient } from "@/lib/supabase/server";
+import { type Database } from "@/lib/supabase/types";
+
+/** Deterministic code for an event welcome page */
+function eventWelcomeCode(slug: string, eventId: string) {
+  return `${slug}-${eventId.slice(0, 8)}`;
+}
 
 export default async function EventWelcomePage({
   params,
@@ -43,8 +49,11 @@ export default async function EventWelcomePage({
     .single();
   if (event?.club_id !== club.id) notFound();
 
-  // Fetch welcome page for this event
-  const { data: welcomePage, error: wpError } = await supabase
+  // Fetch welcome page — try by event_id first, fall back to deterministic code
+  type WelcomePageRow = Database["public"]["Tables"]["welcome_pages"]["Row"];
+  let welcomePage: WelcomePageRow | null = null;
+
+  const { data: byEventId } = await supabase
     .from("welcome_pages")
     .select("*")
     .eq("event_id", id)
@@ -52,8 +61,17 @@ export default async function EventWelcomePage({
     .limit(1)
     .maybeSingle();
 
-  if (wpError) {
-    console.error("[event-welcome] Query failed:", wpError.message, wpError.code);
+  if (byEventId) {
+    welcomePage = byEventId;
+  } else {
+    // Fallback: query by deterministic code pattern
+    const expectedCode = eventWelcomeCode(club.slug, id);
+    const { data: byCode } = await supabase
+      .from("welcome_pages")
+      .select("*")
+      .eq("code", expectedCode)
+      .maybeSingle();
+    welcomePage = byCode;
   }
 
   // Get claim count if welcome page exists
@@ -149,42 +167,30 @@ function GenerateButton({
       .single();
     if (!event) return;
 
-    const code = `${club.slug}-${eventId.slice(0, 8)}`;
+    const code = eventWelcomeCode(club.slug, eventId);
 
+    // Insert without event_id first (always works), then try to set event_id
     const { error } = await supabase.from("welcome_pages").insert({
       code,
       title: `Welcome to ${event.title}!`,
       subtitle: `Hosted by ${clubName}`,
       club_id: club.id,
-      event_id: eventId,
       redirect_url: `/events/${eventId}`,
       is_active: true,
       created_by: user.id,
     });
 
     if (error) {
-      // Code collision — append random suffix and retry once
       if (error.code === "23505") {
-        const retryCode = `${code}-${Math.random().toString(36).slice(2, 6)}`;
-        const { error: retryError } = await supabase.from("welcome_pages").insert({
-          code: retryCode,
-          title: `Welcome to ${event.title}!`,
-          subtitle: `Hosted by ${clubName}`,
-          club_id: club.id,
-          event_id: eventId,
-          redirect_url: `/events/${eventId}`,
-          is_active: true,
-          created_by: user.id,
-        });
-        if (retryError) {
-          console.error("[event-welcome] Insert retry failed:", retryError.message);
-          return;
-        }
-      } else {
-        console.error("[event-welcome] Insert failed:", error.message);
-        return;
+        // Code collision — already exists, just redirect
+        redirect(`/dashboard/clubs/${clubSlug}/events/${eventId}/welcome`);
       }
+      console.error("[event-welcome] Insert failed:", error.message, error.code);
+      return;
     }
+
+    // Best-effort: set event_id (may fail if column not yet available via API)
+    await supabase.from("welcome_pages").update({ event_id: eventId }).eq("code", code);
 
     redirect(`/dashboard/clubs/${clubSlug}/events/${eventId}/welcome`);
   }
