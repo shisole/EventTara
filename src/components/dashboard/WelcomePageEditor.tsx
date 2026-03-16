@@ -33,12 +33,15 @@ interface WelcomePageEditorProps {
   welcomePage: WelcomePage;
   claimCount: number;
   clubSlug: string;
+  eventId?: string;
+  eventTitle?: string;
 }
 
 export default function WelcomePageEditor({
   welcomePage,
   claimCount,
   clubSlug,
+  eventId,
 }: WelcomePageEditorProps) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
@@ -93,7 +96,8 @@ export default function WelcomePageEditor({
       // Upload hero image if it's a file
       const heroImageUrl = heroImage instanceof File ? await uploadHeroImage(heroImage) : heroImage;
 
-      const res = await fetch(`/api/clubs/${clubSlug}/welcome-page`, {
+      const queryStr = eventId ? `?event_id=${eventId}` : "";
+      const res = await fetch(`/api/clubs/${clubSlug}/welcome-page${queryStr}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -101,11 +105,13 @@ export default function WelcomePageEditor({
           subtitle: subtitle.trim() || null,
           description: description.trim() || null,
           hero_image_url: heroImageUrl,
-          redirect_url: redirectUrl.trim() || `/clubs/${clubSlug}`,
+          redirect_url:
+            redirectUrl.trim() || (eventId ? `/events/${eventId}` : `/clubs/${clubSlug}`),
           max_claims: maxClaims ? Number.parseInt(maxClaims, 10) : null,
           expires_at: expiresAt || null,
           is_active: isActive,
           badge_id: badgeId || null,
+          ...(eventId && { event_id: eventId }),
         }),
       });
 

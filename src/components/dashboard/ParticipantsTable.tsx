@@ -1,11 +1,14 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui";
 import PaymentStatusBadge from "@/components/ui/PaymentStatusBadge";
 import { cn } from "@/lib/utils";
+
+const LinkBookingModal = dynamic(() => import("./LinkBookingModal"));
 
 export interface Booking {
   id: string;
@@ -322,6 +325,10 @@ export default function ParticipantsTable({
   const [paymentFilter, setPaymentFilter] = useState<PaymentFilter>("all");
   const [checkInFilter, setCheckInFilter] = useState<CheckInFilter>("all");
   const [waiverFilter, setWaiverFilter] = useState<WaiverFilter>("all");
+  const [linkBooking, setLinkBooking] = useState<{
+    bookingId: string;
+    manualName: string;
+  } | null>(null);
   const isCompleted = eventStatus === "completed";
 
   // Only show waiver filter when at least one booking has waiver_accepted_at set
@@ -562,6 +569,21 @@ export default function ParticipantsTable({
   };
 
   const renderBookingActions = (booking: Booking) => {
+    // Unclaimed booking (manual_name, no user_id) — show Link button
+    if (!booking.user_id && booking.manual_name && !booking.participant_cancelled) {
+      return (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() =>
+            setLinkBooking({ bookingId: booking.id, manualName: booking.manual_name! })
+          }
+        >
+          Link
+        </Button>
+      );
+    }
+
     // Skip normal payment actions for organizer-added participants
     if (booking.added_by) return null;
 
@@ -1198,6 +1220,14 @@ export default function ParticipantsTable({
             </svg>
           </button>
         </div>
+      )}
+      {linkBooking && (
+        <LinkBookingModal
+          bookingId={linkBooking.bookingId}
+          manualName={linkBooking.manualName}
+          eventId={eventId}
+          onClose={() => setLinkBooking(null)}
+        />
       )}
     </>
   );

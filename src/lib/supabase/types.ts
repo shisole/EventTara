@@ -1768,6 +1768,7 @@ export interface Database {
           description: string | null;
           badge_id: string | null;
           club_id: string | null;
+          event_id: string | null;
           redirect_url: string;
           hero_image_url: string | null;
           max_claims: number | null;
@@ -1784,6 +1785,7 @@ export interface Database {
           description?: string | null;
           badge_id?: string | null;
           club_id?: string | null;
+          event_id?: string | null;
           redirect_url?: string;
           hero_image_url?: string | null;
           max_claims?: number | null;
@@ -1800,6 +1802,7 @@ export interface Database {
           description?: string | null;
           badge_id?: string | null;
           club_id?: string | null;
+          event_id?: string | null;
           redirect_url?: string;
           hero_image_url?: string | null;
           max_claims?: number | null;
@@ -1821,6 +1824,13 @@ export interface Database {
             columns: ["club_id"];
             isOneToOne: false;
             referencedRelation: "clubs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "welcome_pages_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "events";
             referencedColumns: ["id"];
           },
         ];
