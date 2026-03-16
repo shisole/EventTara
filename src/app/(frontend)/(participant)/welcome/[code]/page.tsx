@@ -15,13 +15,18 @@ export async function generateMetadata({
   const supabase = await createClient();
   const { data: page } = await supabase
     .from("welcome_pages")
-    .select("title, subtitle, hero_image_url, clubs(name)")
+    .select("title, subtitle, hero_image_url, event_id, clubs(name), events(title)")
     .eq("code", code)
     .maybeSingle();
 
-  const title = page ? `${page.title} — EventTara` : "Welcome — EventTara";
-  const description = page?.subtitle ?? "Welcome to EventTara!";
+  const eventTitle = (page?.events as { title: string } | null)?.title;
   const clubName = (page?.clubs as { name: string } | null)?.name;
+  const title = eventTitle
+    ? `${eventTitle} — Welcome — EventTara`
+    : page
+      ? `${page.title} — EventTara`
+      : "Welcome — EventTara";
+  const description = page?.subtitle ?? "Welcome to EventTara!";
   const url = `/welcome/${code}`;
 
   return {
@@ -151,12 +156,33 @@ export default async function WelcomePage({ params }: { params: Promise<{ code: 
     club = clubData;
   }
 
+  // Fetch event data if linked
+  let event: {
+    id: string;
+    title: string;
+    date: string;
+    location: string;
+    cover_image_url: string | null;
+    type: "hiking" | "mtb" | "road_bike" | "running" | "trail_run";
+    price: number;
+  } | null = null;
+
+  if (page.event_id) {
+    const { data: eventData } = await supabase
+      .from("events")
+      .select("id, title, date, location, cover_image_url, type, price")
+      .eq("id", page.event_id)
+      .maybeSingle();
+    event = eventData;
+  }
+
   // Check auth & existing claim
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   let hasClaimed = false;
+  let hasBooking = false;
   if (user) {
     const { data: existingClaim } = await supabase
       .from("welcome_page_claims")
@@ -165,6 +191,17 @@ export default async function WelcomePage({ params }: { params: Promise<{ code: 
       .eq("user_id", user.id)
       .maybeSingle();
     hasClaimed = !!existingClaim;
+
+    // Check if user already has a booking for this event
+    if (page.event_id) {
+      const { data: existingBooking } = await supabase
+        .from("bookings")
+        .select("id")
+        .eq("event_id", page.event_id)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      hasBooking = !!existingBooking;
+    }
   }
 
   // Check if user is already a club member
@@ -191,10 +228,12 @@ export default async function WelcomePage({ params }: { params: Promise<{ code: 
       redirectUrl={page.redirect_url}
       badge={badge}
       club={club}
+      event={event}
       isClubMember={isClubMember}
       spotsRemaining={spotsRemaining}
       isLoggedIn={!!user}
       hasClaimed={hasClaimed}
+      hasBooking={hasBooking}
     />
   );
 }

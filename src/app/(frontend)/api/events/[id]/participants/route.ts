@@ -117,3 +117,90 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
   return NextResponse.json({ booking }, { status: 201 });
 }
+
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id: eventId } = await params;
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Fetch event and verify club permission
+  const { data: event } = await supabase
+    .from("events")
+    .select("id, club_id")
+    .eq("id", eventId)
+    .single();
+
+  if (!event?.club_id) {
+    return NextResponse.json({ error: "Event not found" }, { status: 404 });
+  }
+
+  const role = await checkClubPermissionServer(
+    user.id,
+    event.club_id,
+    CLUB_PERMISSIONS.manage_bookings,
+  );
+  if (!role) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const body = await request.json();
+  const { bookingId, userId } = body as { bookingId: string; userId: string };
+
+  if (!bookingId || !userId) {
+    return NextResponse.json({ error: "bookingId and userId are required" }, { status: 400 });
+  }
+
+  // Verify booking is unclaimed and belongs to this event
+  const { data: booking } = await supabase
+    .from("bookings")
+    .select("id, user_id, event_id")
+    .eq("id", bookingId)
+    .eq("event_id", eventId)
+    .is("user_id", null)
+    .single();
+
+  if (!booking) {
+    return NextResponse.json({ error: "Booking not found or already linked" }, { status: 404 });
+  }
+
+  // Check if user already has a booking for this event
+  const { data: existing } = await supabase
+    .from("bookings")
+    .select("id")
+    .eq("event_id", eventId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (existing) {
+    return NextResponse.json(
+      { error: "This user already has a booking for this event" },
+      { status: 409 },
+    );
+  }
+
+  const qrCode = `eventtara:checkin:${eventId}:${userId}:${randomUUID().slice(0, 8)}`;
+
+  const { data: updated, error } = await supabase
+    .from("bookings")
+    .update({
+      user_id: userId,
+      status: "confirmed" as const,
+      qr_code: qrCode,
+    })
+    .eq("id", bookingId)
+    .is("user_id", null)
+    .select("*")
+    .single();
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ booking: updated });
+}

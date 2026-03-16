@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { checkClubPermissionServer, CLUB_PERMISSIONS } from "@/lib/clubs/permissions";
 import { createClient } from "@/lib/supabase/server";
 
-export async function GET(_request: Request, { params }: { params: Promise<{ slug: string }> }) {
+export async function GET(request: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const supabase = await createClient();
   const {
@@ -25,13 +25,20 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const { data: welcomePage, error } = await supabase
+  // Support ?event_id= query to fetch event-specific welcome page
+  const { searchParams } = new URL(request.url);
+  const eventId = searchParams.get("event_id");
+
+  let query = supabase
     .from("welcome_pages")
     .select("*")
     .eq("club_id", club.id)
     .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .limit(1);
+
+  query = eventId ? query.eq("event_id", eventId) : query.is("event_id", null);
+
+  const { data: welcomePage, error } = await query.maybeSingle();
 
   if (error) {
     console.error("Welcome page fetch error:", error.message);
@@ -72,13 +79,20 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ sl
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const { data: welcomePage } = await supabase
+  // Support ?event_id= query to target event-specific welcome page
+  const { searchParams } = new URL(request.url);
+  const eventId = searchParams.get("event_id");
+
+  let query = supabase
     .from("welcome_pages")
     .select("id")
     .eq("club_id", club.id)
     .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .limit(1);
+
+  query = eventId ? query.eq("event_id", eventId) : query.is("event_id", null);
+
+  const { data: welcomePage } = await query.maybeSingle();
 
   if (!welcomePage) {
     return NextResponse.json({ error: "Welcome page not found" }, { status: 404 });
@@ -96,6 +110,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ sl
     "expires_at",
     "is_active",
     "badge_id",
+    "event_id",
   ] as const;
 
   const updates: Record<string, unknown> = {};

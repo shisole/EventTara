@@ -20,6 +20,14 @@ const USERNAME_REGEX = /^[a-z0-9._-]{3,30}$/;
 const CODE_LENGTH = 6;
 const emptyCode = () => Array.from<string>({ length: CODE_LENGTH }).fill("");
 
+const EVENT_TYPE_LABELS: Record<string, string> = {
+  hiking: "Hiking",
+  mtb: "Mountain Biking",
+  road_bike: "Road Biking",
+  running: "Running",
+  trail_run: "Trail Running",
+};
+
 interface BadgeInfo {
   id: string;
   title: string;
@@ -37,6 +45,22 @@ interface ClubInfo {
   description: string | null;
 }
 
+interface EventInfo {
+  id: string;
+  title: string;
+  date: string;
+  location: string;
+  cover_image_url: string | null;
+  type: "hiking" | "mtb" | "road_bike" | "running" | "trail_run";
+  price: number;
+}
+
+interface UnclaimedBookingInfo {
+  id: string;
+  manual_name: string;
+  event_distance_id: string | null;
+}
+
 interface WelcomeClientProps {
   code: string;
   title: string;
@@ -46,13 +70,21 @@ interface WelcomeClientProps {
   redirectUrl: string;
   badge: BadgeInfo | null;
   club: ClubInfo | null;
+  event?: EventInfo | null;
   isClubMember: boolean;
   spotsRemaining: number | null;
   isLoggedIn: boolean;
   hasClaimed: boolean;
+  hasBooking?: boolean;
 }
 
-type ViewState = "welcome" | "claiming" | "celebration" | "already-claimed" | "error";
+type ViewState =
+  | "welcome"
+  | "claiming"
+  | "celebration"
+  | "already-claimed"
+  | "pick-booking"
+  | "error";
 type AuthPanel = "hidden" | "signup" | "login";
 type AuthMethod = "password" | "otp";
 type AuthStep = "form" | "verify-code";
@@ -895,17 +927,39 @@ export default function WelcomeClient({
   spotsRemaining,
   isLoggedIn,
   hasClaimed,
+  event,
+  hasBooking,
 }: WelcomeClientProps) {
-  const [state, setState] = useState<ViewState>(hasClaimed ? "already-claimed" : "welcome");
+  const initialState: ViewState =
+    hasBooking && hasClaimed ? "already-claimed" : hasClaimed ? "already-claimed" : "welcome";
+  const [state, setState] = useState<ViewState>(initialState);
   const [authPanel, setAuthPanel] = useState<AuthPanel>("hidden");
   const [errorMsg, setErrorMsg] = useState("");
   const confettiFired = useRef(false);
 
-  async function handleClaim() {
-    setState("claiming");
+  // Booking picker state
+  const [unclaimedBookings, setUnclaimedBookings] = useState<UnclaimedBookingInfo[]>([]);
+  const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
+  const [pickLoading, setPickLoading] = useState(false);
+
+  async function handleClaim(pickBookingId?: string) {
+    if (!pickBookingId) setState("claiming");
     try {
-      const res = await fetch(`/api/welcome/${code}/claim`, { method: "POST" });
-      const data: { error?: string; success?: boolean; club_joined?: boolean } = await res.json();
+      const fetchOptions: RequestInit = { method: "POST" };
+      if (pickBookingId) {
+        fetchOptions.headers = { "Content-Type": "application/json" };
+        fetchOptions.body = JSON.stringify({ booking_id: pickBookingId });
+      }
+
+      const res = await fetch(`/api/welcome/${code}/claim`, fetchOptions);
+      const data: {
+        error?: string;
+        success?: boolean;
+        club_joined?: boolean;
+        booking_linked?: boolean;
+        booking_id?: string | null;
+        unclaimed_bookings?: UnclaimedBookingInfo[];
+      } = await res.json();
 
       if (!res.ok) {
         if (res.status === 409) {
@@ -914,6 +968,13 @@ export default function WelcomeClient({
         }
         setErrorMsg(data.error ?? "Something went wrong");
         setState("error");
+        return;
+      }
+
+      // If unclaimed bookings returned, show picker
+      if (data.unclaimed_bookings && data.unclaimed_bookings.length > 0) {
+        setUnclaimedBookings(data.unclaimed_bookings);
+        setState("pick-booking");
         return;
       }
 
@@ -926,6 +987,16 @@ export default function WelcomeClient({
     } catch {
       setErrorMsg("Network error. Please try again.");
       setState("error");
+    }
+  }
+
+  async function handlePickBooking() {
+    if (!selectedBookingId) return;
+    setPickLoading(true);
+    try {
+      await handleClaim(selectedBookingId);
+    } finally {
+      setPickLoading(false);
     }
   }
 
@@ -949,7 +1020,20 @@ export default function WelcomeClient({
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          {club && isClubMember ? (
+          {event && hasBooking ? (
+            <>
+              <h1 className="font-heading text-2xl font-bold mb-2">Already Registered</h1>
+              <p className="text-gray-500 dark:text-gray-400 mb-6">
+                You&apos;re already registered for {event.title}
+              </p>
+              <Link
+                href={`/events/${event.id}`}
+                className="inline-flex items-center justify-center font-semibold rounded-xl bg-lime-500 hover:bg-lime-400 text-gray-900 py-3 px-6 min-h-[48px] transition-colors"
+              >
+                View Event
+              </Link>
+            </>
+          ) : club && isClubMember ? (
             <>
               {club.logo_url && (
                 <div className="mx-auto mb-4 h-16 w-16 rounded-full overflow-hidden">
@@ -1004,12 +1088,85 @@ export default function WelcomeClient({
     );
   }
 
+  // ---------- Pick Booking ----------
+  if (state === "pick-booking") {
+    return (
+      <div className="min-h-dvh md:min-h-[60vh] flex items-start md:items-center justify-center px-6 md:px-4 pt-16 md:pt-0">
+        <div className="max-w-md w-full md:bg-white md:dark:bg-gray-900 md:rounded-2xl md:shadow-md md:dark:shadow-gray-950/30 p-0 md:p-8">
+          <div className="text-center mb-6">
+            <h1 className="font-heading text-2xl font-bold mb-2">Find Your Booking</h1>
+            <p className="text-gray-500 dark:text-gray-400">
+              We couldn&apos;t auto-match your name. Select your booking below:
+            </p>
+          </div>
+
+          <div className="space-y-2 mb-6">
+            {unclaimedBookings.map((b) => (
+              <button
+                key={b.id}
+                type="button"
+                onClick={() => setSelectedBookingId(b.id)}
+                className={cn(
+                  "w-full text-left rounded-xl border-2 px-4 py-3 transition-colors",
+                  selectedBookingId === b.id
+                    ? "border-lime-500 bg-lime-50 dark:bg-lime-900/20 dark:border-lime-400"
+                    : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600",
+                )}
+              >
+                <p className="font-medium dark:text-white">{b.manual_name}</p>
+              </button>
+            ))}
+          </div>
+
+          <Button
+            onClick={handlePickBooking}
+            disabled={!selectedBookingId || pickLoading}
+            className="w-full min-h-[48px]"
+          >
+            {pickLoading ? "Linking..." : "Confirm"}
+          </Button>
+
+          <p className="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
+            Not on the list?{" "}
+            <Link
+              href={event ? `/events/${event.id}` : redirectUrl}
+              className="text-lime-600 dark:text-lime-400 hover:text-lime-700 dark:hover:text-lime-300 font-medium"
+            >
+              Contact the organizer
+            </Link>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   // ---------- Celebration ----------
   if (state === "celebration") {
     return (
       <div className="min-h-dvh md:min-h-[60vh] flex items-start md:items-center justify-center px-6 md:px-4 pt-16 md:pt-0">
         <div className="max-w-md w-full text-center animate-fadeUp">
-          {club ? (
+          {event ? (
+            <>
+              <h1 className="font-heading text-3xl font-bold mb-2">
+                You&apos;re booked for {event.title}!
+              </h1>
+              <p className="text-lg text-gray-600 dark:text-gray-300 mb-6">
+                Your spot is confirmed. See you there!
+              </p>
+              {badge && (
+                <div className="mb-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                    Plus, you earned a badge!
+                  </p>
+                  <BadgePreview badge={badge} />
+                  <p className="font-heading font-bold mt-3">{badge.title}</p>
+                </div>
+              )}
+              <div>
+                <AutoRedirectButton href={`/events/${event.id}`} label="View Event Details" />
+              </div>
+            </>
+          ) : club ? (
             <>
               {club.logo_url && (
                 <div className="mx-auto mb-4 h-16 w-16 rounded-full overflow-hidden">
@@ -1155,6 +1312,39 @@ export default function WelcomeClient({
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">{description}</p>
           )}
 
+          {/* Event card */}
+          {event && (
+            <div className="mb-6 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden text-left">
+              {event.cover_image_url && (
+                <div className="relative h-32 w-full">
+                  <Image
+                    src={event.cover_image_url}
+                    alt={event.title}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              )}
+              <div className="p-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide bg-teal-100 text-teal-700 dark:bg-teal-900/50 dark:text-teal-300">
+                    {EVENT_TYPE_LABELS[event.type]}
+                  </span>
+                </div>
+                <p className="font-heading font-bold dark:text-white">{event.title}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  {new Date(event.date).toLocaleDateString("en-PH", {
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
+                </p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{event.location}</p>
+              </div>
+            </div>
+          )}
+
           {/* Badge preview */}
           {badge && (
             <div className="mb-6">
@@ -1184,11 +1374,17 @@ export default function WelcomeClient({
           {/* CTA */}
           {isLoggedIn ? (
             <Button
-              onClick={handleClaim}
+              onClick={() => handleClaim()}
               disabled={state === "claiming"}
               className="w-full min-h-[48px]"
             >
-              {state === "claiming" ? "Claiming..." : club ? "Join & Claim" : "Claim Your Reward"}
+              {state === "claiming"
+                ? "Claiming..."
+                : event
+                  ? "Claim Your Spot"
+                  : club
+                    ? "Join & Claim"
+                    : "Claim Your Reward"}
             </Button>
           ) : authPanel === "hidden" ? (
             <div className="space-y-3">
@@ -1197,7 +1393,11 @@ export default function WelcomeClient({
                 className="w-full min-h-[48px]"
                 size="lg"
               >
-                {club ? `Sign Up & Join ${club.name}` : "Sign Up to Claim"}
+                {event
+                  ? "Sign Up & Claim Your Spot"
+                  : club
+                    ? `Sign Up & Join ${club.name}`
+                    : "Sign Up to Claim"}
               </Button>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Already have an account?{" "}

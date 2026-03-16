@@ -1,10 +1,13 @@
+import { randomUUID } from "node:crypto";
+
 import { NextResponse } from "next/server";
 
 import { createNotification } from "@/lib/notifications/create";
 import { createClient } from "@/lib/supabase/server";
+import { matchBookingByName } from "@/lib/welcome/match-booking";
 import { validateWelcomePage } from "@/lib/welcome/validate";
 
-export async function POST(_request: Request, { params }: { params: Promise<{ code: string }> }) {
+export async function POST(request: Request, { params }: { params: Promise<{ code: string }> }) {
   const { code } = await params;
   const supabase = await createClient();
 
@@ -15,6 +18,15 @@ export async function POST(_request: Request, { params }: { params: Promise<{ co
 
   if (!user) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
+  // Parse optional body (booking_id for manual pick)
+  let bookingId: string | undefined;
+  try {
+    const body = await request.json();
+    bookingId = body?.booking_id;
+  } catch {
+    // No body or invalid JSON — that's fine
   }
 
   // Fetch welcome page
@@ -162,9 +174,79 @@ export async function POST(_request: Request, { params }: { params: Promise<{ co
     }
   }
 
+  // Link booking if event is attached
+  let bookingLinked = false;
+  let linkedBookingId: string | null = null;
+  let unclaimedBookings: { id: string; manual_name: string; event_distance_id: string | null }[] =
+    [];
+
+  if (page.event_id) {
+    // Fetch unclaimed bookings for this event
+    const { data: unclaimed } = await supabase
+      .from("bookings")
+      .select("id, manual_name, event_distance_id")
+      .eq("event_id", page.event_id)
+      .is("user_id", null)
+      .not("manual_name", "is", null);
+
+    const available = (unclaimed ?? []) as {
+      id: string;
+      manual_name: string;
+      event_distance_id: string | null;
+    }[];
+
+    if (available.length > 0) {
+      let targetBooking: (typeof available)[number] | null = null;
+
+      if (bookingId) {
+        // Manual pick: verify the booking is in the unclaimed list
+        targetBooking = available.find((b) => b.id === bookingId) ?? null;
+      } else {
+        // Auto-match by name
+        const { data: userData } = await supabase
+          .from("users")
+          .select("full_name")
+          .eq("id", user.id)
+          .single();
+
+        targetBooking = matchBookingByName(available, userData?.full_name) as typeof targetBooking;
+      }
+
+      if (targetBooking) {
+        const qrCode = `eventtara:checkin:${page.event_id}:${user.id}:${randomUUID().slice(0, 8)}`;
+        const { error: linkError } = await supabase
+          .from("bookings")
+          .update({
+            user_id: user.id,
+            status: "confirmed" as const,
+            qr_code: qrCode,
+          })
+          .eq("id", targetBooking.id)
+          .is("user_id", null);
+
+        if (linkError) {
+          console.error("[welcome-claim] Booking link failed:", linkError.message);
+        } else {
+          bookingLinked = true;
+          linkedBookingId = targetBooking.id;
+        }
+      } else if (!bookingId) {
+        // No auto-match — return unclaimed list for manual pick
+        unclaimedBookings = available.map((b) => ({
+          id: b.id,
+          manual_name: b.manual_name,
+          event_distance_id: b.event_distance_id,
+        }));
+      }
+    }
+  }
+
   return NextResponse.json({
     success: true,
     badge_awarded: badgeAwarded,
     club_joined: clubJoined,
+    booking_linked: bookingLinked,
+    booking_id: linkedBookingId,
+    unclaimed_bookings: unclaimedBookings.length > 0 ? unclaimedBookings : undefined,
   });
 }

@@ -158,6 +158,9 @@ export default async function ClubEventDetailPage({
           <Link href={`${eventsBase}/${id}/checkin`}>
             <Button variant="secondary">Check-in Tool</Button>
           </Link>
+          <Link href={`${eventsBase}/${id}/welcome`}>
+            <Button variant="outline">Welcome QR</Button>
+          </Link>
           {event.status === "draft" && <PublishButton eventId={id} />}
           {event.status === "published" && <CompleteEventButton eventId={id} />}
         </div>
