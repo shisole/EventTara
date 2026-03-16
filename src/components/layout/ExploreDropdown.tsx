@@ -9,7 +9,7 @@ interface Activity {
   slug: string;
   label: string;
   icon: string;
-  image: string;
+  image: string | null;
 }
 
 interface LayoutProps {

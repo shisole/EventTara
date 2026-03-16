@@ -6,6 +6,7 @@ import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import ClientShell from "@/components/layout/ClientShell";
 import Footer from "@/components/layout/Footer";
 import ThemeProvider from "@/components/layout/ThemeProvider";
+import { getCachedActivityTypes } from "@/lib/activity-types/cached";
 import {
   getCachedFeatureFlags,
   getCachedHeroCarousel,
@@ -95,12 +96,14 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const [settings, activityFeedEnabled, featureFlags, heroCarousel] = await Promise.all([
-    getCachedSiteSettings(),
-    isActivityFeedEnabled(),
-    getCachedFeatureFlags(),
-    getCachedHeroCarousel(),
-  ]);
+  const [settings, activityFeedEnabled, featureFlags, heroCarousel, activityTypes] =
+    await Promise.all([
+      getCachedSiteSettings(),
+      isActivityFeedEnabled(),
+      getCachedFeatureFlags(),
+      getCachedHeroCarousel(),
+      getCachedActivityTypes(),
+    ]);
   const navLayout = settings?.nav_layout || "strip";
   const isProduction = (process.env.VERCEL_ENV ?? process.env.NODE_ENV) === "production";
   const adminUserIds = (
@@ -187,6 +190,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 : null
             }
             heroSlideCount={parseHeroSlides(heroCarousel).length}
+            activityTypes={activityTypes.map((at) => ({
+              slug: at.slug,
+              label: at.label,
+              icon: at.icon,
+              image: at.image_url,
+            }))}
           >
             {children}
           </ClientShell>

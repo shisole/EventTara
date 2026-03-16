@@ -9,7 +9,7 @@ interface ActivityCardProps {
   slug: string;
   label: string;
   icon: string;
-  image: string;
+  image: string | null;
   className?: string;
 }
 
@@ -19,13 +19,19 @@ export default function ActivityCard({ slug, label, icon, image, className }: Ac
       href={`/events?type=${slug}`}
       className={cn("group relative overflow-hidden rounded-xl block", className)}
     >
-      <Image
-        src={image}
-        alt={label}
-        fill
-        sizes="(max-width: 768px) 100vw, 200px"
-        className="object-cover transition-transform duration-300 group-hover:scale-105"
-      />
+      {image ? (
+        <Image
+          src={image}
+          alt={label}
+          fill
+          sizes="(max-width: 768px) 100vw, 200px"
+          className="object-cover transition-transform duration-300 group-hover:scale-105"
+        />
+      ) : (
+        <div className="absolute inset-0 bg-gray-700 flex items-center justify-center text-3xl">
+          {icon}
+        </div>
+      )}
       {/* Dark overlay — lightens on hover */}
       <div className="absolute inset-0 bg-black/60 transition-colors duration-300 group-hover:bg-black/20" />
       {/* Label */}
