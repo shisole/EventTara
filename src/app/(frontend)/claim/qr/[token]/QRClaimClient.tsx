@@ -62,6 +62,7 @@ export default function QRClaimClient({
   // Signup form state
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [confirmEmail, setConfirmEmail] = useState("");
   const [password, setPassword] = useState("");
   const [googleLoading, setGoogleLoading] = useState(false);
 
@@ -138,6 +139,10 @@ export default function QRClaimClient({
 
   async function handleClaim(e?: FormEvent) {
     if (e) e.preventDefault();
+    if (!userId && email !== confirmEmail) {
+      setError("Email addresses do not match.");
+      return;
+    }
     setClaiming(true);
     setError("");
 
@@ -394,6 +399,16 @@ export default function QRClaimClient({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
+                required
+              />
+
+              <Input
+                id="confirm-email"
+                label="Confirm Email"
+                type="email"
+                value={confirmEmail}
+                onChange={(e) => setConfirmEmail(e.target.value)}
+                placeholder="Re-enter your email"
                 required
               />
 
