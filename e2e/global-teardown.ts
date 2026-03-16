@@ -28,15 +28,31 @@ export default async function globalTeardown() {
     console.log(`[e2e teardown] Deleted ${String(eventsCount)} stale E2E event(s)`);
   }
 
-  // Delete stale E2E clubs
-  const { error: clubsError, count: clubsCount } = await supabase
+  // Find stale E2E clubs, then delete dependent rows before the clubs themselves
+  const { data: staleClubs } = await supabase
     .from("clubs")
-    .delete({ count: "exact" })
+    .select("id")
     .like("name", "E2E Test Club%");
 
-  if (clubsError) {
-    console.error("[e2e teardown] Failed to delete E2E clubs:", clubsError.message);
-  } else if (clubsCount && clubsCount > 0) {
-    console.log(`[e2e teardown] Deleted ${String(clubsCount)} stale E2E club(s)`);
+  if (staleClubs && staleClubs.length > 0) {
+    const clubIds = staleClubs.map((c) => c.id);
+
+    // Delete welcome_pages first (FK to clubs)
+    await supabase.from("welcome_pages").delete().in("club_id", clubIds);
+
+    // Delete club_members (FK to clubs)
+    await supabase.from("club_members").delete().in("club_id", clubIds);
+
+    // Now delete the clubs
+    const { error: clubsError, count: clubsCount } = await supabase
+      .from("clubs")
+      .delete({ count: "exact" })
+      .in("id", clubIds);
+
+    if (clubsError) {
+      console.error("[e2e teardown] Failed to delete E2E clubs:", clubsError.message);
+    } else if (clubsCount && clubsCount > 0) {
+      console.log(`[e2e teardown] Deleted ${String(clubsCount)} stale E2E club(s)`);
+    }
   }
 }
