@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import EventForm from "@/components/dashboard/EventForm";
 import { ChevronLeftIcon } from "@/components/icons";
+import { getCachedActivityTypes } from "@/lib/activity-types/cached";
 import { isPaymentPauseEnabled } from "@/lib/cms/cached";
 import { BreadcrumbTitle } from "@/lib/contexts/BreadcrumbContext";
 import { createClient } from "@/lib/supabase/server";
@@ -77,7 +78,10 @@ export default async function ClubEditEventPage({
     }
   }
 
-  const paymentPauseFlag = await isPaymentPauseEnabled();
+  const [paymentPauseFlag, activityTypes] = await Promise.all([
+    isPaymentPauseEnabled(),
+    getCachedActivityTypes(),
+  ]);
 
   const eventsBase = `/dashboard/clubs/${slug}/events`;
 
@@ -95,6 +99,7 @@ export default async function ClubEditEventPage({
       <EventForm
         mode="edit"
         paymentPauseEnabled={paymentPauseFlag}
+        eventTypes={activityTypes.map((at) => ({ value: at.slug, label: at.label }))}
         initialData={{
           id: event.id,
           title: event.title,
