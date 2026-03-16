@@ -55,7 +55,7 @@ export default async function Footer() {
   const displayLegalLinks = legalLinks.length > 0 ? legalLinks : defaultLegalLinks;
 
   return (
-    <footer className="bg-gray-100 dark:bg-gray-900 text-gray-500 dark:text-gray-400 py-12">
+    <footer className="bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-400 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
@@ -75,7 +75,7 @@ export default async function Footer() {
                   <Link
                     key={j}
                     href={link.url}
-                    className="block hover:text-gray-900 dark:hover:text-white"
+                    className="block text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                   >
                     {link.label}
                   </Link>

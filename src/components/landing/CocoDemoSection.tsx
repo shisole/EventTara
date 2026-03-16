@@ -436,6 +436,7 @@ export default function CocoDemoSection() {
                     type="submit"
                     disabled={loading || !input.trim()}
                     className="w-9 h-9 flex items-center justify-center rounded-full bg-lime-500 text-slate-900 hover:bg-lime-400 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+                    aria-label="Send message"
                   >
                     <SendIcon className="w-4 h-4" />
                   </button>
