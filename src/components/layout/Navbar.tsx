@@ -139,15 +139,15 @@ export default function Navbar({
         <div className="flex items-center justify-between h-16">
           <NavLink href="/" className="flex items-center gap-2">
             <Image
-              src="/favicon-192x192.png"
+              src="/favicon-48x48.png"
               alt="EventTara"
               width={32}
               height={32}
               className="rounded-lg"
-              unoptimized
+              priority
             />
             <span
-              className="text-3xl font-cursive font-bold text-lime-500"
+              className="text-3xl font-cursive font-bold text-lime-600 dark:text-lime-500"
               style={{ WebkitTextStroke: "0.5px currentColor" }}
             >
               EventTara
