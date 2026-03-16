@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import EventsPageClient from "@/components/events/EventsPageClient";
 import { Breadcrumbs } from "@/components/ui";
+import { getCachedActivityTypes } from "@/lib/activity-types/cached";
 import { isEventsTwoColMobileEnabled } from "@/lib/cms/cached";
 import { fetchEventEnrichments, mapEventToCard } from "@/lib/events/map-event-card";
 import { createClient } from "@/lib/supabase/server";
@@ -82,8 +83,19 @@ export default async function EventsPage({
   }>;
 }) {
   const params = await searchParams;
-  const supabase = await createClient();
+  const [supabase, allActivityTypes] = await Promise.all([
+    createClient(),
+    getCachedActivityTypes(),
+  ]);
   const today = new Date().toISOString().split("T")[0];
+
+  const activityTypeFilters = allActivityTypes.map((at) => ({
+    slug: at.slug,
+    label: at.short_label,
+    icon: at.icon,
+    image: at.image_url,
+    supportsDistance: at.supports_distance,
+  }));
 
   // Count query for total
   let countQuery = supabase
@@ -188,7 +200,13 @@ export default async function EventsPage({
       return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Breadcrumbs />
-          <EventsPageClient initialEvents={[]} totalCount={0} clubs={clubs} guides={guides} />
+          <EventsPageClient
+            initialEvents={[]}
+            totalCount={0}
+            activityTypes={activityTypeFilters}
+            clubs={clubs}
+            guides={guides}
+          />
         </div>
       );
     }
@@ -212,7 +230,13 @@ export default async function EventsPage({
       return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Breadcrumbs />
-          <EventsPageClient initialEvents={[]} totalCount={0} clubs={clubs} guides={guides} />
+          <EventsPageClient
+            initialEvents={[]}
+            totalCount={0}
+            activityTypes={activityTypeFilters}
+            clubs={clubs}
+            guides={guides}
+          />
         </div>
       );
     }
@@ -288,6 +312,7 @@ export default async function EventsPage({
       <EventsPageClient
         initialEvents={gridEvents}
         totalCount={totalCount}
+        activityTypes={activityTypeFilters}
         clubs={clubs}
         guides={guides}
         initialUsers={matchingUsers}

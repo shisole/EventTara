@@ -75,10 +75,17 @@ export default async function AchievementsPage() {
     }),
   );
 
+  // Sort earned badges to the top
+  const sortedBadges = [...badgesWithProgress].sort((a, b) => {
+    const aEarned = earnedMap.has(a.id) ? 0 : 1;
+    const bEarned = earnedMap.has(b.id) ? 0 : 1;
+    return aEarned - bEarned;
+  });
+
   const badgesContent = (
     <>
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-        {badgesWithProgress.map((badge) => {
+        {sortedBadges.map((badge) => {
           const isEarned = earnedMap.has(badge.id);
           const awardedAt = earnedMap.get(badge.id);
           const resolved = resolvePresetImage(badge.image_url);

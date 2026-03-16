@@ -12,6 +12,7 @@ const ALLOWED_FOLDERS = new Set([
   "reviews/photos",
   "clubs/forum",
   "welcome/heroes",
+  "activity-types",
 ]);
 
 export async function POST(request: Request) {

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -11,6 +12,7 @@ const navItems = [
   { href: "/admin/hero", label: "Hero Banners", icon: "image" },
   { href: "/admin/sections", label: "Sections", icon: "layers" },
   { href: "/admin/clubs", label: "Clubs", icon: "users" },
+  { href: "/admin/activity-types", label: "Activity Types", icon: "activity" },
   { href: "/admin/qr-codes", label: "QR Codes", icon: "qrcode" },
 ] as const;
 
@@ -76,6 +78,18 @@ function NavIcon({ icon }: { icon: (typeof navItems)[number]["icon"] }) {
         </svg>
       );
     }
+    case "activity": {
+      return (
+        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M13 10V3L4 14h7v7l9-11h-7z"
+          />
+        </svg>
+      );
+    }
     case "qrcode": {
       return (
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -93,11 +107,29 @@ function NavIcon({ icon }: { icon: (typeof navItems)[number]["icon"] }) {
 
 export default function AdminSidebar() {
   const pathname = usePathname();
+  const [isOpen, setIsOpen] = useState(false);
 
-  return (
-    <aside className="w-64 shrink-0 border-r border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-950 min-h-[calc(100dvh-4rem)]">
+  // Close drawer on route change
+  useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
+
+  // Lock body scroll when drawer is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = "";
+      };
+    }
+  }, [isOpen]);
+
+  const close = useCallback(() => setIsOpen(false), []);
+
+  const sidebarContent = (
+    <>
       <div className="px-4 py-6">
-        <Link href="/admin" className="flex items-center gap-2 mb-8">
+        <Link href="/admin" className="flex items-center gap-2 mb-8" onClick={close}>
           <div className="h-8 w-8 rounded-lg bg-lime-500 flex items-center justify-center">
             <svg
               className="h-5 w-5 text-white"
@@ -132,6 +164,7 @@ export default function AdminSidebar() {
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={close}
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                   isActive
@@ -163,6 +196,69 @@ export default function AdminSidebar() {
           Back to site
         </Link>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile hamburger button */}
+      <button
+        type="button"
+        onClick={() => setIsOpen(true)}
+        className="fixed top-3 left-3 z-50 md:hidden inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white p-2 text-gray-600 shadow-sm transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800"
+        aria-label="Open admin menu"
+      >
+        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M4 6h16M4 12h16M4 18h16"
+          />
+        </svg>
+      </button>
+
+      {/* Mobile backdrop */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          onClick={close}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Mobile drawer */}
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-950 border-r border-gray-200 dark:border-gray-800 flex flex-col transition-transform duration-200 ease-in-out md:hidden",
+          isOpen ? "translate-x-0" : "-translate-x-full",
+        )}
+      >
+        {/* Close button inside drawer */}
+        <div className="flex justify-end px-3 pt-3">
+          <button
+            type="button"
+            onClick={close}
+            className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+            aria-label="Close admin menu"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
+        {sidebarContent}
+      </aside>
+
+      {/* Desktop sidebar */}
+      <aside className="hidden md:flex md:flex-col w-64 shrink-0 border-r border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-950 min-h-[calc(100dvh-4rem)]">
+        {sidebarContent}
+      </aside>
+    </>
   );
 }

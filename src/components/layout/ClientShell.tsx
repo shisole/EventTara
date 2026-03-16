@@ -22,7 +22,7 @@ const MobileDrawer = dynamic(() => import("@/components/layout/MobileDrawer"));
 const ChatBubble = dynamic(() => import("@/components/chat/ChatBubble"), { ssr: false });
 const InstallPrompt = dynamic(() => import("@/components/pwa/InstallPrompt"));
 
-const activities = [
+const DEFAULT_ACTIVITIES = [
   {
     slug: "hiking",
     label: "Hiking",
@@ -55,6 +55,13 @@ const activities = [
   },
 ];
 
+interface ActivityItem {
+  slug: string;
+  label: string;
+  icon: string;
+  image: string | null;
+}
+
 interface ClientShellProps {
   children: React.ReactNode;
   initialNavLayout?: string;
@@ -63,6 +70,7 @@ interface ClientShellProps {
   featureFlags?: CmsFeatureFlags | null;
   siteSettings?: { site_name?: string; tagline?: string; nav_layout?: string } | null;
   heroSlideCount?: number;
+  activityTypes?: ActivityItem[];
 }
 
 export default function ClientShell({
@@ -73,6 +81,7 @@ export default function ClientShell({
   featureFlags = null,
   siteSettings = null,
   heroSlideCount = 0,
+  activityTypes,
 }: ClientShellProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -285,7 +294,7 @@ export default function ClientShell({
             user={user}
             canManage={canManage}
             loading={loading}
-            activities={activities}
+            activities={activityTypes ?? DEFAULT_ACTIVITIES}
             navLayout={navLayout}
             activeBorder={activeBorder}
             activityFeedEnabled={activityFeedEnabled}
@@ -306,7 +315,7 @@ export default function ClientShell({
         <MobileDrawer
           open={drawerOpen}
           onClose={handleDrawerClose}
-          activities={activities}
+          activities={activityTypes ?? DEFAULT_ACTIVITIES}
           user={user}
           canManage={canManage}
           isAdmin={isAdmin}

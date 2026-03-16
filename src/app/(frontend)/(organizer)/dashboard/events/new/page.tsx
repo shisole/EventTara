@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import EventForm from "@/components/dashboard/EventForm";
 import { ChevronLeftIcon } from "@/components/icons";
+import { getCachedActivityTypes } from "@/lib/activity-types/cached";
 import { isPaymentPauseEnabled } from "@/lib/cms/cached";
 
 export const metadata = { title: "Create Event — EventTara" };
@@ -19,7 +20,14 @@ export default async function NewEventPage() {
         Back to Events
       </Link>
       <h1 className="text-2xl font-heading font-bold mb-8 dark:text-white">Create New Event</h1>
-      <EventForm mode="create" paymentPauseEnabled={paymentPauseFlag} />
+      <EventForm
+        mode="create"
+        paymentPauseEnabled={paymentPauseFlag}
+        eventTypes={(await getCachedActivityTypes()).map((at) => ({
+          value: at.slug,
+          label: at.label,
+        }))}
+      />
     </div>
   );
 }

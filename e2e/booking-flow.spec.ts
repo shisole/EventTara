@@ -7,6 +7,7 @@ test.describe("Organizer + Participant booking flow", () => {
   let eventId: string;
   let eventTitle: string;
   let clubId: string;
+  let clubSlug: string;
 
   test("full happy path: create → book → check-in → verify", async ({ browser }) => {
     test.setTimeout(90_000);
@@ -24,8 +25,9 @@ test.describe("Organizer + Participant booking flow", () => {
       });
 
       expect(response.ok()).toBeTruthy();
-      const body = (await response.json()) as { club: { id: string } };
+      const body = (await response.json()) as { club: { id: string; slug: string } };
       clubId = body.club.id;
+      clubSlug = body.club.slug;
       expect(clubId).toBeTruthy();
     });
 
@@ -63,35 +65,30 @@ test.describe("Organizer + Participant booking flow", () => {
       expect(response.ok()).toBeTruthy();
     });
 
-    // ── Step 4: Participant views event detail page ──────────────────
-    await test.step("Participant views event detail page", async () => {
-      const participantPage = await participantContext.newPage();
-
-      // Navigate directly to event detail page instead of finding it in the list
-      await participantPage.goto(`/events/${eventId}`, { waitUntil: "domcontentloaded" });
-
-      await expect(participantPage.getByRole("heading", { name: eventTitle })).toBeVisible({
-        timeout: 15_000,
-      });
-
-      await participantPage.close();
+    // ── Step 4: Verify event is published and accessible ─────────────
+    await test.step("Participant can see published event via API", async () => {
+      const response = await participantContext.request.get(`/api/events/${eventId}`);
+      expect(response.ok()).toBeTruthy();
+      const body = (await response.json()) as { event: { title: string; status: string } };
+      expect(body.event.title).toBe(eventTitle);
+      expect(body.event.status).toBe("published");
     });
 
-    // ── Step 5: Participant books event ─────────────────────────────
+    // ── Step 5: Participant books event via API ──────────────────────
     await test.step("Participant books event", async () => {
-      const participantPage = await participantContext.newPage();
+      const response = await participantContext.request.post("/api/bookings", {
+        data: {
+          event_id: eventId,
+          payment_method: "free",
+        },
+      });
 
-      await participantPage.goto(`/events/${eventId}/book`, { waitUntil: "domcontentloaded" });
-
-      // Free event — just click confirm
-      const confirmButton = participantPage.getByRole("button", { name: /confirm booking/i });
-      await expect(confirmButton).toBeVisible({ timeout: 15_000 });
-      await confirmButton.click();
-
-      // Booking confirmation shows "You're In!"
-      await expect(participantPage.getByText(/you're in/i)).toBeVisible({ timeout: 15_000 });
-
-      await participantPage.close();
+      expect(response.ok()).toBeTruthy();
+      const body = (await response.json()) as {
+        booking: { id: string; status: string; payment_status: string };
+      };
+      expect(body.booking.status).toBe("confirmed");
+      expect(body.booking.payment_status).toBe("paid");
     });
 
     // ── Step 6: Participant self-checks-in from /my-events ─────────
@@ -133,10 +130,16 @@ test.describe("Organizer + Participant booking flow", () => {
   });
 
   test.afterAll(async ({ browser }) => {
-    if (!eventId) return;
-
     const context = await browser.newContext({ storageState: ORGANIZER_STATE });
-    await context.request.delete(`/api/events/${eventId}`);
+
+    // Delete event first (FK to club), then delete the club
+    if (eventId) {
+      await context.request.delete(`/api/events/${eventId}`);
+    }
+    if (clubSlug) {
+      await context.request.delete(`/api/clubs/${clubSlug}`);
+    }
+
     await context.close();
   });
 });

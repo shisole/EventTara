@@ -10,6 +10,7 @@ export { default as UserAvatar } from "./UserAvatar";
 export { default as DateRangePicker } from "./DateRangePicker";
 export { default as DemoBadge } from "./DemoBadge";
 export { default as OtpCodeInput } from "./OtpCodeInput";
+export { default as SortableList, DragHandleButton } from "./SortableList";
 export { default as Toggle } from "./Toggle";
 export { default as TokenRewardToast } from "./TokenRewardToast";
 export {

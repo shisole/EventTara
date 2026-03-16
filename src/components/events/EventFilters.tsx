@@ -4,45 +4,7 @@ import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useState, useEffect, useRef, useTransition, type ReactNode } from "react";
 
-import { DISTANCE_ACTIVITY_TYPES } from "@/lib/constants/activity-types";
 import { cn } from "@/lib/utils";
-
-/* ------------------------------------------------------------------ */
-/*  Constants                                                         */
-/* ------------------------------------------------------------------ */
-
-const ACTIVITIES = [
-  {
-    slug: "hiking",
-    label: "Hiking",
-    icon: "🏔️",
-    image: "https://images.unsplash.com/photo-1551632811-561732d1e306?w=600&h=400&fit=crop",
-  },
-  {
-    slug: "mtb",
-    label: "MTB",
-    icon: "🚵",
-    image: "https://images.unsplash.com/photo-1544191696-102dbdaeeaa0?w=600&h=400&fit=crop",
-  },
-  {
-    slug: "road_bike",
-    label: "Road Bike",
-    icon: "🚴",
-    image: "https://images.unsplash.com/photo-1517649763962-0c623066013b?w=600&h=400&fit=crop",
-  },
-  {
-    slug: "running",
-    label: "Running",
-    icon: "🏃",
-    image: "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=600&h=400&fit=crop",
-  },
-  {
-    slug: "trail_run",
-    label: "Trail Run",
-    icon: "🥾",
-    image: "https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=600&h=400&fit=crop",
-  },
-];
 
 const TIME_FILTERS = [
   { value: "upcoming", label: "Upcoming" },
@@ -75,7 +37,16 @@ interface FilterOption {
   name: string;
 }
 
+export interface ActivityTypeFilter {
+  slug: string;
+  label: string;
+  icon: string;
+  image: string | null;
+  supportsDistance: boolean;
+}
+
 interface EventFiltersProps {
+  activityTypes: ActivityTypeFilter[];
   clubs?: FilterOption[];
   guides?: FilterOption[];
   onPendingChange?: (pending: boolean) => void;
@@ -509,12 +480,10 @@ function serializeTypes(types: Set<string>): string {
   return [...types].join(",");
 }
 
-const ALL_SLUGS = new Set(ACTIVITIES.map((a) => a.slug));
-
 /** Check if all activities are selected (equivalent to no filter) */
-function isAllSelected(types: Set<string>): boolean {
+function isAllSelected(types: Set<string>, allSlugs: Set<string>): boolean {
   return (
-    types.size === 0 || (types.size === ALL_SLUGS.size && [...ALL_SLUGS].every((s) => types.has(s)))
+    types.size === 0 || (types.size === allSlugs.size && [...allSlugs].every((s) => types.has(s)))
   );
 }
 
@@ -523,6 +492,7 @@ function isAllSelected(types: Set<string>): boolean {
 /* ------------------------------------------------------------------ */
 
 export default function EventFilters({
+  activityTypes,
   clubs = [],
   guides = [],
   onPendingChange,
@@ -530,6 +500,10 @@ export default function EventFilters({
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
+
+  /* Derive sets from prop */
+  const allSlugs = new Set(activityTypes.map((a) => a.slug));
+  const distanceSlugs = new Set(activityTypes.filter((a) => a.supportsDistance).map((a) => a.slug));
 
   /* Current URL param values */
   const currentTypeParam = searchParams.get("type") ?? "";
@@ -650,10 +624,10 @@ export default function EventFilters({
         updates.difficulty = "";
       }
       // If selected type doesn't support distance, clear distance filter
-      if (!next || !DISTANCE_ACTIVITY_TYPES.has(next)) updates.distance = "";
+      if (!next || !distanceSlugs.has(next)) updates.distance = "";
       updateParams(updates);
     },
-    [currentTypes, updateParams],
+    [currentTypes, distanceSlugs, updateParams],
   );
 
   /* Select all activities (clears type param = show everything) */
@@ -827,12 +801,12 @@ export default function EventFilters({
   const activeTypes = parseTypes(draftType);
 
   /* Only show Guide / Difficulty chips when hiking is among selected types */
-  const showGuideChip = isAllSelected(activeTypes) || activeTypes.has("hiking");
+  const showGuideChip = isAllSelected(activeTypes, allSlugs) || activeTypes.has("hiking");
   const showDifficultyChip = activeTypes.has("hiking");
 
   /* Only show Distance chip when a distance-supporting type is selected */
   const showDistanceChip =
-    isAllSelected(activeTypes) || [...activeTypes].some((t) => DISTANCE_ACTIVITY_TYPES.has(t));
+    isAllSelected(activeTypes, allSlugs) || [...activeTypes].some((t) => distanceSlugs.has(t));
 
   return (
     <div className="space-y-4">
@@ -847,7 +821,7 @@ export default function EventFilters({
           <div
             className={cn(
               "relative w-12 h-12 sm:w-16 sm:h-16 rounded-full overflow-hidden border-2 transition-all flex items-center justify-center bg-gray-100 dark:bg-gray-700",
-              isAllSelected(activeTypes)
+              isAllSelected(activeTypes, allSlugs)
                 ? "border-lime-500 ring-2 ring-lime-300 dark:ring-lime-700 scale-105"
                 : "border-gray-200 dark:border-gray-600 opacity-70 group-hover:opacity-100 group-hover:border-gray-300 dark:group-hover:border-gray-500",
             )}
@@ -870,7 +844,7 @@ export default function EventFilters({
           <span
             className={cn(
               "text-[10px] sm:text-xs font-medium transition-colors",
-              isAllSelected(activeTypes)
+              isAllSelected(activeTypes, allSlugs)
                 ? "text-lime-600 dark:text-lime-400"
                 : "text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300",
             )}
@@ -879,8 +853,8 @@ export default function EventFilters({
           </span>
         </button>
 
-        {ACTIVITIES.map((activity) => {
-          const isActive = !isAllSelected(activeTypes) && activeTypes.has(activity.slug);
+        {activityTypes.map((activity) => {
+          const isActive = !isAllSelected(activeTypes, allSlugs) && activeTypes.has(activity.slug);
           return (
             <button
               key={activity.slug}
@@ -896,13 +870,19 @@ export default function EventFilters({
                     : "border-gray-200 dark:border-gray-600 opacity-70 group-hover:opacity-100 group-hover:border-gray-300 dark:group-hover:border-gray-500",
                 )}
               >
-                <Image
-                  src={activity.image}
-                  alt={activity.label}
-                  fill
-                  sizes="(max-width: 640px) 48px, 64px"
-                  className="object-cover"
-                />
+                {activity.image ? (
+                  <Image
+                    src={activity.image}
+                    alt={activity.label}
+                    fill
+                    sizes="(max-width: 640px) 48px, 64px"
+                    className="object-cover"
+                  />
+                ) : (
+                  <span className="flex items-center justify-center w-full h-full bg-gray-100 dark:bg-gray-700 text-xl sm:text-2xl">
+                    {activity.icon}
+                  </span>
+                )}
               </div>
               <span
                 className={cn(

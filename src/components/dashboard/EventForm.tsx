@@ -44,10 +44,16 @@ interface DistanceCategory {
   max_participants: number;
 }
 
+interface EventTypeOption {
+  value: string;
+  label: string;
+}
+
 interface EventFormProps {
   mode: "create" | "edit";
   clubId?: string;
   paymentPauseEnabled?: boolean;
+  eventTypes?: EventTypeOption[];
   initialData?: {
     id?: string;
     title: string;
@@ -72,7 +78,7 @@ interface EventFormProps {
   };
 }
 
-const EVENT_TYPES = [
+const DEFAULT_EVENT_TYPES: EventTypeOption[] = [
   { value: "hiking", label: "Hiking" },
   { value: "mtb", label: "Mountain Biking" },
   { value: "road_bike", label: "Road Biking" },
@@ -273,8 +279,10 @@ export default function EventForm({
   mode,
   clubId,
   paymentPauseEnabled,
+  eventTypes,
   initialData,
 }: EventFormProps) {
+  const resolvedEventTypes = eventTypes ?? DEFAULT_EVENT_TYPES;
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -829,7 +837,7 @@ export default function EventForm({
                 }}
                 className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600"
               >
-                {EVENT_TYPES.map((t) => (
+                {resolvedEventTypes.map((t) => (
                   <option key={t.value} value={t.value}>
                     {t.label}
                   </option>
