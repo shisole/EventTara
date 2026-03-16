@@ -5,6 +5,8 @@ import WelcomeQRCode from "@/components/dashboard/WelcomeQRCode";
 import { createClient } from "@/lib/supabase/server";
 import { type Database } from "@/lib/supabase/types";
 
+import GenerateEventWelcomeButton from "./GenerateEventWelcomeButton";
+
 /** Deterministic code for an event welcome page */
 function eventWelcomeCode(slug: string, eventId: string) {
   return `${slug}-${eventId.slice(0, 8)}`;
@@ -102,107 +104,21 @@ export default async function EventWelcomePage({
           <WelcomeQRCode code={welcomePage.code} clubName={club.name} title={welcomePage.title} />
         </div>
       ) : (
-        <GenerateEventWelcomePage
-          clubSlug={club.slug}
-          clubName={club.name}
-          eventId={id}
-          eventTitle={event.title}
-        />
+        <div className="rounded-2xl bg-white py-12 text-center shadow-md dark:bg-gray-900 dark:shadow-gray-950/30">
+          <h3 className="mb-2 text-lg font-heading font-bold dark:text-white">
+            No welcome page yet
+          </h3>
+          <p className="mb-4 text-gray-500 dark:text-gray-400">
+            Generate a welcome page for {event.title} to create a scannable QR code.
+          </p>
+          <GenerateEventWelcomeButton
+            clubSlug={club.slug}
+            clubName={club.name}
+            eventId={id}
+            eventTitle={event.title}
+          />
+        </div>
       )}
     </div>
-  );
-}
-
-function GenerateEventWelcomePage({
-  clubSlug,
-  clubName,
-  eventId,
-  eventTitle,
-}: {
-  clubSlug: string;
-  clubName: string;
-  eventId: string;
-  eventTitle: string;
-}) {
-  return (
-    <div className="rounded-2xl bg-white py-12 text-center shadow-md dark:bg-gray-900 dark:shadow-gray-950/30">
-      <h3 className="mb-2 text-lg font-heading font-bold dark:text-white">No welcome page yet</h3>
-      <p className="mb-4 text-gray-500 dark:text-gray-400">
-        Generate a welcome page for {eventTitle} to create a scannable QR code.
-      </p>
-      <GenerateButton clubSlug={clubSlug} clubName={clubName} eventId={eventId} />
-    </div>
-  );
-}
-
-function GenerateButton({
-  clubSlug,
-  clubName,
-  eventId,
-}: {
-  clubSlug: string;
-  clubName: string;
-  eventId: string;
-}) {
-  async function generate() {
-    "use server";
-
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) redirect("/login");
-
-    const { data: club } = await supabase
-      .from("clubs")
-      .select("id, name, slug")
-      .eq("slug", clubSlug)
-      .single();
-    if (!club) return;
-
-    const { data: event } = await supabase
-      .from("events")
-      .select("id, title")
-      .eq("id", eventId)
-      .single();
-    if (!event) return;
-
-    const code = eventWelcomeCode(club.slug, eventId);
-
-    // Insert without event_id first (always works), then try to set event_id
-    const { error } = await supabase.from("welcome_pages").insert({
-      code,
-      title: `Welcome to ${event.title}!`,
-      subtitle: `Hosted by ${clubName}`,
-      club_id: club.id,
-      redirect_url: `/events/${eventId}`,
-      is_active: true,
-      created_by: user.id,
-    });
-
-    if (error) {
-      if (error.code === "23505") {
-        // Code collision — already exists, just redirect
-        redirect(`/dashboard/clubs/${clubSlug}/events/${eventId}/welcome`);
-      }
-      console.error("[event-welcome] Insert failed:", error.message, error.code);
-      return;
-    }
-
-    // Best-effort: set event_id (may fail if column not yet available via API)
-    await supabase.from("welcome_pages").update({ event_id: eventId }).eq("code", code);
-
-    redirect(`/dashboard/clubs/${clubSlug}/events/${eventId}/welcome`);
-  }
-
-  return (
-    <form action={generate}>
-      <button
-        type="submit"
-        className="rounded-lg bg-lime-500 px-6 py-2.5 text-sm font-medium text-gray-900 transition-colors hover:bg-lime-400"
-      >
-        Generate Welcome Page
-      </button>
-    </form>
   );
 }
