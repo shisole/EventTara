@@ -92,6 +92,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ cod
     return NextResponse.json({ error: "Failed to claim reward" }, { status: 500 });
   }
 
+  // Service client bypasses RLS — needed for club join (private clubs block
+  // self-insert) and booking link (user_id IS NULL blocks regular updates)
+  const serviceClient = createServiceClient();
+
   // Award badge if linked
   let badgeAwarded = false;
   if (page.badge_id) {
@@ -145,7 +149,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ cod
       .maybeSingle();
 
     if (!existingMember) {
-      const { error: joinError } = await supabase.from("club_members").insert({
+      const { error: joinError } = await serviceClient.from("club_members").insert({
         club_id: page.club_id,
         user_id: user.id,
         role: "member",
@@ -183,10 +187,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ cod
     [];
 
   if (page.event_id) {
-    // Use service client for booking operations — RLS blocks updates on
-    // bookings where user_id IS NULL (no policy matches the claiming user)
-    const serviceClient = createServiceClient();
-
     // Fetch event details for notification/email
     const { data: eventData } = await supabase
       .from("events")
