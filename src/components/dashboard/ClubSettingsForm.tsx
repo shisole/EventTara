@@ -5,6 +5,9 @@ import { useState } from "react";
 
 import { Button, Input, Toggle } from "@/components/ui";
 import { ACTIVITY_TYPES } from "@/lib/constants/activity-types";
+import { uploadImage } from "@/lib/upload";
+
+import PhotoUploader from "./PhotoUploader";
 
 interface ClubSettingsFormProps {
   club: {
@@ -31,7 +34,7 @@ export default function ClubSettingsForm({ club, isOwner }: ClubSettingsFormProp
   const [name, setName] = useState(club.name);
   const [description, setDescription] = useState(club.description ?? "");
   const [logoUrl, setLogoUrl] = useState(club.logo_url ?? "");
-  const [coverUrl, setCoverUrl] = useState(club.cover_url ?? "");
+  const [coverImage, setCoverImage] = useState<string | File | null>(club.cover_url);
   const [location, setLocation] = useState(club.location ?? "");
   const [visibility, setVisibility] = useState(club.visibility);
   const [activityTypes, setActivityTypes] = useState<string[]>(club.activity_types ?? []);
@@ -59,11 +62,22 @@ export default function ClubSettingsForm({ club, isOwner }: ClubSettingsFormProp
     setError(null);
     setSuccess(false);
 
+    let coverUrl: string | null = typeof coverImage === "string" ? coverImage : null;
+    if (coverImage instanceof File) {
+      try {
+        coverUrl = await uploadImage(coverImage, "clubs/covers");
+      } catch {
+        setError("Failed to upload cover image");
+        setSaving(false);
+        return;
+      }
+    }
+
     const payload: Record<string, unknown> = {
       name: name.trim(),
       description: description.trim() || null,
       logo_url: logoUrl.trim() || null,
-      cover_url: coverUrl.trim() || null,
+      cover_url: coverUrl,
       location: location.trim() || null,
       visibility,
       activity_types: activityTypes,
@@ -148,19 +162,7 @@ export default function ClubSettingsForm({ club, isOwner }: ClubSettingsFormProp
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Cover Image URL
-            </label>
-            <Input
-              value={coverUrl}
-              onChange={(e) => setCoverUrl(e.target.value)}
-              placeholder="https://..."
-            />
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Banner image displayed at the top of your club page
-            </p>
-          </div>
+          <PhotoUploader value={coverImage} onChange={setCoverImage} label="Cover Image" />
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
