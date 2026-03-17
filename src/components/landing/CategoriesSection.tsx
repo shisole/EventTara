@@ -28,7 +28,7 @@ export default async function CategoriesSection() {
                 fill
                 sizes="(max-width: 1280px) 95vw, 1280px"
                 className="object-cover transition-transform duration-300 group-hover:scale-110"
-                quality={50}
+                quality={35}
                 loading={i === 0 ? "eager" : "lazy"}
               />
               <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-colors" />
