@@ -45,7 +45,7 @@ export default function HeroCarousel({ slides }: HeroCarouselProps) {
                   fill
                   className="object-cover lg:hidden"
                   sizes="(max-width: 1024px) 100vw, 0px"
-                  quality={50}
+                  quality={35}
                   priority={i === 0}
                   fetchPriority={i === 0 ? "high" : "auto"}
                   loading={i === 0 ? "eager" : "lazy"}
@@ -57,7 +57,7 @@ export default function HeroCarousel({ slides }: HeroCarouselProps) {
                   fill
                   className="hidden object-cover lg:block"
                   sizes="(min-width: 1025px) 100vw, 0px"
-                  quality={50}
+                  quality={35}
                   loading={i === 0 ? "eager" : "lazy"}
                 />
               </>
@@ -68,7 +68,7 @@ export default function HeroCarousel({ slides }: HeroCarouselProps) {
                 fill
                 className="object-cover"
                 sizes="100vw"
-                quality={50}
+                quality={35}
                 priority={i === 0}
                 fetchPriority={i === 0 ? "high" : "auto"}
                 loading={i === 0 ? "eager" : "lazy"}
