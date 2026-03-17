@@ -331,7 +331,7 @@ export interface Database {
           id: string;
           event_id: string;
           user_id: string | null;
-          status: "pending" | "confirmed" | "cancelled";
+          status: "pending" | "confirmed" | "cancelled" | "reserved";
           payment_status: "pending" | "paid" | "rejected" | "refunded";
           payment_method: "gcash" | "maya" | "cash" | null;
           payment_proof_url: string | null;
@@ -353,7 +353,7 @@ export interface Database {
           id?: string;
           event_id: string;
           user_id?: string | null;
-          status?: "pending" | "confirmed" | "cancelled";
+          status?: "pending" | "confirmed" | "cancelled" | "reserved";
           payment_status?: "pending" | "paid" | "rejected" | "refunded";
           payment_method?: "gcash" | "maya" | "cash" | null;
           payment_proof_url?: string | null;
@@ -375,7 +375,7 @@ export interface Database {
           id?: string;
           event_id?: string;
           user_id?: string | null;
-          status?: "pending" | "confirmed" | "cancelled";
+          status?: "pending" | "confirmed" | "cancelled" | "reserved";
           payment_status?: "pending" | "paid" | "rejected" | "refunded";
           payment_method?: "gcash" | "maya" | "cash" | null;
           payment_proof_url?: string | null;
