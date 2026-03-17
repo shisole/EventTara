@@ -25,7 +25,6 @@ export default async function ClubsSection() {
   const { data: clubs } = await supabase
     .from("clubs")
     .select("id, name, slug, logo_url, is_demo")
-    .eq("visibility", "public")
     .order("created_at", { ascending: true })
     .limit(12);
 
