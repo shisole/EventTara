@@ -94,12 +94,20 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const isPaid = manualStatus === "paid";
   const qrCode = isPaid ? `eventtara:checkin:${eventId}:${userId || randomUUID()}` : null;
 
+  // Default new manually-added participants to "reserved" (not "confirmed")
+  const bookingStatus =
+    manualStatus === "paid"
+      ? ("confirmed" as const)
+      : manualStatus === "reserved"
+        ? ("reserved" as const)
+        : ("pending" as const);
+
   const { data: booking, error } = await supabase
     .from("bookings")
     .insert({
       event_id: eventId,
       user_id: userId || null,
-      status: isPaid ? ("confirmed" as const) : ("pending" as const),
+      status: bookingStatus,
       payment_status: isPaid ? ("paid" as const) : ("pending" as const),
       added_by: user.id,
       manual_status: manualStatus,
@@ -186,11 +194,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   const qrCode = `eventtara:checkin:${eventId}:${userId}:${randomUUID().slice(0, 8)}`;
 
+  // Link user to booking without overriding the current status
   const { data: updated, error } = await supabase
     .from("bookings")
     .update({
       user_id: userId,
-      status: "confirmed" as const,
       qr_code: qrCode,
     })
     .eq("id", bookingId)

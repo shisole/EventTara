@@ -13,7 +13,7 @@ const LinkBookingModal = dynamic(() => import("./LinkBookingModal"));
 export interface Booking {
   id: string;
   user_id: string | null;
-  status: "pending" | "confirmed" | "cancelled";
+  status: "pending" | "confirmed" | "cancelled" | "reserved";
   payment_status: "pending" | "paid" | "rejected" | "refunded";
   payment_method: string | null;
   participant_cancelled: boolean;
@@ -556,15 +556,30 @@ export default function ParticipantsTable({
       );
     }
 
-    // Self-booked: show existing payment status badge
+    // Self-booked with payment method: show existing payment status badge
     if (booking.payment_method) {
       return <PaymentStatusBadge status={booking.payment_status} />;
     }
 
+    // Free/no-payment bookings: organizers can change status via dropdown
+    const mappedStatus: "paid" | "reserved" | "pending" =
+      booking.status === "confirmed"
+        ? "paid"
+        : booking.status === "reserved"
+          ? "reserved"
+          : "pending";
+
+    if (isCompleted) {
+      return <ManualStatusBadge status={mappedStatus} />;
+    }
+
     return (
-      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium capitalize bg-forest-100 text-forest-700 dark:bg-forest-900/50 dark:text-forest-300">
-        confirmed
-      </span>
+      <ManualStatusDropdown
+        bookingId={booking.id}
+        eventId={eventId}
+        currentStatus={mappedStatus}
+        onUpdated={() => router.refresh()}
+      />
     );
   };
 

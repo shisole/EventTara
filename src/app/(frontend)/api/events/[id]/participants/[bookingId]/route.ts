@@ -56,10 +56,10 @@ export async function PATCH(
     if (!["paid", "reserved", "pending"].includes(manualStatus)) {
       return NextResponse.json({ error: "Invalid status" }, { status: 400 });
     }
-    const isPaid = manualStatus === "paid";
     updateData.manual_status = manualStatus;
-    updateData.status = isPaid ? "confirmed" : "pending";
-    updateData.payment_status = isPaid ? "paid" : "pending";
+    updateData.status =
+      manualStatus === "paid" ? "confirmed" : manualStatus === "reserved" ? "reserved" : "pending";
+    updateData.payment_status = manualStatus === "paid" ? "paid" : "pending";
   }
 
   if (organizerNotes !== undefined) {

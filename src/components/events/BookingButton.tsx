@@ -54,7 +54,10 @@ export default function BookingButton({
   }
 
   if (userBooking) {
-    const statusLabel = userBooking.status === "confirmed" ? "Already Booked" : "Booking Pending";
+    const statusLabel =
+      userBooking.status === "confirmed" || userBooking.status === "reserved"
+        ? "Already Booked"
+        : "Booking Pending";
     return (
       <div className="space-y-3">
         <Button disabled className="w-full" size="lg">
