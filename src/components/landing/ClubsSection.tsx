@@ -134,7 +134,7 @@ export default async function ClubsSection() {
     <section className="bg-white py-12 dark:bg-slate-800">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <p className="mb-8 text-center text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
-          Community Clubs
+          Pioneer Clubs
         </p>
         <div className="flex flex-wrap justify-center gap-4">
           {cards.map((club) => (
