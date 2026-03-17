@@ -16,6 +16,7 @@ interface ClubCard {
   reviewCount: number;
   topTag: string | null;
   is_demo: boolean;
+  visibility: "public" | "private";
 }
 
 export default async function ClubsSection() {
@@ -24,7 +25,7 @@ export default async function ClubsSection() {
   // Fetch all public clubs
   const { data: clubs } = await supabase
     .from("clubs")
-    .select("id, name, slug, logo_url, is_demo")
+    .select("id, name, slug, logo_url, is_demo, visibility")
     .order("created_at", { ascending: true })
     .limit(12);
 
@@ -62,6 +63,7 @@ export default async function ClubsSection() {
     member_count: memberCounts[club.id] || 0,
     event_count: eventCounts[club.id] || 0,
     is_demo: club.is_demo,
+    visibility: club.visibility,
   }));
 
   // Fetch review stats if feature is enabled
@@ -151,6 +153,20 @@ export default async function ClubsSection() {
                 {club.name}
               </span>
               {club.is_demo && <DemoBadge className="mb-1" />}
+              {club.visibility === "private" && (
+                <span className="mb-1 inline-flex items-center gap-0.5 rounded-full bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+                  <svg
+                    width="10"
+                    height="10"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM12 17c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM9 8V6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9z" />
+                  </svg>
+                  Invite only
+                </span>
+              )}
 
               {reviewsEnabled && club.reviewCount > 0 ? (
                 <>
