@@ -10,6 +10,8 @@ const ALLOWED_FOLDERS = new Set([
   "badges/images",
   "organizers/logos",
   "reviews/photos",
+  "clubs/covers",
+  "clubs/logos",
   "clubs/forum",
   "welcome/heroes",
   "activity-types",

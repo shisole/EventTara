@@ -5,6 +5,9 @@ import { useState } from "react";
 
 import { Button, Input, Toggle } from "@/components/ui";
 import { ACTIVITY_TYPES } from "@/lib/constants/activity-types";
+import { uploadImage } from "@/lib/upload";
+
+import PhotoUploader from "./PhotoUploader";
 
 interface ClubSettingsFormProps {
   club: {
@@ -30,7 +33,8 @@ export default function ClubSettingsForm({ club, isOwner }: ClubSettingsFormProp
 
   const [name, setName] = useState(club.name);
   const [description, setDescription] = useState(club.description ?? "");
-  const [logoUrl, setLogoUrl] = useState(club.logo_url ?? "");
+  const [logoImage, setLogoImage] = useState<string | File | null>(club.logo_url);
+  const [coverImage, setCoverImage] = useState<string | File | null>(club.cover_url);
   const [location, setLocation] = useState(club.location ?? "");
   const [visibility, setVisibility] = useState(club.visibility);
   const [activityTypes, setActivityTypes] = useState<string[]>(club.activity_types ?? []);
@@ -58,10 +62,33 @@ export default function ClubSettingsForm({ club, isOwner }: ClubSettingsFormProp
     setError(null);
     setSuccess(false);
 
+    let logoUrl: string | null = typeof logoImage === "string" ? logoImage : null;
+    if (logoImage instanceof File) {
+      try {
+        logoUrl = await uploadImage(logoImage, "clubs/logos");
+      } catch {
+        setError("Failed to upload logo");
+        setSaving(false);
+        return;
+      }
+    }
+
+    let coverUrl: string | null = typeof coverImage === "string" ? coverImage : null;
+    if (coverImage instanceof File) {
+      try {
+        coverUrl = await uploadImage(coverImage, "clubs/covers");
+      } catch {
+        setError("Failed to upload cover image");
+        setSaving(false);
+        return;
+      }
+    }
+
     const payload: Record<string, unknown> = {
       name: name.trim(),
       description: description.trim() || null,
-      logo_url: logoUrl.trim() || null,
+      logo_url: logoUrl,
+      cover_url: coverUrl,
       location: location.trim() || null,
       visibility,
       activity_types: activityTypes,
@@ -135,16 +162,9 @@ export default function ClubSettingsForm({ club, isOwner }: ClubSettingsFormProp
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Logo URL
-            </label>
-            <Input
-              value={logoUrl}
-              onChange={(e) => setLogoUrl(e.target.value)}
-              placeholder="https://..."
-            />
-          </div>
+          <PhotoUploader value={logoImage} onChange={setLogoImage} label="Logo" />
+
+          <PhotoUploader value={coverImage} onChange={setCoverImage} label="Cover Image" />
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
