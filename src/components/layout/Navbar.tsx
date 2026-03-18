@@ -165,7 +165,7 @@ export default function Navbar({
               priority
             />
             <span
-              className="text-3xl font-cursive font-bold text-lime-600 dark:text-lime-500"
+              className="text-lg sm:text-2xl md:text-3xl font-cursive font-bold text-lime-600 dark:text-lime-500"
               style={{ WebkitTextStroke: "0.5px currentColor" }}
             >
               EventTara
