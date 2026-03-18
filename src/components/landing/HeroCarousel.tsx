@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface Slide {
   image?: {
@@ -21,45 +24,71 @@ function toProxyUrl(url: string): string {
   return match ? `/r2/${match[1]}` : url;
 }
 
-export default function HeroCarousel({ slides }: HeroCarouselProps) {
-  if (slides.length === 0) return null;
+const IMAGE_DURATION_MS = 6000;
 
+export default function HeroCarousel({ slides }: HeroCarouselProps) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const videoRefs = useRef<Map<number, HTMLVideoElement>>(new Map());
   const count = slides.length;
-  const durationPerSlide = 6; // seconds per slide
-  const totalDuration = count * durationPerSlide;
+
+  const goToNext = useCallback(() => {
+    setActiveIndex((prev) => (prev + 1) % count);
+  }, [count]);
+
+  // Control video playback when active slide changes
+  useEffect(() => {
+    for (const [index, video] of videoRefs.current) {
+      if (index === activeIndex) {
+        video.currentTime = 0;
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        video.play().catch(() => {});
+      } else {
+        video.pause();
+      }
+    }
+  }, [activeIndex]);
+
+  // Timer for image slides; video slides advance via onEnded
+  useEffect(() => {
+    if (count <= 1) return;
+    if (slides[activeIndex].videoUrl) return;
+
+    const timer = setTimeout(goToNext, IMAGE_DURATION_MS);
+    return () => clearTimeout(timer);
+  }, [activeIndex, count, slides, goToNext]);
+
+  if (count === 0) return null;
 
   return (
     <div className="absolute inset-0">
       {slides.map((slide, i) => {
-        const delay = i * durationPerSlide;
         const isVideo = !!slide.videoUrl;
 
         return (
           <div
             key={i}
-            className="absolute inset-0"
-            style={
-              count > 1
-                ? {
-                    animation: `heroFade ${totalDuration}s ${delay}s infinite`,
-                    opacity: i === 0 ? 1 : 0,
-                  }
-                : undefined
-            }
+            className="absolute inset-0 transition-opacity duration-1000"
+            style={{ opacity: i === activeIndex ? 1 : 0 }}
           >
             {isVideo ? (
               // eslint-disable-next-line jsx-a11y/media-has-caption
               <video
+                ref={(el) => {
+                  if (el) videoRefs.current.set(i, el);
+                  else videoRefs.current.delete(i);
+                }}
                 src={toProxyUrl(slide.videoUrl!)}
-                autoPlay
+                autoPlay={i === 0}
                 muted
-                loop
                 playsInline
+                loop={count === 1}
                 className="absolute inset-0 h-full w-full object-cover"
+                onEnded={() => {
+                  if (count > 1) goToNext();
+                }}
               />
             ) : slide.image?.mobileUrl ? (
               <>
-                {/* Mobile-optimized image (hidden on desktop) */}
                 <Image
                   src={slide.image.mobileUrl}
                   alt={slide.image.alt || "Adventure"}
@@ -71,7 +100,6 @@ export default function HeroCarousel({ slides }: HeroCarouselProps) {
                   fetchPriority={i === 0 ? "high" : "auto"}
                   loading={i === 0 ? "eager" : "lazy"}
                 />
-                {/* Desktop image (hidden on mobile) */}
                 <Image
                   src={slide.image.url}
                   alt={slide.image.alt || "Adventure"}

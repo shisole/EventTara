@@ -20,7 +20,11 @@ import { CSS } from "@dnd-kit/utilities";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { uploadVideoChunkAction } from "@/app/(admin)/admin/hero/actions";
+import {
+  completeVideoUploadAction,
+  initiateVideoUploadAction,
+  uploadVideoPartAction,
+} from "@/app/(admin)/admin/hero/actions";
 import { DragHandle } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
@@ -207,9 +211,14 @@ export default function HeroBannerManager() {
   }, [stagedPreview]);
 
   const uploadVideo = useCallback(async (file: File): Promise<string> => {
-    const CHUNK_SIZE = 4 * 1024 * 1024; // 4 MB per chunk
+    // 1. Initiate multipart upload on R2
+    const { uploadId, key, error: initError } = await initiateVideoUploadAction(file.type, "hero");
+    if (initError || !uploadId || !key) throw new Error(initError || "Failed to initiate upload");
+
+    // 2. Upload parts (5 MB min for non-last parts per S3/R2 spec)
+    const CHUNK_SIZE = 5 * 1024 * 1024;
     const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
-    const uploadId = crypto.randomUUID();
+    const parts: { partNumber: number; etag: string }[] = [];
 
     for (let i = 0; i < totalChunks; i++) {
       const start = i * CHUNK_SIZE;
@@ -217,18 +226,24 @@ export default function HeroBannerManager() {
 
       const formData = new FormData();
       formData.append("chunk", blob);
+      formData.append("key", key);
       formData.append("uploadId", uploadId);
-      formData.append("chunkIndex", i.toString());
-      formData.append("totalChunks", totalChunks.toString());
-      formData.append("contentType", file.type);
-      formData.append("folder", "hero");
+      formData.append("partNumber", (i + 1).toString());
 
-      const result = await uploadVideoChunkAction(formData);
-      if (result.error) throw new Error(result.error);
-      if (result.videoUrl) return result.videoUrl;
+      const { etag, error: partError } = await uploadVideoPartAction(formData);
+      if (partError || !etag) throw new Error(partError || `Failed to upload part ${i + 1}`);
+      parts.push({ partNumber: i + 1, etag });
     }
 
-    throw new Error("Upload completed but no URL returned");
+    // 3. Complete multipart upload — R2 assembles the parts
+    const { videoUrl, error: completeError } = await completeVideoUploadAction(
+      key,
+      uploadId,
+      parts,
+    );
+    if (completeError || !videoUrl) throw new Error(completeError || "Failed to complete upload");
+
+    return videoUrl;
   }, []);
 
   const uploadAndAdd = useCallback(async () => {

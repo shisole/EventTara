@@ -1,106 +1,104 @@
 "use server";
 
 import { isAdminUser } from "@/lib/admin/auth";
-import { uploadToR2 } from "@/lib/r2";
+import {
+  abortMultipartUpload,
+  completeMultipartUpload,
+  createMultipartUpload,
+  uploadPart,
+} from "@/lib/r2";
 import { createClient } from "@/lib/supabase/server";
-import { compressVideo } from "@/lib/video/compress";
 
-const VIDEO_MAX_SIZE = 200 * 1024 * 1024; // 200 MB
 const ALLOWED_VIDEO_TYPES = new Set(["video/mp4", "video/webm"]);
 
-// In-memory chunk storage (dev-safe, single process)
-const pendingUploads = new Map<
-  string,
-  { chunks: (Buffer | null)[]; contentType: string; folder: string; createdAt: number }
->();
-
-// Cleanup uploads older than 10 minutes
-function cleanupStaleUploads() {
-  const staleMs = 10 * 60 * 1000;
-  const now = Date.now();
-  for (const [id, upload] of pendingUploads) {
-    if (now - upload.createdAt > staleMs) pendingUploads.delete(id);
-  }
-}
-
-export async function uploadVideoChunkAction(
-  formData: FormData,
-): Promise<{ ok?: boolean; videoUrl?: string; error?: string }> {
+async function requireAdmin(): Promise<string | null> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  if (!user || !isAdminUser(user.id)) {
-    return { error: "Forbidden" };
-  }
-
+  if (!user || !isAdminUser(user.id)) return "Forbidden";
   if (!process.env.R2_ACCOUNT_ID || !process.env.R2_ACCESS_KEY_ID || !process.env.R2_PUBLIC_URL) {
-    return { error: "R2 storage is not configured" };
+    return "R2 storage is not configured";
   }
+  return null;
+}
 
-  const chunk = formData.get("chunk") as File | null;
-  const uploadId = formData.get("uploadId") as string | null;
-  const chunkIndex = Number(formData.get("chunkIndex"));
-  const totalChunks = Number(formData.get("totalChunks"));
-  const contentType = formData.get("contentType") as string | null;
-  const folder = formData.get("folder") as string | null;
-
-  if (
-    !chunk ||
-    !uploadId ||
-    !contentType ||
-    !folder ||
-    Number.isNaN(chunkIndex) ||
-    Number.isNaN(totalChunks)
-  ) {
-    return { error: "Missing required fields" };
-  }
+/**
+ * Step 1: Initiate a multipart upload on R2.
+ * Returns the R2 uploadId and the object key to use for subsequent parts.
+ */
+export async function initiateVideoUploadAction(
+  contentType: string,
+  folder: string,
+): Promise<{ uploadId?: string; key?: string; error?: string }> {
+  const err = await requireAdmin();
+  if (err) return { error: err };
 
   if (!ALLOWED_VIDEO_TYPES.has(contentType)) {
     return { error: "Only MP4 and WebM videos are allowed" };
   }
 
   try {
-    cleanupStaleUploads();
+    const ext = contentType === "video/webm" ? "webm" : "mp4";
+    const key = `${folder}/${Date.now()}.${ext}`;
+    const uploadId = await createMultipartUpload(key, contentType);
+    return { uploadId, key };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    console.error("[initiateVideoUpload] Error:", message);
+    return { error: `Failed to initiate upload: ${message}` };
+  }
+}
 
-    // Store this chunk
-    if (!pendingUploads.has(uploadId)) {
-      pendingUploads.set(uploadId, {
-        chunks: Array.from<Buffer | null>({ length: totalChunks }).fill(null),
-        contentType,
-        folder,
-        createdAt: Date.now(),
-      });
-    }
+/**
+ * Step 2: Upload a single part (chunk) directly to R2.
+ * Each part is forwarded to R2's multipart upload API — no in-memory state.
+ */
+export async function uploadVideoPartAction(
+  formData: FormData,
+): Promise<{ etag?: string; error?: string }> {
+  const err = await requireAdmin();
+  if (err) return { error: err };
 
-    const upload = pendingUploads.get(uploadId)!;
-    upload.chunks[chunkIndex] = Buffer.from(await chunk.arrayBuffer());
+  const chunk = formData.get("chunk") as File | null;
+  const key = formData.get("key") as string | null;
+  const uploadId = formData.get("uploadId") as string | null;
+  const partNumber = Number(formData.get("partNumber"));
 
-    // Check if all chunks received
-    const allReceived = upload.chunks.every((c) => c !== null);
-    if (!allReceived) {
-      return { ok: true };
-    }
+  if (!chunk || !key || !uploadId || Number.isNaN(partNumber)) {
+    return { error: "Missing required fields" };
+  }
 
-    // Concatenate, compress, and upload
-    const fullBuffer = Buffer.concat(upload.chunks as Buffer[]);
-    pendingUploads.delete(uploadId);
+  try {
+    const buffer = Buffer.from(await chunk.arrayBuffer());
+    const etag = await uploadPart(key, uploadId, partNumber, buffer);
+    return { etag };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    console.error("[uploadVideoPart] Error:", message);
+    return { error: `Part ${partNumber} failed: ${message}` };
+  }
+}
 
-    if (fullBuffer.length > VIDEO_MAX_SIZE) {
-      return { error: "Video too large (max 200 MB)" };
-    }
+/**
+ * Step 3: Complete the multipart upload.
+ * R2 assembles all parts into the final object.
+ */
+export async function completeVideoUploadAction(
+  key: string,
+  uploadId: string,
+  parts: { partNumber: number; etag: string }[],
+): Promise<{ videoUrl?: string; error?: string }> {
+  const err = await requireAdmin();
+  if (err) return { error: err };
 
-    const compressed = await compressVideo(fullBuffer);
-    const key = `${folder}/${Date.now()}.mp4`;
-    await uploadToR2(key, compressed, "video/mp4");
-
-    // Return proxy URL — avoids CORS issues; Next.js rewrites /r2/* to R2 public bucket
+  try {
+    await completeMultipartUpload(key, uploadId, parts);
     return { videoUrl: `/r2/${key}` };
   } catch (error) {
-    pendingUploads.delete(uploadId);
+    await abortMultipartUpload(key, uploadId);
     const message = error instanceof Error ? error.message : "Unknown error";
-    console.error("[uploadVideoChunkAction] Error:", message);
-    return { error: `Upload failed: ${message}` };
+    console.error("[completeVideoUpload] Error:", message);
+    return { error: `Failed to complete upload: ${message}` };
   }
 }
