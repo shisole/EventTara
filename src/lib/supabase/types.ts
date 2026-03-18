@@ -10,7 +10,7 @@ export interface Database {
           full_name: string;
           username: string | null;
           avatar_url: string | null;
-          role: "user" | "guest" | "organizer" | "participant";
+          role: "user" | "guest";
           is_guest: boolean;
           active_border_id: string | null;
           has_picked_avatar: boolean;
@@ -24,7 +24,7 @@ export interface Database {
           full_name: string;
           username?: string | null;
           avatar_url?: string | null;
-          role?: "user" | "guest" | "organizer" | "participant";
+          role?: "user" | "guest";
           is_guest?: boolean;
           active_border_id?: string | null;
           has_picked_avatar?: boolean;
@@ -38,7 +38,7 @@ export interface Database {
           full_name?: string;
           username?: string | null;
           avatar_url?: string | null;
-          role?: "user" | "guest" | "organizer" | "participant";
+          role?: "user" | "guest";
           is_guest?: boolean;
           active_border_id?: string | null;
           has_picked_avatar?: boolean;
