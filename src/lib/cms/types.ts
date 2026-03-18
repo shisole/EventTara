@@ -47,9 +47,10 @@ export interface CmsNavigation {
 
 /** A single hero slide inside cms_hero_carousel.slides JSONB */
 export interface CmsHeroSlide {
-  url: string;
+  url?: string;
   mobileUrl?: string;
-  alt: string;
+  videoUrl?: string;
+  alt?: string;
 }
 
 /** cms_hero_carousel — singleton (id = 1) */

@@ -6,26 +6,35 @@ import HostEventLink from "@/components/landing/HostEventLink";
 import RotatingWord from "@/components/landing/RotatingWord";
 
 interface HeroSlide {
-  image: { url: string; mobileUrl?: string; alt: string };
+  image?: { url: string; mobileUrl?: string; alt: string };
+  videoUrl?: string;
+  alt: string;
 }
 
 interface HeroSectionProps {
-  heroData: { slides?: { image?: { url?: string; mobileUrl?: string; alt?: string } }[] } | null;
+  heroData: {
+    slides?: {
+      image?: { url?: string; mobileUrl?: string; alt?: string };
+      videoUrl?: string;
+      alt?: string;
+    }[];
+  } | null;
 }
 
 export default function HeroSection({ heroData }: HeroSectionProps) {
   const heroSlides: HeroSlide[] = heroData?.slides
     ? heroData.slides
-        .filter(
-          (slide): slide is { image: { url: string; mobileUrl?: string; alt: string } } =>
-            !!slide.image && typeof slide.image === "object" && !!slide.image.url,
-        )
+        .filter((slide) => slide.image?.url || slide.videoUrl)
         .map((slide) => ({
-          image: {
-            url: slide.image.url,
-            mobileUrl: slide.image.mobileUrl,
-            alt: slide.image.alt || "Adventure",
-          },
+          image: slide.image?.url
+            ? {
+                url: slide.image.url,
+                mobileUrl: slide.image.mobileUrl,
+                alt: slide.image.alt || "Adventure",
+              }
+            : undefined,
+          videoUrl: slide.videoUrl,
+          alt: slide.image?.alt || slide.alt || "Adventure",
         }))
     : [];
 
