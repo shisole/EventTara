@@ -31,7 +31,7 @@ export default function HeroSection({ heroData }: HeroSectionProps) {
 
   return (
     <section
-      className={`relative overflow-hidden min-h-[100dvh] flex items-center -mt-14 md:-mt-20 ${
+      className={`relative overflow-hidden min-h-[100dvh] flex items-center pb-20 md:pb-0 -mt-14 md:-mt-20 ${
         heroSlides.length > 0 ? "bg-gray-900" : "bg-gray-50 dark:bg-slate-900"
       }`}
     >
@@ -52,10 +52,12 @@ export default function HeroSection({ heroData }: HeroSectionProps) {
         </>
       )}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 w-full">
-        <div className={`mb-6 ${heroSlides.length > 0 ? "text-lime-400" : "text-lime-500"}`}>
+        <div
+          className={`hidden sm:block mb-6 ${heroSlides.length > 0 ? "text-lime-400" : "text-lime-500"}`}
+        >
           <AnimatedLogo />
         </div>
-        <div className="inline-block mb-8 px-4 py-1.5 rounded-full bg-lime-500/10 border border-lime-500/30">
+        <div className="hidden sm:inline-block mb-4 sm:mb-8 px-4 py-1.5 rounded-full bg-lime-500/10 border border-lime-500/30">
           <span className="text-lime-600 dark:text-lime-400 text-sm font-semibold tracking-wide uppercase">
             Beta — Now Live
           </span>
@@ -68,7 +70,7 @@ export default function HeroSection({ heroData }: HeroSectionProps) {
           Starts with <RotatingWord />
         </h1>
         <p
-          className={`text-lg sm:text-xl lg:text-2xl mb-10 max-w-3xl mx-auto leading-relaxed ${heroSlides.length > 0 ? "text-gray-200" : "text-gray-600 dark:text-gray-400"}`}
+          className={`text-sm sm:text-xl lg:text-2xl mb-6 sm:mb-10 max-w-3xl mx-auto leading-relaxed ${heroSlides.length > 0 ? "text-gray-200" : "text-gray-600 dark:text-gray-400"}`}
         >
           Discover outdoor events, join adventure clubs, and book your spot — hiking, biking,
           running, and trail running across the Philippines, all in one place.
