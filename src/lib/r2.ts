@@ -52,92 +52,23 @@ export async function uploadToR2(
 }
 
 /**
- * Initiate an R2 multipart upload (S3-compatible).
- * Returns the upload ID needed for subsequent part uploads.
+ * Generate a presigned PUT URL for direct client-to-R2 upload.
+ * Bypasses Vercel's serverless payload limit (4.5 MB).
+ * Requires CORS to be configured on the R2 bucket.
  */
-export async function createMultipartUpload(key: string, contentType: string): Promise<string> {
-  const url = `${r2Url(key)}?uploads`;
-
-  const res = await getR2Client().fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": contentType },
-  });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`CreateMultipartUpload failed (${res.status}): ${text}`);
-  }
-
-  const xml = await res.text();
-  const match = /<UploadId>(.+?)<\/UploadId>/.exec(xml);
-  if (!match) throw new Error("No UploadId in CreateMultipartUpload response");
-  return match[1];
-}
-
-/**
- * Upload a single part of a multipart upload. Returns the ETag.
- * Part numbers are 1-indexed. Minimum part size is 5 MB (except last part).
- */
-export async function uploadPart(
+export async function getPresignedUploadUrl(
   key: string,
-  uploadId: string,
-  partNumber: number,
-  body: Buffer | Uint8Array,
+  contentType: string,
+  expiresInSeconds = 3600,
 ): Promise<string> {
-  const url = `${r2Url(key)}?partNumber=${partNumber}&uploadId=${encodeURIComponent(uploadId)}`;
+  const url = new URL(r2Url(key));
+  url.searchParams.set("X-Amz-Expires", expiresInSeconds.toString());
 
-  const bytes = new Uint8Array(body);
-  const res = await getR2Client().fetch(url, {
+  const signed = await getR2Client().sign(url.toString(), {
     method: "PUT",
-    headers: { "Content-Length": bytes.byteLength.toString() },
-    body: bytes,
+    headers: { "Content-Type": contentType },
+    aws: { signQuery: true },
   });
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`UploadPart ${partNumber} failed (${res.status}): ${text}`);
-  }
-
-  const etag = res.headers.get("etag");
-  if (!etag) throw new Error("No ETag in UploadPart response");
-  return etag;
-}
-
-/**
- * Complete a multipart upload by providing the ordered list of parts.
- */
-export async function completeMultipartUpload(
-  key: string,
-  uploadId: string,
-  parts: { partNumber: number; etag: string }[],
-): Promise<void> {
-  const url = `${r2Url(key)}?uploadId=${encodeURIComponent(uploadId)}`;
-
-  const partsXml = parts
-    .map((p) => `<Part><PartNumber>${p.partNumber}</PartNumber><ETag>${p.etag}</ETag></Part>`)
-    .join("");
-  const body = `<CompleteMultipartUpload>${partsXml}</CompleteMultipartUpload>`;
-
-  const res = await getR2Client().fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/xml" },
-    body,
-  });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`CompleteMultipartUpload failed (${res.status}): ${text}`);
-  }
-}
-
-/**
- * Abort a multipart upload, cleaning up any uploaded parts.
- */
-export async function abortMultipartUpload(key: string, uploadId: string): Promise<void> {
-  const url = `${r2Url(key)}?uploadId=${encodeURIComponent(uploadId)}`;
-  try {
-    await getR2Client().fetch(url, { method: "DELETE" });
-  } catch {
-    // Cleanup is best-effort
-  }
+  return signed.url;
 }
