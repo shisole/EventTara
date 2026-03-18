@@ -14,7 +14,6 @@ export interface FeedItem {
   userName: string;
   userUsername: string | null;
   userAvatarUrl: string | null;
-  userRole: string | null;
   organizerProfileId: string | null;
   borderTier: BorderTier | null;
   borderColor: string | null;

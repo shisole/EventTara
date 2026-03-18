@@ -61,7 +61,6 @@ export async function POST(
         id: userId,
         email,
         full_name,
-        role: "organizer",
       },
       { onConflict: "id" },
     );

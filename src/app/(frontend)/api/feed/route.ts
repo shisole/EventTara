@@ -248,7 +248,7 @@ export async function GET(request: Request) {
   // Phase 2: Fetch user profiles (needed for border lookups)
   const { data: users } = await supabase
     .from("users")
-    .select("id, full_name, username, avatar_url, active_border_id, role")
+    .select("id, full_name, username, avatar_url, active_border_id")
     .in("id", userIds);
 
   const userMap = new Map((users || []).map((u) => [u.id, u]));
@@ -395,7 +395,6 @@ export async function GET(request: Request) {
       userName: user?.full_name || "Unknown",
       userUsername: user?.username || null,
       userAvatarUrl: user?.avatar_url || null,
-      userRole: user?.role || null,
       organizerProfileId: null,
       borderTier: border?.tier || null,
       borderColor: border?.color || null,
