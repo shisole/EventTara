@@ -69,7 +69,11 @@ const DEFAULT_SECTIONS: CmsHomepageSection[] = [
 ];
 
 interface HeroData {
-  slides: { image: { url: string; mobileUrl?: string; alt: string } }[];
+  slides: {
+    image?: { url: string; mobileUrl?: string; alt: string };
+    videoUrl?: string;
+    alt: string;
+  }[];
 }
 
 function renderSection(key: string, parallaxImageUrl: string, heroData: HeroData | null) {
@@ -175,7 +179,11 @@ export default async function Home() {
     heroSlides.length > 0
       ? {
           slides: heroSlides.map((s) => ({
-            image: { url: s.url, mobileUrl: s.mobileUrl, alt: s.alt },
+            image: s.url
+              ? { url: s.url, mobileUrl: s.mobileUrl, alt: s.alt || "Adventure" }
+              : undefined,
+            videoUrl: s.videoUrl,
+            alt: s.alt || "Adventure",
           })),
         }
       : null;

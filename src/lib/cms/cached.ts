@@ -194,7 +194,9 @@ export const getCachedHomepageSections = unstable_cache(
  */
 export function parseHeroSlides(carousel: CmsHeroCarousel | null): CmsHeroSlide[] {
   if (!carousel?.slides || !Array.isArray(carousel.slides)) return [];
-  return (carousel.slides as unknown as CmsHeroSlide[]).filter((s) => s.url && s.alt);
+  return (carousel.slides as unknown as CmsHeroSlide[]).filter(
+    (s) => (s.url && s.alt) || s.videoUrl,
+  );
 }
 
 /**

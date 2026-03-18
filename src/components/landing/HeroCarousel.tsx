@@ -1,15 +1,24 @@
 import Image from "next/image";
 
 interface Slide {
-  image: {
+  image?: {
     url: string;
     mobileUrl?: string;
     alt: string;
   };
+  videoUrl?: string;
+  alt: string;
 }
 
 interface HeroCarouselProps {
   slides: Slide[];
+}
+
+/** Convert full R2 public URLs to local /r2/ proxy path */
+function toProxyUrl(url: string): string {
+  if (url.startsWith("/r2/")) return url;
+  const match = /^https:\/\/pub-[^/]+\.r2\.dev\/(.+)$/.exec(url);
+  return match ? `/r2/${match[1]}` : url;
 }
 
 export default function HeroCarousel({ slides }: HeroCarouselProps) {
@@ -23,6 +32,8 @@ export default function HeroCarousel({ slides }: HeroCarouselProps) {
     <div className="absolute inset-0">
       {slides.map((slide, i) => {
         const delay = i * durationPerSlide;
+        const isVideo = !!slide.videoUrl;
+
         return (
           <div
             key={i}
@@ -36,7 +47,17 @@ export default function HeroCarousel({ slides }: HeroCarouselProps) {
                 : undefined
             }
           >
-            {slide.image.mobileUrl ? (
+            {isVideo ? (
+              // eslint-disable-next-line jsx-a11y/media-has-caption
+              <video
+                src={toProxyUrl(slide.videoUrl!)}
+                autoPlay
+                muted
+                loop
+                playsInline
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            ) : slide.image?.mobileUrl ? (
               <>
                 {/* Mobile-optimized image (hidden on desktop) */}
                 <Image
@@ -61,7 +82,7 @@ export default function HeroCarousel({ slides }: HeroCarouselProps) {
                   loading={i === 0 ? "eager" : "lazy"}
                 />
               </>
-            ) : (
+            ) : slide.image ? (
               <Image
                 src={slide.image.url}
                 alt={slide.image.alt || "Adventure"}
@@ -73,7 +94,7 @@ export default function HeroCarousel({ slides }: HeroCarouselProps) {
                 fetchPriority={i === 0 ? "high" : "auto"}
                 loading={i === 0 ? "eager" : "lazy"}
               />
-            )}
+            ) : null}
           </div>
         );
       })}
