@@ -13,14 +13,16 @@ test.describe("Events listing page", () => {
   });
 
   test("clicking an event card navigates to detail page", async ({ page }) => {
-    await page.goto("/events");
+    await page.goto("/events", { waitUntil: "networkidle" });
 
     // Click the first event card link
     const firstEventLink = page.locator('a[href^="/events/"]').first();
     await expect(firstEventLink).toBeVisible();
 
     const href = await firstEventLink.getAttribute("href");
-    await firstEventLink.click();
+
+    // Wait for navigation and click simultaneously to avoid race conditions
+    await Promise.all([page.waitForURL(`**${href!}`, { timeout: 15_000 }), firstEventLink.click()]);
 
     await expect(page).toHaveURL(href!);
   });
