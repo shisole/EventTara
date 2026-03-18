@@ -20,11 +20,7 @@ import { CSS } from "@dnd-kit/utilities";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import {
-  completeVideoUploadAction,
-  initiateVideoUploadAction,
-  uploadVideoPartAction,
-} from "@/app/(admin)/admin/hero/actions";
+import { getVideoUploadUrlAction } from "@/app/(admin)/admin/hero/actions";
 import { DragHandle } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
@@ -211,37 +207,20 @@ export default function HeroBannerManager() {
   }, [stagedPreview]);
 
   const uploadVideo = useCallback(async (file: File): Promise<string> => {
-    // 1. Initiate multipart upload on R2
-    const { uploadId, key, error: initError } = await initiateVideoUploadAction(file.type, "hero");
-    if (initError || !uploadId || !key) throw new Error(initError || "Failed to initiate upload");
+    // Get a presigned URL for direct upload to R2 (bypasses Vercel payload limit)
+    const { uploadUrl, videoUrl, error } = await getVideoUploadUrlAction(file.type, "hero");
+    if (error || !uploadUrl || !videoUrl) throw new Error(error || "Failed to get upload URL");
 
-    // 2. Upload parts (5 MB min for non-last parts per S3/R2 spec)
-    const CHUNK_SIZE = 5 * 1024 * 1024;
-    const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
-    const parts: { partNumber: number; etag: string }[] = [];
+    // Upload directly to R2
+    const res = await fetch(uploadUrl, {
+      method: "PUT",
+      body: file,
+      headers: { "Content-Type": file.type },
+    });
 
-    for (let i = 0; i < totalChunks; i++) {
-      const start = i * CHUNK_SIZE;
-      const blob = file.slice(start, start + CHUNK_SIZE);
-
-      const formData = new FormData();
-      formData.append("chunk", blob);
-      formData.append("key", key);
-      formData.append("uploadId", uploadId);
-      formData.append("partNumber", (i + 1).toString());
-
-      const { etag, error: partError } = await uploadVideoPartAction(formData);
-      if (partError || !etag) throw new Error(partError || `Failed to upload part ${i + 1}`);
-      parts.push({ partNumber: i + 1, etag });
+    if (!res.ok) {
+      throw new Error(`Upload failed (${res.status})`);
     }
-
-    // 3. Complete multipart upload — R2 assembles the parts
-    const { videoUrl, error: completeError } = await completeVideoUploadAction(
-      key,
-      uploadId,
-      parts,
-    );
-    if (completeError || !videoUrl) throw new Error(completeError || "Failed to complete upload");
 
     return videoUrl;
   }, []);
