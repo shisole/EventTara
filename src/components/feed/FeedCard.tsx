@@ -81,11 +81,6 @@ export default function FeedCard({ item, isAuthenticated, currentUserId }: FeedC
                 {item.topBadgeTitle}
               </span>
             )}
-            {item.userRole === "organizer" && (
-              <span className="text-[10px] bg-teal-500 dark:bg-teal-600 text-white px-1.5 py-0.5 rounded-full font-semibold">
-                Organizer
-              </span>
-            )}
             {item.isFollowing && (
               <span className="text-[10px] bg-lime-100 dark:bg-lime-900/30 text-lime-700 dark:text-lime-400 px-1.5 py-0.5 rounded-full font-medium">
                 Following

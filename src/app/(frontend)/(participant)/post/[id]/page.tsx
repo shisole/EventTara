@@ -182,7 +182,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
   // Fetch user profile
   const { data: user } = await supabase
     .from("users")
-    .select("id, full_name, username, avatar_url, active_border_id, role")
+    .select("id, full_name, username, avatar_url, active_border_id")
     .eq("id", activity.userId)
     .single();
 
@@ -266,7 +266,6 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
     userName: user.full_name || "Unknown",
     userUsername: user.username || null,
     userAvatarUrl: user.avatar_url || null,
-    userRole: user.role || null,
     organizerProfileId: clubMemberResult.data?.club_id || null,
     borderTier: (border?.tier as BorderTier) || null,
     borderColor: border?.border_color || null,
