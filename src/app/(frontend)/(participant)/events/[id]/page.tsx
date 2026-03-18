@@ -8,6 +8,7 @@ import EventGallery from "@/components/events/EventGallery";
 import LiveBookingCount from "@/components/events/LiveBookingCount";
 import OrganizerCard from "@/components/events/OrganizerCard";
 import ShareButtons from "@/components/events/ShareButtons";
+import WeatherCard from "@/components/events/WeatherCard";
 import GuideCard from "@/components/guides/GuideCard";
 import { LocationPinIcon } from "@/components/icons";
 import EventLocationMap from "@/components/maps/EventLocationMap";
@@ -18,11 +19,13 @@ import { Breadcrumbs, DemoBadge, UIBadge } from "@/components/ui";
 import { isPaymentPauseEnabled } from "@/lib/cms/cached";
 import { ACTIVITY_TYPE_LABELS } from "@/lib/constants/activity-types";
 import { resolvePresetImage } from "@/lib/constants/avatars";
+import { findProvinceFromLocation } from "@/lib/constants/philippine-provinces";
 import { BreadcrumbTitle } from "@/lib/contexts/BreadcrumbContext";
 import { enrichReviewsWithBorders } from "@/lib/data/enrich-borders";
 import { cdnUrl } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/server";
 import { formatEventDate } from "@/lib/utils/format-date";
+import { getWeatherForecast } from "@/lib/weather";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -297,6 +300,25 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
   const paymentPauseFlagEnabled = await isPaymentPauseEnabled();
   const effectivePaymentPaused = paymentPauseFlagEnabled && event.payment_paused;
 
+  // Resolve coordinates for weather forecast
+  const coords =
+    event.coordinates && typeof event.coordinates === "object" && "lat" in event.coordinates
+      ? (event.coordinates as { lat: number; lng: number })
+      : (() => {
+          const province = findProvinceFromLocation(event.location);
+          return province ? { lat: province.lat, lng: province.lng } : null;
+        })();
+
+  const forecast = coords ? await getWeatherForecast(coords.lat, coords.lng, event.date) : null;
+  const isLongRange = (() => {
+    if (!forecast) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const eventDate = new Date(event.date + "T00:00:00");
+    const diff = Math.ceil((eventDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    return diff >= 8;
+  })();
+
   const spotsLeft = event.max_participants - bookingCount;
   const formattedDate = formatEventDate(event.date, event.end_date, {
     includeTime: true,
@@ -567,6 +589,10 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
               logoUrl={club.logo_url ?? null}
               eventCount={orgEventCount || 0}
             />
+          )}
+
+          {forecast && (
+            <WeatherCard forecast={forecast} location={event.location} isLongRange={isLongRange} />
           )}
 
           {eventMountains.length > 0 && (
