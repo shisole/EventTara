@@ -63,6 +63,7 @@ export default function Navbar({
   const [profileOpen, setProfileOpen] = useState(false);
   const [exploreOpen, setExploreOpen] = useState(false);
   const [borderPickerOpen, setBorderPickerOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const [tokenBalance, setTokenBalance] = useState<number | null>(null);
   const [avatarConfig, setAvatarConfig] = useState<{
     animalImageUrl: string | null;
@@ -109,6 +110,14 @@ export default function Navbar({
       .catch(() => {});
   }, [user, avatarShopEnabled]);
 
+  // Track scroll position for transparent → frosted transition
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    handleScroll(); // Check initial position
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   // Close dropdowns on route change
   useEffect(() => {
     setProfileOpen(false);
@@ -133,10 +142,19 @@ export default function Navbar({
     };
   }, [profileOpen, exploreOpen]);
 
+  // When on homepage with dark hero visible behind transparent nav
+  const heroVisible = pathname === "/" && !scrolled;
+
   return (
-    <nav className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+    <div className="fixed top-0 md:top-3 left-0 right-0 z-50 md:px-4 md:pointer-events-none">
+      <nav
+        className={`md:pointer-events-auto md:w-fit md:mx-auto md:rounded-2xl transition-all duration-300 ${
+          scrolled
+            ? "bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 md:bg-white/90 md:dark:bg-gray-900/90 md:backdrop-blur-md md:border md:border-gray-200/80 md:dark:border-gray-700/80 md:shadow-lg md:shadow-black/5 md:dark:shadow-black/20"
+            : "bg-transparent border-b border-transparent md:bg-white/5 md:backdrop-blur-sm md:border md:border-white/10"
+        }`}
+      >
+        <div className="flex items-center justify-between md:justify-center md:gap-6 h-14 md:h-12 px-4 sm:px-6">
           <NavLink href="/" className="flex items-center gap-2">
             <Image
               src="/favicon-48x48.png"
@@ -169,7 +187,11 @@ export default function Navbar({
                 onClick={() => {
                   setExploreOpen(!exploreOpen);
                 }}
-                className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 hover:bg-gray-100 dark:hover:text-white dark:hover:bg-gray-800 font-medium transition-colors"
+                className={`flex items-center gap-1 rounded-lg px-2 py-1.5 font-medium transition-colors ${
+                  heroVisible
+                    ? "text-white/90 hover:text-white hover:bg-white/10"
+                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 hover:bg-gray-100 dark:hover:text-white dark:hover:bg-gray-800"
+                }`}
               >
                 Explore Events
                 <ChevronDownIcon
@@ -184,14 +206,26 @@ export default function Navbar({
             </div>
             <NavLink
               href="/clubs"
-              className={`text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium ${pathname === "/clubs" || pathname.startsWith("/clubs/") ? "text-lime-600 dark:text-lime-400" : ""}`}
+              className={`font-medium transition-colors ${
+                pathname === "/clubs" || pathname.startsWith("/clubs/")
+                  ? "text-lime-600 dark:text-lime-400"
+                  : heroVisible
+                    ? "text-white/90 hover:text-white"
+                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+              }`}
             >
               Clubs
             </NavLink>
             {activityFeedEnabled && (
               <NavLink
                 href="/feed"
-                className={`text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium ${pathname === "/feed" ? "text-lime-600 dark:text-lime-400" : ""}`}
+                className={`font-medium transition-colors ${
+                  pathname === "/feed"
+                    ? "text-lime-600 dark:text-lime-400"
+                    : heroVisible
+                      ? "text-white/90 hover:text-white"
+                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                }`}
               >
                 Feed
               </NavLink>
@@ -239,7 +273,7 @@ export default function Navbar({
                       avatarConfig={avatarConfig}
                     />
                     <ChevronDownIcon
-                      className={`w-4 h-4 text-gray-400 transition-transform ${profileOpen ? "rotate-180" : ""}`}
+                      className={`w-4 h-4 transition-transform ${profileOpen ? "rotate-180" : ""} ${heroVisible ? "text-white/70" : "text-gray-400"}`}
                     />
                   </button>
                   {profileOpen && (
@@ -346,14 +380,18 @@ export default function Navbar({
             {user && <NotificationBell userId={user.id} />}
             <button
               onClick={onMenuOpen}
-              className="flex items-center justify-center w-11 h-11 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className={`flex items-center justify-center w-11 h-11 rounded-lg transition-colors ${
+                heroVisible
+                  ? "text-white/90 hover:bg-white/10"
+                  : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+              }`}
               aria-label="Open menu"
             >
               <MenuIcon className="w-6 h-6" />
             </button>
           </div>
         </div>
-      </div>
+      </nav>
 
       {user && (
         <BorderPickerModal
@@ -367,6 +405,6 @@ export default function Navbar({
           }}
         />
       )}
-    </nav>
+    </div>
   );
 }

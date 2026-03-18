@@ -307,7 +307,7 @@ export default function ClientShell({
             }}
           />
           <BreadcrumbProvider>
-            <div className="flex-1 pb-16 md:pb-0">{children}</div>
+            <div className="flex-1 pt-14 md:pt-20 pb-16 md:pb-0">{children}</div>
           </BreadcrumbProvider>
           <MobileNav user={user} canManage={canManage} activityFeedEnabled={activityFeedEnabled} />
         </div>
