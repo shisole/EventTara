@@ -13,7 +13,7 @@ test.describe("Events listing page", () => {
   });
 
   test("clicking an event card navigates to detail page", async ({ page }) => {
-    await page.goto("/events");
+    await page.goto("/events", { waitUntil: "networkidle" });
 
     // Click the first event card link
     const firstEventLink = page.locator('a[href^="/events/"]').first();
@@ -22,7 +22,7 @@ test.describe("Events listing page", () => {
     const href = await firstEventLink.getAttribute("href");
     await firstEventLink.click();
 
-    await expect(page).toHaveURL(href!);
+    await expect(page).toHaveURL(href!, { timeout: 15_000 });
   });
 });
 

@@ -95,12 +95,21 @@ test.describe("Organizer + Participant booking flow", () => {
     await test.step("Participant self-checks-in", async () => {
       const participantPage = await participantContext.newPage();
 
-      await participantPage.goto("/my-events", { waitUntil: "domcontentloaded" });
+      await participantPage.goto("/my-events", { waitUntil: "networkidle" });
 
-      // Find the "Check In Online" button for our event
-      const checkInButton = participantPage.getByRole("button", { name: /check in online/i });
+      // Scope to the card containing our specific test event
+      const eventCard = participantPage.locator(`text=${eventTitle}`).locator("..").locator("..");
+      await expect(eventCard).toBeVisible({ timeout: 15_000 });
+
+      // Find the "Check In Online" button within that card
+      const checkInButton = eventCard.getByRole("button", { name: /check in online/i });
       await expect(checkInButton).toBeVisible({ timeout: 15_000 });
+
+      // Listen for the API response to diagnose failures
+      const responsePromise = participantPage.waitForResponse("**/api/checkins");
       await checkInButton.click();
+      const response = await responsePromise;
+      expect(response.ok()).toBeTruthy();
 
       // Should show "Checked In" status
       await expect(participantPage.getByText(/checked in/i).first()).toBeVisible({

@@ -592,7 +592,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
           )}
 
           {forecast && (
-            <WeatherCard forecast={forecast} location={event.location} isLongRange={isLongRange} />
+            <WeatherCard forecast={forecast} eventId={event.id} isLongRange={isLongRange} />
           )}
 
           {eventMountains.length > 0 && (

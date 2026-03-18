@@ -32,6 +32,14 @@ export async function fetchFromWeatherApi(
       return null;
     }
 
+    const hours = (data.forecast.forecastday[0].hour ?? []).map((h: any) => ({
+      hour: Number.parseInt(h.time.split(" ")[1]),
+      chanceOfRain: h.chance_of_rain ?? 0,
+      precipMm: h.precip_mm ?? 0,
+      tempC: h.temp_c ?? 0,
+      conditionIcon: h.condition?.icon ? `https:${h.condition.icon}` : "",
+    }));
+
     return {
       date,
       tempMin: day.mintemp_c,
@@ -41,6 +49,7 @@ export async function fetchFromWeatherApi(
       chanceOfRain: day.daily_chance_of_rain ?? 0,
       windKph: day.maxwind_kph ?? 0,
       humidity: day.avghumidity ?? 0,
+      hourly: hours,
     };
   } catch (error) {
     console.error("[weather] Failed to fetch forecast:", error);

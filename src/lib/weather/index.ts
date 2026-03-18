@@ -3,7 +3,7 @@ import { unstable_cache } from "next/cache";
 import { fetchFromWeatherApi } from "./providers/weatherapi";
 import { type WeatherForecast } from "./types";
 
-export type { WeatherForecast } from "./types";
+export type { HourlyWeather, WeatherForecast } from "./types";
 
 /**
  * Get a weather forecast for a location + date.
