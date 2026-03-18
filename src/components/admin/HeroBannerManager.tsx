@@ -20,13 +20,31 @@ import { CSS } from "@dnd-kit/utilities";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { uploadVideoChunkAction } from "@/app/(admin)/admin/hero/actions";
 import { DragHandle } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
 interface Slide {
-  url: string;
+  url?: string;
   mobileUrl?: string;
-  alt: string;
+  videoUrl?: string;
+  alt?: string;
+}
+
+/** Unique key for sortable — use videoUrl or url */
+function slideKey(slide: Slide): string {
+  return slide.videoUrl || slide.url || "";
+}
+
+function isVideoSlide(slide: Slide): boolean {
+  return !!slide.videoUrl;
+}
+
+/** Convert full R2 public URLs to local /r2/ proxy (avoids CORS for video) */
+function toProxyUrl(url: string): string {
+  if (url.startsWith("/r2/")) return url;
+  const match = /^https:\/\/pub-[^/]+\.r2\.dev\/(.+)$/.exec(url);
+  return match ? `/r2/${match[1]}` : url;
 }
 
 interface SortableSlideProps {
@@ -38,13 +56,15 @@ interface SortableSlideProps {
 
 function SortableSlide({ slide, onRemove, index, disabled }: SortableSlideProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: slide.url,
+    id: slideKey(slide),
   });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
   };
+
+  const isVideo = isVideoSlide(slide);
 
   return (
     <div
@@ -67,12 +87,37 @@ function SortableSlide({ slide, onRemove, index, disabled }: SortableSlideProps)
       </button>
 
       <div className="relative h-16 w-28 shrink-0 overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800">
-        <Image src={slide.url} alt={slide.alt} fill className="object-cover" sizes="112px" />
+        {isVideo ? (
+          <>
+            {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+            <video
+              src={toProxyUrl(slide.videoUrl!)}
+              muted
+              className="h-full w-full object-cover"
+              preload="metadata"
+            />
+            <span className="absolute left-1 top-1 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+              Video
+            </span>
+          </>
+        ) : (
+          <Image
+            src={slide.url!}
+            alt={slide.alt || ""}
+            fill
+            className="object-cover"
+            sizes="112px"
+          />
+        )}
       </div>
 
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium text-gray-900 dark:text-white">{slide.alt}</p>
-        <p className="truncate text-xs text-gray-400 dark:text-gray-500">{slide.url}</p>
+        <p className="truncate text-sm font-medium text-gray-900 dark:text-white">
+          {slide.alt || (isVideo ? "Video slide" : "Image slide")}
+        </p>
+        <p className="truncate text-xs text-gray-400 dark:text-gray-500">
+          {slide.videoUrl || slide.url}
+        </p>
       </div>
 
       <button
@@ -106,6 +151,8 @@ export default function HeroBannerManager() {
   const [stagedPreview, setStagedPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const stagedIsVideo = stagedFile?.type.startsWith("video/") ?? false;
+
   useEffect(() => {
     async function load() {
       try {
@@ -113,7 +160,7 @@ export default function HeroBannerManager() {
         if (!res.ok) throw new Error("Failed to load");
         const data = await res.json();
         const slidesArray: Slide[] = Array.isArray(data.slides) ? data.slides : [];
-        const parsed = slidesArray.filter((s: Slide) => s.url && s.alt);
+        const parsed = slidesArray.filter((s: Slide) => s.url || s.videoUrl);
         setSlides(parsed);
       } catch {
         setError("Failed to load hero carousel.");
@@ -159,21 +206,65 @@ export default function HeroBannerManager() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   }, [stagedPreview]);
 
+  const uploadVideo = useCallback(async (file: File): Promise<string> => {
+    const CHUNK_SIZE = 4 * 1024 * 1024; // 4 MB per chunk
+    const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+    const uploadId = crypto.randomUUID();
+
+    for (let i = 0; i < totalChunks; i++) {
+      const start = i * CHUNK_SIZE;
+      const blob = file.slice(start, start + CHUNK_SIZE);
+
+      const formData = new FormData();
+      formData.append("chunk", blob);
+      formData.append("uploadId", uploadId);
+      formData.append("chunkIndex", i.toString());
+      formData.append("totalChunks", totalChunks.toString());
+      formData.append("contentType", file.type);
+      formData.append("folder", "hero");
+
+      const result = await uploadVideoChunkAction(formData);
+      if (result.error) throw new Error(result.error);
+      if (result.videoUrl) return result.videoUrl;
+    }
+
+    throw new Error("Upload completed but no URL returned");
+  }, []);
+
   const uploadAndAdd = useCallback(async () => {
-    if (!stagedFile || !newAlt.trim()) return;
+    if (!stagedFile) return;
+    // Alt text required for images, optional for videos
+    if (!stagedIsVideo && !newAlt.trim()) return;
+
     setUploading(true);
     setError(null);
     try {
-      const formData = new FormData();
-      formData.append("file", stagedFile);
-      formData.append("folder", "hero");
-      const res = await fetch("/api/admin/upload", { method: "POST", body: formData });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Upload failed");
+      let newSlide: Slide;
+
+      if (stagedIsVideo) {
+        // Video: chunked upload → server-side compression → R2
+        const videoUrl = await uploadVideo(stagedFile);
+        newSlide = { videoUrl, alt: newAlt.trim() || undefined };
+      } else {
+        // Image: upload through API (sharp processing)
+        const formData = new FormData();
+        formData.append("file", stagedFile);
+        formData.append("folder", "hero");
+        const res = await fetch("/api/admin/upload", { method: "POST", body: formData });
+        const text = await res.text();
+        let data: Record<string, string>;
+        try {
+          data = JSON.parse(text);
+        } catch {
+          throw new Error(text || `Upload failed (${res.status})`);
+        }
+        if (!res.ok) {
+          throw new Error(data.error || "Upload failed");
+        }
+        newSlide = { url: data.url, mobileUrl: data.mobileUrl, alt: newAlt.trim() };
       }
-      const { url, mobileUrl } = await res.json();
-      const updated = [...slides, { url, mobileUrl, alt: newAlt.trim() }];
+
+      const updated = [...slides, newSlide];
       setSlides(updated);
       clearStaged();
       void save(updated);
@@ -182,14 +273,14 @@ export default function HeroBannerManager() {
     } finally {
       setUploading(false);
     }
-  }, [stagedFile, slides, newAlt, save, clearStaged]);
+  }, [stagedFile, stagedIsVideo, slides, newAlt, save, clearStaged, uploadVideo]);
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault();
       setDragOver(false);
       const file = e.dataTransfer.files[0];
-      if (file?.type.startsWith("image/")) {
+      if (file && (file.type.startsWith("image/") || file.type.startsWith("video/"))) {
         stageFile(file);
       }
     },
@@ -220,8 +311,8 @@ export default function HeroBannerManager() {
       const { active, over } = event;
       if (!over || active.id === over.id) return;
 
-      const oldIndex = slides.findIndex((s) => s.url === active.id);
-      const newIndex = slides.findIndex((s) => s.url === over.id);
+      const oldIndex = slides.findIndex((s) => slideKey(s) === active.id);
+      const newIndex = slides.findIndex((s) => slideKey(s) === over.id);
 
       const reordered = arrayMove(slides, oldIndex, newIndex);
       setSlides(reordered);
@@ -256,11 +347,14 @@ export default function HeroBannerManager() {
       )}
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <SortableContext items={slides.map((s) => s.url)} strategy={verticalListSortingStrategy}>
+        <SortableContext
+          items={slides.map((s) => slideKey(s))}
+          strategy={verticalListSortingStrategy}
+        >
           <div className="space-y-3">
             {slides.map((slide, index) => (
               <SortableSlide
-                key={slide.url}
+                key={slideKey(slide)}
                 slide={slide}
                 index={index}
                 onRemove={removeSlide}
@@ -294,7 +388,7 @@ export default function HeroBannerManager() {
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*"
+          accept="image/*,video/mp4,video/webm"
           onChange={handleFileChange}
           className="hidden"
         />
@@ -302,8 +396,25 @@ export default function HeroBannerManager() {
         {stagedPreview ? (
           <div className="space-y-4">
             <div className="relative mx-auto h-40 w-72 overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={stagedPreview} alt="Preview" className="h-full w-full object-cover" />
+              {stagedIsVideo ? (
+                <>
+                  {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+                  <video
+                    src={stagedPreview}
+                    muted
+                    className="h-full w-full object-cover"
+                    autoPlay
+                    loop
+                    playsInline
+                  />
+                  <span className="absolute left-2 top-2 rounded bg-black/70 px-2 py-0.5 text-xs font-semibold text-white">
+                    Video
+                  </span>
+                </>
+              ) : (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={stagedPreview} alt="Preview" className="h-full w-full object-cover" />
+              )}
               <button
                 type="button"
                 onClick={clearStaged}
@@ -324,7 +435,7 @@ export default function HeroBannerManager() {
             <div className="mx-auto flex max-w-md items-center gap-3">
               <input
                 type="text"
-                placeholder="Alt text (required)"
+                placeholder={stagedIsVideo ? "Alt text (optional)" : "Alt text (required)"}
                 value={newAlt}
                 onChange={(e) => setNewAlt(e.target.value)}
                 className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
@@ -332,7 +443,7 @@ export default function HeroBannerManager() {
               <button
                 type="button"
                 onClick={() => void uploadAndAdd()}
-                disabled={!newAlt.trim() || uploading}
+                disabled={(!stagedIsVideo && !newAlt.trim()) || uploading}
                 className="rounded-lg bg-lime-500 px-4 py-2 text-sm font-semibold text-slate-900 transition-colors hover:bg-lime-400 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {uploading ? "Uploading..." : "Add slide"}
@@ -356,7 +467,9 @@ export default function HeroBannerManager() {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                   />
                 </svg>
-                Processing and uploading to R2...
+                {stagedIsVideo
+                  ? "Compressing and uploading video..."
+                  : "Processing and uploading to R2..."}
               </div>
             )}
           </div>
@@ -376,7 +489,7 @@ export default function HeroBannerManager() {
               />
             </svg>
             <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-              Drag and drop an image, or{" "}
+              Drag and drop an image or video, or{" "}
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
@@ -385,7 +498,9 @@ export default function HeroBannerManager() {
                 browse
               </button>
             </p>
-            <p className="mt-1 text-xs text-gray-400">Max 10 MB. Will be converted to WebP.</p>
+            <p className="mt-1 text-xs text-gray-400">
+              Images: max 10 MB (converted to WebP). Videos: MP4/WebM, max 200 MB (auto-compressed).
+            </p>
           </div>
         )}
       </div>

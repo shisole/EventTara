@@ -23,8 +23,12 @@ const nextConfig = {
     // CI runs lint separately; skip during build
     ignoreDuringBuilds: true,
   },
+  serverExternalPackages: ["fluent-ffmpeg", "@ffmpeg-installer/ffmpeg"],
   experimental: {
     optimizeCss: true,
+    serverActions: {
+      bodySizeLimit: "200mb",
+    },
   },
   images: {
     deviceSizes: [640, 828, 1200, 1440, 1920],
