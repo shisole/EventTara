@@ -20,9 +20,11 @@ test.describe("Events listing page", () => {
     await expect(firstEventLink).toBeVisible();
 
     const href = await firstEventLink.getAttribute("href");
-    await firstEventLink.click();
 
-    await expect(page).toHaveURL(href!, { timeout: 15_000 });
+    // Wait for navigation and click simultaneously to avoid race conditions
+    await Promise.all([page.waitForURL(`**${href!}`, { timeout: 15_000 }), firstEventLink.click()]);
+
+    await expect(page).toHaveURL(href!);
   });
 });
 
