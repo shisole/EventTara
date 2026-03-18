@@ -3,6 +3,7 @@ import Link from "next/link";
 import AnimatedLogo from "@/components/landing/AnimatedLogo";
 import HeroCarousel from "@/components/landing/HeroCarousel";
 import HostEventLink from "@/components/landing/HostEventLink";
+import RotatingWord from "@/components/landing/RotatingWord";
 
 interface HeroSlide {
   image: { url: string; mobileUrl?: string; alt: string };
@@ -30,7 +31,7 @@ export default function HeroSection({ heroData }: HeroSectionProps) {
 
   return (
     <section
-      className={`relative overflow-hidden min-h-[100dvh] flex items-center ${
+      className={`relative overflow-hidden min-h-[100dvh] flex items-center -mt-14 md:-mt-20 ${
         heroSlides.length > 0 ? "bg-gray-900" : "bg-gray-50 dark:bg-slate-900"
       }`}
     >
@@ -64,7 +65,7 @@ export default function HeroSection({ heroData }: HeroSectionProps) {
         >
           Every Great Adventure
           <br />
-          Starts with <span className="text-lime-500">Tara</span>
+          Starts with <RotatingWord />
         </h1>
         <p
           className={`text-lg sm:text-xl lg:text-2xl mb-10 max-w-3xl mx-auto leading-relaxed ${heroSlides.length > 0 ? "text-gray-200" : "text-gray-600 dark:text-gray-400"}`}
