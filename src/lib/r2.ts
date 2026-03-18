@@ -7,8 +7,6 @@ function getR2Client(): AwsClient {
     _r2 = new AwsClient({
       accessKeyId: process.env.R2_ACCESS_KEY_ID!.trim(),
       secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!.trim(),
-      service: "s3",
-      region: "auto",
     });
   }
   return _r2;
