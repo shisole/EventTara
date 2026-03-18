@@ -182,6 +182,12 @@ export default function Navbar({
                 </Suspense>
               )}
             </div>
+            <NavLink
+              href="/clubs"
+              className={`text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium ${pathname === "/clubs" || pathname.startsWith("/clubs/") ? "text-lime-600 dark:text-lime-400" : ""}`}
+            >
+              Clubs
+            </NavLink>
             {activityFeedEnabled && (
               <NavLink
                 href="/feed"
