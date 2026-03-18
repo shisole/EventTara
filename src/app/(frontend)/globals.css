@@ -149,6 +149,17 @@
   }
 }
 
+/* Typing cursor blink — matches browser caret behavior */
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
 /* Hero carousel crossfade animation */
 @keyframes heroFade {
   0%,
