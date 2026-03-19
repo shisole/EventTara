@@ -5,9 +5,6 @@ import { getPresignedUploadUrl, uploadToR2 } from "@/lib/r2";
 import { createClient } from "@/lib/supabase/server";
 import { compressVideo } from "@/lib/video/compress";
 
-// Allow up to 5 minutes for video compression
-export const maxDuration = 300;
-
 const ALLOWED_VIDEO_TYPES = new Set(["video/mp4", "video/webm"]);
 
 async function requireAdmin(): Promise<string | null> {
