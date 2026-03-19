@@ -20,7 +20,7 @@ import { CSS } from "@dnd-kit/utilities";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { getVideoUploadUrlAction } from "@/app/(admin)/admin/hero/actions";
+import { compressVideoAction, getVideoUploadUrlAction } from "@/app/(admin)/admin/hero/actions";
 import { DragHandle } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
@@ -206,22 +206,29 @@ export default function HeroBannerManager() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   }, [stagedPreview]);
 
-  const uploadVideo = useCallback(async (file: File): Promise<string> => {
-    // Get a presigned URL for direct upload to R2 (bypasses Vercel payload limit)
-    const { uploadUrl, videoUrl, error } = await getVideoUploadUrlAction(file.type, "hero");
-    if (error || !uploadUrl || !videoUrl) throw new Error(error || "Failed to get upload URL");
+  const [uploadPhase, setUploadPhase] = useState<"uploading" | "compressing" | null>(null);
 
-    // Upload directly to R2
+  const uploadVideo = useCallback(async (file: File): Promise<string> => {
+    // 1. Get a presigned URL for direct upload to R2
+    const { uploadUrl, videoUrl, key, error } = await getVideoUploadUrlAction(file.type, "hero");
+    if (error || !uploadUrl || !videoUrl || !key)
+      throw new Error(error || "Failed to get upload URL");
+
+    // 2. Upload raw video directly to R2 (bypasses Vercel payload limit)
+    setUploadPhase("uploading");
     const res = await fetch(uploadUrl, {
       method: "PUT",
       body: file,
       headers: { "Content-Type": file.type },
     });
+    if (!res.ok) throw new Error(`Upload failed (${res.status})`);
 
-    if (!res.ok) {
-      throw new Error(`Upload failed (${res.status})`);
-    }
+    // 3. Compress server-side (download from R2 → ffmpeg → re-upload)
+    setUploadPhase("compressing");
+    const { error: compressError } = await compressVideoAction(key);
+    if (compressError) throw new Error(compressError);
 
+    setUploadPhase(null);
     return videoUrl;
   }, []);
 
@@ -462,7 +469,9 @@ export default function HeroBannerManager() {
                   />
                 </svg>
                 {stagedIsVideo
-                  ? "Compressing and uploading video..."
+                  ? uploadPhase === "compressing"
+                    ? "Compressing video (this may take a minute)..."
+                    : "Uploading video to R2..."
                   : "Processing and uploading to R2..."}
               </div>
             )}
