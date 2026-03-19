@@ -1,5 +1,8 @@
 import HeroBannerManager from "@/components/admin/HeroBannerManager";
 
+// Video compression can take a while
+export const maxDuration = 300;
+
 export default function HeroBannersPage() {
   return (
     <div>
