@@ -5,8 +5,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
-import { CheckCircleIcon, CloseIcon, EnvelopeIcon } from "@/components/icons";
+import {
+  CheckCircleIcon,
+  CloseIcon,
+  EnvelopeIcon,
+  GoogleIcon,
+  StravaIcon,
+} from "@/components/icons";
 import { Button, OtpCodeInput } from "@/components/ui";
+import { STRAVA_AUTH_URL, STRAVA_SCOPES } from "@/lib/strava/constants";
 import { createClient } from "@/lib/supabase/client";
 import { generateUsername } from "@/lib/utils/generate-username";
 
@@ -41,6 +48,9 @@ export default function AuthBookingModal({
   const [loading, setLoading] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [userDisplay, setUserDisplay] = useState("");
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [oauthGoogle, setOauthGoogle] = useState(false);
+  const [oauthStrava, setOauthStrava] = useState(false);
 
   // Animate in on mount
   useEffect(() => {
@@ -59,6 +69,50 @@ export default function AuthBookingModal({
       document.body.style.overflow = "";
     };
   }, []);
+
+  // Fetch OAuth feature flags
+  useEffect(() => {
+    void fetch("/api/feature-flags")
+      .then((r) => r.json())
+      .then((d: { oauthGoogle?: boolean; oauthStrava?: boolean }) => {
+        setOauthGoogle(d.oauthGoogle === true);
+        setOauthStrava(d.oauthStrava === true);
+      })
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      .catch(() => {});
+  }, []);
+
+  const bookingReturnUrl = `/events/${eventId}/book`;
+
+  const handleGoogleOAuth = async () => {
+    setGoogleLoading(true);
+    setError("");
+    const supabase = createClient();
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${globalThis.location.origin}/auth/callback?next=${encodeURIComponent(bookingReturnUrl)}`,
+      },
+    });
+    if (oauthError) {
+      setError(oauthError.message || "Something went wrong. Please try again.");
+      setGoogleLoading(false);
+    }
+  };
+
+  const handleStravaOAuth = () => {
+    const clientId = process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID;
+    if (!clientId) return;
+    const params = new URLSearchParams({
+      client_id: clientId,
+      redirect_uri: `${globalThis.location.origin}/auth/strava/callback`,
+      response_type: "code",
+      scope: STRAVA_SCOPES.join(","),
+      state: JSON.stringify({ flow: "login", returnUrl: bookingReturnUrl }),
+      approval_prompt: "auto",
+    });
+    globalThis.location.href = `${STRAVA_AUTH_URL}?${params.toString()}`;
+  };
 
   // Success: fire confetti and auto-close
   useEffect(() => {
@@ -325,6 +379,14 @@ export default function AuthBookingModal({
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{eventName}</p>
               </div>
 
+              <OAuthButtons
+                oauthGoogle={oauthGoogle}
+                oauthStrava={oauthStrava}
+                googleLoading={googleLoading}
+                onGoogle={handleGoogleOAuth}
+                onStrava={handleStravaOAuth}
+              />
+
               <div>
                 <label
                   htmlFor="auth-email"
@@ -443,6 +505,14 @@ export default function AuthBookingModal({
                 </h2>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{eventName}</p>
               </div>
+
+              <OAuthButtons
+                oauthGoogle={oauthGoogle}
+                oauthStrava={oauthStrava}
+                googleLoading={googleLoading}
+                onGoogle={handleGoogleOAuth}
+                onStrava={handleStravaOAuth}
+              />
 
               <div>
                 <label
@@ -584,5 +654,79 @@ export default function AuthBookingModal({
         )}
       </div>
     </div>
+  );
+}
+
+function OAuthButtons({
+  oauthGoogle,
+  oauthStrava,
+  googleLoading,
+  onGoogle,
+  onStrava,
+}: {
+  oauthGoogle: boolean;
+  oauthStrava: boolean;
+  googleLoading: boolean;
+  onGoogle: () => void;
+  onStrava: () => void;
+}) {
+  return (
+    <>
+      <div className="space-y-2.5">
+        {oauthGoogle ? (
+          <Button
+            disabled
+            className="w-full bg-white/60 cursor-not-allowed border border-gray-300"
+            size="lg"
+          >
+            <GoogleIcon className="w-5 h-5 mr-2" />
+            Continue with Google
+            <span className="ml-2 rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium">
+              Coming Soon
+            </span>
+          </Button>
+        ) : (
+          <Button
+            className="w-full bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
+            size="lg"
+            onClick={onGoogle}
+            disabled={googleLoading}
+          >
+            <GoogleIcon className="w-5 h-5 mr-2" />
+            {googleLoading ? "Redirecting..." : "Continue with Google"}
+          </Button>
+        )}
+
+        {oauthStrava ? (
+          <Button disabled className="w-full bg-[#FC4C02]/60 cursor-not-allowed" size="lg">
+            <StravaIcon className="w-5 h-5 mr-2" />
+            Continue with Strava
+            <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium">
+              Coming Soon
+            </span>
+          </Button>
+        ) : (
+          <Button
+            className="w-full bg-[#FC4C02] hover:bg-[#E34402] text-white"
+            size="lg"
+            onClick={onStrava}
+          >
+            <StravaIcon className="w-5 h-5 mr-2" />
+            Continue with Strava
+          </Button>
+        )}
+      </div>
+
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-200 dark:border-gray-700" />
+        </div>
+        <div className="relative flex justify-center text-sm">
+          <span className="bg-white dark:bg-slate-800 px-4 text-gray-400 dark:text-gray-500">
+            or
+          </span>
+        </div>
+      </div>
+    </>
   );
 }
