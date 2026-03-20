@@ -91,6 +91,7 @@ export default function EventPhotoManager({ eventId, initialPhotos = [] }: Event
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const touchStartRef = useRef<{ idx: number; y: number } | null>(null);
 
   // Fetch photos client-side if none were provided server-side
   useEffect(() => {
@@ -255,87 +256,196 @@ export default function EventPhotoManager({ eventId, initialPhotos = [] }: Event
         </div>
       )}
 
-      {/* Existing photos grid (drag to reorder) */}
+      {/* Existing media — mobile: vertical list / desktop: grid */}
       {!loading && photos.length > 0 && (
-        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-          {photos.map((photo, idx) => (
-            <div
-              key={photo.id}
-              draggable
-              onDragStart={(e) => {
-                setDragIndex(idx);
-                e.dataTransfer.effectAllowed = "move";
-              }}
-              onDragOver={(e) => {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = "move";
-                setDragOverIndex(idx);
-              }}
-              onDragLeave={() => {
-                setDragOverIndex((prev) => (prev === idx ? null : prev));
-              }}
-              onDrop={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                if (dragIndex !== null && dragIndex !== idx) {
-                  void handleReorder(dragIndex, idx);
-                }
-                setDragIndex(null);
-                setDragOverIndex(null);
-              }}
-              onDragEnd={() => {
-                setDragIndex(null);
-                setDragOverIndex(null);
-              }}
-              className={cn(
-                "relative group aspect-square rounded-lg overflow-hidden cursor-grab active:cursor-grabbing transition-all",
-                dragIndex === idx && "opacity-40 scale-95",
-                dragOverIndex === idx &&
-                  dragIndex !== idx &&
-                  "ring-2 ring-forest-400 ring-offset-2 dark:ring-offset-gray-900",
-              )}
-            >
-              {isVideoUrl(photo.image_url) ? (
-                <video
-                  src={photo.image_url}
-                  muted
-                  playsInline
-                  preload="metadata"
-                  className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                />
-              ) : (
-                <Image
-                  src={photo.image_url}
-                  alt={photo.caption || "Event photo"}
-                  fill
-                  className="object-cover pointer-events-none"
-                />
-              )}
-              {isVideoUrl(photo.image_url) && (
-                <div className="absolute bottom-1 right-1 px-1.5 py-0.5 bg-black/60 rounded text-white text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                  Video
-                </div>
-              )}
-              {/* Drag handle */}
-              <div className="absolute top-1 left-1 w-7 h-7 flex items-center justify-center bg-black/60 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                <DragHandle className="w-3.5 h-3.5" />
-              </div>
-              {/* Delete button */}
-              <button
-                type="button"
-                onClick={() => void handleDelete(photo.id)}
-                className="absolute top-1 right-1 w-7 h-7 flex items-center justify-center bg-black/60 hover:bg-red-600 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                aria-label="Delete photo"
+        <>
+          {/* Mobile: vertical sortable list */}
+          <div className="flex flex-col gap-2 sm:hidden">
+            {photos.map((photo, idx) => (
+              <div
+                key={photo.id}
+                draggable
+                onDragStart={(e) => {
+                  setDragIndex(idx);
+                  e.dataTransfer.effectAllowed = "move";
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = "move";
+                  setDragOverIndex(idx);
+                }}
+                onDragLeave={() => {
+                  setDragOverIndex((prev) => (prev === idx ? null : prev));
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (dragIndex !== null && dragIndex !== idx) {
+                    void handleReorder(dragIndex, idx);
+                  }
+                  setDragIndex(null);
+                  setDragOverIndex(null);
+                }}
+                onDragEnd={() => {
+                  setDragIndex(null);
+                  setDragOverIndex(null);
+                }}
+                onTouchStart={(e) => {
+                  const touch = e.touches[0];
+                  touchStartRef.current = { idx, y: touch.clientY };
+                }}
+                onTouchMove={(e) => {
+                  if (touchStartRef.current === null) return;
+                  const touch = e.touches[0];
+                  const deltaY = touch.clientY - touchStartRef.current.y;
+                  const rowHeight = 72;
+                  const steps = Math.round(deltaY / rowHeight);
+                  const targetIdx = Math.max(
+                    0,
+                    Math.min(photos.length - 1, touchStartRef.current.idx + steps),
+                  );
+                  setDragOverIndex(targetIdx);
+                }}
+                onTouchEnd={() => {
+                  if (touchStartRef.current !== null && dragOverIndex !== null) {
+                    void handleReorder(touchStartRef.current.idx, dragOverIndex);
+                  }
+                  touchStartRef.current = null;
+                  setDragOverIndex(null);
+                }}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg border p-2 transition-all",
+                  "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50",
+                  dragIndex === idx && "opacity-40 scale-[0.98]",
+                  dragOverIndex === idx &&
+                    dragIndex !== idx &&
+                    "ring-2 ring-forest-400 ring-offset-1 dark:ring-offset-gray-900",
+                )}
               >
-                <TrashIcon className="w-3.5 h-3.5" />
-              </button>
-              {/* Position indicator */}
-              <div className="absolute bottom-1 left-1 px-1.5 py-0.5 bg-black/60 rounded text-white text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                {idx + 1}
+                <div className="touch-none cursor-grab active:cursor-grabbing text-gray-400 dark:text-gray-500 shrink-0">
+                  <DragHandle className="w-5 h-5" />
+                </div>
+                <div className="relative w-14 h-14 shrink-0 rounded-md overflow-hidden">
+                  {isVideoUrl(photo.image_url) ? (
+                    <video
+                      src={photo.image_url}
+                      muted
+                      playsInline
+                      preload="metadata"
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                  ) : (
+                    <Image
+                      src={photo.image_url}
+                      alt={photo.caption || "Event photo"}
+                      fill
+                      className="object-cover"
+                    />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-gray-700 dark:text-gray-300 truncate">
+                    {isVideoUrl(photo.image_url) ? "Video" : "Photo"} {idx + 1}
+                  </p>
+                  {photo.caption && (
+                    <p className="text-xs text-gray-400 dark:text-gray-500 truncate">
+                      {photo.caption}
+                    </p>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void handleDelete(photo.id)}
+                  className="shrink-0 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors"
+                  aria-label="Delete"
+                >
+                  <TrashIcon className="w-4 h-4" />
+                </button>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+
+          {/* Desktop: grid */}
+          <div className="hidden sm:grid grid-cols-4 gap-2">
+            {photos.map((photo, idx) => (
+              <div
+                key={photo.id}
+                draggable
+                onDragStart={(e) => {
+                  setDragIndex(idx);
+                  e.dataTransfer.effectAllowed = "move";
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = "move";
+                  setDragOverIndex(idx);
+                }}
+                onDragLeave={() => {
+                  setDragOverIndex((prev) => (prev === idx ? null : prev));
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (dragIndex !== null && dragIndex !== idx) {
+                    void handleReorder(dragIndex, idx);
+                  }
+                  setDragIndex(null);
+                  setDragOverIndex(null);
+                }}
+                onDragEnd={() => {
+                  setDragIndex(null);
+                  setDragOverIndex(null);
+                }}
+                className={cn(
+                  "relative group aspect-square rounded-lg overflow-hidden cursor-grab active:cursor-grabbing transition-all",
+                  dragIndex === idx && "opacity-40 scale-95",
+                  dragOverIndex === idx &&
+                    dragIndex !== idx &&
+                    "ring-2 ring-forest-400 ring-offset-2 dark:ring-offset-gray-900",
+                )}
+              >
+                {isVideoUrl(photo.image_url) ? (
+                  <video
+                    src={photo.image_url}
+                    muted
+                    playsInline
+                    preload="metadata"
+                    className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                  />
+                ) : (
+                  <Image
+                    src={photo.image_url}
+                    alt={photo.caption || "Event photo"}
+                    fill
+                    className="object-cover pointer-events-none"
+                  />
+                )}
+                {isVideoUrl(photo.image_url) && (
+                  <div className="absolute bottom-1 right-1 px-1.5 py-0.5 bg-black/60 rounded text-white text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                    Video
+                  </div>
+                )}
+                {/* Drag handle */}
+                <div className="absolute top-1 left-1 w-7 h-7 flex items-center justify-center bg-black/60 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                  <DragHandle className="w-3.5 h-3.5" />
+                </div>
+                {/* Delete button */}
+                <button
+                  type="button"
+                  onClick={() => void handleDelete(photo.id)}
+                  className="absolute top-1 right-1 w-7 h-7 flex items-center justify-center bg-black/60 hover:bg-red-600 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                  aria-label="Delete photo"
+                >
+                  <TrashIcon className="w-3.5 h-3.5" />
+                </button>
+                {/* Position indicator */}
+                <div className="absolute bottom-1 left-1 px-1.5 py-0.5 bg-black/60 rounded text-white text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                  {idx + 1}
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
 
       {/* Upload progress */}
