@@ -68,7 +68,9 @@ export default function ReviewList({
     };
   }, [loadMore]);
 
-  if (reviews.length === 0) return null;
+  if (reviews.length === 0) {
+    return <p className="text-sm text-gray-400 dark:text-gray-500">No reviews yet.</p>;
+  }
 
   const avg = averageRating ?? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
   const displayed = reviews.slice(0, visible);

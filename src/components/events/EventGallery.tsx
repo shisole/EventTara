@@ -174,40 +174,46 @@ export default function EventGallery({ photos }: { photos: MediaItem[] }) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  if (photos.length === 0) return null;
-
   return (
     <div>
       <h2 className="text-xl font-heading font-bold mb-4">Event Photos</h2>
 
-      {/* Mobile: horizontal scroll snap */}
-      <div
-        ref={scrollRef}
-        className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide -mx-4 px-4 sm:hidden"
-      >
-        {photos.map((photo, idx) => (
-          <button
-            key={photo.id}
-            onClick={() => setSelectedIndex(idx)}
-            className="relative aspect-square rounded-xl overflow-hidden hover:opacity-90 transition-opacity snap-center shrink-0 w-[70vw]"
+      {photos.length === 0 && (
+        <p className="text-sm text-gray-400 dark:text-gray-500">No photos yet.</p>
+      )}
+
+      {photos.length === 0 ? null : (
+        <>
+          {/* Mobile: horizontal scroll snap */}
+          <div
+            ref={scrollRef}
+            className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide -mx-4 px-4 sm:hidden"
           >
-            <MediaThumbnail item={photo} fill />
-            {isVideo(photo.image_url) && <VideoIndicator />}
-          </button>
-        ))}
-      </div>
+            {photos.map((photo, idx) => (
+              <button
+                key={photo.id}
+                onClick={() => setSelectedIndex(idx)}
+                className="relative aspect-square rounded-xl overflow-hidden hover:opacity-90 transition-opacity snap-center shrink-0 w-[70vw]"
+              >
+                <MediaThumbnail item={photo} fill />
+                {isVideo(photo.image_url) && <VideoIndicator />}
+              </button>
+            ))}
+          </div>
 
-      {/* Desktop: bento grid */}
-      <BentoGrid photos={photos} onSelect={setSelectedIndex} />
+          {/* Desktop: bento grid */}
+          <BentoGrid photos={photos} onSelect={setSelectedIndex} />
 
-      {/* Lightbox */}
-      {selectedIndex !== null && (
-        <MediaLightbox
-          items={photos.map((p) => ({ id: p.id, url: p.image_url, caption: p.caption }))}
-          selectedIndex={selectedIndex}
-          onClose={() => setSelectedIndex(null)}
-          onChange={setSelectedIndex}
-        />
+          {/* Lightbox */}
+          {selectedIndex !== null && (
+            <MediaLightbox
+              items={photos.map((p) => ({ id: p.id, url: p.image_url, caption: p.caption }))}
+              selectedIndex={selectedIndex}
+              onClose={() => setSelectedIndex(null)}
+              onChange={setSelectedIndex}
+            />
+          )}
+        </>
       )}
     </div>
   );
