@@ -9,6 +9,7 @@ const TABLE_MAP: Record<ActivityType, string> = {
   badge: "user_badges",
   border: "user_avatar_borders",
   review: "event_reviews",
+  photo: "event_photos",
 };
 
 /**

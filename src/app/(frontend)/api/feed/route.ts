@@ -24,6 +24,7 @@ interface RawActivity {
   awardedBorderColor: string | null;
   reviewRating: number | null;
   reviewText: string | null;
+  photoUrls: string[] | null;
   timestamp: string;
   repostedBy?: { userId: string; createdAt: string };
 }
@@ -49,6 +50,7 @@ export async function GET(request: Request) {
     { data: userBadges },
     { data: userBorders },
     { data: reviews },
+    { data: eventPhotos },
     { data: reposts },
   ] = await Promise.all([
     supabase
@@ -91,6 +93,15 @@ export async function GET(request: Request) {
       .order("created_at", { ascending: false })
       .limit(fetchLimit),
     supabase
+      .from("event_photos")
+      .select(
+        "id, user_id, image_url, uploaded_at, events(title, cover_image_url), users!inner(is_guest)",
+      )
+      .not("user_id", "is", null)
+      .eq("users.is_guest", false)
+      .order("uploaded_at", { ascending: false })
+      .limit(fetchLimit),
+    supabase
       .from("feed_reposts")
       .select("id, user_id, activity_type, activity_id, created_at")
       .order("created_at", { ascending: false })
@@ -119,6 +130,10 @@ export async function GET(request: Request) {
     reviewText: null,
   } as const;
 
+  const nullPhoto = {
+    photoUrls: null,
+  } as const;
+
   for (const b of bookings || []) {
     const event = b.events as any;
     activities.push({
@@ -130,6 +145,7 @@ export async function GET(request: Request) {
       ...nullBadge,
       ...nullBorder,
       ...nullReview,
+      ...nullPhoto,
       timestamp: b.booked_at,
     });
   }
@@ -145,6 +161,7 @@ export async function GET(request: Request) {
       ...nullBadge,
       ...nullBorder,
       ...nullReview,
+      ...nullPhoto,
       timestamp: c.checked_in_at,
     });
   }
@@ -164,6 +181,7 @@ export async function GET(request: Request) {
       badgeCategory: badge?.category || null,
       ...nullBorder,
       ...nullReview,
+      ...nullPhoto,
       timestamp: ub.awarded_at,
     });
   }
@@ -182,6 +200,7 @@ export async function GET(request: Request) {
       awardedBorderTier: tier,
       awardedBorderColor: border?.border_color || (tier ? TIER_COLORS[tier] : null),
       ...nullReview,
+      ...nullPhoto,
       timestamp: ab.awarded_at,
     });
   }
@@ -198,7 +217,24 @@ export async function GET(request: Request) {
       ...nullBorder,
       reviewRating: r.rating,
       reviewText: r.text || null,
+      ...nullPhoto,
       timestamp: r.created_at,
+    });
+  }
+
+  for (const ep of eventPhotos || []) {
+    const event = ep.events as any;
+    activities.push({
+      id: ep.id,
+      activityType: "photo",
+      userId: ep.user_id!,
+      text: `shared a photo from ${event?.title || "an event"}`,
+      contextImageUrl: null,
+      ...nullBadge,
+      ...nullBorder,
+      ...nullReview,
+      photoUrls: [ep.image_url],
+      timestamp: ep.uploaded_at,
     });
   }
 
@@ -411,6 +447,7 @@ export async function GET(request: Request) {
       awardedBorderColor: a.awardedBorderColor,
       reviewRating: a.reviewRating,
       reviewText: a.reviewText,
+      photoUrls: a.photoUrls,
       timestamp: a.timestamp,
       isFollowing: followingSet.has(a.userId),
       likeCount: like?.count || 0,

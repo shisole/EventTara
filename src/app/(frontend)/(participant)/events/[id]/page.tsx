@@ -10,7 +10,7 @@ import OrganizerCard from "@/components/events/OrganizerCard";
 import ShareButtons from "@/components/events/ShareButtons";
 import WeatherCard from "@/components/events/WeatherCard";
 import GuideCard from "@/components/guides/GuideCard";
-import { LocationPinIcon } from "@/components/icons";
+import { ChevronRightIcon, LocationPinIcon } from "@/components/icons";
 import EventLocationMap from "@/components/maps/EventLocationMap";
 import ReviewForm from "@/components/reviews/ReviewForm";
 import ReviewList from "@/components/reviews/ReviewList";
@@ -468,6 +468,18 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
               image_url: cdnUrl(p.image_url) ?? p.image_url,
             }))}
           />
+
+          <div className="flex items-center justify-between">
+            <Link
+              href={`/events/${id}/photos`}
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-lime-600 dark:text-lime-400 hover:underline"
+            >
+              {(photos?.length ?? 0) > 0
+                ? `View all ${photos?.length} photo${photos?.length === 1 ? "" : "s"}`
+                : "Share your photos"}
+              <ChevronRightIcon className="w-4 h-4" />
+            </Link>
+          </div>
 
           {event.coordinates &&
             typeof event.coordinates === "object" &&
