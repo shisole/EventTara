@@ -3,6 +3,7 @@ export { default as Button } from "./Button";
 export { Card, CardHeader, CardContent } from "./Card";
 export { default as UIBadge } from "./Badge";
 export { default as Input } from "./Input";
+export { default as MediaLightbox, type MediaLightboxItem } from "./MediaLightbox";
 export { default as Avatar } from "./Avatar";
 export { default as AvatarWithBorder } from "./AvatarWithBorder";
 export { default as CompositeAvatar } from "./CompositeAvatar";
