@@ -1,22 +1,16 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useState, useRef } from "react";
+import { useRef, useState } from "react";
 
-import { ChevronLeftIcon, ChevronRightIcon, CloseIcon } from "@/components/icons";
+import { MediaLightbox } from "@/components/ui";
+import { isVideo } from "@/lib/media";
 import { cn } from "@/lib/utils";
-
-const VIDEO_EXTENSIONS = new Set(["mp4", "webm", "mov", "ogg"]);
 
 interface MediaItem {
   id: string;
   image_url: string;
   caption: string | null;
-}
-
-function isVideo(url: string): boolean {
-  const ext = url.split(".").pop()?.split("?")[0]?.toLowerCase() ?? "";
-  return VIDEO_EXTENSIONS.has(ext);
 }
 
 function MediaThumbnail({
@@ -46,6 +40,17 @@ function MediaThumbnail({
       fill={fill}
       className={cn("object-cover", className)}
     />
+  );
+}
+
+function VideoIndicator() {
+  return (
+    <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-black/60 rounded-full px-2 py-1">
+      <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M8 5v14l11-7z" />
+      </svg>
+      <span className="text-white text-xs font-medium">Video</span>
+    </div>
   );
 }
 
@@ -165,24 +170,11 @@ function BentoGrid({
   );
 }
 
-function VideoIndicator() {
-  return (
-    <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-black/60 rounded-full px-2 py-1">
-      <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M8 5v14l11-7z" />
-      </svg>
-      <span className="text-white text-xs font-medium">Video</span>
-    </div>
-  );
-}
-
 export default function EventGallery({ photos }: { photos: MediaItem[] }) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   if (photos.length === 0) return null;
-
-  const selectedPhoto = selectedIndex === null ? null : photos[selectedIndex];
 
   return (
     <div>
@@ -209,142 +201,14 @@ export default function EventGallery({ photos }: { photos: MediaItem[] }) {
       <BentoGrid photos={photos} onSelect={setSelectedIndex} />
 
       {/* Lightbox */}
-      {selectedPhoto && selectedIndex !== null && (
-        <Lightbox
-          photos={photos}
+      {selectedIndex !== null && (
+        <MediaLightbox
+          items={photos.map((p) => ({ id: p.id, url: p.image_url, caption: p.caption }))}
           selectedIndex={selectedIndex}
           onClose={() => setSelectedIndex(null)}
           onChange={setSelectedIndex}
         />
       )}
-    </div>
-  );
-}
-
-function Lightbox({
-  photos,
-  selectedIndex,
-  onClose,
-  onChange,
-}: {
-  photos: MediaItem[];
-  selectedIndex: number;
-  onClose: () => void;
-  onChange: (index: number) => void;
-}) {
-  const photo = photos[selectedIndex];
-
-  const goToNext = useCallback(() => {
-    if (selectedIndex < photos.length - 1) {
-      onChange(selectedIndex + 1);
-    }
-  }, [selectedIndex, photos.length, onChange]);
-
-  const goToPrev = useCallback(() => {
-    if (selectedIndex > 0) {
-      onChange(selectedIndex - 1);
-    }
-  }, [selectedIndex, onChange]);
-
-  // Lock body scroll while lightbox is open
-  useEffect(() => {
-    const original = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = original;
-    };
-  }, []);
-
-  // Keyboard navigation
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      switch (e.key) {
-        case "ArrowRight": {
-          e.preventDefault();
-          goToNext();
-          break;
-        }
-        case "ArrowLeft": {
-          e.preventDefault();
-          goToPrev();
-          break;
-        }
-        case "Escape": {
-          e.preventDefault();
-          onClose();
-          break;
-        }
-      }
-    }
-    globalThis.addEventListener("keydown", handleKeyDown);
-    return () => globalThis.removeEventListener("keydown", handleKeyDown);
-  }, [goToNext, goToPrev, onClose]);
-
-  const videoItem = isVideo(photo.image_url);
-
-  return (
-    <div
-      className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
-      onClick={onClose}
-    >
-      {selectedIndex > 0 && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            goToPrev();
-          }}
-          className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-10 w-11 h-11 flex items-center justify-center bg-white/20 hover:bg-white/40 rounded-full text-white transition-colors"
-          aria-label="Previous photo"
-        >
-          <ChevronLeftIcon className="w-6 h-6" />
-        </button>
-      )}
-
-      {selectedIndex < photos.length - 1 && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            goToNext();
-          }}
-          className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-10 w-11 h-11 flex items-center justify-center bg-white/20 hover:bg-white/40 rounded-full text-white transition-colors"
-          aria-label="Next photo"
-        >
-          <ChevronRightIcon className="w-6 h-6" />
-        </button>
-      )}
-
-      <button
-        onClick={onClose}
-        className="absolute top-4 right-4 z-10 w-11 h-11 flex items-center justify-center bg-white/20 hover:bg-white/40 rounded-full text-white transition-colors"
-        aria-label="Close"
-      >
-        <CloseIcon className="w-6 h-6" />
-      </button>
-
-      <div className="relative max-w-4xl max-h-[90vh] w-full" onClick={(e) => e.stopPropagation()}>
-        {videoItem ? (
-          <video
-            key={photo.id}
-            src={photo.image_url}
-            controls
-            autoPlay
-            playsInline
-            className="w-full max-h-[80vh] rounded-xl bg-black"
-          />
-        ) : (
-          <Image
-            src={photo.image_url}
-            alt={photo.caption || "Event photo"}
-            width={1200}
-            height={800}
-            className="object-contain w-full h-full rounded-xl"
-          />
-        )}
-        {photo.caption && <p className="text-white text-center mt-3">{photo.caption}</p>}
-        <p className="text-white/60 text-center text-sm mt-1">
-          {selectedIndex + 1} / {photos.length}
-        </p>
-      </div>
     </div>
   );
 }

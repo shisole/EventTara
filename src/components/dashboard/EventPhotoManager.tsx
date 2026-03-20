@@ -5,14 +5,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { DragHandle, TrashIcon } from "@/components/icons";
 import { Button } from "@/components/ui";
+import { compressImage, isVideo, isVideoFile } from "@/lib/media";
 import { uploadImage } from "@/lib/upload";
 import { cn } from "@/lib/utils";
 
 const MAX_MEDIA = 10;
-const MAX_IMAGE_BYTES = 1 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 20 * 1024 * 1024;
-const MAX_DIMENSION = 2000;
-const VIDEO_EXTENSIONS = new Set(["mp4", "webm", "mov", "ogg"]);
 
 interface EventPhoto {
   id: string;
@@ -24,61 +22,6 @@ interface EventPhoto {
 interface EventPhotoManagerProps {
   eventId: string;
   initialPhotos?: EventPhoto[];
-}
-
-function isVideoFile(file: File): boolean {
-  return file.type.startsWith("video/");
-}
-
-function isVideoUrl(url: string): boolean {
-  const ext = url.split(".").pop()?.split("?")[0]?.toLowerCase() ?? "";
-  return VIDEO_EXTENSIONS.has(ext);
-}
-
-async function compressImage(file: File): Promise<File> {
-  return new Promise((resolve, reject) => {
-    const img = new globalThis.Image();
-    img.addEventListener("load", () => {
-      let { width, height } = img;
-
-      if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
-        if (width >= height) {
-          height = Math.round((height * MAX_DIMENSION) / width);
-          width = MAX_DIMENSION;
-        } else {
-          width = Math.round((width * MAX_DIMENSION) / height);
-          height = MAX_DIMENSION;
-        }
-      }
-
-      const canvas = document.createElement("canvas");
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext("2d")!;
-      ctx.drawImage(img, 0, 0, width, height);
-
-      const qualities = [0.85, 0.75, 0.65, 0.5, 0.4];
-      for (const quality of qualities) {
-        const dataUrl = canvas.toDataURL("image/jpeg", quality);
-        const base64 = dataUrl.split(",")[1];
-        const bytes = Math.ceil((base64.length * 3) / 4);
-        if (bytes <= MAX_IMAGE_BYTES || quality === qualities.at(-1)) {
-          const byteString = atob(base64);
-          const byteArray = new Uint8Array(byteString.length);
-          for (let i = 0; i < byteString.length; i++) {
-            byteArray[i] = byteString.codePointAt(i)!;
-          }
-          const blob = new Blob([byteArray], { type: "image/jpeg" });
-          resolve(new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg" }));
-          return;
-        }
-      }
-    });
-    img.addEventListener("error", () => {
-      reject(new Error("Failed to load image"));
-    });
-    img.src = URL.createObjectURL(file);
-  });
 }
 
 export default function EventPhotoManager({ eventId, initialPhotos = [] }: EventPhotoManagerProps) {
@@ -185,6 +128,10 @@ export default function EventPhotoManager({ eventId, initialPhotos = [] }: Event
   );
 
   const handleDelete = async (photoId: string) => {
+    // Optimistic: remove from state immediately
+    const previous = photos;
+    setPhotos((prev) => prev.filter((p) => p.id !== photoId));
+
     const res = await fetch(`/api/events/${eventId}/photos`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
@@ -192,12 +139,11 @@ export default function EventPhotoManager({ eventId, initialPhotos = [] }: Event
     });
 
     if (!res.ok) {
+      // Revert on failure
+      setPhotos(previous);
       const data = await res.json();
       setError(data.error || "Failed to delete photo");
-      return;
     }
-
-    setPhotos((prev) => prev.filter((p) => p.id !== photoId));
   };
 
   const handleReorder = useCallback(
@@ -246,14 +192,26 @@ export default function EventPhotoManager({ eventId, initialPhotos = [] }: Event
 
       {/* Loading skeleton */}
       {loading && (
-        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-          {Array.from({ length: 3 }, (_, i) => (
-            <div
-              key={i}
-              className="aspect-square rounded-lg bg-gray-200 dark:bg-gray-700 animate-pulse"
-            />
-          ))}
-        </div>
+        <>
+          {/* Mobile: list skeleton */}
+          <div className="flex flex-col gap-2 sm:hidden">
+            {Array.from({ length: 3 }, (_, i) => (
+              <div
+                key={i}
+                className="h-[72px] rounded-lg bg-gray-200 dark:bg-gray-700 animate-pulse"
+              />
+            ))}
+          </div>
+          {/* Desktop: grid skeleton */}
+          <div className="hidden sm:grid grid-cols-4 gap-2">
+            {Array.from({ length: 3 }, (_, i) => (
+              <div
+                key={i}
+                className="aspect-square rounded-lg bg-gray-200 dark:bg-gray-700 animate-pulse"
+              />
+            ))}
+          </div>
+        </>
       )}
 
       {/* Existing media — mobile: vertical list / desktop: grid */}
@@ -326,7 +284,7 @@ export default function EventPhotoManager({ eventId, initialPhotos = [] }: Event
                   <DragHandle className="w-5 h-5" />
                 </div>
                 <div className="relative w-14 h-14 shrink-0 rounded-md overflow-hidden">
-                  {isVideoUrl(photo.image_url) ? (
+                  {isVideo(photo.image_url) ? (
                     <video
                       src={photo.image_url}
                       muted
@@ -345,7 +303,7 @@ export default function EventPhotoManager({ eventId, initialPhotos = [] }: Event
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-gray-700 dark:text-gray-300 truncate">
-                    {isVideoUrl(photo.image_url) ? "Video" : "Photo"} {idx + 1}
+                    {isVideo(photo.image_url) ? "Video" : "Photo"} {idx + 1}
                   </p>
                   {photo.caption && (
                     <p className="text-xs text-gray-400 dark:text-gray-500 truncate">
@@ -404,7 +362,7 @@ export default function EventPhotoManager({ eventId, initialPhotos = [] }: Event
                     "ring-2 ring-forest-400 ring-offset-2 dark:ring-offset-gray-900",
                 )}
               >
-                {isVideoUrl(photo.image_url) ? (
+                {isVideo(photo.image_url) ? (
                   <video
                     src={photo.image_url}
                     muted
@@ -420,7 +378,7 @@ export default function EventPhotoManager({ eventId, initialPhotos = [] }: Event
                     className="object-cover pointer-events-none"
                   />
                 )}
-                {isVideoUrl(photo.image_url) && (
+                {isVideo(photo.image_url) && (
                   <div className="absolute bottom-1 right-1 px-1.5 py-0.5 bg-black/60 rounded text-white text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity">
                     Video
                   </div>
