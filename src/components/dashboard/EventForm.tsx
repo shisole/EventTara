@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 import MountainCombobox, { type SelectedMountain } from "./MountainCombobox";
 import PhotoUploader from "./PhotoUploader";
 
+const EventPhotoManager = dynamic(() => import("./EventPhotoManager"));
 const EventRouteSection = dynamic(() => import("@/components/strava/EventRouteSection"));
 const MapPicker = dynamic(() => import("@/components/maps/MapPicker"), {
   ssr: false,
@@ -75,6 +76,12 @@ interface EventFormProps {
     members_only?: boolean;
     payment_paused?: boolean;
     contact_url?: string | null;
+    initialPhotos?: {
+      id: string;
+      image_url: string;
+      caption: string | null;
+      sort_order: number;
+    }[];
   };
 }
 
@@ -1343,6 +1350,14 @@ export default function EventForm({
                 />
               ) : null}
             </div>
+
+            {/* Event Photos section */}
+            {mode === "edit" && initialData?.id && (
+              <EventPhotoManager
+                eventId={initialData.id}
+                initialPhotos={initialData.initialPhotos}
+              />
+            )}
           </div>
         )}
         {/* ── End Step 3 ── */}
