@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 
 import ActivityCard from "@/components/layout/ActivityCard";
@@ -20,13 +21,22 @@ interface ExploreDropdownProps extends LayoutProps {
   navLayout: string;
 }
 
+const ALL_EVENTS_IMAGE = "https://images.unsplash.com/photo-1551632811-561732d1e306?w=400&q=80";
+
 function AllEventsCard({ className }: { className?: string }) {
   return (
     <NavLink
       href="/events"
       className={`group relative overflow-hidden rounded-xl block ${className ?? ""}`}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-lime-500 to-teal-600 transition-opacity duration-300 group-hover:opacity-90" />
+      <Image
+        src={ALL_EVENTS_IMAGE}
+        alt="All Events"
+        fill
+        sizes="(max-width: 768px) 100vw, 200px"
+        className="object-cover transition-transform duration-300 group-hover:scale-105"
+      />
+      <div className="absolute inset-0 bg-black/60 transition-colors duration-300 group-hover:bg-black/20" />
       <div className="relative z-10 flex items-center gap-2 p-3">
         <span className="text-lg">🌟</span>
         <span className="text-white font-semibold text-sm drop-shadow-md">All Events</span>
