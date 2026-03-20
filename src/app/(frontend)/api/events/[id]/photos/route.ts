@@ -74,6 +74,46 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   return NextResponse.json({ photo }, { status: 201 });
 }
 
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { data: event } = await supabase.from("events").select("club_id").eq("id", id).single();
+
+  if (!event?.club_id) {
+    return NextResponse.json({ error: "Event not found" }, { status: 404 });
+  }
+
+  const role = await checkClubPermissionServer(user.id, event.club_id, CLUB_PERMISSIONS.edit_event);
+  if (!role) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const body = await request.json();
+  const { order } = body as { order: { id: string; sort_order: number }[] };
+
+  if (!order || !Array.isArray(order)) {
+    return NextResponse.json({ error: "order array is required" }, { status: 400 });
+  }
+
+  for (const item of order) {
+    await supabase
+      .from("event_photos")
+      .update({ sort_order: item.sort_order })
+      .eq("id", item.id)
+      .eq("event_id", id);
+  }
+
+  return NextResponse.json({ success: true });
+}
+
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();

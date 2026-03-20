@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { TrashIcon } from "@/components/icons";
+import { DragHandle, TrashIcon } from "@/components/icons";
 import { Button } from "@/components/ui";
 import { uploadImage } from "@/lib/upload";
 import { cn } from "@/lib/utils";
@@ -77,6 +77,8 @@ export default function EventPhotoManager({ eventId, initialPhotos = [] }: Event
   const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
   const [error, setError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Fetch photos client-side if none were provided server-side
@@ -170,6 +172,33 @@ export default function EventPhotoManager({ eventId, initialPhotos = [] }: Event
     setPhotos((prev) => prev.filter((p) => p.id !== photoId));
   };
 
+  const handleReorder = useCallback(
+    async (fromIndex: number, toIndex: number) => {
+      if (fromIndex === toIndex) return;
+
+      const reordered = [...photos];
+      const [moved] = reordered.splice(fromIndex, 1);
+      reordered.splice(toIndex, 0, moved);
+
+      // Optimistically update UI
+      setPhotos(reordered);
+
+      const order = reordered.map((p, i) => ({ id: p.id, sort_order: i }));
+      const res = await fetch(`/api/events/${eventId}/photos`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order }),
+      });
+
+      if (!res.ok) {
+        // Revert on failure
+        setPhotos(photos);
+        setError("Failed to reorder photos");
+      }
+    },
+    [eventId, photos],
+  );
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
@@ -183,7 +212,7 @@ export default function EventPhotoManager({ eventId, initialPhotos = [] }: Event
       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
         Event Photos{" "}
         <span className="text-gray-400 dark:text-gray-500 font-normal">
-          ({photos.length}/{MAX_PHOTOS})
+          ({photos.length}/{MAX_PHOTOS}){photos.length > 1 && " · drag to reorder"}
         </span>
       </label>
 
@@ -199,17 +228,57 @@ export default function EventPhotoManager({ eventId, initialPhotos = [] }: Event
         </div>
       )}
 
-      {/* Existing photos grid */}
+      {/* Existing photos grid (drag to reorder) */}
       {!loading && photos.length > 0 && (
         <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-          {photos.map((photo) => (
-            <div key={photo.id} className="relative group aspect-square rounded-lg overflow-hidden">
+          {photos.map((photo, idx) => (
+            <div
+              key={photo.id}
+              draggable
+              onDragStart={(e) => {
+                setDragIndex(idx);
+                e.dataTransfer.effectAllowed = "move";
+              }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = "move";
+                setDragOverIndex(idx);
+              }}
+              onDragLeave={() => {
+                setDragOverIndex((prev) => (prev === idx ? null : prev));
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (dragIndex !== null && dragIndex !== idx) {
+                  void handleReorder(dragIndex, idx);
+                }
+                setDragIndex(null);
+                setDragOverIndex(null);
+              }}
+              onDragEnd={() => {
+                setDragIndex(null);
+                setDragOverIndex(null);
+              }}
+              className={cn(
+                "relative group aspect-square rounded-lg overflow-hidden cursor-grab active:cursor-grabbing transition-all",
+                dragIndex === idx && "opacity-40 scale-95",
+                dragOverIndex === idx &&
+                  dragIndex !== idx &&
+                  "ring-2 ring-forest-400 ring-offset-2 dark:ring-offset-gray-900",
+              )}
+            >
               <Image
                 src={photo.image_url}
                 alt={photo.caption || "Event photo"}
                 fill
-                className="object-cover"
+                className="object-cover pointer-events-none"
               />
+              {/* Drag handle */}
+              <div className="absolute top-1 left-1 w-7 h-7 flex items-center justify-center bg-black/60 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                <DragHandle className="w-3.5 h-3.5" />
+              </div>
+              {/* Delete button */}
               <button
                 type="button"
                 onClick={() => void handleDelete(photo.id)}
@@ -218,6 +287,10 @@ export default function EventPhotoManager({ eventId, initialPhotos = [] }: Event
               >
                 <TrashIcon className="w-3.5 h-3.5" />
               </button>
+              {/* Position indicator */}
+              <div className="absolute bottom-1 left-1 px-1.5 py-0.5 bg-black/60 rounded text-white text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                {idx + 1}
+              </div>
             </div>
           ))}
         </div>
