@@ -72,14 +72,37 @@ async function compressImage(file: File): Promise<File> {
 
 export default function EventPhotoManager({ eventId, initialPhotos = [] }: EventPhotoManagerProps) {
   const [photos, setPhotos] = useState<EventPhoto[]>(initialPhotos);
+  const [loading, setLoading] = useState(initialPhotos.length === 0);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
   const [error, setError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Fetch photos client-side if none were provided server-side
   useEffect(() => {
-    setPhotos(initialPhotos);
-  }, [initialPhotos]);
+    if (initialPhotos.length > 0) {
+      setPhotos(initialPhotos);
+      setLoading(false);
+      return;
+    }
+    let cancelled = false;
+    async function fetchPhotos() {
+      try {
+        const res = await fetch(`/api/events/${eventId}/photos`);
+        if (res.ok && !cancelled) {
+          const data = await res.json();
+          setPhotos(data.photos ?? []);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    void fetchPhotos();
+    return () => {
+      cancelled = true;
+    };
+  }, [eventId, initialPhotos]);
 
   const handleUpload = useCallback(
     async (files: FileList | File[]) => {
@@ -95,9 +118,12 @@ export default function EventPhotoManager({ eventId, initialPhotos = [] }: Event
       const toUpload = fileArray.slice(0, remaining);
       setError(null);
       setUploading(true);
+      setUploadProgress({ current: 0, total: toUpload.length });
 
       try {
-        for (const file of toUpload) {
+        for (let i = 0; i < toUpload.length; i++) {
+          setUploadProgress({ current: i + 1, total: toUpload.length });
+          const file = toUpload[i];
           const compressed = await compressImage(file);
           const imageUrl = await uploadImage(compressed, "events/photos");
           const sortOrder = photos.length;
@@ -161,8 +187,20 @@ export default function EventPhotoManager({ eventId, initialPhotos = [] }: Event
         </span>
       </label>
 
+      {/* Loading skeleton */}
+      {loading && (
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+          {Array.from({ length: 3 }, (_, i) => (
+            <div
+              key={i}
+              className="aspect-square rounded-lg bg-gray-200 dark:bg-gray-700 animate-pulse"
+            />
+          ))}
+        </div>
+      )}
+
       {/* Existing photos grid */}
-      {photos.length > 0 && (
+      {!loading && photos.length > 0 && (
         <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
           {photos.map((photo) => (
             <div key={photo.id} className="relative group aspect-square rounded-lg overflow-hidden">
@@ -185,8 +223,28 @@ export default function EventPhotoManager({ eventId, initialPhotos = [] }: Event
         </div>
       )}
 
+      {/* Upload progress */}
+      {uploading && (
+        <div className="rounded-xl border border-forest-300 dark:border-forest-700 bg-forest-50/50 dark:bg-forest-900/20 p-4 space-y-2">
+          <div className="flex items-center gap-3">
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-forest-300 border-t-forest-600 dark:border-forest-700 dark:border-t-forest-400" />
+            <p className="text-sm text-gray-700 dark:text-gray-300">
+              Uploading photo {uploadProgress.current} of {uploadProgress.total}...
+            </p>
+          </div>
+          <div className="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+            <div
+              className="h-full rounded-full bg-forest-500 transition-all duration-300 ease-out"
+              style={{
+                width: `${uploadProgress.total > 0 ? (uploadProgress.current / uploadProgress.total) * 100 : 0}%`,
+              }}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Upload zone */}
-      {photos.length < MAX_PHOTOS && (
+      {!loading && !uploading && photos.length < MAX_PHOTOS && (
         <div
           onDragOver={(e) => {
             e.preventDefault();
@@ -205,7 +263,7 @@ export default function EventPhotoManager({ eventId, initialPhotos = [] }: Event
           )}
         >
           <p className="text-gray-500 dark:text-gray-400 text-sm">
-            {uploading ? "Uploading..." : "Drop photos here or click to upload"}
+            Drop photos here or click to upload
           </p>
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
             Max {MAX_PHOTOS} photos · auto-compressed to JPEG
