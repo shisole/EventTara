@@ -246,6 +246,15 @@ function Lightbox({
     }
   }, [selectedIndex, onChange]);
 
+  // Lock body scroll while lightbox is open
+  useEffect(() => {
+    const original = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = original;
+    };
+  }, []);
+
   // Keyboard navigation
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
