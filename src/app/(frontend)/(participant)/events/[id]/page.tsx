@@ -489,17 +489,15 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
           )}
 
           {/* Reviews Section */}
-          {(eventReviews.length > 0 || canReview) && (
-            <div>
-              <h2 className="text-xl font-heading font-bold mb-4">Reviews</h2>
-              {canReview && (
-                <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm dark:shadow-gray-950/20 p-5 mb-6">
-                  <ReviewForm eventId={id} />
-                </div>
-              )}
-              <ReviewList reviews={eventReviews} averageRating={avgRating} />
-            </div>
-          )}
+          <div>
+            <h2 className="text-xl font-heading font-bold mb-4">Reviews</h2>
+            {canReview && (
+              <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm dark:shadow-gray-950/20 p-5 mb-6">
+                <ReviewForm eventId={id} />
+              </div>
+            )}
+            <ReviewList reviews={eventReviews} averageRating={avgRating} />
+          </div>
         </div>
 
         {/* Sidebar */}
