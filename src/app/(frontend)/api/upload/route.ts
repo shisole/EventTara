@@ -13,6 +13,7 @@ const ALLOWED_FOLDERS = new Set([
   "clubs/covers",
   "clubs/logos",
   "clubs/forum",
+  "events/photos",
   "welcome/heroes",
   "activity-types",
 ]);

@@ -78,6 +78,13 @@ export default async function ClubEditEventPage({
     }
   }
 
+  // Fetch event photos
+  const { data: eventPhotos } = await supabase
+    .from("event_photos")
+    .select("id, image_url, caption, sort_order")
+    .eq("event_id", id)
+    .order("sort_order", { ascending: true });
+
   const [paymentPauseFlag, activityTypes] = await Promise.all([
     isPaymentPauseEnabled(),
     getCachedActivityTypes(),
@@ -120,6 +127,7 @@ export default async function ClubEditEventPage({
           members_only: event.members_only,
           payment_paused: event.payment_paused,
           contact_url: event.contact_url,
+          initialPhotos: eventPhotos ?? [],
         }}
       />
     </div>
