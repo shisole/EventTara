@@ -4,6 +4,7 @@ import { uploadToR2 } from "@/lib/r2";
 import { createClient } from "@/lib/supabase/server";
 
 const MAX_SIZE = 2 * 1024 * 1024; // 2 MB
+const MAX_VIDEO_SIZE = 20 * 1024 * 1024; // 20 MB
 
 const ALLOWED_FOLDERS = new Set([
   "events/covers",
@@ -14,9 +15,12 @@ const ALLOWED_FOLDERS = new Set([
   "clubs/logos",
   "clubs/forum",
   "events/photos",
+  "events/videos",
   "welcome/heroes",
   "activity-types",
 ]);
+
+const VIDEO_FOLDERS = new Set(["events/videos"]);
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -40,8 +44,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid folder" }, { status: 400 });
   }
 
-  if (file.size > MAX_SIZE) {
-    return NextResponse.json({ error: "File too large (max 2 MB)" }, { status: 400 });
+  const sizeLimit = VIDEO_FOLDERS.has(folder) ? MAX_VIDEO_SIZE : MAX_SIZE;
+  if (file.size > sizeLimit) {
+    const limitMB = sizeLimit / (1024 * 1024);
+    return NextResponse.json(
+      { error: `File too large (max ${String(limitMB)} MB)` },
+      { status: 400 },
+    );
   }
 
   const ext = file.name.split(".").pop() || "jpg";

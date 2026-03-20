@@ -8,9 +8,11 @@ import { Button } from "@/components/ui";
 import { uploadImage } from "@/lib/upload";
 import { cn } from "@/lib/utils";
 
-const MAX_PHOTOS = 10;
-const MAX_SIZE_BYTES = 1 * 1024 * 1024;
+const MAX_MEDIA = 10;
+const MAX_IMAGE_BYTES = 1 * 1024 * 1024;
+const MAX_VIDEO_BYTES = 20 * 1024 * 1024;
 const MAX_DIMENSION = 2000;
+const VIDEO_EXTENSIONS = new Set(["mp4", "webm", "mov", "ogg"]);
 
 interface EventPhoto {
   id: string;
@@ -22,6 +24,15 @@ interface EventPhoto {
 interface EventPhotoManagerProps {
   eventId: string;
   initialPhotos?: EventPhoto[];
+}
+
+function isVideoFile(file: File): boolean {
+  return file.type.startsWith("video/");
+}
+
+function isVideoUrl(url: string): boolean {
+  const ext = url.split(".").pop()?.split("?")[0]?.toLowerCase() ?? "";
+  return VIDEO_EXTENSIONS.has(ext);
 }
 
 async function compressImage(file: File): Promise<File> {
@@ -51,7 +62,7 @@ async function compressImage(file: File): Promise<File> {
         const dataUrl = canvas.toDataURL("image/jpeg", quality);
         const base64 = dataUrl.split(",")[1];
         const bytes = Math.ceil((base64.length * 3) / 4);
-        if (bytes <= MAX_SIZE_BYTES || quality === qualities.at(-1)) {
+        if (bytes <= MAX_IMAGE_BYTES || quality === qualities.at(-1)) {
           const byteString = atob(base64);
           const byteArray = new Uint8Array(byteString.length);
           for (let i = 0; i < byteString.length; i++) {
@@ -108,12 +119,14 @@ export default function EventPhotoManager({ eventId, initialPhotos = [] }: Event
 
   const handleUpload = useCallback(
     async (files: FileList | File[]) => {
-      const fileArray = [...files].filter((f) => f.type.startsWith("image/"));
+      const fileArray = [...files].filter(
+        (f) => f.type.startsWith("image/") || f.type.startsWith("video/"),
+      );
       if (fileArray.length === 0) return;
 
-      const remaining = MAX_PHOTOS - photos.length;
+      const remaining = MAX_MEDIA - photos.length;
       if (remaining <= 0) {
-        setError(`Maximum ${MAX_PHOTOS} photos allowed.`);
+        setError(`Maximum ${MAX_MEDIA} items allowed.`);
         return;
       }
 
@@ -126,22 +139,36 @@ export default function EventPhotoManager({ eventId, initialPhotos = [] }: Event
         for (let i = 0; i < toUpload.length; i++) {
           setUploadProgress({ current: i + 1, total: toUpload.length });
           const file = toUpload[i];
-          const compressed = await compressImage(file);
-          const imageUrl = await uploadImage(compressed, "events/photos");
+
+          let uploadFile: File;
+          let folder: string;
+
+          if (isVideoFile(file)) {
+            if (file.size > MAX_VIDEO_BYTES) {
+              throw new Error(`Video "${file.name}" exceeds 20 MB limit.`);
+            }
+            uploadFile = file;
+            folder = "events/videos";
+          } else {
+            uploadFile = await compressImage(file);
+            folder = "events/photos";
+          }
+
+          const mediaUrl = await uploadImage(uploadFile, folder);
           const sortOrder = photos.length;
 
           const res = await fetch(`/api/events/${eventId}/photos`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              image_url: imageUrl,
+              image_url: mediaUrl,
               sort_order: sortOrder,
             }),
           });
 
           if (!res.ok) {
             const data = await res.json();
-            throw new Error(data.error || "Failed to save photo");
+            throw new Error(data.error || "Failed to save media");
           }
 
           const { photo } = await res.json();
@@ -210,9 +237,9 @@ export default function EventPhotoManager({ eventId, initialPhotos = [] }: Event
   return (
     <div className="space-y-3">
       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-        Event Photos{" "}
+        Event Photos & Videos{" "}
         <span className="text-gray-400 dark:text-gray-500 font-normal">
-          ({photos.length}/{MAX_PHOTOS}){photos.length > 1 && " · drag to reorder"}
+          ({photos.length}/{MAX_MEDIA}){photos.length > 1 && " · drag to reorder"}
         </span>
       </label>
 
@@ -268,12 +295,27 @@ export default function EventPhotoManager({ eventId, initialPhotos = [] }: Event
                   "ring-2 ring-forest-400 ring-offset-2 dark:ring-offset-gray-900",
               )}
             >
-              <Image
-                src={photo.image_url}
-                alt={photo.caption || "Event photo"}
-                fill
-                className="object-cover pointer-events-none"
-              />
+              {isVideoUrl(photo.image_url) ? (
+                <video
+                  src={photo.image_url}
+                  muted
+                  playsInline
+                  preload="metadata"
+                  className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                />
+              ) : (
+                <Image
+                  src={photo.image_url}
+                  alt={photo.caption || "Event photo"}
+                  fill
+                  className="object-cover pointer-events-none"
+                />
+              )}
+              {isVideoUrl(photo.image_url) && (
+                <div className="absolute bottom-1 right-1 px-1.5 py-0.5 bg-black/60 rounded text-white text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                  Video
+                </div>
+              )}
               {/* Drag handle */}
               <div className="absolute top-1 left-1 w-7 h-7 flex items-center justify-center bg-black/60 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity">
                 <DragHandle className="w-3.5 h-3.5" />
@@ -302,7 +344,7 @@ export default function EventPhotoManager({ eventId, initialPhotos = [] }: Event
           <div className="flex items-center gap-3">
             <div className="h-5 w-5 animate-spin rounded-full border-2 border-forest-300 border-t-forest-600 dark:border-forest-700 dark:border-t-forest-400" />
             <p className="text-sm text-gray-700 dark:text-gray-300">
-              Uploading photo {uploadProgress.current} of {uploadProgress.total}...
+              Uploading {uploadProgress.current} of {uploadProgress.total}...
             </p>
           </div>
           <div className="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
@@ -317,7 +359,7 @@ export default function EventPhotoManager({ eventId, initialPhotos = [] }: Event
       )}
 
       {/* Upload zone */}
-      {!loading && !uploading && photos.length < MAX_PHOTOS && (
+      {!loading && !uploading && photos.length < MAX_MEDIA && (
         <div
           onDragOver={(e) => {
             e.preventDefault();
@@ -336,10 +378,10 @@ export default function EventPhotoManager({ eventId, initialPhotos = [] }: Event
           )}
         >
           <p className="text-gray-500 dark:text-gray-400 text-sm">
-            Drop photos here or click to upload
+            Drop photos or videos here, or click to upload
           </p>
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-            Max {MAX_PHOTOS} photos · auto-compressed to JPEG
+            Max {MAX_MEDIA} items · images auto-compressed · videos up to 20 MB
           </p>
         </div>
       )}
@@ -347,7 +389,7 @@ export default function EventPhotoManager({ eventId, initialPhotos = [] }: Event
       <input
         ref={inputRef}
         type="file"
-        accept="image/*"
+        accept="image/*,video/*"
         multiple
         className="hidden"
         onChange={(e) => {
