@@ -192,47 +192,38 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // Award TaraTokens for check-in (non-blocking)
-  awardTokens(supabase, user_id, TOKEN_REWARDS.check_in, "check_in", event_id).catch(() => null);
+  // ── Post-check-in side effects (all non-blocking) ──
+  // Tokens, badges, borders, notifications, and email run in the background
+  // so the response returns immediately after the insert.
+  void (async () => {
+    try {
+      await awardTokens(supabase, user_id, TOKEN_REWARDS.check_in, "check_in", event_id);
 
-  // Check if first ever check-in → award first_event bonus
-  const { count: totalCheckins } = await supabase
-    .from("event_checkins")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", user_id);
+      const { count: totalCheckins } = await supabase
+        .from("event_checkins")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user_id);
 
-  if (totalCheckins === 1) {
-    awardTokens(supabase, user_id, TOKEN_REWARDS.first_event, "first_event", event_id).catch(
-      () => null,
-    );
-  }
+      if (totalCheckins === 1) {
+        await awardTokens(supabase, user_id, TOKEN_REWARDS.first_event, "first_event", event_id);
+      }
 
-  // Trigger border checks in background (non-blocking)
-  checkAndAwardBorders(user_id, supabase).catch(() => null);
+      checkAndAwardBorders(user_id, supabase).catch(() => null);
 
-  // Check and award system badges (awaited to return results to client)
-  let awardedBadges: Awaited<ReturnType<typeof checkAndAwardSystemBadges>> = [];
-  try {
-    awardedBadges = await checkAndAwardSystemBadges(user_id, supabase);
-  } catch {
-    // Badge check failure should not block check-in response
-  }
+      const awardedBadges = await checkAndAwardSystemBadges(user_id, supabase);
 
-  // Send notifications and email in background (non-blocking)
-  if (awardedBadges.length > 0) {
-    createNotifications(
-      supabase,
-      awardedBadges.map((b) => ({
-        userId: user_id,
-        type: "badge_earned" as const,
-        title: "Badge Earned",
-        body: `You earned the "${b.title}" badge!`,
-        href: "/achievements",
-      })),
-    ).catch(() => null);
+      if (awardedBadges.length > 0) {
+        createNotifications(
+          supabase,
+          awardedBadges.map((b) => ({
+            userId: user_id,
+            type: "badge_earned" as const,
+            title: "Badge Earned",
+            body: `You earned the "${b.title}" badge!`,
+            href: "/achievements",
+          })),
+        ).catch(() => null);
 
-    void (async () => {
-      try {
         const { data: participant } = await supabase
           .from("users")
           .select("email")
@@ -251,11 +242,11 @@ export async function POST(request: Request) {
             html: badgesEarnedHtml({ userName, badges: awardedBadges }),
           });
         }
-      } catch {
-        // Email failure should not block check-in response
       }
-    })();
-  }
+    } catch {
+      // Side-effect failures should never surface to the user
+    }
+  })();
 
   return NextResponse.json({
     message: `${userName} checked in!`,
@@ -264,11 +255,5 @@ export async function POST(request: Request) {
     paymentStatus,
     paymentMethod,
     alreadyCheckedIn: false,
-    awardedBadges: awardedBadges.map((b) => ({
-      title: b.title,
-      description: b.description,
-      imageUrl: b.imageUrl,
-      criteriaKey: b.criteriaKey,
-    })),
   });
 }
