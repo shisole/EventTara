@@ -73,10 +73,10 @@ export default function HeroSection({ heroData }: HeroSectionProps) {
           Discover outdoor events, join adventure clubs, and book your spot — hiking, biking,
           running, and trail running across the Philippines, all in one place.
         </p>
-        <div className="flex flex-row gap-3 sm:gap-4 justify-center">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
           <Link
             href="/events"
-            className="inline-flex items-center justify-center font-semibold rounded-xl text-base sm:text-lg py-3 px-6 sm:py-4 sm:px-8 bg-lime-500 hover:bg-lime-400 text-slate-900 transition-colors shadow-lg shadow-lime-500/25"
+            className="inline-flex items-center justify-center font-semibold rounded-xl text-base sm:text-lg py-3.5 px-6 sm:py-4 sm:px-8 bg-lime-500 hover:bg-lime-400 text-slate-900 transition-colors shadow-lg shadow-lime-500/25"
           >
             Explore Events
           </Link>
