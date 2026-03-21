@@ -94,7 +94,6 @@ function CheckInOnlineButton({
   const hoursUntil = (eventDate.getTime() - Date.now()) / (1000 * 60 * 60);
   const isFree = booking.eventPrice === 0;
   const isPaid = booking.paymentStatus === "paid";
-  const isCash = booking.paymentMethod === "cash";
 
   if (status === "done") {
     return (
@@ -111,8 +110,8 @@ function CheckInOnlineButton({
     );
   }
 
-  // Not eligible: cash booking, unpaid non-free, outside 48h window
-  if (isCash || (!isFree && !isPaid) || hoursUntil > 48 || hoursUntil < -24) {
+  // Not eligible: unpaid non-free, outside 48h window
+  if ((!isFree && !isPaid) || hoursUntil > 48 || hoursUntil < -24) {
     return null;
   }
 

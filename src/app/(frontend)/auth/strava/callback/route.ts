@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 
 import { checkAndAwardSystemBadges } from "@/lib/badges/check-system-badges";
 import { createNotifications } from "@/lib/notifications/create";
@@ -132,20 +132,26 @@ export async function GET(request: Request) {
       { onConflict: "user_id" },
     );
 
-    // Award "Connected Athlete" badge + notify
-    const connectBadges = await checkAndAwardSystemBadges(currentUser.id, serviceClient);
-    if (connectBadges.length > 0) {
-      await createNotifications(
-        serviceClient,
-        connectBadges.map((b) => ({
-          userId: currentUser.id,
-          type: "badge_earned" as const,
-          title: "Badge Unlocked!",
-          body: `You earned: ${b.title}`,
-          href: "/achievements",
-        })),
-      );
-    }
+    // Award "Connected Athlete" badge + notify (runs after response)
+    after(async () => {
+      try {
+        const connectBadges = await checkAndAwardSystemBadges(currentUser.id, serviceClient);
+        if (connectBadges.length > 0) {
+          await createNotifications(
+            serviceClient,
+            connectBadges.map((b) => ({
+              userId: currentUser.id,
+              type: "badge_earned" as const,
+              title: "Badge Unlocked!",
+              body: `You earned: ${b.title}`,
+              href: "/achievements",
+            })),
+          );
+        }
+      } catch {
+        // Badge/notification failures should not affect the redirect
+      }
+    });
 
     const returnUrl = state.returnUrl || "/profile/" + currentUser.id;
     return NextResponse.redirect(`${origin}${returnUrl}?strava=connected`);
@@ -306,20 +312,26 @@ export async function GET(request: Request) {
     () => null,
   );
 
-  // Award "Connected Athlete" badge + notify
-  const awardedBadges = await checkAndAwardSystemBadges(newUserId, serviceClient);
-  if (awardedBadges.length > 0) {
-    await createNotifications(
-      serviceClient,
-      awardedBadges.map((b) => ({
-        userId: newUserId,
-        type: "badge_earned" as const,
-        title: "Badge Unlocked!",
-        body: `You earned: ${b.title}`,
-        href: "/achievements",
-      })),
-    );
-  }
+  // Award "Connected Athlete" badge + notify (runs after response)
+  after(async () => {
+    try {
+      const awardedBadges = await checkAndAwardSystemBadges(newUserId, serviceClient);
+      if (awardedBadges.length > 0) {
+        await createNotifications(
+          serviceClient,
+          awardedBadges.map((b) => ({
+            userId: newUserId,
+            type: "badge_earned" as const,
+            title: "Badge Unlocked!",
+            body: `You earned: ${b.title}`,
+            href: "/achievements",
+          })),
+        );
+      }
+    } catch {
+      // Badge/notification failures should not affect the redirect
+    }
+  });
 
   // Sign the new user in by generating a magic link and verifying it
   const { data: linkData, error: linkError } = await serviceClient.auth.admin.generateLink({
