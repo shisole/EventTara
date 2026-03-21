@@ -41,9 +41,8 @@ function useCheckInEligibility(event: NextEventCardProps["event"]) {
   const hoursUntil = (eventDate.getTime() - Date.now()) / (1000 * 60 * 60);
   const isFree = event.price === 0;
   const isPaid = event.booking.payment_status === "paid";
-  const isCash = event.booking.payment_method === "cash";
 
-  const eligible = !isCash && (isFree || isPaid) && hoursUntil <= 48 && hoursUntil >= -24;
+  const eligible = (isFree || isPaid) && hoursUntil <= 48 && hoursUntil >= -24;
   return eligible;
 }
 
