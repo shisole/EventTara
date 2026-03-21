@@ -14,6 +14,10 @@ test("homepage loads and shows key content", async ({ page }) => {
   // "Explore Events" link is visible and points to /events
   const exploreLink = page.getByRole("link", { name: /explore events/i }).first();
   await expect(exploreLink).toBeVisible();
+
+  // "Start a Club" CTA is visible
+  const startClubLink = page.getByRole("link", { name: /start a club/i }).first();
+  await expect(startClubLink).toBeVisible();
 });
 
 test('"Explore Events" navigates to events page', async ({ page }) => {

@@ -17,6 +17,16 @@ test.describe("Navigation", () => {
     await expect(page).toHaveURL("/");
   });
 
+  test("clubs link navigates to /clubs", async ({ page }) => {
+    await page.goto("/");
+
+    const clubsLink = page.getByRole("link", { name: /clubs/i }).first();
+    await expect(clubsLink).toBeVisible();
+    await clubsLink.click();
+
+    await expect(page).toHaveURL("/clubs", { timeout: 10000 });
+  });
+
   test("can navigate from homepage to events and back", async ({ page }) => {
     await page.goto("/");
 
