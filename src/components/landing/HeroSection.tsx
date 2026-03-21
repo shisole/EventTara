@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import AnimatedLogo from "@/components/landing/AnimatedLogo";
 import HeroCarousel from "@/components/landing/HeroCarousel";
 import HostEventLink from "@/components/landing/HostEventLink";
 import RotatingWord from "@/components/landing/RotatingWord";
@@ -61,16 +60,6 @@ export default function HeroSection({ heroData }: HeroSectionProps) {
         </>
       )}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 w-full">
-        <div
-          className={`hidden sm:block mb-6 ${heroSlides.length > 0 ? "text-lime-400" : "text-lime-500"}`}
-        >
-          <AnimatedLogo />
-        </div>
-        <div className="hidden sm:inline-block mb-4 sm:mb-8 px-4 py-1.5 rounded-full bg-lime-500/10 border border-lime-500/30">
-          <span className="text-lime-600 dark:text-lime-400 text-sm font-semibold tracking-wide uppercase">
-            Beta — Now Live
-          </span>
-        </div>
         <h1
           className={`text-4xl sm:text-6xl lg:text-7xl font-heading font-bold mb-6 leading-tight ${heroSlides.length > 0 ? "text-white" : "text-gray-900 dark:text-white"}`}
         >
