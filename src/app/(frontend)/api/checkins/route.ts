@@ -142,16 +142,13 @@ export async function POST(request: Request) {
   // Self-check-in validation
   const isSelfCheckin = user.id === user_id;
   if (isSelfCheckin) {
-    if (paymentMethod === "cash") {
-      return NextResponse.json(
-        { error: "Cash bookings must check in on-site", eventName, paymentStatus, paymentMethod },
-        { status: 403 },
-      );
-    }
     if (paymentStatus !== "paid") {
       return NextResponse.json(
         {
-          error: "Payment must be verified before online check-in",
+          error:
+            paymentMethod === "cash"
+              ? "Cash bookings must check in on-site"
+              : "Payment must be verified before online check-in",
           eventName,
           paymentStatus,
           paymentMethod,
