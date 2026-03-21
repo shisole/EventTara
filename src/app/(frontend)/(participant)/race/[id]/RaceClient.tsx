@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useRef, useState } from "react";
+import { Fragment, useCallback, useRef, useState } from "react";
 
 import { Button } from "@/components/ui";
 import { type RaceData, type RaceParticipant } from "@/lib/races/types";
@@ -286,7 +286,7 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
               const duckLeft = 5 + (entry.progress / 100) * 85;
 
               return (
-                <div key={entry.participant.user_id}>
+                <Fragment key={entry.participant.user_id}>
                   {/* Name label — speech bubble above duck */}
                   <div
                     className="absolute z-20 select-none pointer-events-none"
@@ -314,7 +314,7 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
                   >
                     {"🦆"}
                   </div>
-                </div>
+                </Fragment>
               );
             })}
           </div>
