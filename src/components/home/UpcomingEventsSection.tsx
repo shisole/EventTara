@@ -42,7 +42,7 @@ export default function UpcomingEventsSection({ events }: UpcomingEventsSectionP
           </NavLink>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {events.map((event) => (
             <NextEventCard key={event.id} event={event} />
           ))}
