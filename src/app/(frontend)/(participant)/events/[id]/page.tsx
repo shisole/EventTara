@@ -14,6 +14,7 @@ import { LocationPinIcon } from "@/components/icons";
 import EventLocationMap from "@/components/maps/EventLocationMap";
 import ReviewForm from "@/components/reviews/ReviewForm";
 import ReviewList from "@/components/reviews/ReviewList";
+import ReviewPromptTrigger from "@/components/reviews/ReviewPromptTrigger";
 import EventRouteSection from "@/components/strava/EventRouteSection";
 import { Breadcrumbs, DemoBadge, UIBadge } from "@/components/ui";
 import { isPaymentPauseEnabled } from "@/lib/cms/cached";
@@ -709,6 +710,8 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
           )}
         </div>
       </div>
+
+      {canReview && <ReviewPromptTrigger eventId={id} eventTitle={event.title} />}
     </div>
   );
 }
