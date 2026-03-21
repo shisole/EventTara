@@ -286,19 +286,19 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
                   key={entry.participant.user_id}
                   className="relative flex items-center"
                   style={{
-                    height: 64,
+                    height: 36,
                     borderBottom:
-                      i < displayProgress.length - 1 ? "1px solid rgba(255,255,255,0.12)" : "none",
+                      i < displayProgress.length - 1 ? "1px solid rgba(255,255,255,0.08)" : "none",
                   }}
                 >
                   {/* Name + avatar on left */}
-                  <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-2 z-20">
+                  <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5 z-20">
                     <Avatar
                       src={entry.participant.avatar_url}
                       name={entry.participant.full_name}
-                      size={24}
+                      size={20}
                     />
-                    <span className="text-xs font-medium text-white drop-shadow-md max-w-[80px] truncate">
+                    <span className="text-[10px] font-medium text-white drop-shadow-md max-w-[70px] truncate">
                       {entry.participant.full_name.split(" ")[0]}
                     </span>
                   </div>
@@ -310,7 +310,7 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
                       left: `${duckLeft}%`,
                       top: "50%",
                       transform: `translate(-50%, -50%) translateY(${String(wobbleY)}px)`,
-                      fontSize: 32,
+                      fontSize: 24,
                       filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.3))",
                     }}
                   >
@@ -326,7 +326,7 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
             className="absolute inset-0 pointer-events-none opacity-10"
             style={{
               backgroundImage:
-                "repeating-linear-gradient(0deg, transparent, transparent 62px, rgba(255,255,255,0.5) 62px, rgba(255,255,255,0.5) 64px)",
+                "repeating-linear-gradient(0deg, transparent, transparent 34px, rgba(255,255,255,0.5) 34px, rgba(255,255,255,0.5) 36px)",
             }}
           />
         </div>
