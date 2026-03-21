@@ -9,7 +9,10 @@ export interface UpcomingEventItem {
   location: string;
   cover_image_url: string | null;
   type: string;
-  booking: { id: string; status: string; payment_status: string };
+  price: number;
+  checkedIn: boolean;
+  userId: string;
+  booking: { id: string; status: string; payment_status: string; payment_method: string };
 }
 
 interface UpcomingEventsSectionProps {
