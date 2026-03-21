@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 
 import { checkAndAwardSystemBadges } from "@/lib/badges/check-system-badges";
 import { checkAndAwardBorders } from "@/lib/borders/check-borders";
@@ -192,10 +192,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // ── Post-check-in side effects (all non-blocking) ──
-  // Tokens, badges, borders, notifications, and email run in the background
-  // so the response returns immediately after the insert.
-  void (async () => {
+  // ── Post-check-in side effects (run after response via next/server after()) ──
+  after(async () => {
     try {
       await awardTokens(supabase, user_id, TOKEN_REWARDS.check_in, "check_in", event_id);
 
@@ -208,45 +206,47 @@ export async function POST(request: Request) {
         await awardTokens(supabase, user_id, TOKEN_REWARDS.first_event, "first_event", event_id);
       }
 
-      checkAndAwardBorders(user_id, supabase).catch(() => null);
+      await Promise.all([
+        checkAndAwardBorders(user_id, supabase),
+        (async () => {
+          const awardedBadges = await checkAndAwardSystemBadges(user_id, supabase);
+          if (awardedBadges.length > 0) {
+            await createNotifications(
+              supabase,
+              awardedBadges.map((b) => ({
+                userId: user_id,
+                type: "badge_earned" as const,
+                title: "Badge Earned",
+                body: `You earned the "${b.title}" badge!`,
+                href: "/achievements",
+              })),
+            );
 
-      const awardedBadges = await checkAndAwardSystemBadges(user_id, supabase);
+            const { data: participant } = await supabase
+              .from("users")
+              .select("email")
+              .eq("id", user_id)
+              .single();
 
-      if (awardedBadges.length > 0) {
-        createNotifications(
-          supabase,
-          awardedBadges.map((b) => ({
-            userId: user_id,
-            type: "badge_earned" as const,
-            title: "Badge Earned",
-            body: `You earned the "${b.title}" badge!`,
-            href: "/achievements",
-          })),
-        ).catch(() => null);
+            if (participant?.email) {
+              const subject =
+                awardedBadges.length === 1
+                  ? `You earned a new badge: ${awardedBadges[0].title}!`
+                  : `You earned ${String(awardedBadges.length)} new badges!`;
 
-        const { data: participant } = await supabase
-          .from("users")
-          .select("email")
-          .eq("id", user_id)
-          .single();
-
-        if (participant?.email) {
-          const subject =
-            awardedBadges.length === 1
-              ? `You earned a new badge: ${awardedBadges[0].title}!`
-              : `You earned ${String(awardedBadges.length)} new badges!`;
-
-          await sendEmail({
-            to: participant.email,
-            subject,
-            html: badgesEarnedHtml({ userName, badges: awardedBadges }),
-          });
-        }
-      }
+              await sendEmail({
+                to: participant.email,
+                subject,
+                html: badgesEarnedHtml({ userName, badges: awardedBadges }),
+              });
+            }
+          }
+        })(),
+      ]);
     } catch {
       // Side-effect failures should never surface to the user
     }
-  })();
+  });
 
   return NextResponse.json({
     message: `${userName} checked in!`,
