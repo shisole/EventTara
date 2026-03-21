@@ -584,6 +584,7 @@ export interface Database {
           user_id: string;
           rating: number;
           text: string | null;
+          tags: string[];
           created_at: string;
         };
         Insert: {
@@ -592,6 +593,7 @@ export interface Database {
           user_id: string;
           rating: number;
           text?: string | null;
+          tags?: string[];
           created_at?: string;
         };
         Update: {
@@ -600,6 +602,7 @@ export interface Database {
           user_id?: string;
           rating?: number;
           text?: string | null;
+          tags?: string[];
           created_at?: string;
         };
         Relationships: [];

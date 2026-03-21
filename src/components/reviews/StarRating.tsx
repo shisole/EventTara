@@ -5,11 +5,11 @@ import { cn } from "@/lib/utils";
 interface StarRatingProps {
   value: number;
   onChange?: (value: number) => void;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl";
   readonly?: boolean;
 }
 
-const sizes = { sm: "text-sm", md: "text-lg", lg: "text-2xl" };
+const sizes = { sm: "text-sm", md: "text-lg", lg: "text-2xl", xl: "text-4xl" };
 
 export default function StarRating({
   value,
