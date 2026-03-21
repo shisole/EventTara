@@ -15,9 +15,16 @@ export default function ReviewPromptTrigger({ eventId, eventTitle }: ReviewPromp
 
   useEffect(() => {
     const key = `reviewDismissed_${eventId}`;
-    if (!localStorage.getItem(key)) {
+    if (localStorage.getItem(key)) return;
+
+    // Delay before showing — let user settle into the page first
+    const timer = setTimeout(() => {
       setShowModal(true);
-    }
+    }, 1500);
+
+    return () => {
+      clearTimeout(timer);
+    };
   }, [eventId]);
 
   if (!showModal) return null;

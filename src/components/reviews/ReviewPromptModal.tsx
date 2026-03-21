@@ -5,7 +5,18 @@ import { useEffect, useState } from "react";
 import { CloseIcon } from "@/components/icons";
 import ReviewPhotoUpload from "@/components/reviews/ReviewPhotoUpload";
 import StarRating from "@/components/reviews/StarRating";
+import { fireConfetti } from "@/lib/confetti";
 import { cn } from "@/lib/utils";
+
+type Step = "rate" | "details" | "submitted";
+
+const RATING_LABELS: Record<number, string> = {
+  1: "Not great",
+  2: "Could be better",
+  3: "It was okay",
+  4: "Really good!",
+  5: "Amazing!",
+};
 
 interface ReviewPromptModalProps {
   eventId: string;
@@ -19,12 +30,12 @@ export default function ReviewPromptModal({
   onClose,
 }: ReviewPromptModalProps) {
   const [isVisible, setIsVisible] = useState(false);
+  const [step, setStep] = useState<Step>("rate");
   const [rating, setRating] = useState(0);
   const [text, setText] = useState("");
   const [photos, setPhotos] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [submitted, setSubmitted] = useState(false);
 
   // Animate in
   useEffect(() => {
@@ -47,7 +58,7 @@ export default function ReviewPromptModal({
   // Close on Escape
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !submitted) {
+      if (e.key === "Escape" && step !== "submitted") {
         handleClose();
       }
     };
@@ -56,20 +67,23 @@ export default function ReviewPromptModal({
       document.removeEventListener("keydown", handleKeyDown);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [submitted]);
+  }, [step]);
 
   function handleClose() {
     setIsVisible(false);
     setTimeout(onClose, 200);
   }
 
+  function handleRate(value: number) {
+    setRating(value);
+    // Auto-advance to details after a brief moment (Goal-Gradient)
+    setTimeout(() => {
+      setStep("details");
+    }, 400);
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (rating === 0) {
-      setError("Please select a rating");
-      return;
-    }
-
     setLoading(true);
     setError("");
 
@@ -90,8 +104,9 @@ export default function ReviewPromptModal({
         return;
       }
 
-      setSubmitted(true);
-      setTimeout(handleClose, 1500);
+      setStep("submitted");
+      void fireConfetti("burst");
+      setTimeout(handleClose, 2000);
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -121,64 +136,85 @@ export default function ReviewPromptModal({
           e.stopPropagation();
         }}
       >
-        {submitted ? (
-          <div className="text-center space-y-3 py-4">
-            <div className="w-14 h-14 bg-teal-100 dark:bg-teal-900/30 rounded-full flex items-center justify-center mx-auto">
-              <svg
-                className="w-7 h-7 text-teal-600 dark:text-teal-400"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                  clipRule="evenodd"
-                />
-              </svg>
+        {/* Step 1: Rate (Hick's Law — one decision only) */}
+        {step === "rate" && (
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={handleClose}
+              className="absolute top-4 right-4 p-2 rounded-lg text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              aria-label="Close"
+            >
+              <CloseIcon className="w-5 h-5" />
+            </button>
+
+            <div className="w-16 h-16 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-3xl">&#9733;</span>
             </div>
-            <h2 className="text-xl font-heading font-bold text-gray-900 dark:text-white">
-              Thanks for your review!
+            <h2
+              id="review-prompt-modal-title"
+              className="text-xl font-heading font-bold text-gray-900 dark:text-white mb-1"
+            >
+              How was the event?
             </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Your feedback helps the community.
-            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">{eventTitle}</p>
+
+            {/* Large touch-friendly stars (Fitts's Law) */}
+            <div className="flex justify-center mb-4">
+              <StarRating value={rating} onChange={handleRate} size="xl" />
+            </div>
+
+            {/* Rating label feedback */}
+            <div className="h-6 mb-4">
+              {rating > 0 && (
+                <p className="text-sm font-medium text-yellow-600 dark:text-yellow-400 animate-fade-up">
+                  {RATING_LABELS[rating]}
+                </p>
+              )}
+            </div>
+
+            {/* Subtle skip (Von Restorff — don't compete with stars) */}
+            <button
+              type="button"
+              onClick={handleClose}
+              className="text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 transition-colors"
+            >
+              Maybe later
+            </button>
           </div>
-        ) : (
+        )}
+
+        {/* Step 2: Details — progressive disclosure */}
+        {step === "details" && (
           <>
             <button
               type="button"
               onClick={handleClose}
-              className="absolute top-4 right-4 p-1 rounded-lg text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              className="absolute top-4 right-4 p-2 rounded-lg text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               aria-label="Close"
             >
               <CloseIcon className="w-5 h-5" />
             </button>
 
             <div className="text-center mb-5">
-              <div className="w-14 h-14 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center mx-auto mb-3">
-                <span className="text-2xl">&#9733;</span>
+              <div className="flex justify-center mb-2">
+                <StarRating value={rating} onChange={setRating} size="lg" />
               </div>
-              <h2
-                id="review-prompt-modal-title"
-                className="text-xl font-heading font-bold text-gray-900 dark:text-white"
-              >
-                How was the event?
-              </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{eventTitle}</p>
+              <p className="text-sm font-medium text-yellow-600 dark:text-yellow-400">
+                {RATING_LABELS[rating]}
+              </p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{eventTitle}</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="flex justify-center">
-                <StarRating value={rating} onChange={setRating} size="lg" />
-              </div>
-
               <div>
                 <textarea
                   value={text}
                   onChange={(e) => setText(e.target.value)}
                   maxLength={500}
                   rows={3}
-                  placeholder="Tell others about your experience (optional)"
+                  placeholder="What made this event great? Any tips for future participants? (optional)"
+                  autoFocus
                   className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-3 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 resize-none"
                 />
                 <p className="text-xs text-gray-400 mt-1 text-right">{text.length}/500</p>
@@ -197,30 +233,54 @@ export default function ReviewPromptModal({
                 </p>
               )}
 
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={handleClose}
-                  className="flex-1 rounded-xl px-4 py-3 text-sm font-medium text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
-                >
-                  Maybe Later
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading || rating === 0}
-                  className={cn(
-                    "flex-1 rounded-xl px-4 py-3 text-sm font-semibold text-white transition-colors",
-                    rating > 0
-                      ? "bg-teal-600 hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-600"
-                      : "bg-gray-300 dark:bg-gray-700 cursor-not-allowed",
-                    loading && "opacity-50 cursor-not-allowed",
-                  )}
-                >
-                  {loading ? "Submitting..." : "Submit"}
-                </button>
-              </div>
+              {/* Dominant primary CTA (Von Restorff) */}
+              <button
+                type="submit"
+                disabled={loading}
+                className={cn(
+                  "w-full rounded-xl px-4 py-3.5 text-sm font-semibold text-white transition-colors",
+                  "bg-teal-600 hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-600",
+                  loading && "opacity-50 cursor-not-allowed",
+                )}
+              >
+                {loading ? "Submitting..." : "Submit Review"}
+              </button>
+
+              {/* Subtle skip link below (not competing button) */}
+              <button
+                type="button"
+                onClick={handleClose}
+                className="block w-full text-center text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 transition-colors"
+              >
+                Skip for now
+              </button>
             </form>
           </>
+        )}
+
+        {/* Step 3: Success — Peak-End Rule (warm, celebratory) */}
+        {step === "submitted" && (
+          <div className="text-center space-y-3 py-6">
+            <div className="w-16 h-16 bg-teal-100 dark:bg-teal-900/30 rounded-full flex items-center justify-center mx-auto">
+              <svg
+                className="w-8 h-8 text-teal-600 dark:text-teal-400"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+            <h2 className="text-xl font-heading font-bold text-gray-900 dark:text-white">
+              Thanks for your review!
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Your feedback helps fellow adventurers find great events.
+            </p>
+          </div>
         )}
       </div>
     </div>
