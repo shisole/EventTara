@@ -131,17 +131,30 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     onEventCompleted(id, supabase).catch(() => null);
 
     (async () => {
-      const { data: checkins } = await supabase
-        .from("event_checkins")
-        .select("user_id")
-        .eq("event_id", id);
+      // Notify all participants: checked-in users + confirmed bookings
+      const [{ data: checkins }, { data: bookings }] = await Promise.all([
+        supabase.from("event_checkins").select("user_id").eq("event_id", id),
+        supabase
+          .from("bookings")
+          .select("user_id")
+          .eq("event_id", id)
+          .in("status", ["confirmed", "pending"]),
+      ]);
 
-      if (!checkins?.length) return;
+      // Deduplicate user IDs (filter out null guest bookings)
+      const userIds = [
+        ...new Set([
+          ...(checkins ?? []).map((c) => c.user_id),
+          ...(bookings ?? []).flatMap((b) => (b.user_id ? [b.user_id] : [])),
+        ]),
+      ];
+
+      if (userIds.length === 0) return;
 
       await createNotifications(
         supabase,
-        checkins.map((c) => ({
-          userId: c.user_id,
+        userIds.map((userId) => ({
+          userId,
           type: "review_request" as const,
           title: "How was the event?",
           body: `"${event.title}" is complete — share your experience!`,
