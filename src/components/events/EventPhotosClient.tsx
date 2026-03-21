@@ -2,10 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 
-import { ChevronLeftIcon, ChevronRightIcon, CloseIcon, TrashIcon } from "@/components/icons";
+import { TrashIcon } from "@/components/icons";
 import { UserAvatar } from "@/components/ui";
+import MediaLightbox from "@/components/ui/MediaLightbox";
 import { uploadImage } from "@/lib/upload";
 import { formatRelativeTime } from "@/lib/utils/relative-time";
 
@@ -54,10 +55,8 @@ export default function EventPhotosClient({
         const fileArray = [...files];
 
         for (const file of fileArray) {
-          // Upload to R2
           const imageUrl = await uploadImage(file, "events/photos");
 
-          // Save to database
           const res = await fetch(`/api/events/${eventId}/photos`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -138,6 +137,11 @@ export default function EventPhotosClient({
   );
 
   const canDeletePhoto = (photo: PhotoItem) => photo.user_id === currentUserId || isClubAdmin;
+
+  const lightboxItems = useMemo(
+    () => photos.map((p) => ({ id: p.id, url: p.image_url, caption: p.caption })),
+    [photos],
+  );
 
   const selectedPhoto = selectedIndex === null ? null : photos[selectedIndex];
 
@@ -256,91 +260,34 @@ export default function EventPhotosClient({
       )}
 
       {/* Lightbox */}
-      {selectedPhoto && (
-        <div
-          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
-          onClick={() => setSelectedIndex(null)}
-        >
-          {selectedIndex !== null && selectedIndex > 0 && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setSelectedIndex(selectedIndex - 1);
-              }}
-              className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-10 w-11 h-11 flex items-center justify-center bg-white/20 hover:bg-white/40 rounded-full text-white transition-colors"
-              aria-label="Previous photo"
-            >
-              <ChevronLeftIcon className="w-6 h-6" />
-            </button>
-          )}
-
-          {selectedIndex !== null && selectedIndex < photos.length - 1 && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setSelectedIndex(selectedIndex + 1);
-              }}
-              className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-10 w-11 h-11 flex items-center justify-center bg-white/20 hover:bg-white/40 rounded-full text-white transition-colors"
-              aria-label="Next photo"
-            >
-              <ChevronRightIcon className="w-6 h-6" />
-            </button>
-          )}
-
-          <button
-            onClick={() => setSelectedIndex(null)}
-            className="absolute top-4 right-4 z-10 w-11 h-11 flex items-center justify-center bg-white/20 hover:bg-white/40 rounded-full text-white transition-colors"
-            aria-label="Close"
-          >
-            <CloseIcon className="w-6 h-6" />
-          </button>
-
+      {selectedIndex !== null && selectedPhoto && (
+        <>
+          <MediaLightbox
+            items={lightboxItems}
+            selectedIndex={selectedIndex}
+            onClose={() => setSelectedIndex(null)}
+            onChange={setSelectedIndex}
+          />
+          {/* Delete button overlay on lightbox */}
           {canDeletePhoto(selectedPhoto) && (
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                void handleDelete(selectedPhoto.id);
-              }}
+              onClick={() => void handleDelete(selectedPhoto.id)}
               disabled={deleting === selectedPhoto.id}
-              className="absolute top-4 left-4 z-10 w-11 h-11 flex items-center justify-center bg-white/20 hover:bg-red-500/60 rounded-full text-white transition-colors"
+              className="fixed top-3 left-3 z-[91] flex h-11 w-11 items-center justify-center rounded-full bg-black/50 text-white transition-colors hover:bg-red-500/70"
               aria-label="Delete photo"
             >
               <TrashIcon className="w-5 h-5" />
             </button>
           )}
-
-          <div
-            className="relative max-w-4xl max-h-[90vh] w-full"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Image
-              src={selectedPhoto.image_url}
-              alt={selectedPhoto.caption || "Event photo"}
-              width={1200}
-              height={800}
-              className="object-contain w-full h-full rounded-xl"
-            />
-            <div className="text-center mt-3 space-y-1">
-              <div className="flex items-center justify-center gap-2">
-                <UserAvatar
-                  src={selectedPhoto.userAvatarUrl}
-                  alt={selectedPhoto.userName}
-                  size="sm"
-                />
-                <span className="text-white text-sm font-medium">{selectedPhoto.userName}</span>
-                <span className="text-white/50 text-xs">
-                  {formatRelativeTime(selectedPhoto.uploaded_at)}
-                </span>
-              </div>
-              {selectedPhoto.caption && (
-                <p className="text-white/80 text-sm">{selectedPhoto.caption}</p>
-              )}
-              <p className="text-white/40 text-xs">
-                {(selectedIndex ?? 0) + 1} / {photos.length}
-              </p>
-            </div>
+          {/* Photographer info overlay */}
+          <div className="fixed bottom-16 left-1/2 -translate-x-1/2 z-[91] flex items-center gap-2 rounded-full bg-black/50 px-4 py-2">
+            <UserAvatar src={selectedPhoto.userAvatarUrl} alt={selectedPhoto.userName} size="sm" />
+            <span className="text-white text-sm font-medium">{selectedPhoto.userName}</span>
+            <span className="text-white/50 text-xs">
+              {formatRelativeTime(selectedPhoto.uploaded_at)}
+            </span>
           </div>
-        </div>
+        </>
       )}
     </div>
   );
