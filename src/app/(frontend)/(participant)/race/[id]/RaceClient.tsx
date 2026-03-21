@@ -273,44 +273,42 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
             {"🏁"}
           </div>
 
-          {/* Duck lanes */}
-          <div className="relative z-10">
+          {/* Ducks — tightly clustered flock */}
+          <div
+            className="relative z-10"
+            style={{ height: Math.max(300, displayProgress.length * 30 + 40) }}
+          >
             {displayProgress.map((entry, i) => {
-              // Wobble: each duck bobs up/down using sin wave with unique phase
               const wobbleY = Math.sin(elapsed / 300 + entry.wobblePhase) * 3;
-              // Duck position: 2% to 90% of the track width
-              const duckLeft = 2 + (entry.progress / 100) * 88;
+              // Each duck occupies a vertical slot, tightly packed (26px apart)
+              const topPos = 20 + i * 26;
+              // Horizontal position: 5% to 90% of the track
+              const duckLeft = 5 + (entry.progress / 100) * 85;
 
               return (
-                <div
-                  key={entry.participant.user_id}
-                  className="relative flex items-center"
-                  style={{
-                    height: 36,
-                    borderBottom:
-                      i < displayProgress.length - 1 ? "1px solid rgba(255,255,255,0.08)" : "none",
-                  }}
-                >
-                  {/* Name + avatar on left */}
-                  <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5 z-20">
-                    <Avatar
-                      src={entry.participant.avatar_url}
-                      name={entry.participant.full_name}
-                      size={20}
-                    />
-                    <span className="text-[10px] font-medium text-white drop-shadow-md max-w-[70px] truncate">
+                <div key={entry.participant.user_id} className="absolute transition-none">
+                  {/* Name label — speech bubble above/beside duck */}
+                  <div
+                    className="absolute z-20 select-none pointer-events-none"
+                    style={{
+                      left: `${duckLeft}%`,
+                      top: topPos - 14,
+                      transform: `translateX(-50%) translateY(${String(wobbleY)}px)`,
+                    }}
+                  >
+                    <span className="inline-block rounded bg-white/90 px-1 py-px text-[9px] font-bold text-gray-800 shadow-sm whitespace-nowrap">
                       {entry.participant.full_name.split(" ")[0]}
                     </span>
                   </div>
 
-                  {/* Duck */}
+                  {/* Duck emoji */}
                   <div
-                    className="absolute z-10 transition-none select-none"
+                    className="absolute z-10 select-none"
                     style={{
                       left: `${duckLeft}%`,
-                      top: "50%",
+                      top: topPos,
                       transform: `translate(-50%, -50%) translateY(${String(wobbleY)}px)`,
-                      fontSize: 24,
+                      fontSize: 28,
                       filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.3))",
                     }}
                   >
@@ -326,23 +324,9 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
             className="absolute inset-0 pointer-events-none opacity-10"
             style={{
               backgroundImage:
-                "repeating-linear-gradient(0deg, transparent, transparent 34px, rgba(255,255,255,0.5) 34px, rgba(255,255,255,0.5) 36px)",
+                "repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(255,255,255,0.4) 40px, rgba(255,255,255,0.4) 42px)",
             }}
           />
-        </div>
-
-        {/* Legend below river */}
-        <div className="flex flex-wrap justify-center gap-3 text-xs text-gray-500 dark:text-gray-400">
-          {displayProgress.map((entry) => (
-            <div key={entry.participant.user_id} className="flex items-center gap-1">
-              <Avatar
-                src={entry.participant.avatar_url}
-                name={entry.participant.full_name}
-                size={18}
-              />
-              <span>{entry.participant.full_name}</span>
-            </div>
-          ))}
         </div>
       </div>
     );
