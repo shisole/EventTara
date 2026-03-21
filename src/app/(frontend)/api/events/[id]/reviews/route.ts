@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { VALID_TAG_KEYS } from "@/lib/constants/review-tags";
 import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -16,10 +17,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
   let rating: number;
   let text: string | undefined;
+  let tags: string[] = [];
   try {
     const body = await request.json();
     rating = body.rating;
     text = body.text;
+    if (Array.isArray(body.tags)) {
+      tags = body.tags.filter((t: unknown) => typeof t === "string" && VALID_TAG_KEYS.has(t));
+    }
   } catch {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
@@ -90,6 +95,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       user_id: user.id,
       rating,
       text: text?.trim() || null,
+      tags,
     })
     .select()
     .single();
