@@ -1184,43 +1184,39 @@ export default function ParticipantsTable({
           </div>
         </>
       )}
-      {/* Floating bulk action bar */}
+      {/* Floating bulk action bar — mobile: stacked full-width, desktop: original inline pill */}
       {selectedIds.size > 0 && !isCompleted && (
-        <div className="fixed bottom-20 md:bottom-4 left-4 right-4 md:left-1/2 md:right-auto md:-translate-x-1/2 z-50 rounded-2xl bg-slate-800/95 px-4 py-3 md:px-5 shadow-2xl backdrop-blur-sm">
-          {/* Header: count + dismiss */}
-          <div className="flex items-center justify-between mb-3 md:mb-0 md:inline-flex md:gap-3">
-            <span className="text-sm font-medium text-white whitespace-nowrap">
-              {selectedIds.size} selected
-            </span>
-            <button
-              type="button"
-              onClick={() => setSelectedIds(new Set())}
-              disabled={bulkLoading}
-              className="md:hidden rounded-lg p-1.5 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors disabled:opacity-50"
-              aria-label="Clear selection"
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-          </div>
-
-          {/* Actions */}
-          <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
-            <div className="hidden md:block h-5 w-px bg-slate-600" />
-            {/* Positive actions row */}
-            <div className="flex gap-2 md:gap-3">
+        <>
+          {/* Mobile */}
+          <div className="md:hidden fixed bottom-20 left-4 right-4 z-50 rounded-2xl bg-slate-800/95 px-4 py-3 shadow-2xl backdrop-blur-sm">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-medium text-white whitespace-nowrap">
+                {selectedIds.size} selected
+              </span>
+              <button
+                type="button"
+                onClick={() => setSelectedIds(new Set())}
+                disabled={bulkLoading}
+                className="rounded-lg p-1.5 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors disabled:opacity-50"
+                aria-label="Clear selection"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+            <div className="flex gap-2">
               <Button
                 variant="primary"
                 size="sm"
                 onClick={handleBulkMarkPaid}
                 disabled={bulkLoading}
-                className="flex-1 md:flex-none whitespace-nowrap py-2.5 md:py-1.5"
+                className="flex-1 whitespace-nowrap py-2.5"
               >
                 {bulkLoading ? "Processing..." : "Mark as Paid"}
               </Button>
@@ -1229,29 +1225,62 @@ export default function ParticipantsTable({
                 size="sm"
                 onClick={handleBulkCheckIn}
                 disabled={bulkLoading}
-                className="flex-1 md:flex-none whitespace-nowrap py-2.5 md:py-1.5"
+                className="flex-1 whitespace-nowrap py-2.5"
               >
                 {bulkLoading ? "Processing..." : "Check In"}
               </Button>
             </div>
-            {/* Destructive action separated */}
-            <div className="flex gap-2 md:gap-3 border-t border-slate-700 pt-2 md:border-t-0 md:pt-0 md:border-l md:pl-3">
+            <div className="border-t border-slate-700 mt-2 pt-2">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleBulkCancel}
                 disabled={bulkLoading}
-                className="flex-1 md:flex-none text-red-400 hover:text-red-300 hover:bg-red-950/50 whitespace-nowrap py-2.5 md:py-1.5"
+                className="w-full text-red-400 hover:text-red-300 hover:bg-red-950/50 whitespace-nowrap py-2.5"
               >
                 {bulkLoading ? "Processing..." : "Cancel"}
               </Button>
             </div>
-            {/* Desktop dismiss */}
+          </div>
+
+          {/* Desktop — original inline layout */}
+          <div className="hidden md:flex fixed bottom-4 left-1/2 z-50 -translate-x-1/2 items-center gap-3 rounded-2xl bg-slate-800/90 px-5 py-3 shadow-2xl backdrop-blur-sm">
+            <span className="text-sm font-medium text-white whitespace-nowrap">
+              {selectedIds.size} selected
+            </span>
+            <div className="h-5 w-px bg-slate-600" />
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={handleBulkMarkPaid}
+              disabled={bulkLoading}
+              className="whitespace-nowrap"
+            >
+              {bulkLoading ? "Processing..." : "Mark as Paid"}
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleBulkCheckIn}
+              disabled={bulkLoading}
+              className="whitespace-nowrap"
+            >
+              {bulkLoading ? "Processing..." : "Check In"}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleBulkCancel}
+              disabled={bulkLoading}
+              className="text-red-400 hover:text-red-300 hover:bg-red-950/50 whitespace-nowrap"
+            >
+              {bulkLoading ? "Processing..." : "Cancel"}
+            </Button>
             <button
               type="button"
               onClick={() => setSelectedIds(new Set())}
               disabled={bulkLoading}
-              className="hidden md:block ml-1 rounded-lg p-1.5 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors disabled:opacity-50"
+              className="ml-1 rounded-lg p-1.5 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors disabled:opacity-50"
               aria-label="Clear selection"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1264,7 +1293,7 @@ export default function ParticipantsTable({
               </svg>
             </button>
           </div>
-        </div>
+        </>
       )}
       {linkBooking && (
         <LinkBookingModal
