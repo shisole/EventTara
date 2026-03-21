@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 import { useState, useRef } from "react";
@@ -8,6 +9,8 @@ import { Card, UIBadge, Button } from "@/components/ui";
 import PaymentStatusBadge from "@/components/ui/PaymentStatusBadge";
 import { getActivityLabel } from "@/lib/constants/activity-types";
 import { formatEventDate } from "@/lib/utils/format-date";
+
+const ReviewPromptModal = dynamic(() => import("@/components/reviews/ReviewPromptModal"));
 
 interface BookingCompanion {
   full_name: string;
@@ -76,7 +79,13 @@ function ReuploadButton({ bookingId }: { bookingId: string }) {
   );
 }
 
-function CheckInOnlineButton({ booking }: { booking: Booking }) {
+function CheckInOnlineButton({
+  booking,
+  onCheckedIn,
+}: {
+  booking: Booking;
+  onCheckedIn?: () => void;
+}) {
   const [status, setStatus] = useState<"idle" | "loading" | "done">(
     booking.checkedIn ? "done" : "idle",
   );
@@ -117,6 +126,7 @@ function CheckInOnlineButton({ booking }: { booking: Booking }) {
       });
       if (res.ok) {
         setStatus("done");
+        onCheckedIn?.();
       } else {
         setStatus("idle");
       }
@@ -134,6 +144,10 @@ function CheckInOnlineButton({ booking }: { booking: Booking }) {
 
 export default function UpcomingBookings({ bookings }: { bookings: Booking[] }) {
   const [expandedQR, setExpandedQR] = useState<string | null>(null);
+  const [reviewEvent, setReviewEvent] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
 
   if (bookings.length === 0) {
     return (
@@ -192,7 +206,12 @@ export default function UpcomingBookings({ bookings }: { bookings: Booking[] }) 
                   <ReuploadButton bookingId={b.id} />
                 </div>
               )}
-              <CheckInOnlineButton booking={b} />
+              <CheckInOnlineButton
+                booking={b}
+                onCheckedIn={() => {
+                  setReviewEvent({ id: b.eventId, title: b.eventTitle });
+                }}
+              />
             </div>
             {b.qrCode && (
               <button
@@ -254,6 +273,16 @@ export default function UpcomingBookings({ bookings }: { bookings: Booking[] }) 
           )}
         </Card>
       ))}
+
+      {reviewEvent && (
+        <ReviewPromptModal
+          eventId={reviewEvent.id}
+          eventTitle={reviewEvent.title}
+          onClose={() => {
+            setReviewEvent(null);
+          }}
+        />
+      )}
     </div>
   );
 }
