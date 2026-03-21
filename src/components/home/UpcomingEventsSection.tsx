@@ -42,7 +42,7 @@ export default function UpcomingEventsSection({ events }: UpcomingEventsSectionP
           </NavLink>
         </div>
       ) : (
-        <div className="space-y-5">
+        <div className="flex flex-col gap-5">
           {events.map((event) => (
             <NextEventCard key={event.id} event={event} />
           ))}
