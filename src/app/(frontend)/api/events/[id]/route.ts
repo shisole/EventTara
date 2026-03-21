@@ -126,9 +126,31 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // Auto-award event badge when marked as completed (fire-and-forget)
+  // Auto-award event badge + notify participants when marked as completed (fire-and-forget)
   if (body.status === "completed") {
     onEventCompleted(id, supabase).catch(() => null);
+
+    (async () => {
+      const { data: checkins } = await supabase
+        .from("event_checkins")
+        .select("user_id")
+        .eq("event_id", id);
+
+      if (!checkins?.length) return;
+
+      await createNotifications(
+        supabase,
+        checkins.map((c) => ({
+          userId: c.user_id,
+          type: "review_request" as const,
+          title: "How was the event?",
+          body: `"${event.title}" is complete — share your experience!`,
+          href: `/events/${id}`,
+          actorId: user.id,
+          metadata: { event_id: id },
+        })),
+      );
+    })().catch((error_) => console.error("[EventCompleted] Notification error:", error_));
   }
 
   // Notify club members when event is published (fire-and-forget)
