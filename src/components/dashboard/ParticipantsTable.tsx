@@ -1186,7 +1186,7 @@ export default function ParticipantsTable({
       )}
       {/* Floating bulk action bar */}
       {selectedIds.size > 0 && !isCompleted && (
-        <div className="fixed bottom-4 left-1/2 z-30 -translate-x-1/2 flex items-center gap-3 rounded-2xl bg-slate-800/90 px-5 py-3 shadow-2xl backdrop-blur-sm">
+        <div className="fixed bottom-20 md:bottom-4 left-1/2 z-50 -translate-x-1/2 flex items-center gap-3 rounded-2xl bg-slate-800/90 px-5 py-3 shadow-2xl backdrop-blur-sm">
           <span className="text-sm font-medium text-white whitespace-nowrap">
             {selectedIds.size} selected
           </span>
