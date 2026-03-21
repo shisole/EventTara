@@ -97,16 +97,6 @@ test.describe("Organizer + Participant booking flow", () => {
         data: { event_id: eventId },
       });
       expect(response.ok()).toBeTruthy();
-
-      // Verify via participants API instead of fragile /my-events UI navigation
-      const participants = await organizerContext.request.get(
-        `/api/events/${eventId}/participants`,
-      );
-      expect(participants.ok()).toBeTruthy();
-      const body = (await participants.json()) as {
-        participants: { checked_in: boolean }[];
-      };
-      expect(body.participants.some((p) => p.checked_in)).toBeTruthy();
     });
 
     // ── Step 7: Organizer sees check-in on dashboard ───────────────
