@@ -303,6 +303,7 @@ export interface Database {
         Row: {
           id: string;
           event_id: string;
+          user_id: string | null;
           image_url: string;
           caption: string | null;
           sort_order: number;
@@ -311,6 +312,7 @@ export interface Database {
         Insert: {
           id?: string;
           event_id: string;
+          user_id?: string | null;
           image_url: string;
           caption?: string | null;
           sort_order?: number;
@@ -319,12 +321,28 @@ export interface Database {
         Update: {
           id?: string;
           event_id?: string;
+          user_id?: string | null;
           image_url?: string;
           caption?: string | null;
           sort_order?: number;
           uploaded_at?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "event_photos_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "events";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "event_photos_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       bookings: {
         Row: {
@@ -566,6 +584,7 @@ export interface Database {
           user_id: string;
           rating: number;
           text: string | null;
+          tags: string[];
           created_at: string;
         };
         Insert: {
@@ -574,6 +593,7 @@ export interface Database {
           user_id: string;
           rating: number;
           text?: string | null;
+          tags?: string[];
           created_at?: string;
         };
         Update: {
@@ -582,6 +602,7 @@ export interface Database {
           user_id?: string;
           rating?: number;
           text?: string | null;
+          tags?: string[];
           created_at?: string;
         };
         Relationships: [];
@@ -767,7 +788,7 @@ export interface Database {
         Row: {
           id: string;
           user_id: string;
-          activity_type: "booking" | "checkin" | "badge" | "border" | "review";
+          activity_type: "booking" | "checkin" | "badge" | "border" | "review" | "photo";
           activity_id: string;
           text: string;
           created_at: string;
@@ -775,7 +796,7 @@ export interface Database {
         Insert: {
           id?: string;
           user_id: string;
-          activity_type: "booking" | "checkin" | "badge" | "border" | "review";
+          activity_type: "booking" | "checkin" | "badge" | "border" | "review" | "photo";
           activity_id: string;
           text: string;
           created_at?: string;
@@ -783,7 +804,7 @@ export interface Database {
         Update: {
           id?: string;
           user_id?: string;
-          activity_type?: "booking" | "checkin" | "badge" | "border" | "review";
+          activity_type?: "booking" | "checkin" | "badge" | "border" | "review" | "photo";
           activity_id?: string;
           text?: string;
           created_at?: string;
@@ -815,7 +836,7 @@ export interface Database {
         Row: {
           id: string;
           user_id: string;
-          activity_type: "booking" | "checkin" | "badge" | "border" | "review";
+          activity_type: "booking" | "checkin" | "badge" | "border" | "review" | "photo";
           activity_id: string;
           emoji: "heart";
           created_at: string;
@@ -823,7 +844,7 @@ export interface Database {
         Insert: {
           id?: string;
           user_id: string;
-          activity_type: "booking" | "checkin" | "badge" | "border" | "review";
+          activity_type: "booking" | "checkin" | "badge" | "border" | "review" | "photo";
           activity_id: string;
           emoji: "heart";
           created_at?: string;
@@ -831,7 +852,7 @@ export interface Database {
         Update: {
           id?: string;
           user_id?: string;
-          activity_type?: "booking" | "checkin" | "badge" | "border" | "review";
+          activity_type?: "booking" | "checkin" | "badge" | "border" | "review" | "photo";
           activity_id?: string;
           emoji?: "heart";
           created_at?: string;
@@ -842,21 +863,21 @@ export interface Database {
         Row: {
           id: string;
           user_id: string;
-          activity_type: "booking" | "checkin" | "badge" | "border" | "review";
+          activity_type: "booking" | "checkin" | "badge" | "border" | "review" | "photo";
           activity_id: string;
           created_at: string;
         };
         Insert: {
           id?: string;
           user_id: string;
-          activity_type: "booking" | "checkin" | "badge" | "border" | "review";
+          activity_type: "booking" | "checkin" | "badge" | "border" | "review" | "photo";
           activity_id: string;
           created_at?: string;
         };
         Update: {
           id?: string;
           user_id?: string;
-          activity_type?: "booking" | "checkin" | "badge" | "border" | "review";
+          activity_type?: "booking" | "checkin" | "badge" | "border" | "review" | "photo";
           activity_id?: string;
           created_at?: string;
         };

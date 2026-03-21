@@ -126,9 +126,45 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // Auto-award event badge when marked as completed (fire-and-forget)
+  // Auto-award event badge + notify participants when marked as completed (fire-and-forget)
   if (body.status === "completed") {
     onEventCompleted(id, supabase).catch(() => null);
+
+    (async () => {
+      // Notify checked-in users + confirmed & paid bookings
+      const [{ data: checkins }, { data: bookings }] = await Promise.all([
+        supabase.from("event_checkins").select("user_id").eq("event_id", id),
+        supabase
+          .from("bookings")
+          .select("user_id")
+          .eq("event_id", id)
+          .eq("status", "confirmed")
+          .eq("payment_status", "paid"),
+      ]);
+
+      // Deduplicate user IDs (filter out null guest bookings)
+      const userIds = [
+        ...new Set([
+          ...(checkins ?? []).map((c) => c.user_id),
+          ...(bookings ?? []).flatMap((b) => (b.user_id ? [b.user_id] : [])),
+        ]),
+      ];
+
+      if (userIds.length === 0) return;
+
+      await createNotifications(
+        supabase,
+        userIds.map((userId) => ({
+          userId,
+          type: "review_request" as const,
+          title: "How was the event?",
+          body: `"${event.title}" is complete — share your experience!`,
+          href: `/events/${id}`,
+          actorId: user.id,
+          metadata: { event_id: id },
+        })),
+      );
+    })().catch((error_) => console.error("[EventCompleted] Notification error:", error_));
   }
 
   // Notify club members when event is published (fire-and-forget)

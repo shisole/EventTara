@@ -14,6 +14,8 @@ import {
   isActivityFeedEnabled,
   parseHeroSlides,
 } from "@/lib/cms/cached";
+import { type BorderTier } from "@/lib/constants/avatar-borders";
+import { createClient } from "@/lib/supabase/server";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -96,15 +98,51 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const [settings, activityFeedEnabled, featureFlags, heroCarousel, activityTypes] =
+  const supabase = await createClient();
+  const [settings, activityFeedEnabled, featureFlags, heroCarousel, activityTypes, authResult] =
     await Promise.all([
       getCachedSiteSettings(),
       isActivityFeedEnabled(),
       getCachedFeatureFlags(),
       getCachedHeroCarousel(),
       getCachedActivityTypes(),
+      supabase.auth.getUser(),
     ]);
   const navLayout = settings?.nav_layout || "strip";
+
+  const currentUser = authResult.data.user;
+  let initialRole: string | null = null;
+  let initialCanManage = false;
+  let initialActiveBorder: { id: string; tier: BorderTier; color: string | null } | null = null;
+
+  if (currentUser) {
+    const [userData, memberships] = await Promise.all([
+      supabase.from("users").select("role, active_border_id").eq("id", currentUser.id).single(),
+      supabase
+        .from("club_members")
+        .select("id")
+        .eq("user_id", currentUser.id)
+        .in("role", ["owner", "admin", "moderator"])
+        .limit(1),
+    ]);
+    initialRole = userData.data?.role ?? null;
+    initialCanManage = (memberships.data?.length ?? 0) > 0;
+
+    if (userData.data?.active_border_id) {
+      const { data: border } = await supabase
+        .from("avatar_borders")
+        .select("tier, border_color")
+        .eq("id", userData.data.active_border_id)
+        .single();
+      if (border) {
+        initialActiveBorder = {
+          id: userData.data.active_border_id,
+          tier: border.tier as BorderTier,
+          color: border.border_color,
+        };
+      }
+    }
+  }
   const isProduction = (process.env.VERCEL_ENV ?? process.env.NODE_ENV) === "production";
   const adminUserIds = (
     isProduction
@@ -196,6 +234,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               icon: at.icon,
               image: at.image_url,
             }))}
+            initialUser={currentUser}
+            initialRole={initialRole}
+            initialCanManage={initialCanManage}
+            initialActiveBorder={initialActiveBorder}
           >
             {children}
           </ClientShell>

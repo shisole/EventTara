@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import ReviewPhotoUpload from "@/components/reviews/ReviewPhotoUpload";
+import ReviewTagSelector from "@/components/reviews/ReviewTagSelector";
 import StarRating from "@/components/reviews/StarRating";
 import { cn } from "@/lib/utils";
 
@@ -15,6 +16,7 @@ export default function QuickReviewForm({ eventId }: QuickReviewFormProps) {
   const router = useRouter();
   const [rating, setRating] = useState(0);
   const [text, setText] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
   const [photos, setPhotos] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -36,6 +38,7 @@ export default function QuickReviewForm({ eventId }: QuickReviewFormProps) {
         body: JSON.stringify({
           rating,
           text: text.trim() || null,
+          tags: tags.length > 0 ? tags : undefined,
           photos: photos.length > 0 ? photos : undefined,
         }),
       });
@@ -62,6 +65,14 @@ export default function QuickReviewForm({ eventId }: QuickReviewFormProps) {
           How would you rate this event?
         </label>
         <StarRating value={rating} onChange={setRating} size="lg" />
+      </div>
+
+      {/* Tags */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          What stood out? <span className="text-gray-400 font-normal">(optional)</span>
+        </label>
+        <ReviewTagSelector selected={tags} onChange={setTags} disabled={loading} />
       </div>
 
       {/* Optional Text */}

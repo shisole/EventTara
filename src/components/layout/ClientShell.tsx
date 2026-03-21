@@ -71,6 +71,10 @@ interface ClientShellProps {
   siteSettings?: { site_name?: string; tagline?: string; nav_layout?: string } | null;
   heroSlideCount?: number;
   activityTypes?: ActivityItem[];
+  initialUser?: User | null;
+  initialRole?: string | null;
+  initialCanManage?: boolean;
+  initialActiveBorder?: { id: string; tier: BorderTier; color: string | null } | null;
 }
 
 export default function ClientShell({
@@ -82,6 +86,10 @@ export default function ClientShell({
   siteSettings = null,
   heroSlideCount = 0,
   activityTypes,
+  initialUser = null,
+  initialRole = null,
+  initialCanManage = false,
+  initialActiveBorder = null,
 }: ClientShellProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -100,15 +108,16 @@ export default function ClientShell({
     [],
   );
   const supabase = createClient();
-  const [user, setUser] = useState<User | null>(null);
-  const [role, setRole] = useState<string | null>(null);
-  const [canManage, setCanManage] = useState(false);
+  const [user, setUser] = useState<User | null>(initialUser);
+  const [role, setRole] = useState<string | null>(initialRole);
+  const [canManage, setCanManage] = useState(initialCanManage);
   const [activeBorder, setActiveBorder] = useState<{
     id: string | null;
     tier: BorderTier | null;
     color: string | null;
-  } | null>(null);
+  } | null>(initialActiveBorder);
   const [loading, setLoading] = useState(false);
+  const hadInitialUser = useRef(!!initialUser);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [navLayout] = useState<string>(initialNavLayout);
   const touchStartX = useRef(0);
@@ -180,15 +189,18 @@ export default function ClientShell({
 
   // Auth state
   useEffect(() => {
-    const getUser = async () => {
-      const {
-        data: { user: currentUser },
-      } = await supabase.auth.getUser();
-      setUser(currentUser);
-      if (currentUser) await fetchRole(currentUser.id);
-      setLoading(false);
-    };
-    void getUser();
+    // Skip initial fetch if server already provided auth data
+    if (!hadInitialUser.current) {
+      const getUser = async () => {
+        const {
+          data: { user: currentUser },
+        } = await supabase.auth.getUser();
+        setUser(currentUser);
+        if (currentUser) await fetchRole(currentUser.id);
+        setLoading(false);
+      };
+      void getUser();
+    }
 
     const {
       data: { subscription },
@@ -199,6 +211,7 @@ export default function ClientShell({
       } else {
         setRole(null);
         setCanManage(false);
+        setActiveBorder(null);
       }
     });
 

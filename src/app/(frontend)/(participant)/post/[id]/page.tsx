@@ -30,6 +30,7 @@ interface RawActivity {
   awardedBorderColor: string | null;
   reviewRating: number | null;
   reviewText: string | null;
+  photoUrls: string[] | null;
   timestamp: string;
 }
 
@@ -102,6 +103,10 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
     reviewText: null,
   } as const;
 
+  const nullPhoto = {
+    photoUrls: null,
+  } as const;
+
   if (booking) {
     const event = booking.events as any;
     activity = {
@@ -113,6 +118,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
       ...nullBadge,
       ...nullBorder,
       ...nullReview,
+      ...nullPhoto,
       timestamp: booking.booked_at,
     };
   } else if (checkin) {
@@ -126,6 +132,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
       ...nullBadge,
       ...nullBorder,
       ...nullReview,
+      ...nullPhoto,
       timestamp: checkin.checked_in_at,
     };
   } else if (userBadge) {
@@ -143,6 +150,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
       badgeCategory: badge?.category || null,
       ...nullBorder,
       ...nullReview,
+      ...nullPhoto,
       timestamp: userBadge.awarded_at,
     };
   } else if (userBorder) {
@@ -159,6 +167,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
       awardedBorderTier: tier,
       awardedBorderColor: border?.border_color || (tier ? TIER_COLORS[tier] : null),
       ...nullReview,
+      ...nullPhoto,
       timestamp: userBorder.awarded_at,
     };
   } else if (review) {
@@ -173,6 +182,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
       ...nullBorder,
       reviewRating: review.rating,
       reviewText: review.text || null,
+      ...nullPhoto,
       timestamp: review.created_at,
     };
   }
@@ -282,6 +292,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
     awardedBorderColor: activity.awardedBorderColor,
     reviewRating: activity.reviewRating,
     reviewText: activity.reviewText,
+    photoUrls: activity.photoUrls ?? null,
     timestamp: activity.timestamp,
     isFollowing: !!followResult.data,
     likeCount,
