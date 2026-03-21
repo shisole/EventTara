@@ -67,6 +67,20 @@ export default function DashboardSidebar({ clubs = [] }: DashboardSidebarProps) 
           icon: LinkIcon,
         },
         {
+          href: `/dashboard/clubs/${currentClubSlug}/rentals`,
+          label: "Rentals",
+          icon: (props: { className?: string }) => (
+            <svg className={props.className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+              />
+            </svg>
+          ),
+        },
+        {
           href: `/dashboard/clubs/${currentClubSlug}/settings`,
           label: "Settings",
           icon: CogIcon,

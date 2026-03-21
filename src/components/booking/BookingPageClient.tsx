@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { useState } from "react";
 
 import BookingForm from "./BookingForm";
-import type { EventDistance } from "./BookingForm";
+import type { AvailableRentals, EventDistance } from "./BookingForm";
 
 const AuthBookingModal = dynamic(() => import("./AuthBookingModal"), { ssr: false });
 
@@ -26,6 +26,7 @@ interface BookingPageClientProps {
   paymentPaused?: boolean;
   contactUrl?: string | null;
   clubSlug?: string | null;
+  availableRentals?: AvailableRentals | null;
 }
 
 export default function BookingPageClient({
@@ -43,6 +44,7 @@ export default function BookingPageClient({
   paymentPaused,
   contactUrl,
   clubSlug,
+  availableRentals,
 }: BookingPageClientProps) {
   const [authenticated, setAuthenticated] = useState(initialAuth);
 
@@ -75,6 +77,7 @@ export default function BookingPageClient({
           paymentPaused={paymentPaused}
           contactUrl={contactUrl}
           clubSlug={clubSlug}
+          availableRentals={availableRentals}
         />
       </div>
     </>

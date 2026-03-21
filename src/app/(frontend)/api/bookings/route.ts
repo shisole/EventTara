@@ -14,6 +14,12 @@ interface CompanionInput {
   event_distance_id?: string | null;
 }
 
+interface RentalItemInput {
+  rental_item_id: string;
+  quantity: number;
+  size?: string | null;
+}
+
 export async function POST(request: Request) {
   const supabase = await createClient();
 
@@ -34,6 +40,7 @@ export async function POST(request: Request) {
   let eventDistanceId: string | null = null;
   let participantNotes: string | null = null;
   let waiverAcceptedAt: string | null = null;
+  let rentalItems: RentalItemInput[] = [];
 
   if (contentType.includes("multipart/form-data")) {
     const formData = await request.formData();
@@ -52,6 +59,14 @@ export async function POST(request: Request) {
         /* ignore */
       }
     }
+    const rentalItemsStr = formData.get("rental_items") as string | null;
+    if (rentalItemsStr) {
+      try {
+        rentalItems = JSON.parse(rentalItemsStr);
+      } catch {
+        /* ignore */
+      }
+    }
   } else {
     const body = await request.json();
     eventId = body.event_id;
@@ -61,6 +76,7 @@ export async function POST(request: Request) {
     eventDistanceId = body.event_distance_id || null;
     participantNotes = body.participant_notes || null;
     waiverAcceptedAt = body.waiver_accepted_at || null;
+    rentalItems = body.rental_items || [];
   }
 
   if (!eventId) {
@@ -342,6 +358,35 @@ export async function POST(request: Request) {
       console.error("[Companions] Insert failed:", compError);
     } else {
       insertedCompanions = inserted || [];
+    }
+  }
+
+  // Insert booking rentals if any
+  if (rentalItems.length > 0) {
+    // Fetch current prices for snapshot
+    const rentalItemIds = rentalItems.map((r) => r.rental_item_id);
+    const { data: rentalPrices } = await supabase
+      .from("club_rental_items")
+      .select("id, rental_price")
+      .in("id", rentalItemIds);
+
+    const priceMap = new Map((rentalPrices || []).map((r) => [r.id, r.rental_price]));
+
+    const rentalRows = rentalItems
+      .filter((r) => priceMap.has(r.rental_item_id))
+      .map((r) => ({
+        booking_id: bookingId,
+        rental_item_id: r.rental_item_id,
+        quantity: r.quantity,
+        size: r.size ?? null,
+        unit_price: priceMap.get(r.rental_item_id) ?? 0,
+      }));
+
+    if (rentalRows.length > 0) {
+      const { error: rentalError } = await supabase.from("booking_rentals").insert(rentalRows);
+      if (rentalError) {
+        console.error("[BookingRentals] Insert failed:", rentalError);
+      }
     }
   }
 

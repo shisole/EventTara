@@ -13,6 +13,12 @@ interface CompanionConfirmation {
   qr_code: string | null;
 }
 
+interface RentalConfirmation {
+  name: string;
+  quantity: number;
+  unit_price: number;
+}
+
 interface BookingConfirmationProps {
   bookingId: string;
   eventTitle: string;
@@ -26,6 +32,7 @@ interface BookingConfirmationProps {
   paymentPaused?: boolean;
   contactUrl?: string | null;
   clubSlug?: string | null;
+  rentalItems?: RentalConfirmation[];
 }
 
 export default function BookingConfirmation({
@@ -41,6 +48,7 @@ export default function BookingConfirmation({
   paymentPaused,
   contactUrl,
   clubSlug,
+  rentalItems,
 }: BookingConfirmationProps) {
   const isPendingEwallet =
     paymentStatus === "pending" && paymentMethod !== "cash" && !paymentPaused;
@@ -289,6 +297,29 @@ export default function BookingConfirmation({
           )}
           {companionQRSection}
         </>
+      )}
+
+      {/* Rental items summary */}
+      {rentalItems && rentalItems.length > 0 && (
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 text-left">
+          <p className="text-sm font-medium mb-2">Rental add-ons:</p>
+          <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+            {rentalItems.map((r, i) => (
+              <li key={i} className="flex justify-between">
+                <span>
+                  {r.name} {r.quantity > 1 ? `×${r.quantity}` : ""}
+                </span>
+                <span>₱{(r.unit_price * r.quantity).toLocaleString()}</span>
+              </li>
+            ))}
+          </ul>
+          <div className="border-t border-gray-200 dark:border-gray-700 mt-2 pt-2 flex justify-between text-sm font-medium">
+            <span>Rental subtotal</span>
+            <span>
+              ₱{rentalItems.reduce((t, r) => t + r.unit_price * r.quantity, 0).toLocaleString()}
+            </span>
+          </div>
+        </div>
       )}
 
       <div className="text-sm text-gray-500 dark:text-gray-400">
