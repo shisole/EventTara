@@ -131,14 +131,15 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     onEventCompleted(id, supabase).catch(() => null);
 
     (async () => {
-      // Notify all participants: checked-in users + confirmed bookings
+      // Notify checked-in users + confirmed & paid bookings
       const [{ data: checkins }, { data: bookings }] = await Promise.all([
         supabase.from("event_checkins").select("user_id").eq("event_id", id),
         supabase
           .from("bookings")
           .select("user_id")
           .eq("event_id", id)
-          .in("status", ["confirmed", "pending"]),
+          .eq("status", "confirmed")
+          .eq("payment_status", "paid"),
       ]);
 
       // Deduplicate user IDs (filter out null guest bookings)
