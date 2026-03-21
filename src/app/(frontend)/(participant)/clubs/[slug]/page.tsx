@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import ClubProfileHeader from "@/components/clubs/ClubProfileHeader";
+import ClubRentalsTab from "@/components/clubs/ClubRentalsTab";
 import ClubRoleBadge from "@/components/clubs/ClubRoleBadge";
 import ClubTabs from "@/components/clubs/ClubTabs";
 import ForumTab from "@/components/clubs/forum/ForumTab";
@@ -58,6 +59,7 @@ export default async function ClubProfilePage({ params }: { params: Promise<{ sl
     membersResult,
     eventsResult,
     currentMembershipResult,
+    rentalCountResult,
   ] = await Promise.all([
     supabase
       .from("club_members")
@@ -89,6 +91,11 @@ export default async function ClubProfilePage({ params }: { params: Promise<{ sl
           .eq("user_id", user.id)
           .maybeSingle()
       : Promise.resolve({ data: null }),
+    supabase
+      .from("club_rental_items")
+      .select("id", { count: "exact", head: true })
+      .eq("club_id", club.id)
+      .eq("is_active", true),
   ]);
 
   // Debug: log any query errors
@@ -103,6 +110,7 @@ export default async function ClubProfilePage({ params }: { params: Promise<{ sl
   const { count: eventCount } = eventCountResult;
   const { data: members } = membersResult;
   const { data: events } = eventsResult;
+  const { count: rentalCount } = rentalCountResult;
 
   // Build current membership
   const currentMembership: { role: ClubRole; userId: string } | null =
@@ -146,6 +154,9 @@ export default async function ClubProfilePage({ params }: { params: Promise<{ sl
       <ClubTabs
         tabs={[
           { id: "events", label: "Events", count: eventCount ?? 0 },
+          ...(rentalCount && rentalCount > 0
+            ? [{ id: "rentals", label: "Rentals", count: rentalCount }]
+            : []),
           { id: "forum", label: "Forum" },
           { id: "members", label: "Members", count: memberCount ?? 0 },
         ]}
@@ -183,6 +194,7 @@ export default async function ClubProfilePage({ params }: { params: Promise<{ sl
               )}
             </>
           ),
+          rentals: <ClubRentalsTab clubSlug={club.slug} />,
           forum: currentMembership ? (
             <ForumTab clubId={club.id} clubSlug={club.slug} userRole={currentMembership.role} />
           ) : (

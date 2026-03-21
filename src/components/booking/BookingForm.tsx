@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useState } from "react";
 
+import { type RentalItem } from "@/components/rentals/RentalItemCard";
 import { Button } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { formatEventDate } from "@/lib/utils/format-date";
@@ -13,6 +14,7 @@ import CompanionFields, { type Companion } from "./CompanionFields";
 import PaymentInstructions from "./PaymentInstructions";
 import PaymentMethodPicker from "./PaymentMethodPicker";
 import PaymentProofUpload from "./PaymentProofUpload";
+import RentalSelectionStep, { type SelectedRental } from "./RentalSelectionStep";
 
 const WaiverModal = dynamic(() => import("./WaiverModal"));
 
@@ -23,6 +25,16 @@ export interface EventDistance {
   price: number;
   max_participants: number;
   spots_left: number;
+}
+
+interface ClubRentals {
+  club: { id: string; name: string; slug: string; logo_url: string | null };
+  items: RentalItem[];
+}
+
+export interface AvailableRentals {
+  own_club: ClubRentals;
+  nearby_clubs: ClubRentals[];
 }
 
 interface BookingFormProps {
@@ -42,6 +54,7 @@ interface BookingFormProps {
   paymentPaused?: boolean;
   contactUrl?: string | null;
   clubSlug?: string | null;
+  availableRentals?: AvailableRentals | null;
 }
 
 export default function BookingForm({
@@ -58,11 +71,14 @@ export default function BookingForm({
   paymentPaused,
   contactUrl,
   clubSlug,
+  availableRentals,
 }: BookingFormProps) {
   const [paymentMethod, setPaymentMethod] = useState("");
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [selectedRentals, setSelectedRentals] = useState<SelectedRental[]>([]);
+  const [bookingStep, setBookingStep] = useState<1 | 2>(1);
   const [booking, setBooking] = useState<{
     id: string;
     qr_code: string | null;
@@ -110,6 +126,46 @@ export default function BookingForm({
       }, 0)
     : effectivePrice * companions.length;
   const totalPrice = effectivePrice * selfSlots + companionPriceTotal;
+
+  // Rental availability check
+  const hasRentals =
+    availableRentals &&
+    (availableRentals.own_club.items.length > 0 ||
+      availableRentals.nearby_clubs.some((c) => c.items.length > 0));
+
+  // Compute rental subtotal
+  const allRentalItems = availableRentals
+    ? [...availableRentals.own_club.items, ...availableRentals.nearby_clubs.flatMap((c) => c.items)]
+    : [];
+  const rentalSubtotal = selectedRentals.reduce((total, sel) => {
+    const item = allRentalItems.find((i) => i.id === sel.rental_item_id);
+    return total + (item ? item.rental_price * sel.quantity : 0);
+  }, 0);
+
+  const grandTotal = totalPrice + rentalSubtotal;
+
+  const handleProceedToStep2 = () => {
+    // Validate step 1 before proceeding
+    if (hasDistances && mode === "self" && !selectedDistanceId) {
+      setError("Please select a distance category");
+      return;
+    }
+    if (mode === "friend" && companions.length === 0) {
+      setError("Please add at least one companion");
+      return;
+    }
+    const invalidCompanion = companions.find((c) => !c.full_name.trim());
+    if (invalidCompanion) {
+      setError("Please fill in all companion names");
+      return;
+    }
+    if (hasDistances && companions.some((c) => !c.event_distance_id)) {
+      setError("Please select a distance for each companion");
+      return;
+    }
+    setError("");
+    setBookingStep(2);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -163,6 +219,15 @@ export default function BookingForm({
         event_distance_id: c.event_distance_id || null,
       }));
 
+      const rentalPayload =
+        selectedRentals.length > 0
+          ? selectedRentals.map((r) => ({
+              rental_item_id: r.rental_item_id,
+              quantity: r.quantity,
+              size: r.size,
+            }))
+          : undefined;
+
       if (paymentPaused) {
         res = await fetch("/api/bookings", {
           method: "POST",
@@ -175,6 +240,7 @@ export default function BookingForm({
             companions: companionData.length > 0 ? companionData : undefined,
             participant_notes: participantNotes.trim() || null,
             waiver_accepted_at: waiverAccepted ? new Date().toISOString() : null,
+            rental_items: rentalPayload,
           }),
         });
       } else if (isEwallet && proofFile) {
@@ -195,6 +261,9 @@ export default function BookingForm({
         if (waiverAccepted) {
           formData.append("waiver_accepted_at", new Date().toISOString());
         }
+        if (rentalPayload) {
+          formData.append("rental_items", JSON.stringify(rentalPayload));
+        }
 
         res = await fetch("/api/bookings", {
           method: "POST",
@@ -212,6 +281,7 @@ export default function BookingForm({
             companions: companionData.length > 0 ? companionData : undefined,
             participant_notes: participantNotes.trim() || null,
             waiver_accepted_at: waiverAccepted ? new Date().toISOString() : null,
+            rental_items: rentalPayload,
           }),
         });
       }
@@ -245,6 +315,18 @@ export default function BookingForm({
         paymentPaused={paymentPaused}
         contactUrl={contactUrl}
         clubSlug={clubSlug}
+        rentalItems={
+          selectedRentals.length > 0
+            ? selectedRentals.map((r) => {
+                const item = allRentalItems.find((i) => i.id === r.rental_item_id);
+                return {
+                  name: item?.name ?? "Rental item",
+                  quantity: r.quantity,
+                  unit_price: item?.rental_price ?? 0,
+                };
+              })
+            : undefined
+        }
       />
     );
   }
@@ -539,24 +621,100 @@ export default function BookingForm({
 
         {error && <p className="text-sm text-red-500">{error}</p>}
 
-        <Button
-          type="submit"
-          className={cn("w-full", hasWaiver && !waiverAccepted && "cursor-not-allowed opacity-50")}
-          size="lg"
-          disabled={loading || (hasWaiver && !waiverAccepted)}
-        >
-          {loading
-            ? "Booking..."
-            : paymentPaused
-              ? "Reserve Spot"
-              : isFree
-                ? "Confirm Booking"
-                : isCash
+        {/* Step 2: Rental selection */}
+        {bookingStep === 2 && hasRentals && availableRentals && (
+          <RentalSelectionStep
+            ownClub={availableRentals.own_club}
+            nearbyClubs={availableRentals.nearby_clubs}
+            selections={selectedRentals}
+            onSelectionsChange={setSelectedRentals}
+          />
+        )}
+
+        {/* Grand total with rentals */}
+        {bookingStep === 2 && rentalSubtotal > 0 && (
+          <div className="rounded-xl bg-gray-50 dark:bg-gray-800 p-4">
+            <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+              <span>Event booking</span>
+              <span>₱{totalPrice.toLocaleString()}</span>
+            </div>
+            <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mt-1">
+              <span>Rental add-ons</span>
+              <span>₱{rentalSubtotal.toLocaleString()}</span>
+            </div>
+            <div className="border-t border-gray-200 dark:border-gray-700 mt-2 pt-2 flex items-center justify-between">
+              <span className="font-bold">Total</span>
+              <span className="text-lg font-bold text-lime-600 dark:text-lime-400">
+                ₱{grandTotal.toLocaleString()}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Navigation buttons */}
+        {bookingStep === 1 && hasRentals ? (
+          <Button
+            type="button"
+            className={cn(
+              "w-full",
+              hasWaiver && !waiverAccepted && "cursor-not-allowed opacity-50",
+            )}
+            size="lg"
+            disabled={hasWaiver && !waiverAccepted}
+            onClick={handleProceedToStep2}
+          >
+            Continue to Rental Add-ons
+          </Button>
+        ) : bookingStep === 2 ? (
+          <div className="flex gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              onClick={() => {
+                setBookingStep(1);
+                setError("");
+              }}
+            >
+              Back
+            </Button>
+            <Button type="submit" className="flex-1" size="lg" disabled={loading}>
+              {loading
+                ? "Booking..."
+                : paymentPaused
                   ? "Reserve Spot"
-                  : isEwallet
-                    ? "Submit Booking & Proof"
-                    : "Confirm Booking"}
-        </Button>
+                  : isFree
+                    ? "Confirm Booking"
+                    : isCash
+                      ? "Reserve Spot"
+                      : isEwallet
+                        ? "Submit Booking & Proof"
+                        : "Confirm Booking"}
+            </Button>
+          </div>
+        ) : (
+          <Button
+            type="submit"
+            className={cn(
+              "w-full",
+              hasWaiver && !waiverAccepted && "cursor-not-allowed opacity-50",
+            )}
+            size="lg"
+            disabled={loading || (hasWaiver && !waiverAccepted)}
+          >
+            {loading
+              ? "Booking..."
+              : paymentPaused
+                ? "Reserve Spot"
+                : isFree
+                  ? "Confirm Booking"
+                  : isCash
+                    ? "Reserve Spot"
+                    : isEwallet
+                      ? "Submit Booking & Proof"
+                      : "Confirm Booking"}
+          </Button>
+        )}
 
         {/* Waiver Modal */}
         {showWaiver && waiverText && (

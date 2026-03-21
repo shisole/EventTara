@@ -189,6 +189,32 @@ export default async function BookEventPage({
     ? event.contact_url || paymentInfo?.facebook_url || null
     : null;
 
+  // Fetch available rentals for this event
+  let availableRentals: {
+    own_club: {
+      club: { id: string; name: string; slug: string; logo_url: string | null };
+      items: any[];
+    };
+    nearby_clubs: {
+      club: { id: string; name: string; slug: string; logo_url: string | null };
+      items: any[];
+    }[];
+  } | null = null;
+
+  if (event.club_id) {
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3001";
+      const rentalsRes = await fetch(`${baseUrl}/api/events/${id}/rentals`, {
+        cache: "no-store",
+      });
+      if (rentalsRes.ok) {
+        availableRentals = await rentalsRes.json();
+      }
+    } catch {
+      // Non-critical — rentals just won't be shown
+    }
+  }
+
   const mode = isFriendMode && existingBooking ? "friend" : "self";
 
   return (
@@ -214,6 +240,7 @@ export default async function BookEventPage({
           paymentPaused={effectivePaymentPaused}
           contactUrl={resolvedContactUrl}
           clubSlug={clubSlug}
+          availableRentals={availableRentals}
         />
       </div>
     </div>

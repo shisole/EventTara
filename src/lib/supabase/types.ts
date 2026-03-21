@@ -2238,6 +2238,125 @@ export interface Database {
           },
         ];
       };
+      club_rental_items: {
+        Row: {
+          id: string;
+          club_id: string;
+          name: string;
+          category:
+            | "tent"
+            | "sleeping_bag"
+            | "trekking_poles"
+            | "bike"
+            | "helmet"
+            | "backpack"
+            | "other";
+          description: string | null;
+          rental_price: number;
+          quantity_total: number;
+          image_url: string | null;
+          sizes: string[] | null;
+          is_active: boolean;
+          sort_order: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          name: string;
+          category:
+            | "tent"
+            | "sleeping_bag"
+            | "trekking_poles"
+            | "bike"
+            | "helmet"
+            | "backpack"
+            | "other";
+          description?: string | null;
+          rental_price?: number;
+          quantity_total?: number;
+          image_url?: string | null;
+          sizes?: string[] | null;
+          is_active?: boolean;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          club_id?: string;
+          name?: string;
+          category?:
+            | "tent"
+            | "sleeping_bag"
+            | "trekking_poles"
+            | "bike"
+            | "helmet"
+            | "backpack"
+            | "other";
+          description?: string | null;
+          rental_price?: number;
+          quantity_total?: number;
+          image_url?: string | null;
+          sizes?: string[] | null;
+          is_active?: boolean;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "club_rental_items_club_id_fkey";
+            columns: ["club_id"];
+            isOneToOne: false;
+            referencedRelation: "clubs";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      booking_rentals: {
+        Row: {
+          id: string;
+          booking_id: string;
+          rental_item_id: string;
+          quantity: number;
+          size: string | null;
+          unit_price: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          booking_id: string;
+          rental_item_id: string;
+          quantity?: number;
+          size?: string | null;
+          unit_price: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          booking_id?: string;
+          rental_item_id?: string;
+          quantity?: number;
+          size?: string | null;
+          unit_price?: number;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "booking_rentals_booking_id_fkey";
+            columns: ["booking_id"];
+            isOneToOne: false;
+            referencedRelation: "bookings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "booking_rentals_rental_item_id_fkey";
+            columns: ["rental_item_id"];
+            isOneToOne: false;
+            referencedRelation: "club_rental_items";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: Record<never, never>;
     Functions: {
