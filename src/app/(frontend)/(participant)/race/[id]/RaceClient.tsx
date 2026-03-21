@@ -194,6 +194,25 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
     }
   }, [race.id]);
 
+  // ── Copy names handler ──
+  const [copyStatus, setCopyStatus] = useState<"idle" | "loading" | "copied">("idle");
+  const handleCopyNames = async () => {
+    setCopyStatus("loading");
+    try {
+      const res = await fetch(`/api/races/${race.id}/participants`);
+      if (!res.ok) {
+        setCopyStatus("idle");
+        return;
+      }
+      const data = (await res.json()) as { names: string[] };
+      await navigator.clipboard.writeText(data.names.join("\n"));
+      setCopyStatus("copied");
+      setTimeout(() => setCopyStatus("idle"), 2000);
+    } catch {
+      setCopyStatus("idle");
+    }
+  };
+
   // ── Idle state ──
   if (state === "idle") {
     return (
@@ -221,9 +240,23 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
           </div>
           {error && <p className="text-sm text-red-500">{error}</p>}
           {isAdmin && (
-            <Button onClick={startRace} disabled={loading} className="w-full">
-              {loading ? "Starting..." : "Start Race"}
-            </Button>
+            <div className="space-y-3">
+              <Button onClick={startRace} disabled={loading} className="w-full">
+                {loading ? "Starting..." : "Start Race"}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleCopyNames}
+                disabled={copyStatus === "loading"}
+                className="w-full"
+              >
+                {copyStatus === "copied"
+                  ? "Copied!"
+                  : copyStatus === "loading"
+                    ? "Loading..."
+                    : "Copy Participant Names"}
+              </Button>
+            </div>
           )}
         </div>
       </div>
