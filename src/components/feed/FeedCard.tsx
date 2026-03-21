@@ -119,9 +119,21 @@ export default function FeedCard({ item, isAuthenticated, currentUserId }: FeedC
         {/* Border showcase */}
         {item.activityType === "border" && item.awardedBorderName && <BorderShowcase item={item} />}
 
-        {/* Context image (non-badge/border activities) */}
+        {/* Photo showcase */}
+        {item.activityType === "photo" && item.photoUrls && item.photoUrls.length > 0 && (
+          <div className="grid grid-cols-2 gap-1.5 rounded-xl overflow-hidden">
+            {item.photoUrls.slice(0, 4).map((url, i) => (
+              <div key={i} className="relative aspect-square bg-gray-100 dark:bg-gray-800">
+                <Image src={url} alt="" fill className="object-cover" sizes="300px" />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Context image (non-badge/border/photo activities) */}
         {item.activityType !== "badge" &&
           item.activityType !== "border" &&
+          item.activityType !== "photo" &&
           item.contextImageUrl && (
             <div className="relative w-full h-40 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800">
               <Image

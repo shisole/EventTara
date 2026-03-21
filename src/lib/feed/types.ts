@@ -1,7 +1,7 @@
 import type { BorderTier } from "@/lib/constants/avatar-borders";
 import type { BadgeCategory, BadgeRarity } from "@/lib/constants/badge-rarity";
 
-export type ActivityType = "booking" | "checkin" | "badge" | "border" | "review";
+export type ActivityType = "booking" | "checkin" | "badge" | "border" | "review" | "photo";
 export type EmojiType = "heart";
 
 export const EMOJI_ICON = "💚";
@@ -31,6 +31,7 @@ export interface FeedItem {
   awardedBorderColor: string | null;
   reviewRating: number | null;
   reviewText: string | null;
+  photoUrls: string[] | null;
   timestamp: string;
   isFollowing: boolean;
   likeCount: number;
