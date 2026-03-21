@@ -1,5 +1,8 @@
+"use client";
+
 import { differenceInCalendarDays } from "date-fns";
 import Image from "next/image";
+import { useState } from "react";
 
 import { NavLink } from "@/components/navigation/NavigationContext";
 import { getActivityLabel, getActivitySolidColor } from "@/lib/constants/activity-types";
@@ -14,10 +17,14 @@ interface NextEventCardProps {
     location: string;
     cover_image_url: string | null;
     type: string;
+    price: number;
+    checkedIn: boolean;
+    userId: string;
     booking: {
       id: string;
       status: string;
       payment_status: string;
+      payment_method: string;
     };
   };
 }
@@ -29,10 +36,45 @@ function formatCountdown(date: string): string {
   return `In ${String(days)} days`;
 }
 
+function useCheckInEligibility(event: NextEventCardProps["event"]) {
+  const eventDate = new Date(event.date);
+  const hoursUntil = (eventDate.getTime() - Date.now()) / (1000 * 60 * 60);
+  const isFree = event.price === 0;
+  const isPaid = event.booking.payment_status === "paid";
+  const isCash = event.booking.payment_method === "cash";
+
+  const eligible = !isCash && (isFree || isPaid) && hoursUntil <= 48 && hoursUntil >= -24;
+  return eligible;
+}
+
 export default function NextEventCard({ event }: NextEventCardProps) {
   const countdown = formatCountdown(event.date);
   const formattedDate = formatEventDate(event.date, null, { short: true });
   const paymentPending = event.booking.payment_status === "pending";
+  const eligible = useCheckInEligibility(event);
+  const [checkInStatus, setCheckInStatus] = useState<"idle" | "loading" | "done">(
+    event.checkedIn ? "done" : "idle",
+  );
+
+  const handleCheckIn = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setCheckInStatus("loading");
+    try {
+      const res = await fetch("/api/checkins", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ event_id: event.id, user_id: event.userId }),
+      });
+      if (res.ok) {
+        setCheckInStatus("done");
+      } else {
+        setCheckInStatus("idle");
+      }
+    } catch {
+      setCheckInStatus("idle");
+    }
+  };
 
   return (
     <NavLink href={`/events/${event.id}`}>
@@ -121,6 +163,33 @@ export default function NextEventCard({ event }: NextEventCardProps) {
               <span className="truncate">{event.location}</span>
             </div>
           </div>
+
+          {/* Check-in button */}
+          {eligible && (
+            <div className="pt-2">
+              {checkInStatus === "done" ? (
+                <div className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-forest-50 py-2 text-sm font-medium text-forest-600 dark:bg-forest-900/30 dark:text-forest-400">
+                  <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  Checked In
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleCheckIn}
+                  disabled={checkInStatus === "loading"}
+                  className="w-full rounded-lg bg-teal-600 py-2 text-sm font-semibold text-white transition-colors hover:bg-teal-700 disabled:opacity-60 dark:bg-teal-500 dark:hover:bg-teal-600"
+                >
+                  {checkInStatus === "loading" ? "Checking in..." : "Check In"}
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </NavLink>
