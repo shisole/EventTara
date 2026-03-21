@@ -276,7 +276,7 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
           {/* Ducks — tightly clustered flock */}
           <div
             className="relative z-10"
-            style={{ height: Math.max(300, displayProgress.length * 30 + 40) }}
+            style={{ height: Math.max(300, displayProgress.length * 26 + 40) }}
           >
             {displayProgress.map((entry, i) => {
               const wobbleY = Math.sin(elapsed / 300 + entry.wobblePhase) * 3;
@@ -286,8 +286,8 @@ export default function RaceClient({ race, isAdmin }: { race: RaceData; isAdmin:
               const duckLeft = 5 + (entry.progress / 100) * 85;
 
               return (
-                <div key={entry.participant.user_id} className="absolute transition-none">
-                  {/* Name label — speech bubble above/beside duck */}
+                <div key={entry.participant.user_id}>
+                  {/* Name label — speech bubble above duck */}
                   <div
                     className="absolute z-20 select-none pointer-events-none"
                     style={{
