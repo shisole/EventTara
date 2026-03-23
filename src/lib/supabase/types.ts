@@ -1544,6 +1544,30 @@ export interface Database {
         };
         Relationships: [];
       };
+      event_review_photos: {
+        Row: {
+          id: string;
+          review_id: string;
+          image_url: string;
+          sort_order: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          review_id: string;
+          image_url: string;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          review_id?: string;
+          image_url?: string;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       quiz_responses: {
         Row: {
           id: string;
