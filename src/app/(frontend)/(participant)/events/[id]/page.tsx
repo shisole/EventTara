@@ -489,7 +489,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
             </Link>
           </div>
 
-          {event.drive_folder_url && (
+          {authUser && event.drive_folder_url && (
             <a
               href={event.drive_folder_url}
               target="_blank"
