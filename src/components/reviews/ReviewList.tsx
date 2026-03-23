@@ -1,18 +1,26 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState, useRef, useEffect, useCallback } from "react";
 
-import { UserAvatar } from "@/components/ui";
+import { MediaLightbox, UserAvatar } from "@/components/ui";
 import type { BorderTier } from "@/lib/constants/avatar-borders";
 
 import StarRating from "./StarRating";
+
+interface ReviewPhoto {
+  id: string;
+  image_url: string;
+  sort_order: number;
+}
 
 interface Review {
   id: string;
   rating: number;
   text: string | null;
   created_at: string;
+  event_review_photos?: ReviewPhoto[];
   users: {
     full_name: string;
     avatar_url: string | null;
@@ -38,6 +46,7 @@ export default function ReviewList({
 }: ReviewListProps) {
   const [visible, setVisible] = useState(pageSize);
   const [loading, setLoading] = useState(false);
+  const [lightbox, setLightbox] = useState<{ photos: ReviewPhoto[]; index: number } | null>(null);
   const loaderRef = useRef<HTMLDivElement>(null);
 
   const hasMore = visible < reviews.length;
@@ -126,6 +135,29 @@ export default function ReviewList({
               {review.text && (
                 <p className="text-sm text-gray-600 dark:text-gray-400 ml-11">{review.text}</p>
               )}
+              {review.event_review_photos && review.event_review_photos.length > 0 && (
+                <div className="flex gap-2 ml-11 mt-2">
+                  {review.event_review_photos
+                    .sort((a, b) => a.sort_order - b.sort_order)
+                    .map((photo, idx) => (
+                      <button
+                        key={photo.id}
+                        onClick={() =>
+                          setLightbox({ photos: review.event_review_photos!, index: idx })
+                        }
+                        className="relative w-16 h-16 rounded-lg overflow-hidden hover:opacity-80 transition-opacity"
+                      >
+                        <Image
+                          src={photo.image_url}
+                          alt="Review photo"
+                          fill
+                          className="object-cover"
+                          sizes="64px"
+                        />
+                      </button>
+                    ))}
+                </div>
+              )}
             </div>
           );
         })}
@@ -156,6 +188,17 @@ export default function ReviewList({
             <span className="text-sm text-gray-400 dark:text-gray-500">Scroll for more</span>
           )}
         </div>
+      )}
+
+      {lightbox && (
+        <MediaLightbox
+          items={lightbox.photos
+            .sort((a, b) => a.sort_order - b.sort_order)
+            .map((p) => ({ id: p.id, url: p.image_url, caption: null }))}
+          selectedIndex={lightbox.index}
+          onClose={() => setLightbox(null)}
+          onChange={(i) => setLightbox((prev) => (prev ? { ...prev, index: i } : null))}
+        />
       )}
     </div>
   );
