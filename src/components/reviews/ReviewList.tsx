@@ -7,6 +7,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { MediaLightbox, UserAvatar } from "@/components/ui";
 import type { BorderTier } from "@/lib/constants/avatar-borders";
 
+import ReviewForm from "./ReviewForm";
 import StarRating from "./StarRating";
 
 interface ReviewPhoto {
@@ -17,8 +18,10 @@ interface ReviewPhoto {
 
 interface Review {
   id: string;
+  user_id?: string;
   rating: number;
   text: string | null;
+  tags?: string[] | null;
   created_at: string;
   event_review_photos?: ReviewPhoto[];
   users: {
@@ -35,6 +38,8 @@ interface ReviewListProps {
   reviews: Review[];
   averageRating?: number;
   pageSize?: number;
+  currentUserId?: string;
+  eventId?: string;
 }
 
 const PAGE_SIZE_DEFAULT = 8;
@@ -43,10 +48,13 @@ export default function ReviewList({
   reviews,
   averageRating,
   pageSize = PAGE_SIZE_DEFAULT,
+  currentUserId,
+  eventId,
 }: ReviewListProps) {
   const [visible, setVisible] = useState(pageSize);
   const [loading, setLoading] = useState(false);
   const [lightbox, setLightbox] = useState<{ photos: ReviewPhoto[]; index: number } | null>(null);
+  const [editingReviewId, setEditingReviewId] = useState<string | null>(null);
   const loaderRef = useRef<HTMLDivElement>(null);
 
   const hasMore = visible < reviews.length;
@@ -96,6 +104,33 @@ export default function ReviewList({
       <div className="space-y-4">
         {displayed.map((review) => {
           const user = review.users;
+          const isOwn = currentUserId && review.user_id === currentUserId;
+          const isEditing = editingReviewId === review.id;
+
+          if (isEditing && eventId) {
+            return (
+              <div
+                key={review.id}
+                className="border-b border-gray-100 dark:border-gray-800 pb-4 last:border-0"
+              >
+                <ReviewForm
+                  eventId={eventId}
+                  reviewId={review.id}
+                  initialRating={review.rating}
+                  initialText={review.text ?? ""}
+                  initialTags={review.tags ?? []}
+                  initialPhotos={
+                    review.event_review_photos
+                      ?.sort((a, b) => a.sort_order - b.sort_order)
+                      .map((p) => p.image_url) ?? []
+                  }
+                  onCancel={() => setEditingReviewId(null)}
+                  onSubmitted={() => setEditingReviewId(null)}
+                />
+              </div>
+            );
+          }
+
           return (
             <div
               key={review.id}
@@ -131,6 +166,27 @@ export default function ReviewList({
                     </span>
                   </div>
                 </div>
+                {isOwn && (
+                  <button
+                    onClick={() => setEditingReviewId(review.id)}
+                    className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    title="Edit review"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.5}
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
+                      />
+                    </svg>
+                  </button>
+                )}
               </div>
               {review.text && (
                 <p className="text-sm text-gray-600 dark:text-gray-400 ml-11">{review.text}</p>
