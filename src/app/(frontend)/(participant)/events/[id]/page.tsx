@@ -15,6 +15,7 @@ import EventLocationMap from "@/components/maps/EventLocationMap";
 import ReviewForm from "@/components/reviews/ReviewForm";
 import ReviewList from "@/components/reviews/ReviewList";
 import ReviewPromptTrigger from "@/components/reviews/ReviewPromptTrigger";
+import SelfCheckinPrompt from "@/components/reviews/SelfCheckinPrompt";
 import EventRouteSection from "@/components/strava/EventRouteSection";
 import { Breadcrumbs, DemoBadge, UIBadge } from "@/components/ui";
 import { isPaymentPauseEnabled } from "@/lib/cms/cached";
@@ -281,19 +282,25 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
     .eq("event_id", id)
     .single();
 
-  // Check if current user can review (checked in + hasn't reviewed)
+  // Check if current user can review or self-check-in
   let canReview = false;
+  let canSelfCheckin = false;
   if (authUser && event.status === "completed") {
-    const { data: userCheckin } = await supabase
-      .from("event_checkins")
-      .select("id")
-      .eq("event_id", id)
-      .eq("user_id", authUser.id)
-      .single();
+    const hasReviewed = eventReviews.some((r: any) => r.user_id === authUser.id);
 
-    if (userCheckin) {
-      const hasReviewed = eventReviews.some((r: any) => r.user_id === authUser.id);
-      canReview = !hasReviewed;
+    if (!hasReviewed) {
+      const { data: userCheckin } = await supabase
+        .from("event_checkins")
+        .select("id")
+        .eq("event_id", id)
+        .eq("user_id", authUser.id)
+        .single();
+
+      if (userCheckin) {
+        canReview = true;
+      } else {
+        canSelfCheckin = true;
+      }
     }
   }
 
@@ -541,6 +548,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
                 <ReviewForm eventId={id} />
               </div>
             )}
+            {canSelfCheckin && <SelfCheckinPrompt eventId={id} eventTitle={event.title} />}
             <ReviewList reviews={eventReviews} averageRating={avgRating} />
           </div>
         </div>
