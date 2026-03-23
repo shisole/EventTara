@@ -531,7 +531,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
                     View Event Media
                   </span>
                   <p className="text-xs text-gray-400/70 dark:text-gray-500/70">
-                    Log in to access photos &amp; videos
+                    Log in to access drone shots, videos &amp; more
                   </p>
                 </div>
                 <svg
