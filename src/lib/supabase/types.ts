@@ -529,21 +529,21 @@ export interface Database {
           event_id: string;
           user_id: string;
           checked_in_at: string;
-          method: "qr" | "manual" | "online";
+          method: "qr" | "manual" | "online" | "self";
         };
         Insert: {
           id?: string;
           event_id: string;
           user_id: string;
           checked_in_at?: string;
-          method?: "qr" | "manual" | "online";
+          method?: "qr" | "manual" | "online" | "self";
         };
         Update: {
           id?: string;
           event_id?: string;
           user_id?: string;
           checked_in_at?: string;
-          method?: "qr" | "manual" | "online";
+          method?: "qr" | "manual" | "online" | "self";
         };
         Relationships: [];
       };
