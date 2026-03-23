@@ -9,9 +9,9 @@ interface BadgesEarnedProps {
 
 function emojiCircle(emoji: string, size: number): string {
   const fontSize = size === 120 ? 48 : 32;
-  return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:linear-gradient(135deg,#DAA520,#0891b2);display:inline-flex;align-items:center;justify-content:center;margin-bottom:16px;border:4px solid #DAA520;">
-    <span style="font-size:${fontSize}px;">${emoji}</span>
-  </div>`;
+  return `<table cellpadding="0" cellspacing="0" style="margin:0 auto 16px;"><tr><td style="width:${size}px;height:${size}px;border-radius:50%;background:linear-gradient(135deg,#0891b2,#0e7490);text-align:center;vertical-align:middle;border:4px solid #0891b2;">
+    <span style="font-size:${fontSize}px;line-height:1;">${emoji}</span>
+  </td></tr></table>`;
 }
 
 function singleBadgeBody(userName: string, badge: BadgesEarnedProps["badges"][0]): string {
@@ -79,7 +79,7 @@ export function badgesEarnedHtml({ userName, badges }: BadgesEarnedProps): strin
         <table width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
           <!-- Header -->
           <tr>
-            <td style="background:linear-gradient(135deg,#DAA520,#0891b2);padding:32px;text-align:center;">
+            <td style="background:linear-gradient(135deg,#0891b2,#0e7490);padding:32px;text-align:center;">
               <h1 style="color:#ffffff;margin:0;font-size:24px;font-weight:700;">EventTara</h1>
               <p style="color:rgba(255,255,255,0.9);margin:8px 0 0;font-size:14px;">${subtitle}</p>
             </td>
@@ -89,7 +89,7 @@ export function badgesEarnedHtml({ userName, badges }: BadgesEarnedProps): strin
             <td style="padding:32px;text-align:center;">
               ${body}
               <!-- CTA -->
-              <a href="https://eventtara.com/achievements" style="display:inline-block;background-color:#2D5A3D;color:#ffffff;text-decoration:none;padding:12px 32px;border-radius:8px;font-size:14px;font-weight:600;">
+              <a href="https://eventtara.com/achievements" style="display:inline-block;background:linear-gradient(135deg,#0891b2,#0e7490);color:#ffffff;text-decoration:none;padding:14px 40px;border-radius:8px;font-size:16px;font-weight:600;">
                 View Your Achievements
               </a>
             </td>
