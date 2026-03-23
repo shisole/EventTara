@@ -18,6 +18,7 @@ export { default as EnvelopeIcon } from "./EnvelopeIcon";
 export { default as ExploreIcon } from "./ExploreIcon";
 export { default as FacebookIcon } from "./FacebookIcon";
 export { default as FeedIcon } from "./FeedIcon";
+export { default as GoogleDriveIcon } from "./GoogleDriveIcon";
 export { default as GoogleIcon } from "./GoogleIcon";
 export { default as HeartIcon } from "./HeartIcon";
 export { default as HomeIcon } from "./HomeIcon";
