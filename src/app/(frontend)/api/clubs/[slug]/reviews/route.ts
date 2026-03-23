@@ -7,6 +7,8 @@ import {
   VALID_TAG_KEYS,
 } from "@/lib/constants/review-tags";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
+import { awardTokens } from "@/lib/tokens/award";
+import { TOKEN_REWARDS } from "@/lib/tokens/constants";
 import type { ClubReviewsResponse, ClubReviewWithUser } from "@/lib/types/club-reviews";
 
 interface RouteCtx {
@@ -254,6 +256,21 @@ export async function POST(request: Request, { params }: RouteCtx) {
     if (!is_anonymous) {
       // eslint-disable-next-line @typescript-eslint/no-empty-function
       awardFirstReviewBadge(user.id, supabase).catch(() => {});
+    }
+
+    // Fire-and-forget: award coins for submitting a review
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    awardTokens(admin, user.id, TOKEN_REWARDS.review, "review", review.id).catch(() => {});
+    if (photo_urls.length > 0) {
+      const p = awardTokens(
+        admin,
+        user.id,
+        TOKEN_REWARDS.review_photo_bonus,
+        "review_photo_bonus",
+        review.id,
+      );
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      p.catch(() => {});
     }
 
     return NextResponse.json({ review }, { status: 201 });

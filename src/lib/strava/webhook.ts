@@ -1,5 +1,10 @@
 import { checkAndAwardSystemBadges } from "@/lib/badges/check-system-badges";
+import { sendEmail } from "@/lib/email/send";
+import { badgesEarnedHtml } from "@/lib/email/templates/badges-earned";
+import { createNotifications } from "@/lib/notifications/create";
 import { createServiceClient } from "@/lib/supabase/server";
+import { awardTokens } from "@/lib/tokens/award";
+import { TOKEN_REWARDS } from "@/lib/tokens/constants";
 
 import { getStravaClient } from "./client";
 import { STRAVA_TO_EVENT_TYPE } from "./constants";
@@ -142,6 +147,55 @@ export async function handleActivityCreate(
       : `${LOG_PREFIX} Stored activity ${String(activityId)} without booking match`,
   );
 
-  // 7. Re-evaluate system badges (fire-and-forget)
-  checkAndAwardSystemBadges(userId, supabase).catch(() => null);
+  // 7. Re-evaluate system badges, send notifications + email
+  try {
+    const awardedBadges = await checkAndAwardSystemBadges(userId, supabase);
+    if (awardedBadges.length > 0) {
+      await createNotifications(
+        supabase,
+        awardedBadges.map((b) => ({
+          userId,
+          type: "badge_earned" as const,
+          title: "Badge Earned",
+          body: `You earned the "${b.title}" badge!`,
+          href: "/achievements",
+        })),
+      );
+
+      const { data: participant } = await supabase
+        .from("users")
+        .select("email, full_name")
+        .eq("id", userId)
+        .single();
+
+      if (participant?.email) {
+        const subject =
+          awardedBadges.length === 1
+            ? `You earned a new badge: ${awardedBadges[0].title}!`
+            : `You earned ${String(awardedBadges.length)} new badges!`;
+
+        await sendEmail({
+          to: participant.email,
+          subject,
+          html: badgesEarnedHtml({
+            userName: participant.full_name || "Adventurer",
+            badges: awardedBadges,
+          }),
+        });
+      }
+    }
+  } catch {
+    // Badge/notification/email failures should not propagate
+  }
+
+  // 8. Award coins if the activity was auto-matched to a booking
+  if (matchedBookingId) {
+    void awardTokens(
+      supabase,
+      userId,
+      TOKEN_REWARDS.strava_activity_linked,
+      "strava_activity_linked",
+      matchedBookingId,
+    ).catch(() => null);
+  }
 }

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 
 import { VALID_TAG_KEYS } from "@/lib/constants/review-tags";
 import { createClient } from "@/lib/supabase/server";
+import { awardTokens } from "@/lib/tokens/award";
+import { TOKEN_REWARDS } from "@/lib/tokens/constants";
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id: eventId } = await params;
@@ -103,6 +105,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  // Fire-and-forget: award coins for submitting a review
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  awardTokens(supabase, user.id, TOKEN_REWARDS.review, "review", review.id).catch(() => {});
 
   return NextResponse.json({ review });
 }

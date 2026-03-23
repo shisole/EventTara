@@ -1,5 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { SYSTEM_BADGES } from "@/lib/constants/system-badges";
+import { sendEmail } from "@/lib/email/send";
+import { badgesEarnedHtml } from "@/lib/email/templates/badges-earned";
 import { createNotifications } from "@/lib/notifications/create";
 import type { Database } from "@/lib/supabase/types";
 
@@ -103,6 +106,37 @@ async function awardBadgeForSet(
     })),
   );
 
+  // Send badge emails to awarded users
+  const badgeMeta = SYSTEM_BADGES.find((b) => b.criteriaKey === criteriaKey);
+  if (badgeMeta && toAward.length > 0) {
+    try {
+      const { data: users } = await supabase
+        .from("users")
+        .select("id, email, full_name")
+        .in("id", toAward);
+
+      for (const u of users ?? []) {
+        if (!u.email) continue;
+        sendEmail({
+          to: u.email,
+          subject: `You earned a new badge: ${badge.title}!`,
+          html: badgesEarnedHtml({
+            userName: u.full_name || "Adventurer",
+            badges: [
+              {
+                title: badgeMeta.title,
+                description: badgeMeta.description,
+                imageUrl: badgeMeta.imageUrl,
+              },
+            ],
+          }),
+        }).catch(() => null);
+      }
+    } catch {
+      // Email failures should not affect badge awarding
+    }
+  }
+
   return toAward.length;
 }
 
@@ -153,6 +187,33 @@ export async function awardFirstReviewBadge(
         href: "/my-events?tab=badges",
       },
     ]);
+
+    // Send badge email
+    const badgeMeta = SYSTEM_BADGES.find((b) => b.criteriaKey === "first_review");
+    if (badgeMeta) {
+      const { data: participant } = await supabase
+        .from("users")
+        .select("email, full_name")
+        .eq("id", userId)
+        .single();
+
+      if (participant?.email) {
+        sendEmail({
+          to: participant.email,
+          subject: `You earned a new badge: ${badge.title}!`,
+          html: badgesEarnedHtml({
+            userName: participant.full_name || "Adventurer",
+            badges: [
+              {
+                title: badgeMeta.title,
+                description: badgeMeta.description,
+                imageUrl: badgeMeta.imageUrl,
+              },
+            ],
+          }),
+        }).catch(() => null);
+      }
+    }
   } catch (error) {
     console.error("[first-review-badge] Unexpected error:", error);
   }
