@@ -171,7 +171,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
   const { data: reviews } = await supabase
     .from("event_reviews")
     .select(
-      "id, rating, text, created_at, user_id, users(full_name, avatar_url, username, active_border_id)",
+      "id, rating, text, created_at, user_id, users(full_name, avatar_url, username, active_border_id), event_review_photos(id, image_url, sort_order)",
     )
     .eq("event_id", id)
     .order("created_at", { ascending: false });

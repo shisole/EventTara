@@ -170,13 +170,19 @@ function BentoGrid({
   );
 }
 
-export default function EventGallery({ photos }: { photos: MediaItem[] }) {
+export default function EventGallery({
+  photos,
+  title = "Event Photos",
+}: {
+  photos: MediaItem[];
+  title?: string;
+}) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   return (
     <div>
-      <h2 className="text-xl font-heading font-bold mb-4">Event Photos</h2>
+      <h2 className="text-xl font-heading font-bold mb-4">{title}</h2>
 
       {photos.length === 0 && (
         <p className="text-sm text-gray-400 dark:text-gray-500">No photos yet.</p>
