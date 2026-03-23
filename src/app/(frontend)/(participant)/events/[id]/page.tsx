@@ -20,9 +20,9 @@ import { Breadcrumbs, DemoBadge, UIBadge } from "@/components/ui";
 import { isPaymentPauseEnabled } from "@/lib/cms/cached";
 import { ACTIVITY_TYPE_LABELS } from "@/lib/constants/activity-types";
 import { resolvePresetImage } from "@/lib/constants/avatars";
-import { findProvinceFromLocation } from "@/lib/constants/philippine-provinces";
 import { BreadcrumbTitle } from "@/lib/contexts/BreadcrumbContext";
 import { enrichReviewsWithBorders } from "@/lib/data/enrich-borders";
+import { geocodeLocation } from "@/lib/geocode";
 import { cdnUrl } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/server";
 import { formatEventDate } from "@/lib/utils/format-date";
@@ -305,10 +305,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
   const coords =
     event.coordinates && typeof event.coordinates === "object" && "lat" in event.coordinates
       ? (event.coordinates as { lat: number; lng: number })
-      : (() => {
-          const province = findProvinceFromLocation(event.location);
-          return province ? { lat: province.lat, lng: province.lng } : null;
-        })();
+      : await geocodeLocation(event.location);
 
   const forecast = coords ? await getWeatherForecast(coords.lat, coords.lng, event.date) : null;
   const isLongRange = (() => {
