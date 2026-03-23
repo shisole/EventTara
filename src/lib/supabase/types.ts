@@ -69,6 +69,7 @@ export interface Database {
           members_only: boolean;
           payment_paused: boolean;
           contact_url: string | null;
+          drive_folder_url: string | null;
           waiver_text: string | null;
           created_at: string;
         };
@@ -92,6 +93,7 @@ export interface Database {
           members_only?: boolean;
           payment_paused?: boolean;
           contact_url?: string | null;
+          drive_folder_url?: string | null;
           waiver_text?: string | null;
           created_at?: string;
         };
@@ -115,6 +117,7 @@ export interface Database {
           members_only?: boolean;
           payment_paused?: boolean;
           contact_url?: string | null;
+          drive_folder_url?: string | null;
           waiver_text?: string | null;
           created_at?: string;
         };

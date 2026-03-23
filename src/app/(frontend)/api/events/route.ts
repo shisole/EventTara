@@ -329,6 +329,7 @@ export async function POST(request: Request) {
       members_only: body.members_only ?? false,
       payment_paused: body.payment_paused ?? false,
       contact_url: body.contact_url ?? null,
+      drive_folder_url: body.drive_folder_url ?? null,
       status: "draft",
     })
     .select()

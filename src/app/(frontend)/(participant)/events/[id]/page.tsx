@@ -10,7 +10,7 @@ import OrganizerCard from "@/components/events/OrganizerCard";
 import ShareButtons from "@/components/events/ShareButtons";
 import WeatherCard from "@/components/events/WeatherCard";
 import GuideCard from "@/components/guides/GuideCard";
-import { ChevronRightIcon, LocationPinIcon } from "@/components/icons";
+import { ChevronRightIcon, GoogleDriveIcon, LocationPinIcon } from "@/components/icons";
 import EventLocationMap from "@/components/maps/EventLocationMap";
 import ReviewForm from "@/components/reviews/ReviewForm";
 import ReviewList from "@/components/reviews/ReviewList";
@@ -481,6 +481,38 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
               <ChevronRightIcon className="w-4 h-4" />
             </Link>
           </div>
+
+          {event.drive_folder_url && (
+            <a
+              href={event.drive_folder_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="-mt-2 flex items-center gap-3 rounded-xl bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800 px-4 py-3 transition-colors hover:bg-teal-100 dark:hover:bg-teal-900/30"
+            >
+              <GoogleDriveIcon className="w-5 h-5 shrink-0" />
+              <div className="min-w-0">
+                <span className="text-sm font-medium text-teal-700 dark:text-teal-300">
+                  View Event Media
+                </span>
+                <p className="text-xs text-teal-600/70 dark:text-teal-400/70">
+                  Drone shots, videos &amp; more
+                </p>
+              </div>
+              <svg
+                className="w-4 h-4 text-teal-500 dark:text-teal-400 ml-auto shrink-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"
+                />
+              </svg>
+            </a>
+          )}
 
           {event.coordinates &&
             typeof event.coordinates === "object" &&

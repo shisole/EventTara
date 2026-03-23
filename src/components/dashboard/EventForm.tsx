@@ -76,6 +76,7 @@ interface EventFormProps {
     members_only?: boolean;
     payment_paused?: boolean;
     contact_url?: string | null;
+    drive_folder_url?: string | null;
     initialPhotos?: {
       id: string;
       image_url: string;
@@ -513,6 +514,7 @@ export default function EventForm({
   // Payment pause state
   const [paymentPaused, setPaymentPaused] = useState(initialData?.payment_paused ?? false);
   const [contactUrl, setContactUrl] = useState(initialData?.contact_url ?? "");
+  const [driveUrl, setDriveUrl] = useState(initialData?.drive_folder_url ?? "");
 
   // Waiver state
   const [waiverEnabled, setWaiverEnabled] = useState(!!initialData?.waiver_text);
@@ -626,6 +628,7 @@ export default function EventForm({
       members_only: membersOnly,
       payment_paused: paymentPaused,
       contact_url: paymentPaused && contactUrl.trim() ? contactUrl.trim() : null,
+      drive_folder_url: driveUrl.trim() || null,
     };
 
     if (clubId) {
@@ -1358,6 +1361,23 @@ export default function EventForm({
                 initialPhotos={initialData.initialPhotos}
               />
             )}
+
+            {/* Media folder URL */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Media Folder URL{" "}
+                <span className="font-normal text-gray-400 dark:text-gray-500">(optional)</span>
+              </label>
+              <Input
+                value={driveUrl}
+                onChange={(e) => setDriveUrl(e.target.value)}
+                placeholder="https://drive.google.com/drive/folders/..."
+              />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Link to Google Drive folder with event videos/drone shots. Participants can view
+                this on the event page.
+              </p>
+            </div>
           </div>
         )}
         {/* ── End Step 3 ── */}
