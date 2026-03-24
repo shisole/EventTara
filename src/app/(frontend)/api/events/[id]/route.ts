@@ -6,6 +6,7 @@ import { findProvinceFromLocation } from "@/lib/constants/philippine-provinces";
 import { sendEmail } from "@/lib/email/send";
 import { eventPublishedHtml } from "@/lib/email/templates/event-published";
 import { findOverlappingEvent, formatOverlapDate } from "@/lib/events/overlap";
+import { geocodeLocation } from "@/lib/geocode";
 import { createNotifications } from "@/lib/notifications/create";
 import { createClient } from "@/lib/supabase/server";
 
@@ -63,12 +64,15 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
   const body = await request.json();
 
-  // Use provided coordinates, or fall back to province centroid lookup
+  // Use provided coordinates, or geocode the location, or fall back to province centroid
   let coordinates = body.coordinates === undefined ? undefined : body.coordinates;
   if (coordinates === undefined && body.location) {
-    const province = findProvinceFromLocation(body.location);
-    if (province) {
-      coordinates = { lat: province.lat, lng: province.lng };
+    coordinates = await geocodeLocation(body.location);
+    if (!coordinates) {
+      const province = findProvinceFromLocation(body.location);
+      if (province) {
+        coordinates = { lat: province.lat, lng: province.lng };
+      }
     }
   }
 
