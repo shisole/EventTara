@@ -12,14 +12,30 @@ import StarRating from "./StarRating";
 interface ReviewFormProps {
   eventId: string;
   onSubmitted?: () => void;
+  reviewId?: string;
+  initialRating?: number;
+  initialText?: string;
+  initialTags?: string[];
+  initialPhotos?: string[];
+  onCancel?: () => void;
 }
 
-export default function ReviewForm({ eventId, onSubmitted }: ReviewFormProps) {
+export default function ReviewForm({
+  eventId,
+  onSubmitted,
+  reviewId,
+  initialRating,
+  initialText,
+  initialTags,
+  initialPhotos,
+  onCancel,
+}: ReviewFormProps) {
+  const isEditMode = !!reviewId;
   const router = useRouter();
-  const [rating, setRating] = useState(0);
-  const [text, setText] = useState("");
-  const [tags, setTags] = useState<string[]>([]);
-  const [photos, setPhotos] = useState<string[]>([]);
+  const [rating, setRating] = useState(initialRating ?? 0);
+  const [text, setText] = useState(initialText ?? "");
+  const [tags, setTags] = useState<string[]>(initialTags ?? []);
+  const [photos, setPhotos] = useState<string[]>(initialPhotos ?? []);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState(false);
@@ -36,7 +52,7 @@ export default function ReviewForm({ eventId, onSubmitted }: ReviewFormProps) {
 
     try {
       const res = await fetch(`/api/events/${eventId}/reviews`, {
-        method: "POST",
+        method: isEditMode ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           rating,
@@ -64,7 +80,9 @@ export default function ReviewForm({ eventId, onSubmitted }: ReviewFormProps) {
   if (submitted) {
     return (
       <div className="text-center py-4">
-        <p className="text-lg font-medium text-gray-900 dark:text-white">Thanks for your review!</p>
+        <p className="text-lg font-medium text-gray-900 dark:text-white">
+          {isEditMode ? "Review updated!" : "Thanks for your review!"}
+        </p>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
           Your feedback helps the community.
         </p>
@@ -116,9 +134,34 @@ export default function ReviewForm({ eventId, onSubmitted }: ReviewFormProps) {
 
         {error && <p className="text-sm text-red-500">{error}</p>}
 
-        <Button type="submit" disabled={loading || rating === 0} size="md" className="w-full">
-          {loading ? "Submitting..." : "Submit Review"}
-        </Button>
+        <div className={onCancel ? "flex gap-3" : ""}>
+          {onCancel && (
+            <Button
+              type="button"
+              variant="outline"
+              size="md"
+              className="flex-1"
+              onClick={onCancel}
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+          )}
+          <Button
+            type="submit"
+            disabled={loading || rating === 0}
+            size="md"
+            className={onCancel ? "flex-1" : "w-full"}
+          >
+            {loading
+              ? isEditMode
+                ? "Saving..."
+                : "Submitting..."
+              : isEditMode
+                ? "Save changes"
+                : "Submit Review"}
+          </Button>
+        </div>
       </fieldset>
     </form>
   );

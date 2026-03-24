@@ -6,6 +6,7 @@ import BookingButton from "@/components/events/BookingButton";
 import DifficultyBadge from "@/components/events/DifficultyBadge";
 import EventGallery from "@/components/events/EventGallery";
 import LiveBookingCount from "@/components/events/LiveBookingCount";
+import MobileBookingBar from "@/components/events/MobileBookingBar";
 import OrganizerCard from "@/components/events/OrganizerCard";
 import ShareButtons from "@/components/events/ShareButtons";
 import WeatherCard from "@/components/events/WeatherCard";
@@ -172,7 +173,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
   const { data: reviews } = await supabase
     .from("event_reviews")
     .select(
-      "id, rating, text, created_at, user_id, users(full_name, avatar_url, username, active_border_id), event_review_photos(id, image_url, sort_order)",
+      "id, rating, text, tags, created_at, user_id, users(full_name, avatar_url, username, active_border_id), event_review_photos(id, image_url, sort_order)",
     )
     .eq("event_id", id)
     .order("created_at", { ascending: false });
@@ -412,7 +413,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-36 md:pb-8">
       <BreadcrumbTitle title={event.title} />
       <script
         type="application/ld+json"
@@ -575,13 +576,21 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
               </div>
             )}
             {canSelfCheckin && <SelfCheckinPrompt eventId={id} eventTitle={event.title} />}
-            <ReviewList reviews={eventReviews} averageRating={avgRating} />
+            <ReviewList
+              reviews={eventReviews}
+              averageRating={avgRating}
+              currentUserId={authUser?.id}
+              eventId={id}
+            />
           </div>
         </div>
 
         {/* Sidebar */}
         <div className="lg:sticky lg:top-24 space-y-8">
-          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-5 sm:p-6 space-y-4 mb-4">
+          <div
+            id="booking-card"
+            className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-5 sm:p-6 space-y-4 mb-4"
+          >
             {distances && distances.length > 0 ? (
               <>
                 <div className="text-center">
@@ -790,6 +799,24 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
       </div>
 
       {canReview && <ReviewPromptTrigger eventId={id} eventTitle={event.title} />}
+
+      <MobileBookingBar
+        eventId={id}
+        price={event.price}
+        spotsLeft={spotsLeft}
+        isPast={event.status === "completed"}
+        distances={(distances || []).map((d) => ({
+          id: d.id,
+          distance_km: d.distance_km,
+          label: d.label,
+          price: d.price,
+        }))}
+        userBooking={userBooking}
+        membersOnly={isMembersOnly}
+        isMember={isMember}
+        clubSlug={club?.slug}
+        clubName={club?.name}
+      />
     </div>
   );
 }
