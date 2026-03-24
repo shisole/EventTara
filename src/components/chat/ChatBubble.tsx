@@ -13,6 +13,14 @@ import ChatPanel from "./ChatPanel";
 const COLLAPSE_DELAY = 5_000;
 
 const cornerPositionClasses: Record<Corner, string> = {
+  "bottom-right": "bottom-[5.5rem] right-4 md:bottom-6 md:right-6",
+  "bottom-left": "bottom-[5.5rem] left-4 md:bottom-6 md:left-6",
+  "top-right": "top-20 right-4 md:top-6 md:right-6",
+  "top-left": "top-20 left-4 md:top-6 md:left-6",
+};
+
+/** Extra bottom offset on pages with a mobile floating booking bar */
+const cornerRaisedClasses: Record<Corner, string> = {
   "bottom-right": "bottom-[8.5rem] right-4 md:bottom-6 md:right-6",
   "bottom-left": "bottom-[8.5rem] left-4 md:bottom-6 md:left-6",
   "top-right": "top-20 right-4 md:top-6 md:right-6",
@@ -42,7 +50,10 @@ export default function ChatBubble() {
   // Hide on dashboard pages
   if (pathname.startsWith("/dashboard")) return null;
 
-  const positionClasses = dragStyle ? "" : cornerPositionClasses[corner];
+  // Raise bubble on event detail pages where the mobile booking bar is present
+  const hasBookingBar = /^\/events\/[^/]+$/.test(pathname);
+  const cornerClasses = hasBookingBar ? cornerRaisedClasses : cornerPositionClasses;
+  const positionClasses = dragStyle ? "" : cornerClasses[corner];
   const transitionClasses = isDragging
     ? ""
     : isSnapping
