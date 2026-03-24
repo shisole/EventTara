@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 
 import { VALID_TAG_KEYS } from "@/lib/constants/review-tags";
 import { createClient } from "@/lib/supabase/server";
+import { awardTokens } from "@/lib/tokens/award";
+import { TOKEN_REWARDS } from "@/lib/tokens/constants";
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id: eventId } = await params;
@@ -116,6 +118,21 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       sort_order: i,
     }));
     await supabase.from("event_review_photos").insert(photoRows);
+  }
+
+  // Fire-and-forget: award coins for submitting a review
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  awardTokens(supabase, user.id, TOKEN_REWARDS.review, "review", review.id).catch(() => {});
+  if (photos.length > 0) {
+    const p = awardTokens(
+      supabase,
+      user.id,
+      TOKEN_REWARDS.review_photo_bonus,
+      "review_photo_bonus",
+      review.id,
+    );
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    p.catch(() => {});
   }
 
   return NextResponse.json({ review });

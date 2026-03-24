@@ -1979,7 +1979,11 @@ export interface Database {
             | "purchase"
             | "badge_earned"
             | "first_event"
-            | "admin_grant";
+            | "admin_grant"
+            | "review"
+            | "review_photo_bonus"
+            | "strava_connected"
+            | "strava_activity_linked";
           reference_id: string | null;
           created_at: string;
         };
@@ -1996,7 +2000,11 @@ export interface Database {
             | "purchase"
             | "badge_earned"
             | "first_event"
-            | "admin_grant";
+            | "admin_grant"
+            | "review"
+            | "review_photo_bonus"
+            | "strava_connected"
+            | "strava_activity_linked";
           reference_id?: string | null;
           created_at?: string;
         };
@@ -2013,7 +2021,11 @@ export interface Database {
             | "purchase"
             | "badge_earned"
             | "first_event"
-            | "admin_grant";
+            | "admin_grant"
+            | "review"
+            | "review_photo_bonus"
+            | "strava_connected"
+            | "strava_activity_linked";
           reference_id?: string | null;
           created_at?: string;
         };
