@@ -97,7 +97,121 @@ export async function POST(request: Request) {
     });
   }
 
-  // Handle regular user check-in
+  // Self-check-in for completed events (no booking required)
+  const isSelfCheckin = user.id === user_id;
+  if (isSelfCheckin) {
+    const { data: eventData } = await supabase
+      .from("events")
+      .select("status, title")
+      .eq("id", event_id)
+      .single();
+
+    if (eventData?.status === "completed") {
+      // Check for duplicate check-in
+      const { data: existingCheckin } = await supabase
+        .from("event_checkins")
+        .select("id")
+        .eq("event_id", event_id)
+        .eq("user_id", user_id)
+        .single();
+
+      if (existingCheckin) {
+        return NextResponse.json(
+          { message: "You are already checked in", alreadyCheckedIn: true },
+          { status: 200 },
+        );
+      }
+
+      const { data: userData } = await supabase
+        .from("users")
+        .select("full_name")
+        .eq("id", user_id)
+        .single();
+
+      const selfUserName = userData?.full_name || "Participant";
+      const selfEventName = eventData.title || "Event";
+
+      const { error } = await supabase.from("event_checkins").insert({
+        event_id,
+        user_id,
+        method: "self",
+      });
+
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+
+      after(async () => {
+        try {
+          await awardTokens(supabase, user_id, TOKEN_REWARDS.check_in, "check_in", event_id);
+
+          const { count: totalCheckins } = await supabase
+            .from("event_checkins")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", user_id);
+
+          if (totalCheckins === 1) {
+            await awardTokens(
+              supabase,
+              user_id,
+              TOKEN_REWARDS.first_event,
+              "first_event",
+              event_id,
+            );
+          }
+
+          await Promise.all([
+            checkAndAwardBorders(user_id, supabase),
+            (async () => {
+              const awardedBadges = await checkAndAwardSystemBadges(user_id, supabase);
+              if (awardedBadges.length > 0) {
+                await createNotifications(
+                  supabase,
+                  awardedBadges.map((b) => ({
+                    userId: user_id,
+                    type: "badge_earned" as const,
+                    title: "Badge Earned",
+                    body: `You earned the "${b.title}" badge!`,
+                    href: "/achievements",
+                  })),
+                );
+
+                const { data: participant } = await supabase
+                  .from("users")
+                  .select("email")
+                  .eq("id", user_id)
+                  .single();
+
+                if (participant?.email) {
+                  const subject =
+                    awardedBadges.length === 1
+                      ? `You earned a new badge: ${awardedBadges[0].title}!`
+                      : `You earned ${String(awardedBadges.length)} new badges!`;
+
+                  await sendEmail({
+                    to: participant.email,
+                    subject,
+                    html: badgesEarnedHtml({ userName: selfUserName, badges: awardedBadges }),
+                  });
+                }
+              }
+            })(),
+          ]);
+        } catch {
+          // Side-effect failures should never surface to the user
+        }
+      });
+
+      return NextResponse.json({
+        message: `${selfUserName} checked in!`,
+        userName: selfUserName,
+        eventName: selfEventName,
+        alreadyCheckedIn: false,
+      });
+    }
+  }
+
+  // Handle regular user check-in (requires booking)
   const { data: booking } = await supabase
     .from("bookings")
     .select(
@@ -139,8 +253,7 @@ export async function POST(request: Request) {
     );
   }
 
-  // Self-check-in validation
-  const isSelfCheckin = user.id === user_id;
+  // Self-check-in validation (booking-based, non-completed events)
   if (isSelfCheckin) {
     if (paymentStatus !== "paid") {
       return NextResponse.json(

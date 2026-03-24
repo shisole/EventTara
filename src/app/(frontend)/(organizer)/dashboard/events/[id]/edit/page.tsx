@@ -114,6 +114,7 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
           members_only: event.members_only,
           payment_paused: event.payment_paused,
           contact_url: event.contact_url,
+          drive_folder_url: event.drive_folder_url,
         }}
       />
     </div>

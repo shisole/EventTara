@@ -20,12 +20,16 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   let rating: number;
   let text: string | undefined;
   let tags: string[] = [];
+  let photos: string[] = [];
   try {
     const body = await request.json();
     rating = body.rating;
     text = body.text;
     if (Array.isArray(body.tags)) {
       tags = body.tags.filter((t: unknown) => typeof t === "string" && VALID_TAG_KEYS.has(t));
+    }
+    if (Array.isArray(body.photos)) {
+      photos = body.photos.filter((u: unknown) => typeof u === "string" && u !== "").slice(0, 5);
     }
   } catch {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
@@ -106,9 +110,30 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  // Insert review photos if any
+  if (photos.length > 0) {
+    const photoRows = photos.map((url, i) => ({
+      review_id: review.id,
+      image_url: url,
+      sort_order: i,
+    }));
+    await supabase.from("event_review_photos").insert(photoRows);
+  }
+
   // Fire-and-forget: award coins for submitting a review
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   awardTokens(supabase, user.id, TOKEN_REWARDS.review, "review", review.id).catch(() => {});
+  if (photos.length > 0) {
+    const p = awardTokens(
+      supabase,
+      user.id,
+      TOKEN_REWARDS.review_photo_bonus,
+      "review_photo_bonus",
+      review.id,
+    );
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    p.catch(() => {});
+  }
 
   return NextResponse.json({ review });
 }

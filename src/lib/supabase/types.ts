@@ -69,6 +69,7 @@ export interface Database {
           members_only: boolean;
           payment_paused: boolean;
           contact_url: string | null;
+          drive_folder_url: string | null;
           waiver_text: string | null;
           created_at: string;
         };
@@ -92,6 +93,7 @@ export interface Database {
           members_only?: boolean;
           payment_paused?: boolean;
           contact_url?: string | null;
+          drive_folder_url?: string | null;
           waiver_text?: string | null;
           created_at?: string;
         };
@@ -115,6 +117,7 @@ export interface Database {
           members_only?: boolean;
           payment_paused?: boolean;
           contact_url?: string | null;
+          drive_folder_url?: string | null;
           waiver_text?: string | null;
           created_at?: string;
         };
@@ -526,21 +529,21 @@ export interface Database {
           event_id: string;
           user_id: string;
           checked_in_at: string;
-          method: "qr" | "manual" | "online";
+          method: "qr" | "manual" | "online" | "self";
         };
         Insert: {
           id?: string;
           event_id: string;
           user_id: string;
           checked_in_at?: string;
-          method?: "qr" | "manual" | "online";
+          method?: "qr" | "manual" | "online" | "self";
         };
         Update: {
           id?: string;
           event_id?: string;
           user_id?: string;
           checked_in_at?: string;
-          method?: "qr" | "manual" | "online";
+          method?: "qr" | "manual" | "online" | "self";
         };
         Relationships: [];
       };
@@ -1521,6 +1524,30 @@ export interface Database {
         Relationships: [];
       };
       club_review_photos: {
+        Row: {
+          id: string;
+          review_id: string;
+          image_url: string;
+          sort_order: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          review_id: string;
+          image_url: string;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          review_id?: string;
+          image_url?: string;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      event_review_photos: {
         Row: {
           id: string;
           review_id: string;

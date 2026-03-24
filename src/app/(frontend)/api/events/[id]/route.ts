@@ -116,6 +116,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       ...(body.members_only !== undefined && { members_only: body.members_only }),
       ...(body.payment_paused !== undefined && { payment_paused: body.payment_paused }),
       ...(body.contact_url !== undefined && { contact_url: body.contact_url }),
+      ...(body.drive_folder_url !== undefined && { drive_folder_url: body.drive_folder_url }),
       ...(body.status && { status: body.status }),
     })
     .eq("id", id)
