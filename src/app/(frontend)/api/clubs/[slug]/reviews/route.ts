@@ -418,6 +418,27 @@ export async function PATCH(request: Request, { params }: RouteCtx) {
         sort_order: i,
       }));
       await supabase.from("club_review_photos").insert(photoRows);
+
+      // Award photo bonus if not already awarded for this review
+      const { data: existingBonus } = await supabase
+        .from("token_transactions")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("reason", "review_photo_bonus")
+        .eq("reference_id", existing.id)
+        .single();
+
+      if (!existingBonus) {
+        const p = awardTokens(
+          supabase,
+          user.id,
+          TOKEN_REWARDS.review_photo_bonus,
+          "review_photo_bonus",
+          existing.id,
+        );
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        p.catch(() => {});
+      }
     }
   }
 
