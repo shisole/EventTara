@@ -13,8 +13,8 @@ import ChatPanel from "./ChatPanel";
 const COLLAPSE_DELAY = 5_000;
 
 const cornerPositionClasses: Record<Corner, string> = {
-  "bottom-right": "bottom-[5.5rem] right-4 md:bottom-6 md:right-6",
-  "bottom-left": "bottom-[5.5rem] left-4 md:bottom-6 md:left-6",
+  "bottom-right": "bottom-[8.5rem] right-4 md:bottom-6 md:right-6",
+  "bottom-left": "bottom-[8.5rem] left-4 md:bottom-6 md:left-6",
   "top-right": "top-20 right-4 md:top-6 md:right-6",
   "top-left": "top-20 left-4 md:top-6 md:left-6",
 };
