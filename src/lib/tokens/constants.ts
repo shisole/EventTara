@@ -9,8 +9,8 @@ export const TOKEN_REWARDS = {
   first_event: 100,
   signup: 50,
   quiz_completed: 25,
-  review: 10,
-  review_photo_bonus: 15,
+  review: 5,
+  review_photo_bonus: 10,
   strava_connected: 25,
   strava_activity_linked: 10,
 } as const;

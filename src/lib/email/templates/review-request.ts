@@ -64,7 +64,7 @@ export function reviewRequestHtml({
                 It only takes a minute — rate your experience and optionally add tags or photos.
               </p>
               <p style="color:#0891b2;font-size:13px;text-align:center;margin:8px 0 0;line-height:1.5;font-weight:600;">
-                🪙 Earn 10 coins for your review — plus 15 bonus coins if you include photos!
+                🪙 Earn 5 coins for your review — plus 10 bonus coins if you include photos!
               </p>
             </td>
           </tr>
