@@ -132,6 +132,15 @@ export async function GET(request: Request) {
       { onConflict: "user_id" },
     );
 
+    // Fire-and-forget: award coins for connecting Strava
+    void awardTokens(
+      serviceClient,
+      currentUser.id,
+      TOKEN_REWARDS.strava_connected,
+      "strava_connected",
+      `strava_${String(athlete.id)}`,
+    ).catch(() => null);
+
     // Award "Connected Athlete" badge + notify (runs after response)
     after(async () => {
       try {
@@ -311,6 +320,15 @@ export async function GET(request: Request) {
   void awardTokens(serviceClient, newUserId, TOKEN_REWARDS.signup, "milestone", "signup").catch(
     () => null,
   );
+
+  // Award coins for connecting Strava
+  void awardTokens(
+    serviceClient,
+    newUserId,
+    TOKEN_REWARDS.strava_connected,
+    "strava_connected",
+    `strava_${String(athlete.id)}`,
+  ).catch(() => null);
 
   // Award "Connected Athlete" badge + notify (runs after response)
   after(async () => {

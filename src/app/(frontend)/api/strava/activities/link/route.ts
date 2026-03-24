@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { checkAndAwardSystemBadges } from "@/lib/badges/check-system-badges";
 import { getStravaClient } from "@/lib/strava/client";
 import { createClient } from "@/lib/supabase/server";
+import { awardTokens } from "@/lib/tokens/award";
+import { TOKEN_REWARDS } from "@/lib/tokens/constants";
 
 /**
  * POST /api/strava/activities/link
@@ -91,6 +93,15 @@ export async function POST(request: Request) {
 
     // Re-evaluate system badges (fire-and-forget)
     checkAndAwardSystemBadges(user.id, supabase).catch(() => null);
+
+    // Fire-and-forget: award coins for linking a Strava activity
+    void awardTokens(
+      supabase,
+      user.id,
+      TOKEN_REWARDS.strava_activity_linked,
+      "strava_activity_linked",
+      inserted.id,
+    ).catch(() => null);
 
     return NextResponse.json({ activity: inserted });
   } catch (error) {

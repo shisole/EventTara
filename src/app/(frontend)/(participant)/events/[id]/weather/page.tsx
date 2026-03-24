@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
-import { findProvinceFromLocation } from "@/lib/constants/philippine-provinces";
+import { geocodeLocation } from "@/lib/geocode";
 import { createClient } from "@/lib/supabase/server";
 import { formatEventDate } from "@/lib/utils/format-date";
 import { getWeatherForecast } from "@/lib/weather";
@@ -25,10 +25,7 @@ export default async function WeatherPage({ params }: { params: Promise<{ id: st
   const coords =
     event.coordinates && typeof event.coordinates === "object" && "lat" in event.coordinates
       ? (event.coordinates as { lat: number; lng: number })
-      : (() => {
-          const province = findProvinceFromLocation(event.location);
-          return province ? { lat: province.lat, lng: province.lng } : null;
-        })();
+      : await geocodeLocation(event.location);
 
   if (!coords) redirect(`/events/${id}`);
 

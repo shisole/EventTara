@@ -4,6 +4,7 @@ import { checkClubPermissionServer, CLUB_PERMISSIONS } from "@/lib/clubs/permiss
 import { findProvinceFromLocation } from "@/lib/constants/philippine-provinces";
 import { fetchEventEnrichments, mapEventToCard } from "@/lib/events/map-event-card";
 import { findOverlappingEvent, formatOverlapDate } from "@/lib/events/overlap";
+import { geocodeLocation } from "@/lib/geocode";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 import { awardTokens } from "@/lib/tokens/award";
@@ -282,12 +283,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  // Use provided coordinates, or fall back to province centroid lookup
+  // Use provided coordinates, or geocode the location, or fall back to province centroid
   let coordinates = body.coordinates || null;
   if (!coordinates && body.location) {
-    const province = findProvinceFromLocation(body.location);
-    if (province) {
-      coordinates = { lat: province.lat, lng: province.lng };
+    coordinates = await geocodeLocation(body.location);
+    if (!coordinates) {
+      const province = findProvinceFromLocation(body.location);
+      if (province) {
+        coordinates = { lat: province.lat, lng: province.lng };
+      }
     }
   }
 

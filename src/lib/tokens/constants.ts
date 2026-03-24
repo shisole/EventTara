@@ -9,6 +9,10 @@ export const TOKEN_REWARDS = {
   first_event: 100,
   signup: 50,
   quiz_completed: 25,
+  review: 5,
+  review_photo_bonus: 10,
+  strava_connected: 25,
+  strava_activity_linked: 10,
 } as const;
 
 export type TokenReason =
@@ -20,4 +24,8 @@ export type TokenReason =
   | "purchase"
   | "badge_earned"
   | "first_event"
-  | "admin_grant";
+  | "admin_grant"
+  | "review"
+  | "review_photo_bonus"
+  | "strava_connected"
+  | "strava_activity_linked";
