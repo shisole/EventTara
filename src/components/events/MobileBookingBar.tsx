@@ -163,33 +163,29 @@ export default function MobileBookingBar({
               <button
                 type="button"
                 onClick={() => setDropdownOpen((o) => !o)}
-                className="flex items-center gap-1.5 text-left"
+                className="flex items-center gap-2.5 text-left min-h-[44px]"
               >
-                <div>
-                  <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                    {priceLabel}
-                  </span>
-                  <span className="block text-xs text-gray-500 dark:text-gray-400">
-                    {activeDistance?.label || `${activeDistance?.distance_km}K`}
-                    <svg
-                      className="inline ml-1 w-3 h-3"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={2.5}
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d={
-                          dropdownOpen
-                            ? "M4.5 15.75l7.5-7.5 7.5 7.5"
-                            : "M19.5 8.25l-7.5 7.5-7.5-7.5"
-                        }
-                      />
-                    </svg>
-                  </span>
-                </div>
+                <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                  {priceLabel}
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-gray-800 px-2.5 py-1 text-xs font-medium text-gray-700 dark:text-gray-300">
+                  {activeDistance?.label || `${activeDistance?.distance_km}K`}
+                  <svg
+                    className="w-3 h-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2.5}
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d={
+                        dropdownOpen ? "M4.5 15.75l7.5-7.5 7.5 7.5" : "M19.5 8.25l-7.5 7.5-7.5-7.5"
+                      }
+                    />
+                  </svg>
+                </span>
               </button>
 
               {/* Dropdown */}
