@@ -805,14 +805,15 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
 
       <MobileBookingBar
         eventId={id}
-        price={
-          distances && distances.length > 0
-            ? Math.min(...distances.map((d) => d.price))
-            : event.price
-        }
+        price={event.price}
         spotsLeft={spotsLeft}
         isPast={event.status === "completed"}
-        hasDistances={!!(distances && distances.length > 0)}
+        distances={(distances || []).map((d) => ({
+          id: d.id,
+          distance_km: d.distance_km,
+          label: d.label,
+          price: d.price,
+        }))}
         userBooking={userBooking}
         membersOnly={isMembersOnly}
         isMember={isMember}
