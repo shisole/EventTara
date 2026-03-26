@@ -825,13 +825,9 @@ export default function EventForm({
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Description
               </label>
-              <textarea
+              <RichTextEditor
                 value={description}
-                onChange={(e) => {
-                  setDescription(e.target.value);
-                }}
-                rows={4}
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600"
+                onChange={setDescription}
                 placeholder="Describe your event..."
               />
             </div>
