@@ -807,6 +807,40 @@ export default function EventForm({
           ))}
         </div>
 
+        {/* Top step navigation — lets users advance without scrolling to the bottom */}
+        <div className="flex items-center justify-end gap-2">
+          {currentStep > 0 && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setCurrentStep((s) => s - 1);
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+            >
+              Back
+            </Button>
+          )}
+          {currentStep < 2 ? (
+            <Button
+              key="top-next"
+              type="button"
+              size="sm"
+              onClick={() => {
+                setCurrentStep((s) => s + 1);
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+            >
+              Next
+            </Button>
+          ) : (
+            <Button key="top-submit" type="submit" size="sm" disabled={loading}>
+              {loading ? "Saving..." : mode === "create" ? "Create Event" : "Save Changes"}
+            </Button>
+          )}
+        </div>
+
         {/* ── Step 1: Basics ── */}
         {currentStep === 0 && (
           <div className="space-y-6">
@@ -825,13 +859,9 @@ export default function EventForm({
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Description
               </label>
-              <textarea
+              <RichTextEditor
                 value={description}
-                onChange={(e) => {
-                  setDescription(e.target.value);
-                }}
-                rows={4}
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600"
+                onChange={setDescription}
                 placeholder="Describe your event..."
               />
             </div>
