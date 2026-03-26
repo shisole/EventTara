@@ -824,6 +824,7 @@ export default function EventForm({
           )}
           {currentStep < 2 ? (
             <Button
+              key="top-next"
               type="button"
               size="sm"
               onClick={() => {
@@ -834,7 +835,7 @@ export default function EventForm({
               Next
             </Button>
           ) : (
-            <Button type="submit" size="sm" disabled={loading}>
+            <Button key="top-submit" type="submit" size="sm" disabled={loading}>
               {loading ? "Saving..." : mode === "create" ? "Create Event" : "Save Changes"}
             </Button>
           )}
