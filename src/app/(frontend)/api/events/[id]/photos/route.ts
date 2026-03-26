@@ -9,9 +9,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 
   const { data: photos, error } = await supabase
     .from("event_photos")
-    .select(
-      "id, event_id, user_id, image_url, caption, sort_order, uploaded_at, users(full_name, username, avatar_url)",
-    )
+    .select("id, image_url, caption, sort_order, uploaded_at")
     .eq("event_id", id)
     .order("uploaded_at", { ascending: false });
 
