@@ -807,6 +807,39 @@ export default function EventForm({
           ))}
         </div>
 
+        {/* Top step navigation — lets users advance without scrolling to the bottom */}
+        <div className="flex items-center justify-end gap-2">
+          {currentStep > 0 && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setCurrentStep((s) => s - 1);
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+            >
+              Back
+            </Button>
+          )}
+          {currentStep < 2 ? (
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => {
+                setCurrentStep((s) => s + 1);
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+            >
+              Next
+            </Button>
+          ) : (
+            <Button type="submit" size="sm" disabled={loading}>
+              {loading ? "Saving..." : mode === "create" ? "Create Event" : "Save Changes"}
+            </Button>
+          )}
+        </div>
+
         {/* ── Step 1: Basics ── */}
         {currentStep === 0 && (
           <div className="space-y-6">
