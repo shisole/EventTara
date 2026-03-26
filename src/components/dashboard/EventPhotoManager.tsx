@@ -36,13 +36,11 @@ export default function EventPhotoManager({ eventId, initialPhotos = [] }: Event
   const inputRef = useRef<HTMLInputElement>(null);
   const touchStartRef = useRef<{ idx: number; y: number } | null>(null);
 
-  // Fetch photos client-side if none were provided server-side
+  // Always fetch fresh photos from the API on mount.
+  // initialPhotos (from server pre-load) is used as the optimistic initial state
+  // to avoid a blank loading flash, but the API fetch ensures we always display
+  // the latest photos (including any uploaded after the page was server-rendered).
   useEffect(() => {
-    if (initialPhotos.length > 0) {
-      setPhotos(initialPhotos);
-      setLoading(false);
-      return;
-    }
     let cancelled = false;
     async function fetchPhotos() {
       try {
@@ -59,7 +57,7 @@ export default function EventPhotoManager({ eventId, initialPhotos = [] }: Event
     return () => {
       cancelled = true;
     };
-  }, [eventId, initialPhotos]);
+  }, [eventId]);
 
   const handleUpload = useCallback(
     async (files: FileList | File[]) => {
@@ -132,10 +130,8 @@ export default function EventPhotoManager({ eventId, initialPhotos = [] }: Event
     const previous = photos;
     setPhotos((prev) => prev.filter((p) => p.id !== photoId));
 
-    const res = await fetch(`/api/events/${eventId}/photos`, {
+    const res = await fetch(`/api/events/${eventId}/photos?photoId=${photoId}`, {
       method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ photo_id: photoId }),
     });
 
     if (!res.ok) {
