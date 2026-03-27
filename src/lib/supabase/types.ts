@@ -938,7 +938,8 @@ export interface Database {
             | "forum_mention"
             | "booking_expired"
             | "payment_reminder"
-            | "payment_proof_uploaded";
+            | "payment_proof_uploaded"
+            | "booking_cancelled";
           title: string;
           body: string;
           href: string | null;
@@ -965,7 +966,8 @@ export interface Database {
             | "forum_mention"
             | "booking_expired"
             | "payment_reminder"
-            | "payment_proof_uploaded";
+            | "payment_proof_uploaded"
+            | "booking_cancelled";
           title: string;
           body: string;
           href?: string | null;
@@ -992,7 +994,8 @@ export interface Database {
             | "forum_mention"
             | "booking_expired"
             | "payment_reminder"
-            | "payment_proof_uploaded";
+            | "payment_proof_uploaded"
+            | "booking_cancelled";
           title?: string;
           body?: string;
           href?: string | null;

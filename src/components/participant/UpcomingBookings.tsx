@@ -35,6 +35,58 @@ interface Booking {
   userId: string;
 }
 
+function CancelBookingButton({ bookingId }: { bookingId: string }) {
+  const [status, setStatus] = useState<"idle" | "confirming" | "loading">("idle");
+
+  const handleCancel = async () => {
+    setStatus("loading");
+    try {
+      const res = await fetch(`/api/bookings/${bookingId}/cancel`, { method: "POST" });
+      if (res.ok) {
+        globalThis.location.reload();
+      } else {
+        const data = await res.json();
+        alert(data.error || "Failed to cancel booking");
+        setStatus("idle");
+      }
+    } catch {
+      alert("Failed to cancel booking");
+      setStatus("idle");
+    }
+  };
+
+  if (status === "confirming") {
+    return (
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-red-600 dark:text-red-400">Cancel this booking?</span>
+        <Button
+          size="sm"
+          variant="primary"
+          onClick={handleCancel}
+          className="!bg-red-600 hover:!bg-red-700 !text-white"
+        >
+          Yes, Cancel
+        </Button>
+        <Button size="sm" variant="outline" onClick={() => setStatus("idle")}>
+          No
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <Button
+      size="sm"
+      variant="outline"
+      onClick={() => setStatus("confirming")}
+      disabled={status === "loading"}
+      className="text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-950"
+    >
+      {status === "loading" ? "Cancelling..." : "Cancel Booking"}
+    </Button>
+  );
+}
+
 function ReuploadButton({ bookingId }: { bookingId: string }) {
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -211,6 +263,7 @@ export default function UpcomingBookings({ bookings }: { bookings: Booking[] }) 
                   setReviewEvent({ id: b.eventId, title: b.eventTitle });
                 }}
               />
+              {!b.checkedIn && <CancelBookingButton bookingId={b.id} />}
             </div>
             {b.qrCode && (
               <button
