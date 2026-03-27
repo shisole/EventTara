@@ -65,6 +65,7 @@ interface EventFormProps {
     location: string;
     coordinates?: { lat: number; lng: number } | null;
     max_participants: number;
+    offline_participants?: number;
     price: number;
     cover_image_url: string | null;
     status?: string;
@@ -316,6 +317,9 @@ export default function EventForm({
 
   const [location, setLocation] = useState(initialData?.location || "");
   const [maxParticipants, setMaxParticipants] = useState(initialData?.max_participants || 50);
+  const [offlineParticipants, setOfflineParticipants] = useState(
+    initialData?.offline_participants ?? 0,
+  );
   const [price, setPrice] = useState(initialData?.price || 0);
   const [coverImage, setCoverImage] = useState<string | File | null>(
     initialData?.cover_image_url || null,
@@ -621,6 +625,7 @@ export default function EventForm({
       location,
       coordinates,
       max_participants: maxParticipants,
+      offline_participants: offlineParticipants,
       price,
       cover_image_url: coverImageUrl,
       difficulty_level: difficultyLevel,
@@ -1173,6 +1178,26 @@ export default function EventForm({
                   step="0.01"
                   required
                 />
+              </div>
+            )}
+
+            {/* Offline / reserved participants override — available to organizers/admins only */}
+            {mode === "edit" && (
+              <div className="space-y-1">
+                <Input
+                  id="offlineParticipants"
+                  label="Reserved Slots (offline)"
+                  type="number"
+                  value={String(offlineParticipants)}
+                  onChange={(e) => {
+                    setOfflineParticipants(Math.max(0, Number(e.target.value)));
+                  }}
+                  min="0"
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Participants who registered or paid outside the platform. These count toward
+                  capacity and reduce visible spots — no booking records are created.
+                </p>
               </div>
             )}
           </div>

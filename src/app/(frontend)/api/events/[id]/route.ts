@@ -113,6 +113,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       location: body.location,
       ...(coordinates !== undefined && { coordinates }),
       max_participants: body.max_participants,
+      ...(body.offline_participants !== undefined && {
+        offline_participants: body.offline_participants,
+      }),
       price: body.price,
       cover_image_url: body.cover_image_url,
       ...(body.difficulty_level !== undefined && { difficulty_level: body.difficulty_level }),

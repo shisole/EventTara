@@ -117,6 +117,7 @@ export default async function ClubEditEventPage({
           location: event.location,
           coordinates: event.coordinates as { lat: number; lng: number } | null,
           max_participants: event.max_participants,
+          offline_participants: event.offline_participants,
           price: event.price,
           cover_image_url: event.cover_image_url,
           status: event.status,
