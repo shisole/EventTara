@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 import ParticipantsTable, {
   type Booking,
@@ -30,6 +30,7 @@ interface ParticipantsSectionProps {
   companionsByBooking: Record<string, Companion[]>;
   checkedInUserIds: Set<string>;
   distances: EventDistance[];
+  offlineParticipants: number;
 }
 
 export default function ParticipantsSection({
@@ -40,10 +41,40 @@ export default function ParticipantsSection({
   companionsByBooking,
   checkedInUserIds,
   distances,
+  offlineParticipants,
 }: ParticipantsSectionProps) {
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
   const isCompleted = eventStatus === "completed";
+
+  // Offline/reserved slots
+  const [offlineSlots, setOfflineSlots] = useState(offlineParticipants);
+  const [savingOffline, setSavingOffline] = useState(false);
+  const offlineTimeout = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  const saveOfflineSlots = useCallback(
+    async (value: number) => {
+      setSavingOffline(true);
+      try {
+        await fetch(`/api/events/${eventId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ offline_participants: value }),
+        });
+        router.refresh();
+      } finally {
+        setSavingOffline(false);
+      }
+    },
+    [eventId, router],
+  );
+
+  function handleOfflineChange(value: number) {
+    const clamped = Math.max(0, value);
+    setOfflineSlots(clamped);
+    if (offlineTimeout.current) clearTimeout(offlineTimeout.current);
+    offlineTimeout.current = setTimeout(() => saveOfflineSlots(clamped), 600);
+  }
 
   const handleExportCSV = useCallback(() => {
     const headers = [
@@ -105,6 +136,34 @@ export default function ParticipantsSection({
           </Button>
         </Link>
       </div>
+
+      {/* Offline / reserved slots */}
+      {!isCompleted && (
+        <div className="mb-4 flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <label
+              htmlFor="offlineSlots"
+              className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap"
+            >
+              Reserved Slots (offline)
+            </label>
+            <input
+              id="offlineSlots"
+              type="number"
+              min={0}
+              value={offlineSlots}
+              onChange={(e) => handleOfflineChange(Number(e.target.value))}
+              className="w-20 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-1.5 text-sm text-gray-900 dark:text-gray-100 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors"
+            />
+            {savingOffline && (
+              <span className="text-xs text-gray-400 dark:text-gray-500">Saving...</span>
+            )}
+          </div>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            Participants registered or paid outside the platform. Counts toward capacity.
+          </p>
+        </div>
+      )}
 
       <ParticipantsTable
         bookings={bookings}

@@ -214,6 +214,7 @@ export default async function ManageEventPage({ params }: { params: Promise<{ id
             companionsByBooking={companionsByBooking}
             checkedInUserIds={checkedInUserIds}
             distances={(distances || []) as any}
+            offlineParticipants={event.offline_participants ?? 0}
           />
         </div>
 
