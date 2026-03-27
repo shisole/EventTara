@@ -115,7 +115,7 @@ async function seedCMS() {
       coming_soon_strava: false,
       coming_soon_gamification: true,
       coming_soon_bento: false,
-      ewallet_payments: false,
+      ewallet_payments: true,
       oauth_google: true,
       oauth_strava: true,
       oauth_facebook: true,

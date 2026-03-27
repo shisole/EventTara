@@ -27,6 +27,9 @@ const TYPE_ICONS: Record<NotificationRow["type"], string> = {
   event_published: "📢",
   forum_reply: "💬",
   forum_mention: "📣",
+  booking_expired: "⏰",
+  payment_reminder: "⚠️",
+  payment_proof_uploaded: "💳",
 };
 
 export default function NotificationItem({ notification, onMarkRead }: NotificationItemProps) {

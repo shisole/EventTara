@@ -4,7 +4,7 @@ import { isPaymentPauseEnabled } from "@/lib/cms/cached";
 import { sendEmail } from "@/lib/email/send";
 import { bookingConfirmationHtml } from "@/lib/email/templates/booking-confirmation";
 import { findOverlappingEvent, formatOverlapDate } from "@/lib/events/overlap";
-import { createNotification } from "@/lib/notifications/create";
+import { createNotification, createNotifications } from "@/lib/notifications/create";
 import { uploadToR2 } from "@/lib/r2";
 import { createClient } from "@/lib/supabase/server";
 
@@ -275,6 +275,12 @@ export async function POST(request: Request) {
 
   if (mode === "self") {
     // Create new booking
+    // E-wallet bookings expire in 30 minutes if unpaid; free/cash/paused don't expire
+    const expiresAt =
+      isEwallet && paymentStatus === "pending"
+        ? new Date(Date.now() + 30 * 60 * 1000).toISOString()
+        : null;
+
     const { data: booking, error } = await supabase
       .from("bookings")
       .insert({
@@ -288,6 +294,7 @@ export async function POST(request: Request) {
         event_distance_id: eventDistanceId,
         participant_notes: participantNotes,
         waiver_accepted_at: waiverAcceptedAt,
+        expires_at: expiresAt,
       })
       .select()
       .single();
@@ -314,6 +321,33 @@ export async function POST(request: Request) {
           .eq("id", booking.id);
 
         bookingRecord.payment_proof_url = proofUrl;
+
+        // Notify club moderators+ about the proof upload
+        const { data: clubMods } = await supabase
+          .from("club_members")
+          .select("user_id")
+          .eq("club_id", event.club_id)
+          .in("role", ["owner", "admin", "moderator"]);
+
+        if (clubMods && clubMods.length > 0) {
+          const { data: userProfile } = await supabase
+            .from("users")
+            .select("full_name")
+            .eq("id", user.id)
+            .single();
+
+          createNotifications(
+            supabase,
+            clubMods.map((m) => ({
+              userId: m.user_id,
+              type: "payment_proof_uploaded" as const,
+              title: "Payment Proof Uploaded",
+              body: `${userProfile?.full_name ?? "A participant"} uploaded payment proof for ${event.title}`,
+              href: `/dashboard/clubs/${event.club_id}`,
+              actorId: user.id,
+            })),
+          ).catch(() => null);
+        }
       } catch {
         // Non-critical: booking was created, proof upload failed silently
       }
