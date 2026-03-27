@@ -54,6 +54,7 @@ export default function ItineraryManager({ eventId, initialEntries }: ItineraryM
   }
 
   async function handleDelete(id: string) {
+    const previous = entries;
     setEntries((prev) => prev.filter((e) => e.id !== id));
 
     const res = await fetch(`/api/events/${eventId}/itinerary/${id}`, {
@@ -63,7 +64,7 @@ export default function ItineraryManager({ eventId, initialEntries }: ItineraryM
     if (res.ok) {
       router.refresh();
     } else {
-      setEntries(initialEntries);
+      setEntries(previous);
       const json: { error?: string } = await res.json();
       setError(json.error ?? "Failed to delete entry");
     }
@@ -106,16 +107,22 @@ export default function ItineraryManager({ eventId, initialEntries }: ItineraryM
   }
 
   async function handleReorder(reordered: ItineraryEntry[]) {
+    const previous = entries;
     const updated = reordered.map((e, i) => ({ ...e, sort_order: i }));
     setEntries(updated);
 
-    await fetch(`/api/events/${eventId}/itinerary`, {
+    const res = await fetch(`/api/events/${eventId}/itinerary`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ order: updated.map(({ id, sort_order }) => ({ id, sort_order })) }),
     });
 
-    router.refresh();
+    if (res.ok) {
+      router.refresh();
+    } else {
+      setEntries(previous);
+      setError("Failed to reorder");
+    }
   }
 
   return (
