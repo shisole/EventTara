@@ -164,6 +164,9 @@ export default async function ManageEventPage({ params }: { params: Promise<{ id
           <Link href={`/dashboard/events/${id}/edit`}>
             <Button variant="outline">Edit</Button>
           </Link>
+          <Link href={`/dashboard/events/${id}/itinerary`}>
+            <Button variant="outline">Itinerary</Button>
+          </Link>
           <Link href={`/dashboard/events/${id}/checkin`}>
             <Button variant="secondary">Check-in Tool</Button>
           </Link>
