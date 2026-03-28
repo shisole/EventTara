@@ -57,7 +57,13 @@ export default function HeroCarousel({ slides }: HeroCarouselProps) {
     return () => clearTimeout(timer);
   }, [activeIndex, count, slides, goToNext]);
 
-  if (count === 0) return null;
+  if (count === 0) {
+    return (
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 animate-pulse">
+        <div className="absolute inset-0 bg-black/50" />
+      </div>
+    );
+  }
 
   return (
     <div className="absolute inset-0">
