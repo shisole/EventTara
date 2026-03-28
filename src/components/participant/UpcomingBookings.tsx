@@ -3,11 +3,12 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 
 import { Card, UIBadge, Button } from "@/components/ui";
 import PaymentStatusBadge from "@/components/ui/PaymentStatusBadge";
 import { getActivityLabel } from "@/lib/constants/activity-types";
+import { cn } from "@/lib/utils";
 import { formatEventDate } from "@/lib/utils/format-date";
 
 const ReviewPromptModal = dynamic(() => import("@/components/reviews/ReviewPromptModal"));
@@ -33,6 +34,7 @@ interface Booking {
   companions?: BookingCompanion[];
   checkedIn: boolean;
   userId: string;
+  expiresAt?: string | null;
 }
 
 function CancelBookingButton({ bookingId }: { bookingId: string }) {
@@ -84,6 +86,58 @@ function CancelBookingButton({ bookingId }: { bookingId: string }) {
     >
       {status === "loading" ? "Cancelling..." : "Cancel Booking"}
     </Button>
+  );
+}
+
+function CountdownTimer({ expiresAt }: { expiresAt: string }) {
+  const [timeLeft, setTimeLeft] = useState("");
+  const [isUrgent, setIsUrgent] = useState(false);
+
+  useEffect(() => {
+    const update = () => {
+      const diff = new Date(expiresAt).getTime() - Date.now();
+      if (diff <= 0) {
+        setTimeLeft("Expired");
+        setIsUrgent(true);
+        return;
+      }
+      const mins = Math.floor(diff / 60000);
+      const secs = Math.floor((diff % 60000) / 1000);
+      setTimeLeft(`${mins}:${secs.toString().padStart(2, "0")}`);
+      setIsUrgent(mins < 5);
+    };
+
+    update();
+    const interval = setInterval(update, 1000);
+    return () => clearInterval(interval);
+  }, [expiresAt]);
+
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 font-mono font-semibold tabular-nums text-sm",
+        timeLeft === "Expired"
+          ? "text-red-600 dark:text-red-400"
+          : isUrgent
+            ? "text-red-600 dark:text-red-400"
+            : "text-amber-600 dark:text-amber-400",
+      )}
+    >
+      <svg
+        className="w-3.5 h-3.5"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2}
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z"
+        />
+      </svg>
+      {timeLeft}
+    </span>
   );
 }
 
@@ -306,10 +360,11 @@ export default function UpcomingBookings({ bookings }: { bookings: Booking[] }) 
   return (
     <div className="space-y-4">
       {bookings.map((b) => (
-        <Card key={b.id} className="p-5">
+        <Card key={b.id} className="p-5 space-y-4">
+          {/* Header: event info + QR toggle */}
           <div className="flex items-start justify-between">
             <div className="space-y-1">
-              <div className="flex gap-2 items-center">
+              <div className="flex gap-2 items-center flex-wrap">
                 <UIBadge variant={b.eventType}>{getActivityLabel(b.eventType)}</UIBadge>
                 {b.paymentStatus && b.paymentMethod && (
                   <PaymentStatusBadge status={b.paymentStatus} />
@@ -332,40 +387,6 @@ export default function UpcomingBookings({ bookings }: { bookings: Booking[] }) 
                   👥 {b.companions.length} companion{b.companions.length > 1 ? "s" : ""} booked
                 </p>
               )}
-              {b.paymentStatus === "pending" &&
-                b.paymentMethod !== "cash" &&
-                b.paymentMethod !== "free" && (
-                  <div className="space-y-2">
-                    {b.paymentProofUrl ? (
-                      <p className="text-sm text-yellow-600 dark:text-yellow-400">
-                        Waiting for payment verification
-                      </p>
-                    ) : (
-                      <ProofUploader
-                        bookingId={b.id}
-                        label="Upload payment screenshot to complete booking"
-                      />
-                    )}
-                  </div>
-                )}
-              {b.paymentStatus === "pending" && b.paymentMethod === "cash" && (
-                <p className="text-sm text-yellow-600 dark:text-yellow-400">
-                  Pay cash on event day
-                </p>
-              )}
-              {b.paymentStatus === "rejected" && (
-                <div className="space-y-2">
-                  <p className="text-sm text-red-500">Payment rejected — please re-upload proof</p>
-                  <ProofUploader bookingId={b.id} label="Re-upload payment screenshot" />
-                </div>
-              )}
-              <CheckInOnlineButton
-                booking={b}
-                onCheckedIn={() => {
-                  setReviewEvent({ id: b.eventId, title: b.eventTitle });
-                }}
-              />
-              {!b.checkedIn && <CancelBookingButton bookingId={b.id} />}
             </div>
             {b.qrCode && (
               <button
@@ -378,6 +399,82 @@ export default function UpcomingBookings({ bookings }: { bookings: Booking[] }) 
               </button>
             )}
           </div>
+
+          {/* B: Proof upload wrapped in amber alert box with timer (A) */}
+          {b.paymentStatus === "pending" &&
+            b.paymentMethod !== "cash" &&
+            b.paymentMethod !== "free" &&
+            !b.paymentProofUrl && (
+              <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
+                    Upload proof to keep your booking
+                  </p>
+                  {b.expiresAt && <CountdownTimer expiresAt={b.expiresAt} />}
+                </div>
+                {b.expiresAt && (
+                  <p className="text-xs text-amber-600 dark:text-amber-400">
+                    Your booking will be automatically cancelled when the timer expires.
+                  </p>
+                )}
+                <ProofUploader bookingId={b.id} />
+              </div>
+            )}
+
+          {/* D: Proof uploaded — waiting for verification */}
+          {b.paymentStatus === "pending" &&
+            b.paymentMethod !== "cash" &&
+            b.paymentMethod !== "free" &&
+            b.paymentProofUrl && (
+              <div className="bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 rounded-xl p-3">
+                <p className="text-sm text-yellow-700 dark:text-yellow-300 flex items-center gap-2">
+                  <svg
+                    className="w-4 h-4 shrink-0"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  Proof submitted — waiting for admin verification
+                </p>
+              </div>
+            )}
+
+          {b.paymentStatus === "pending" && b.paymentMethod === "cash" && (
+            <p className="text-sm text-yellow-600 dark:text-yellow-400">💵 Pay cash on event day</p>
+          )}
+
+          {b.paymentStatus === "rejected" && (
+            <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-xl p-4 space-y-3">
+              <p className="text-sm font-medium text-red-700 dark:text-red-300">
+                Payment rejected — please re-upload proof
+              </p>
+              <ProofUploader bookingId={b.id} />
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="flex items-center gap-3">
+            <CheckInOnlineButton
+              booking={b}
+              onCheckedIn={() => {
+                setReviewEvent({ id: b.eventId, title: b.eventTitle });
+              }}
+            />
+          </div>
+
+          {/* C: Cancel button — separated at bottom, subdued */}
+          {!b.checkedIn && (
+            <div className="pt-2 border-t border-gray-100 dark:border-gray-800">
+              <CancelBookingButton bookingId={b.id} />
+            </div>
+          )}
           {expandedQR === b.id && b.qrCode && (
             <div className="mt-4 space-y-3">
               <div className="flex justify-center">
