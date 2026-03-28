@@ -45,7 +45,9 @@ interface BookingFormProps {
   price: number;
   paymentInfo?: {
     gcash_number?: string;
+    gcash_qr_url?: string;
     maya_number?: string;
+    maya_qr_url?: string;
   } | null;
   spotsLeft?: number;
   distances?: EventDistance[];
