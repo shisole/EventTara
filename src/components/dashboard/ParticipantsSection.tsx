@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 
 import ParticipantsTable, {
   type Booking,
@@ -31,6 +31,7 @@ interface ParticipantsSectionProps {
   checkedInUserIds: Set<string>;
   distances: EventDistance[];
   offlineParticipants: number;
+  maxParticipants: number;
 }
 
 export default function ParticipantsSection({
@@ -42,6 +43,7 @@ export default function ParticipantsSection({
   checkedInUserIds,
   distances,
   offlineParticipants,
+  maxParticipants,
 }: ParticipantsSectionProps) {
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
@@ -50,30 +52,25 @@ export default function ParticipantsSection({
   // Offline/reserved slots
   const [offlineSlots, setOfflineSlots] = useState(offlineParticipants);
   const [savingOffline, setSavingOffline] = useState(false);
-  const offlineTimeout = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const offlineDirty = offlineSlots !== offlineParticipants;
 
-  const saveOfflineSlots = useCallback(
-    async (value: number) => {
-      setSavingOffline(true);
-      try {
-        await fetch(`/api/events/${eventId}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ offline_participants: value }),
-        });
-        router.refresh();
-      } finally {
-        setSavingOffline(false);
-      }
-    },
-    [eventId, router],
-  );
+  const saveOfflineSlots = useCallback(async () => {
+    setSavingOffline(true);
+    try {
+      await fetch(`/api/events/${eventId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ offline_participants: offlineSlots }),
+      });
+      router.refresh();
+    } finally {
+      setSavingOffline(false);
+    }
+  }, [eventId, offlineSlots, router]);
 
   function handleOfflineChange(value: number) {
-    const clamped = Math.max(0, value);
+    const clamped = Math.min(Math.max(0, value), maxParticipants);
     setOfflineSlots(clamped);
-    if (offlineTimeout.current) clearTimeout(offlineTimeout.current);
-    offlineTimeout.current = setTimeout(() => saveOfflineSlots(clamped), 600);
   }
 
   const handleExportCSV = useCallback(() => {
@@ -151,12 +148,21 @@ export default function ParticipantsSection({
               id="offlineSlots"
               type="number"
               min={0}
+              max={maxParticipants}
               value={offlineSlots}
+              onFocus={(e) => e.target.select()}
               onChange={(e) => handleOfflineChange(Number(e.target.value))}
               className="w-20 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors"
             />
-            {savingOffline && (
-              <span className="text-xs text-gray-400 dark:text-gray-500">Saving...</span>
+            {offlineDirty && (
+              <Button
+                variant="primary"
+                onClick={saveOfflineSlots}
+                disabled={savingOffline}
+                className="px-3 py-1.5 text-xs"
+              >
+                {savingOffline ? "Saving..." : "Save"}
+              </Button>
             )}
           </div>
           <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">

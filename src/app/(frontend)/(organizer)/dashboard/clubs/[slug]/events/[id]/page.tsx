@@ -209,6 +209,7 @@ export default async function ClubEventDetailPage({
             checkedInUserIds={checkedInUserIds}
             distances={(distances || []) as any}
             offlineParticipants={event.offline_participants ?? 0}
+            maxParticipants={event.max_participants}
           />
         </div>
 
