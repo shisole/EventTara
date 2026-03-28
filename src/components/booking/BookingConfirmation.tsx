@@ -90,12 +90,41 @@ function CountdownTimer({ expiresAt }: { expiresAt: string }) {
   );
 }
 
+const MAX_PROOF_SIZE = 5 * 1024 * 1024; // 5MB
+const ACCEPTED_PROOF_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+
 function ProofUploadButton({ bookingId }: { bookingId: string }) {
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [dragOver, setDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploaded, setUploaded] = useState(false);
+  const [error, setError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleUpload = async (file: File) => {
+  const validateAndSet = (f: File) => {
+    setError("");
+    if (!ACCEPTED_PROOF_TYPES.has(f.type)) {
+      setError("Only JPG, PNG, and WebP images are accepted.");
+      return;
+    }
+    if (f.size > MAX_PROOF_SIZE) {
+      setError("File must be under 5MB.");
+      return;
+    }
+    setFile(f);
+    setPreview(URL.createObjectURL(f));
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const f = e.dataTransfer.files[0];
+    if (f) validateAndSet(f);
+  };
+
+  const handleSubmit = async () => {
+    if (!file) return;
     setUploading(true);
     const formData = new FormData();
     formData.append("payment_proof", file);
@@ -107,16 +136,25 @@ function ProofUploadButton({ bookingId }: { bookingId: string }) {
       });
       if (res.ok) {
         setUploaded(true);
+      } else {
+        setError("Upload failed. Please try again.");
       }
     } catch {
-      // silent
+      setError("Upload failed. Please try again.");
     }
     setUploading(false);
   };
 
+  const clear = () => {
+    setFile(null);
+    if (preview) URL.revokeObjectURL(preview);
+    setPreview(null);
+    setError("");
+  };
+
   if (uploaded) {
     return (
-      <div className="flex items-center gap-2 text-sm font-medium text-green-600 dark:text-green-400">
+      <div className="flex items-center justify-center gap-2 text-sm font-medium text-green-600 dark:text-green-400">
         <svg
           className="w-4 h-4"
           fill="none"
@@ -126,32 +164,78 @@ function ProofUploadButton({ bookingId }: { bookingId: string }) {
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
         </svg>
-        Proof uploaded!
+        Proof uploaded! Waiting for verification.
+      </div>
+    );
+  }
+
+  if (preview) {
+    return (
+      <div className="space-y-3">
+        <div className="relative">
+          <img
+            src={preview}
+            alt="Payment proof preview"
+            className="w-full rounded-xl border border-gray-200 dark:border-gray-700"
+          />
+          <button
+            type="button"
+            onClick={clear}
+            className="absolute top-2 right-2 bg-black/60 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm hover:bg-black/80"
+          >
+            ✕
+          </button>
+        </div>
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={handleSubmit}
+          disabled={uploading}
+          className="w-full"
+        >
+          {uploading ? "Uploading..." : "Submit Proof"}
+        </Button>
+        {error && <p className="text-sm text-red-500">{error}</p>}
       </div>
     );
   }
 
   return (
-    <>
-      <Button
-        variant="primary"
-        size="sm"
+    <div className="space-y-2">
+      <div
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragOver(true);
+        }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={handleDrop}
         onClick={() => inputRef.current?.click()}
-        disabled={uploading}
+        className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${
+          dragOver
+            ? "border-lime-500 bg-lime-50 dark:bg-lime-950"
+            : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500"
+        }`}
       >
-        {uploading ? "Uploading..." : "Upload Payment Screenshot"}
-      </Button>
+        <p className="text-2xl mb-1">📸</p>
+        <p className="text-sm text-gray-600 dark:text-gray-400">
+          Drag & drop your payment screenshot here
+        </p>
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+          or tap to browse (JPG, PNG, WebP — max 5MB)
+        </p>
+      </div>
       <input
         ref={inputRef}
         type="file"
         accept="image/jpeg,image/png,image/webp"
         className="hidden"
         onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) void handleUpload(file);
+          const f = e.target.files?.[0];
+          if (f) validateAndSet(f);
         }}
       />
-    </>
+      {error && <p className="text-sm text-red-500">{error}</p>}
+    </div>
   );
 }
 
