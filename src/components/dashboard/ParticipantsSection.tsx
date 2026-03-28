@@ -49,9 +49,10 @@ export default function ParticipantsSection({
   const [showModal, setShowModal] = useState(false);
   const isCompleted = eventStatus === "completed";
 
-  // Offline/reserved slots
-  const [offlineSlots, setOfflineSlots] = useState(offlineParticipants);
+  // Offline/reserved slots — use string state so typing replaces "0" naturally
+  const [offlineInput, setOfflineInput] = useState(String(offlineParticipants));
   const [savingOffline, setSavingOffline] = useState(false);
+  const offlineSlots = Number(offlineInput) || 0;
   const offlineDirty = offlineSlots !== offlineParticipants;
 
   const saveOfflineSlots = useCallback(async () => {
@@ -68,9 +69,16 @@ export default function ParticipantsSection({
     }
   }, [eventId, offlineSlots, router]);
 
-  function handleOfflineChange(value: number) {
-    const clamped = Math.min(Math.max(0, value), maxParticipants);
-    setOfflineSlots(clamped);
+  function handleOfflineChange(raw: string) {
+    // Allow empty string while typing, otherwise clamp to valid range
+    if (raw === "") {
+      setOfflineInput("");
+      return;
+    }
+    const num = Number.parseInt(raw, 10);
+    if (Number.isNaN(num)) return;
+    const clamped = Math.min(Math.max(0, num), maxParticipants);
+    setOfflineInput(String(clamped));
   }
 
   const handleExportCSV = useCallback(() => {
@@ -146,12 +154,13 @@ export default function ParticipantsSection({
             </label>
             <input
               id="offlineSlots"
-              type="number"
-              min={0}
-              max={maxParticipants}
-              value={offlineSlots}
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={offlineInput}
               onFocus={(e) => e.target.select()}
-              onChange={(e) => handleOfflineChange(Number(e.target.value))}
+              onChange={(e) => handleOfflineChange(e.target.value)}
+              onBlur={() => setOfflineInput(String(offlineSlots))}
               className="w-20 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors"
             />
             {offlineDirty && (
