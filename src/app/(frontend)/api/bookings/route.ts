@@ -4,7 +4,7 @@ import { isPaymentPauseEnabled } from "@/lib/cms/cached";
 import { sendEmail } from "@/lib/email/send";
 import { bookingConfirmationHtml } from "@/lib/email/templates/booking-confirmation";
 import { findOverlappingEvent, formatOverlapDate } from "@/lib/events/overlap";
-import { createNotification } from "@/lib/notifications/create";
+import { createNotification, createNotifications } from "@/lib/notifications/create";
 import { uploadToR2 } from "@/lib/r2";
 import { createClient } from "@/lib/supabase/server";
 
@@ -274,23 +274,58 @@ export async function POST(request: Request) {
   let bookingRecord: any;
 
   if (mode === "self") {
-    // Create new booking
-    const { data: booking, error } = await supabase
+    // Create new booking (or reactivate a cancelled one)
+    // E-wallet bookings expire in 30 minutes if unpaid; free/cash/paused don't expire
+    const expiresAt =
+      isEwallet && paymentStatus === "pending"
+        ? new Date(Date.now() + 30 * 60 * 1000).toISOString()
+        : null;
+
+    // Check if a cancelled booking exists for this user+event (unique constraint)
+    const { data: cancelledBooking } = await supabase
       .from("bookings")
-      .insert({
-        event_id: eventId,
-        user_id: user.id,
-        payment_method:
-          isFree || isPaymentPaused ? null : (paymentMethod as "gcash" | "maya" | "cash"),
-        qr_code: qrCode,
-        status: bookingStatus,
-        payment_status: paymentStatus,
-        event_distance_id: eventDistanceId,
-        participant_notes: participantNotes,
-        waiver_accepted_at: waiverAcceptedAt,
-      })
-      .select()
+      .select("id")
+      .eq("event_id", eventId)
+      .eq("user_id", user.id)
+      .eq("status", "cancelled")
       .single();
+
+    const bookingPayload = {
+      event_id: eventId,
+      user_id: user.id,
+      payment_method:
+        isFree || isPaymentPaused ? null : (paymentMethod as "gcash" | "maya" | "cash"),
+      qr_code: qrCode,
+      status: bookingStatus,
+      payment_status: paymentStatus,
+      event_distance_id: eventDistanceId,
+      participant_notes: participantNotes,
+      waiver_accepted_at: waiverAcceptedAt,
+      expires_at: expiresAt,
+      payment_proof_url: null,
+      payment_verified_at: null,
+      payment_verified_by: null,
+      payment_reminder_sent_at: null,
+    };
+
+    let booking: any;
+    let error: any;
+
+    if (cancelledBooking) {
+      // Reactivate the cancelled booking with fresh data
+      const result = await supabase
+        .from("bookings")
+        .update(bookingPayload)
+        .eq("id", cancelledBooking.id)
+        .select()
+        .single();
+      booking = result.data;
+      error = result.error;
+    } else {
+      const result = await supabase.from("bookings").insert(bookingPayload).select().single();
+      booking = result.data;
+      error = result.error;
+    }
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
@@ -314,6 +349,33 @@ export async function POST(request: Request) {
           .eq("id", booking.id);
 
         bookingRecord.payment_proof_url = proofUrl;
+
+        // Notify club moderators+ about the proof upload
+        const { data: clubMods } = await supabase
+          .from("club_members")
+          .select("user_id")
+          .eq("club_id", event.club_id)
+          .in("role", ["owner", "admin", "moderator"]);
+
+        if (clubMods && clubMods.length > 0) {
+          const { data: userProfile } = await supabase
+            .from("users")
+            .select("full_name")
+            .eq("id", user.id)
+            .single();
+
+          createNotifications(
+            supabase,
+            clubMods.map((m) => ({
+              userId: m.user_id,
+              type: "payment_proof_uploaded" as const,
+              title: "Payment Proof Uploaded",
+              body: `${userProfile?.full_name ?? "A participant"} uploaded payment proof for ${event.title}`,
+              href: `/dashboard/clubs/${event.club_id}`,
+              actorId: user.id,
+            })),
+          ).catch(() => null);
+        }
       } catch {
         // Non-critical: booking was created, proof upload failed silently
       }

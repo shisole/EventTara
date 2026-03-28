@@ -18,6 +18,7 @@ const ALLOWED_FOLDERS = new Set([
   "events/videos",
   "welcome/heroes",
   "activity-types",
+  "clubs/payment-qr",
 ]);
 
 const VIDEO_FOLDERS = new Set(["events/videos"]);

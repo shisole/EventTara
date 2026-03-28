@@ -39,7 +39,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const { data: bookings } = await supabase
     .from("bookings")
     .select(
-      "id, status, payment_status, payment_method, payment_proof_url, participant_cancelled, booked_at, users:user_id(full_name, email, avatar_url)",
+      "id, status, payment_status, payment_method, payment_proof_url, participant_cancelled, booked_at, expires_at, users:user_id(full_name, email, avatar_url)",
     )
     .eq("event_id", id)
     .in("status", ["pending", "confirmed"])

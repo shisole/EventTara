@@ -116,7 +116,7 @@ export default function QuickReviewForm({ eventId }: QuickReviewFormProps) {
         type="submit"
         disabled={loading || rating === 0}
         className={cn(
-          "w-full rounded-xl px-4 py-3 text-sm font-semibold text-white transition-colors",
+          "w-full rounded-xl px-6 py-3.5 text-base font-semibold text-white transition-colors",
           rating > 0
             ? "bg-teal-600 hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-600"
             : "bg-gray-300 dark:bg-gray-700 cursor-not-allowed",

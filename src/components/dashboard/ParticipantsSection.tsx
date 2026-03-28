@@ -30,6 +30,8 @@ interface ParticipantsSectionProps {
   companionsByBooking: Record<string, Companion[]>;
   checkedInUserIds: Set<string>;
   distances: EventDistance[];
+  offlineParticipants: number;
+  maxParticipants: number;
 }
 
 export default function ParticipantsSection({
@@ -40,10 +42,44 @@ export default function ParticipantsSection({
   companionsByBooking,
   checkedInUserIds,
   distances,
+  offlineParticipants,
+  maxParticipants,
 }: ParticipantsSectionProps) {
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
   const isCompleted = eventStatus === "completed";
+
+  // Offline/reserved slots — use string state so typing replaces "0" naturally
+  const [offlineInput, setOfflineInput] = useState(String(offlineParticipants));
+  const [savingOffline, setSavingOffline] = useState(false);
+  const offlineSlots = Number(offlineInput) || 0;
+  const offlineDirty = offlineSlots !== offlineParticipants;
+
+  const saveOfflineSlots = useCallback(async () => {
+    setSavingOffline(true);
+    try {
+      await fetch(`/api/events/${eventId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ offline_participants: offlineSlots }),
+      });
+      router.refresh();
+    } finally {
+      setSavingOffline(false);
+    }
+  }, [eventId, offlineSlots, router]);
+
+  function handleOfflineChange(raw: string) {
+    // Allow empty string while typing, otherwise clamp to valid range
+    if (raw === "") {
+      setOfflineInput("");
+      return;
+    }
+    const num = Number.parseInt(raw, 10);
+    if (Number.isNaN(num)) return;
+    const clamped = Math.min(Math.max(0, num), maxParticipants);
+    setOfflineInput(String(clamped));
+  }
 
   const handleExportCSV = useCallback(() => {
     const headers = [
@@ -105,6 +141,44 @@ export default function ParticipantsSection({
           </Button>
         </Link>
       </div>
+
+      {/* Offline / reserved slots */}
+      {!isCompleted && (
+        <div className="mb-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-4 py-3">
+          <div className="flex items-center gap-3">
+            <label
+              htmlFor="offlineSlots"
+              className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap"
+            >
+              Reserved Slots (offline)
+            </label>
+            <input
+              id="offlineSlots"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={offlineInput}
+              onFocus={(e) => e.target.select()}
+              onChange={(e) => handleOfflineChange(e.target.value)}
+              onBlur={() => setOfflineInput(String(offlineSlots))}
+              className="w-20 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors"
+            />
+            {offlineDirty && (
+              <Button
+                variant="primary"
+                onClick={saveOfflineSlots}
+                disabled={savingOffline}
+                className="px-3 py-1.5 text-xs"
+              >
+                {savingOffline ? "Saving..." : "Save"}
+              </Button>
+            )}
+          </div>
+          <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+            Participants registered or paid outside the platform. Counts toward capacity.
+          </p>
+        </div>
+      )}
 
       <ParticipantsTable
         bookings={bookings}

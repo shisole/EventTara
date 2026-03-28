@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 import { Button } from "@/components/ui";
 import PaymentStatusBadge from "@/components/ui/PaymentStatusBadge";
@@ -19,6 +19,7 @@ interface PaymentBooking {
   payment_method: string;
   payment_proof_url: string | null;
   booked_at: string;
+  expires_at: string | null;
   users: BookingUser;
   companion_count?: number;
 }
@@ -73,6 +74,58 @@ const paymentMethodStyle = (method: string) => {
   }
 };
 
+function CountdownTimer({ expiresAt }: { expiresAt: string }) {
+  const [timeLeft, setTimeLeft] = useState("");
+  const [isUrgent, setIsUrgent] = useState(false);
+
+  useEffect(() => {
+    const update = () => {
+      const diff = new Date(expiresAt).getTime() - Date.now();
+      if (diff <= 0) {
+        setTimeLeft("Expired");
+        setIsUrgent(true);
+        return;
+      }
+      const mins = Math.floor(diff / 60000);
+      const secs = Math.floor((diff % 60000) / 1000);
+      setTimeLeft(`${mins}:${secs.toString().padStart(2, "0")}`);
+      setIsUrgent(mins < 5);
+    };
+
+    update();
+    const interval = setInterval(update, 1000);
+    return () => clearInterval(interval);
+  }, [expiresAt]);
+
+  if (timeLeft === "Expired") {
+    return <span className="text-xs font-medium text-red-600 dark:text-red-400">Expired</span>;
+  }
+
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 text-xs font-mono font-medium tabular-nums",
+        isUrgent ? "text-red-600 dark:text-red-400" : "text-amber-600 dark:text-amber-400",
+      )}
+    >
+      <svg
+        className="w-3 h-3"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2}
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z"
+        />
+      </svg>
+      {timeLeft}
+    </span>
+  );
+}
+
 export default function PaymentVerificationPanel({
   eventId,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -92,8 +145,10 @@ export default function PaymentVerificationPanel({
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [viewingProof, setViewingProof] = useState<string | null>(null);
   const [viewingBookingId, setViewingBookingId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkLoading, setBulkLoading] = useState(false);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const res = await fetch(`/api/events/${eventId}/payments`);
       if (!res.ok) throw new Error("Failed to fetch payments");
@@ -105,11 +160,11 @@ export default function PaymentVerificationPanel({
     } finally {
       setLoading(false);
     }
-  };
+  }, [eventId]);
 
   useEffect(() => {
     void fetchData();
-  }, [eventId]);
+  }, [fetchData]);
 
   const handleAction = async (bookingId: string, action: "approve" | "reject") => {
     setActionLoading(bookingId);
@@ -134,6 +189,51 @@ export default function PaymentVerificationPanel({
     if (filter === "all") return true;
     return b.payment_status === filter;
   });
+
+  const pendingEwalletBookings = filteredBookings.filter(
+    (b) =>
+      b.payment_status === "pending" &&
+      (b.payment_method === "gcash" || b.payment_method === "maya"),
+  );
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === pendingEwalletBookings.length && pendingEwalletBookings.length > 0) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(pendingEwalletBookings.map((b) => b.id)));
+    }
+  };
+
+  const handleBulkApprove = async () => {
+    if (selectedIds.size === 0) return;
+    setBulkLoading(true);
+    try {
+      const res = await fetch(`/api/events/${eventId}/payments/bulk-verify`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingIds: [...selectedIds], action: "approve" }),
+      });
+      if (!res.ok) throw new Error("Bulk approve failed");
+      setSelectedIds(new Set());
+      await fetchData();
+    } catch (error) {
+      console.error("Bulk approve failed:", error);
+    } finally {
+      setBulkLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -204,6 +304,7 @@ export default function PaymentVerificationPanel({
             key={tab}
             onClick={() => {
               setFilter(tab);
+              setSelectedIds(new Set());
             }}
             className={cn(
               "flex-1 shrink-0 py-2 px-3 rounded-lg text-sm font-medium transition-colors capitalize whitespace-nowrap",
@@ -222,6 +323,34 @@ export default function PaymentVerificationPanel({
         ))}
       </div>
 
+      {/* Bulk Action Bar */}
+      {selectedIds.size > 0 && (
+        <div className="sticky top-0 z-10 flex items-center justify-between gap-3 bg-teal-50 dark:bg-teal-900/30 border border-teal-200 dark:border-teal-800 rounded-xl px-4 py-3">
+          <span className="text-sm font-medium text-teal-800 dark:text-teal-200">
+            {selectedIds.size} selected
+          </span>
+          <Button variant="primary" size="sm" onClick={handleBulkApprove} disabled={bulkLoading}>
+            {bulkLoading ? "Approving..." : `Approve ${selectedIds.size} selected`}
+          </Button>
+        </div>
+      )}
+
+      {/* Select All (for pending e-wallet bookings) */}
+      {pendingEwalletBookings.length > 1 && (
+        <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-600 dark:text-gray-400">
+          <input
+            type="checkbox"
+            checked={
+              selectedIds.size === pendingEwalletBookings.length &&
+              pendingEwalletBookings.length > 0
+            }
+            onChange={toggleSelectAll}
+            className="rounded border-gray-300 dark:border-gray-600 text-teal-600 focus:ring-teal-500"
+          />
+          Select all pending e-wallet bookings
+        </label>
+      )}
+
       {/* Booking List */}
       {filteredBookings.length === 0 ? (
         <div className="text-center py-12 text-gray-500 dark:text-gray-400">
@@ -237,30 +366,49 @@ export default function PaymentVerificationPanel({
               booking.payment_method === "gcash" || booking.payment_method === "maya";
             const isPending = booking.payment_status === "pending";
             const isCash = booking.payment_method === "cash";
+            const isSelectable = isPending && isEwallet;
 
             return (
               <div
                 key={booking.id}
-                className="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm dark:shadow-gray-950/30 space-y-3"
+                className={cn(
+                  "bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm dark:shadow-gray-950/30 space-y-3",
+                  selectedIds.has(booking.id) && "ring-2 ring-teal-500 dark:ring-teal-400",
+                )}
               >
                 <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="font-medium truncate dark:text-white">
-                      {booking.users?.full_name || "Guest"}
-                      {booking.companion_count && booking.companion_count > 0 && (
-                        <span className="ml-2 text-xs text-gray-400 dark:text-gray-500 font-normal">
-                          +{booking.companion_count} companion
-                          {booking.companion_count === 1 ? "" : "s"}
-                        </span>
-                      )}
-                    </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {new Date(booking.booked_at).toLocaleDateString("en-PH", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </p>
+                  <div className="flex items-start gap-3 min-w-0">
+                    {isSelectable && (
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(booking.id)}
+                        onChange={() => toggleSelect(booking.id)}
+                        className="mt-1 rounded border-gray-300 dark:border-gray-600 text-teal-600 focus:ring-teal-500"
+                      />
+                    )}
+                    <div className="min-w-0">
+                      <p className="font-medium truncate dark:text-white">
+                        {booking.users?.full_name || "Guest"}
+                        {booking.companion_count && booking.companion_count > 0 && (
+                          <span className="ml-2 text-xs text-gray-400 dark:text-gray-500 font-normal">
+                            +{booking.companion_count} companion
+                            {booking.companion_count === 1 ? "" : "s"}
+                          </span>
+                        )}
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {new Date(booking.booked_at).toLocaleDateString("en-PH", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
+                        </p>
+                        {isPending && booking.expires_at && (
+                          <CountdownTimer expiresAt={booking.expires_at} />
+                        )}
+                      </div>
+                    </div>
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0">

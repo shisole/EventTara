@@ -91,6 +91,12 @@ const config: Config = {
           "0%": { filter: "hue-rotate(0deg)" },
           "100%": { filter: "hue-rotate(360deg)" },
         },
+        navProgress: {
+          "0%": { transform: "scaleX(0)" },
+          "20%": { transform: "scaleX(0.4)" },
+          "60%": { transform: "scaleX(0.7)" },
+          "100%": { transform: "scaleX(0.9)" },
+        },
       },
       animation: {
         "fade-up": "fadeUp 0.4s ease-out forwards",
@@ -101,6 +107,7 @@ const config: Config = {
         "spin-slow": "spinSlow 6s linear infinite",
         float: "float 3s ease-in-out infinite",
         "hue-shift": "hueShift 4s linear infinite",
+        "nav-progress": "navProgress 2s cubic-bezier(0.4, 0, 0.2, 1) forwards",
       },
     },
   },

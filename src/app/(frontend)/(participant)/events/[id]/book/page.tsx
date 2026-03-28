@@ -167,8 +167,13 @@ export default async function BookEventPage({
   // Fetch payment info from club
   const hasNonZeroPrice = event.price > 0 || (distancesWithSpots ?? []).some((d) => d.price > 0);
 
-  let paymentInfo: { gcash_number?: string; maya_number?: string; facebook_url?: string } | null =
-    null;
+  let paymentInfo: {
+    gcash_number?: string;
+    gcash_qr_url?: string;
+    maya_number?: string;
+    maya_qr_url?: string;
+    facebook_url?: string;
+  } | null = null;
   let clubSlug: string | null = null;
   if ((hasNonZeroPrice || effectivePaymentPaused) && event.club_id) {
     const { data: clubData } = await supabase
@@ -178,7 +183,9 @@ export default async function BookEventPage({
       .single();
     paymentInfo = clubData?.payment_info as {
       gcash_number?: string;
+      gcash_qr_url?: string;
       maya_number?: string;
+      maya_qr_url?: string;
       facebook_url?: string;
     } | null;
     clubSlug = clubData?.slug ?? null;

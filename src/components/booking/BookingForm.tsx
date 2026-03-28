@@ -45,7 +45,9 @@ interface BookingFormProps {
   price: number;
   paymentInfo?: {
     gcash_number?: string;
+    gcash_qr_url?: string;
     maya_number?: string;
+    maya_qr_url?: string;
   } | null;
   spotsLeft?: number;
   distances?: EventDistance[];
@@ -84,6 +86,8 @@ export default function BookingForm({
     qr_code: string | null;
     payment_status: string;
     payment_method: string | null;
+    expires_at: string | null;
+    payment_proof_url: string | null;
     companions?: { id: string; full_name: string; qr_code: string | null }[];
   } | null>(null);
   const [companions, setCompanions] = useState<Companion[]>(
@@ -203,10 +207,7 @@ export default function BookingForm({
       return;
     }
 
-    if (!paymentPaused && isEwallet && !proofFile) {
-      setError("Please upload your payment screenshot");
-      return;
-    }
+    // Proof is optional at booking time — user can upload within 30 min
 
     setLoading(true);
     setError("");
@@ -327,6 +328,8 @@ export default function BookingForm({
               })
             : undefined
         }
+        expiresAt={booking.expires_at}
+        hasProof={!!booking.payment_proof_url}
       />
     );
   }
@@ -342,7 +345,6 @@ export default function BookingForm({
               ? [{ label: "Distance", done: !!selectedDistanceId }]
               : []),
             ...(paymentPaused || isFree ? [] : [{ label: "Payment", done: !!paymentMethod }]),
-            ...(!paymentPaused && isEwallet ? [{ label: "Proof", done: !!proofFile }] : []),
             ...(hasWaiver ? [{ label: "Waiver", done: waiverAccepted }] : []),
           ];
           const completed = steps.filter((s) => s.done).length;
@@ -552,6 +554,15 @@ export default function BookingForm({
               />
             )}
 
+            {isEwallet && (
+              <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-3">
+                <p className="text-sm text-amber-700 dark:text-amber-300">
+                  <strong>Book now, pay later!</strong> You can reserve your spot first and upload
+                  your payment proof within 30 minutes.
+                </p>
+              </div>
+            )}
+
             {isEwallet && <PaymentProofUpload file={proofFile} onFileChange={setProofFile} />}
 
             {isCash && (
@@ -688,7 +699,9 @@ export default function BookingForm({
                     : isCash
                       ? "Reserve Spot"
                       : isEwallet
-                        ? "Submit Booking & Proof"
+                        ? proofFile
+                          ? "Submit Booking & Proof"
+                          : "Book Now"
                         : "Confirm Booking"}
             </Button>
           </div>
@@ -711,7 +724,9 @@ export default function BookingForm({
                   : isCash
                     ? "Reserve Spot"
                     : isEwallet
-                      ? "Submit Booking & Proof"
+                      ? proofFile
+                        ? "Submit Booking & Proof"
+                        : "Book Now"
                       : "Confirm Booking"}
           </Button>
         )}

@@ -3,11 +3,12 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 
 import { Card, UIBadge, Button } from "@/components/ui";
 import PaymentStatusBadge from "@/components/ui/PaymentStatusBadge";
 import { getActivityLabel } from "@/lib/constants/activity-types";
+import { cn } from "@/lib/utils";
 import { formatEventDate } from "@/lib/utils/format-date";
 
 const ReviewPromptModal = dynamic(() => import("@/components/reviews/ReviewPromptModal"));
@@ -33,49 +34,278 @@ interface Booking {
   companions?: BookingCompanion[];
   checkedIn: boolean;
   userId: string;
+  expiresAt?: string | null;
 }
 
-function ReuploadButton({ bookingId }: { bookingId: string }) {
+function CancelBookingButton({ bookingId }: { bookingId: string }) {
+  const [status, setStatus] = useState<"idle" | "confirming" | "loading">("idle");
+
+  const handleCancel = async () => {
+    setStatus("loading");
+    try {
+      const res = await fetch(`/api/bookings/${bookingId}/cancel`, { method: "POST" });
+      if (res.ok) {
+        globalThis.location.reload();
+      } else {
+        const data = await res.json();
+        alert(data.error || "Failed to cancel booking");
+        setStatus("idle");
+      }
+    } catch {
+      alert("Failed to cancel booking");
+      setStatus("idle");
+    }
+  };
+
+  if (status === "confirming") {
+    return (
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-red-600 dark:text-red-400">Cancel this booking?</span>
+        <Button
+          size="sm"
+          variant="primary"
+          onClick={handleCancel}
+          className="!bg-red-600 hover:!bg-red-700 !text-white"
+        >
+          Yes, Cancel
+        </Button>
+        <Button size="sm" variant="outline" onClick={() => setStatus("idle")}>
+          No
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <Button
+      size="sm"
+      variant="outline"
+      onClick={() => setStatus("confirming")}
+      disabled={status === "loading"}
+      className="text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-950"
+    >
+      {status === "loading" ? "Cancelling..." : "Cancel Booking"}
+    </Button>
+  );
+}
+
+function AutoCancelExpired({ bookingId }: { bookingId: string }) {
+  const [cancelled, setCancelled] = useState(false);
+
+  useEffect(() => {
+    let ignore = false;
+    fetch(`/api/bookings/${bookingId}/cancel`, { method: "POST" })
+      .then((res) => {
+        if (!ignore && res.ok) setCancelled(true);
+      })
+      .catch(() => null);
+    return () => {
+      ignore = true;
+    };
+  }, [bookingId]);
+
+  if (!cancelled) {
+    return (
+      <p className="text-xs text-red-600 dark:text-red-400 animate-pulse">Cancelling booking...</p>
+    );
+  }
+
+  return (
+    <p className="text-xs text-red-600 dark:text-red-400">
+      This booking has been cancelled. You can re-book if spots are available.
+    </p>
+  );
+}
+
+function CountdownTimer({ expiresAt, onExpire }: { expiresAt: string; onExpire?: () => void }) {
+  const [timeLeft, setTimeLeft] = useState("");
+  const [isUrgent, setIsUrgent] = useState(false);
+  const expiredRef = useRef(false);
+
+  useEffect(() => {
+    const update = () => {
+      const diff = new Date(expiresAt).getTime() - Date.now();
+      if (diff <= 0) {
+        setTimeLeft("Expired");
+        setIsUrgent(true);
+        if (!expiredRef.current) {
+          expiredRef.current = true;
+          onExpire?.();
+        }
+        return;
+      }
+      const mins = Math.floor(diff / 60000);
+      const secs = Math.floor((diff % 60000) / 1000);
+      setTimeLeft(`${mins}:${secs.toString().padStart(2, "0")}`);
+      setIsUrgent(mins < 5);
+    };
+
+    update();
+    const interval = setInterval(update, 1000);
+    return () => clearInterval(interval);
+  }, [expiresAt, onExpire]);
+
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 font-mono font-semibold tabular-nums text-sm",
+        timeLeft === "Expired"
+          ? "text-red-600 dark:text-red-400"
+          : isUrgent
+            ? "text-red-600 dark:text-red-400"
+            : "text-amber-600 dark:text-amber-400",
+      )}
+    >
+      <svg
+        className="w-3.5 h-3.5"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2}
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z"
+        />
+      </svg>
+      {timeLeft}
+    </span>
+  );
+}
+
+const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+const ACCEPTED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+
+function ProofUploader({
+  bookingId,
+  label = "Upload payment screenshot",
+}: {
+  bookingId: string;
+  label?: string;
+}) {
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [dragOver, setDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleUpload = async (file: File) => {
+  const validateAndSet = (f: File) => {
+    setError("");
+    if (!ACCEPTED_TYPES.has(f.type)) {
+      setError("Only JPG, PNG, and WebP images are accepted.");
+      return;
+    }
+    if (f.size > MAX_SIZE) {
+      setError("File must be under 5MB.");
+      return;
+    }
+    setFile(f);
+    setPreview(URL.createObjectURL(f));
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const f = e.dataTransfer.files[0];
+    if (f) validateAndSet(f);
+  };
+
+  const handleSubmit = async () => {
+    if (!file) return;
     setUploading(true);
     const formData = new FormData();
     formData.append("payment_proof", file);
 
-    const res = await fetch(`/api/bookings/${bookingId}/proof`, {
-      method: "PATCH",
-      body: formData,
-    });
-
-    if (res.ok) {
-      globalThis.location.reload();
+    try {
+      const res = await fetch(`/api/bookings/${bookingId}/proof`, {
+        method: "PATCH",
+        body: formData,
+      });
+      if (res.ok) {
+        globalThis.location.reload();
+      } else {
+        setError("Upload failed. Please try again.");
+      }
+    } catch {
+      setError("Upload failed. Please try again.");
     }
     setUploading(false);
   };
 
+  const clear = () => {
+    setFile(null);
+    if (preview) URL.revokeObjectURL(preview);
+    setPreview(null);
+    setError("");
+  };
+
+  if (preview) {
+    return (
+      <div className="space-y-3">
+        <div className="relative">
+          <img
+            src={preview}
+            alt="Payment proof preview"
+            className="w-full rounded-xl border border-gray-200 dark:border-gray-700"
+          />
+          <button
+            type="button"
+            onClick={clear}
+            className="absolute top-2 right-2 bg-black/60 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm hover:bg-black/80"
+          >
+            ✕
+          </button>
+        </div>
+        <Button
+          size="sm"
+          variant="primary"
+          onClick={handleSubmit}
+          disabled={uploading}
+          className="w-full"
+        >
+          {uploading ? "Uploading..." : "Submit Proof"}
+        </Button>
+        {error && <p className="text-sm text-red-500">{error}</p>}
+      </div>
+    );
+  }
+
   return (
-    <>
-      <Button
-        size="sm"
-        variant="outline"
+    <div className="space-y-2">
+      <div
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragOver(true);
+        }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={handleDrop}
         onClick={() => inputRef.current?.click()}
-        disabled={uploading}
+        className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${
+          dragOver
+            ? "border-lime-500 bg-lime-50 dark:bg-lime-950"
+            : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500"
+        }`}
       >
-        {uploading ? "Uploading..." : "Re-upload Proof"}
-      </Button>
+        <p className="text-2xl mb-1">📸</p>
+        <p className="text-sm text-gray-600 dark:text-gray-400">{label}</p>
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+          Drag & drop or tap to browse (JPG, PNG, WebP — max 5MB)
+        </p>
+      </div>
       <input
         ref={inputRef}
         type="file"
         accept="image/jpeg,image/png,image/webp"
         className="hidden"
         onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) void handleUpload(file);
+          const f = e.target.files?.[0];
+          if (f) validateAndSet(f);
         }}
       />
-    </>
+      {error && <p className="text-sm text-red-500">{error}</p>}
+    </div>
   );
 }
 
@@ -141,6 +371,209 @@ function CheckInOnlineButton({
   );
 }
 
+function BookingCard({
+  b,
+  expandedQR,
+  onToggleQR,
+  onReview,
+}: {
+  b: Booking;
+  expandedQR: string | null;
+  onToggleQR: (id: string) => void;
+  onReview: (eventId: string, eventTitle: string) => void;
+}) {
+  const isEwalletPending =
+    b.paymentStatus === "pending" &&
+    b.paymentMethod !== "cash" &&
+    b.paymentMethod !== "free" &&
+    !b.paymentProofUrl;
+
+  const [expired, setExpired] = useState(
+    () => isEwalletPending && !!b.expiresAt && new Date(b.expiresAt).getTime() <= Date.now(),
+  );
+
+  return (
+    <Card className="p-5 space-y-4">
+      {/* Header: event info + QR toggle */}
+      <div className="flex items-start justify-between">
+        <div className="space-y-1">
+          <div className="flex gap-2 items-center flex-wrap">
+            <UIBadge variant={b.eventType}>{getActivityLabel(b.eventType)}</UIBadge>
+            {b.paymentStatus && b.paymentMethod && !expired && (
+              <PaymentStatusBadge status={b.paymentStatus} />
+            )}
+            {expired && (
+              <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-700 dark:bg-red-950 dark:text-red-400">
+                Cancelled
+              </span>
+            )}
+          </div>
+          <Link href={`/events/${b.eventId}`}>
+            <h3 className="font-heading font-bold text-lg hover:text-lime-600 dark:hover:text-lime-400">
+              {b.eventTitle}
+            </h3>
+          </Link>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            📅 {formatEventDate(b.eventDate, b.eventEndDate, { short: true })}
+          </p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">📍 {b.eventLocation}</p>
+          <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+            {b.eventPrice > 0 ? `₱${b.eventPrice.toLocaleString()}` : "Free"}
+          </p>
+          {b.companions && b.companions.length > 0 && (
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              👥 {b.companions.length} companion{b.companions.length > 1 ? "s" : ""} booked
+            </p>
+          )}
+        </div>
+        {b.qrCode && !expired && (
+          <button
+            onClick={() => onToggleQR(b.id)}
+            className="text-sm text-lime-600 dark:text-lime-400 font-medium hover:text-lime-600"
+          >
+            {expandedQR === b.id ? "Hide QR" : "Show QR"}
+          </button>
+        )}
+      </div>
+
+      {/* Expired — auto-cancel and show message */}
+      {expired && (
+        <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-xl p-4 space-y-2">
+          <p className="text-sm font-medium text-red-700 dark:text-red-300">Booking expired</p>
+          <AutoCancelExpired bookingId={b.id} />
+          <Link href={`/events/${b.eventId}`}>
+            <Button size="sm" variant="outline" className="mt-1">
+              Re-book Event
+            </Button>
+          </Link>
+        </div>
+      )}
+
+      {/* Proof upload with timer */}
+      {isEwalletPending && !expired && (
+        <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
+              Upload proof to keep your booking
+            </p>
+            {b.expiresAt && (
+              <CountdownTimer expiresAt={b.expiresAt} onExpire={() => setExpired(true)} />
+            )}
+          </div>
+          {b.expiresAt && (
+            <p className="text-xs text-amber-600 dark:text-amber-400">
+              Your booking will be automatically cancelled when the timer expires.
+            </p>
+          )}
+          <ProofUploader bookingId={b.id} />
+        </div>
+      )}
+
+      {/* Proof uploaded — waiting for verification */}
+      {b.paymentStatus === "pending" &&
+        b.paymentMethod !== "cash" &&
+        b.paymentMethod !== "free" &&
+        b.paymentProofUrl &&
+        !expired && (
+          <div className="bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 rounded-xl p-3">
+            <p className="text-sm text-yellow-700 dark:text-yellow-300 flex items-center gap-2">
+              <svg
+                className="w-4 h-4 shrink-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              Proof submitted — waiting for admin verification
+            </p>
+          </div>
+        )}
+
+      {!expired && b.paymentStatus === "pending" && b.paymentMethod === "cash" && (
+        <p className="text-sm text-yellow-600 dark:text-yellow-400">💵 Pay cash on event day</p>
+      )}
+
+      {!expired && b.paymentStatus === "rejected" && (
+        <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-xl p-4 space-y-3">
+          <p className="text-sm font-medium text-red-700 dark:text-red-300">
+            Payment rejected — please re-upload proof
+          </p>
+          <ProofUploader bookingId={b.id} />
+        </div>
+      )}
+
+      {/* Actions */}
+      {!expired && (
+        <div className="flex items-center gap-3">
+          <CheckInOnlineButton booking={b} onCheckedIn={() => onReview(b.eventId, b.eventTitle)} />
+        </div>
+      )}
+
+      {/* Cancel button — separated at bottom */}
+      {!b.checkedIn && !expired && (
+        <div className="pt-2 border-t border-gray-100 dark:border-gray-800">
+          <CancelBookingButton bookingId={b.id} />
+        </div>
+      )}
+
+      {/* QR codes */}
+      {expandedQR === b.id && b.qrCode && !expired && (
+        <div className="mt-4 space-y-3">
+          <div className="flex justify-center">
+            <div className="bg-white dark:bg-gray-900 p-4 rounded-xl border dark:border-gray-700">
+              <p className="text-xs text-gray-500 dark:text-gray-400 text-center mb-2 font-medium">
+                Your QR Code
+              </p>
+              <QRCodeSVG value={b.qrCode} size={160} />
+              <p className="text-xs text-gray-400 dark:text-gray-500 text-center mt-2">
+                Show at check-in
+              </p>
+            </div>
+          </div>
+          {b.companions && b.companions.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs text-gray-500 dark:text-gray-400 text-center font-medium">
+                Companions (booked for friends)
+              </p>
+              {b.companions.map((comp, i) => (
+                <div key={i} className="flex justify-center">
+                  <div className="bg-white dark:bg-gray-900 p-4 rounded-xl border dark:border-gray-700">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 text-center mb-2 font-medium">
+                      👤 {comp.full_name}
+                    </p>
+                    {comp.qr_code ? (
+                      <>
+                        <QRCodeSVG value={comp.qr_code} size={140} />
+                        <p className="text-xs text-gray-400 dark:text-gray-500 text-center mt-2">
+                          Show at check-in
+                        </p>
+                      </>
+                    ) : b.eventPrice === 0 ? (
+                      <p className="text-xs text-lime-600 dark:text-lime-400 text-center">
+                        Confirmed
+                      </p>
+                    ) : (
+                      <p className="text-xs text-gray-400 text-center">
+                        QR code pending verification
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </Card>
+  );
+}
+
 export default function UpcomingBookings({ bookings }: { bookings: Booking[] }) {
   const [expandedQR, setExpandedQR] = useState<string | null>(null);
   const [reviewEvent, setReviewEvent] = useState<{
@@ -163,114 +596,13 @@ export default function UpcomingBookings({ bookings }: { bookings: Booking[] }) 
   return (
     <div className="space-y-4">
       {bookings.map((b) => (
-        <Card key={b.id} className="p-5">
-          <div className="flex items-start justify-between">
-            <div className="space-y-1">
-              <div className="flex gap-2 items-center">
-                <UIBadge variant={b.eventType}>{getActivityLabel(b.eventType)}</UIBadge>
-                {b.paymentStatus && b.paymentMethod && (
-                  <PaymentStatusBadge status={b.paymentStatus} />
-                )}
-              </div>
-              <Link href={`/events/${b.eventId}`}>
-                <h3 className="font-heading font-bold text-lg hover:text-lime-600 dark:hover:text-lime-400">
-                  {b.eventTitle}
-                </h3>
-              </Link>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                📅 {formatEventDate(b.eventDate, b.eventEndDate, { short: true })}
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">📍 {b.eventLocation}</p>
-              <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                {b.eventPrice > 0 ? `₱${b.eventPrice.toLocaleString()}` : "Free"}
-              </p>
-              {b.companions && b.companions.length > 0 && (
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  👥 {b.companions.length} companion{b.companions.length > 1 ? "s" : ""} booked
-                </p>
-              )}
-              {b.paymentStatus === "pending" && b.paymentMethod !== "cash" && (
-                <p className="text-sm text-yellow-600 dark:text-yellow-400">
-                  Waiting for payment verification
-                </p>
-              )}
-              {b.paymentStatus === "pending" && b.paymentMethod === "cash" && (
-                <p className="text-sm text-yellow-600 dark:text-yellow-400">
-                  Pay cash on event day
-                </p>
-              )}
-              {b.paymentStatus === "rejected" && (
-                <div className="space-y-2">
-                  <p className="text-sm text-red-500">Payment rejected — please re-upload proof</p>
-                  <ReuploadButton bookingId={b.id} />
-                </div>
-              )}
-              <CheckInOnlineButton
-                booking={b}
-                onCheckedIn={() => {
-                  setReviewEvent({ id: b.eventId, title: b.eventTitle });
-                }}
-              />
-            </div>
-            {b.qrCode && (
-              <button
-                onClick={() => {
-                  setExpandedQR(expandedQR === b.id ? null : b.id);
-                }}
-                className="text-sm text-lime-600 dark:text-lime-400 font-medium hover:text-lime-600"
-              >
-                {expandedQR === b.id ? "Hide QR" : "Show QR"}
-              </button>
-            )}
-          </div>
-          {expandedQR === b.id && b.qrCode && (
-            <div className="mt-4 space-y-3">
-              <div className="flex justify-center">
-                <div className="bg-white dark:bg-gray-900 p-4 rounded-xl border dark:border-gray-700">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 text-center mb-2 font-medium">
-                    Your QR Code
-                  </p>
-                  <QRCodeSVG value={b.qrCode} size={160} />
-                  <p className="text-xs text-gray-400 dark:text-gray-500 text-center mt-2">
-                    Show at check-in
-                  </p>
-                </div>
-              </div>
-              {b.companions && b.companions.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 text-center font-medium">
-                    Companions (booked for friends)
-                  </p>
-                  {b.companions.map((comp, i) => (
-                    <div key={i} className="flex justify-center">
-                      <div className="bg-white dark:bg-gray-900 p-4 rounded-xl border dark:border-gray-700">
-                        <p className="text-xs text-gray-500 dark:text-gray-400 text-center mb-2 font-medium">
-                          👤 {comp.full_name}
-                        </p>
-                        {comp.qr_code ? (
-                          <>
-                            <QRCodeSVG value={comp.qr_code} size={140} />
-                            <p className="text-xs text-gray-400 dark:text-gray-500 text-center mt-2">
-                              Show at check-in
-                            </p>
-                          </>
-                        ) : b.eventPrice === 0 ? (
-                          <p className="text-xs text-lime-600 dark:text-lime-400 text-center">
-                            Confirmed
-                          </p>
-                        ) : (
-                          <p className="text-xs text-gray-400 text-center">
-                            QR code pending verification
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </Card>
+        <BookingCard
+          key={b.id}
+          b={b}
+          expandedQR={expandedQR}
+          onToggleQR={(id) => setExpandedQR(expandedQR === id ? null : id)}
+          onReview={(eventId, eventTitle) => setReviewEvent({ id: eventId, title: eventTitle })}
+        />
       ))}
 
       {reviewEvent && (

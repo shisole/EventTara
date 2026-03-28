@@ -113,6 +113,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       location: body.location,
       ...(coordinates !== undefined && { coordinates }),
       max_participants: body.max_participants,
+      ...(body.offline_participants !== undefined && {
+        offline_participants: body.offline_participants,
+      }),
       price: body.price,
       cover_image_url: body.cover_image_url,
       ...(body.difficulty_level !== undefined && { difficulty_level: body.difficulty_level }),
@@ -294,6 +297,62 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   }
 
   return NextResponse.json({ event, distances });
+}
+
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { data: currentEvent } = await supabase
+    .from("events")
+    .select("club_id")
+    .eq("id", id)
+    .single();
+
+  if (!currentEvent?.club_id) {
+    return NextResponse.json({ error: "Event not found" }, { status: 404 });
+  }
+
+  const role = await checkClubPermissionServer(
+    user.id,
+    currentEvent.club_id,
+    CLUB_PERMISSIONS.edit_event,
+  );
+  if (!role) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const body = await request.json();
+
+  // Build partial update object — only include fields that were sent
+  const updateFields: Record<string, unknown> = {};
+  if (body.offline_participants !== undefined) {
+    updateFields.offline_participants = body.offline_participants;
+  }
+
+  if (Object.keys(updateFields).length === 0) {
+    return NextResponse.json({ error: "No fields to update" }, { status: 400 });
+  }
+
+  const { data: event, error } = await supabase
+    .from("events")
+    .update(updateFields)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ event });
 }
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {

@@ -44,10 +44,19 @@ export default function ClubSettingsForm({ club, isOwner }: ClubSettingsFormProp
     typeof club.payment_info?.gcash_name === "string" ? club.payment_info.gcash_name : "";
   const gcashNumberValue: string =
     typeof club.payment_info?.gcash_number === "string" ? club.payment_info.gcash_number : "";
+  const gcashQrValue: string =
+    typeof club.payment_info?.gcash_qr_url === "string" ? club.payment_info.gcash_qr_url : "";
+  const mayaNumberValue: string =
+    typeof club.payment_info?.maya_number === "string" ? club.payment_info.maya_number : "";
+  const mayaQrValue: string =
+    typeof club.payment_info?.maya_qr_url === "string" ? club.payment_info.maya_qr_url : "";
   const facebookUrlValue: string =
     typeof club.payment_info?.facebook_url === "string" ? club.payment_info.facebook_url : "";
   const [gcashName, setGcashName] = useState(gcashNameValue);
   const [gcashNumber, setGcashNumber] = useState(gcashNumberValue);
+  const [gcashQrImage, setGcashQrImage] = useState<string | File | null>(gcashQrValue || null);
+  const [mayaNumber, setMayaNumber] = useState(mayaNumberValue);
+  const [mayaQrImage, setMayaQrImage] = useState<string | File | null>(mayaQrValue || null);
   const [facebookUrl, setFacebookUrl] = useState(facebookUrlValue);
 
   function toggleActivity(type: string) {
@@ -95,9 +104,34 @@ export default function ClubSettingsForm({ club, isOwner }: ClubSettingsFormProp
     };
 
     if (isOwner) {
+      let gcashQrUrl: string | null = typeof gcashQrImage === "string" ? gcashQrImage : null;
+      if (gcashQrImage instanceof File) {
+        try {
+          gcashQrUrl = await uploadImage(gcashQrImage, "clubs/payment-qr");
+        } catch {
+          setError("Failed to upload GCash QR code");
+          setSaving(false);
+          return;
+        }
+      }
+
+      let mayaQrUrl: string | null = typeof mayaQrImage === "string" ? mayaQrImage : null;
+      if (mayaQrImage instanceof File) {
+        try {
+          mayaQrUrl = await uploadImage(mayaQrImage, "clubs/payment-qr");
+        } catch {
+          setError("Failed to upload Maya QR code");
+          setSaving(false);
+          return;
+        }
+      }
+
       payload.payment_info = {
         gcash_name: gcashName.trim() || null,
         gcash_number: gcashNumber.trim() || null,
+        gcash_qr_url: gcashQrUrl,
+        maya_number: mayaNumber.trim() || null,
+        maya_qr_url: mayaQrUrl,
         facebook_url: facebookUrl.trim() || null,
       };
     }
@@ -220,26 +254,64 @@ export default function ClubSettingsForm({ club, isOwner }: ClubSettingsFormProp
               Payment details shown to participants when they book events.
             </p>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                GCash Name
-              </label>
-              <Input
-                value={gcashName}
-                onChange={(e) => setGcashName(e.target.value)}
-                placeholder="Juan Dela Cruz"
-              />
+            {/* GCash section */}
+            <div className="space-y-3 border border-blue-200 dark:border-blue-800 rounded-xl p-4 bg-blue-50/50 dark:bg-blue-950/20">
+              <h3 className="text-sm font-semibold text-blue-700 dark:text-blue-300">GCash</h3>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Account Name
+                </label>
+                <Input
+                  value={gcashName}
+                  onChange={(e) => setGcashName(e.target.value)}
+                  placeholder="Juan Dela Cruz"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Number
+                </label>
+                <Input
+                  value={gcashNumber}
+                  onChange={(e) => setGcashNumber(e.target.value)}
+                  placeholder="09XX XXX XXXX"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  QR Code Image <span className="font-normal text-gray-400">(optional)</span>
+                </label>
+                <PhotoUploader
+                  value={gcashQrImage}
+                  onChange={(f) => setGcashQrImage(f)}
+                  label="Upload GCash QR"
+                />
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                GCash Number
-              </label>
-              <Input
-                value={gcashNumber}
-                onChange={(e) => setGcashNumber(e.target.value)}
-                placeholder="09XX XXX XXXX"
-              />
+            {/* Maya section */}
+            <div className="space-y-3 border border-green-200 dark:border-green-800 rounded-xl p-4 bg-green-50/50 dark:bg-green-950/20">
+              <h3 className="text-sm font-semibold text-green-700 dark:text-green-300">Maya</h3>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Number
+                </label>
+                <Input
+                  value={mayaNumber}
+                  onChange={(e) => setMayaNumber(e.target.value)}
+                  placeholder="09XX XXX XXXX"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  QR Code Image <span className="font-normal text-gray-400">(optional)</span>
+                </label>
+                <PhotoUploader
+                  value={mayaQrImage}
+                  onChange={(f) => setMayaQrImage(f)}
+                  label="Upload Maya QR"
+                />
+              </div>
             </div>
 
             <div>
