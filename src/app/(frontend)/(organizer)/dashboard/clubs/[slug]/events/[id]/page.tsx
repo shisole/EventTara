@@ -155,6 +155,9 @@ export default async function ClubEventDetailPage({
           <Link href={`${eventsBase}/${id}/edit`}>
             <Button variant="outline">Edit</Button>
           </Link>
+          <Link href={`${eventsBase}/${id}/itinerary`}>
+            <Button variant="outline">Itinerary</Button>
+          </Link>
           <Link href={`${eventsBase}/${id}/checkin`}>
             <Button variant="secondary">Check-in Tool</Button>
           </Link>

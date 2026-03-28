@@ -254,6 +254,41 @@ export interface Database {
         };
         Relationships: [];
       };
+      event_itinerary: {
+        Row: {
+          id: string;
+          event_id: string;
+          time: string;
+          title: string;
+          sort_order: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          event_id: string;
+          time: string;
+          title: string;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          event_id?: string;
+          time?: string;
+          title?: string;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "event_itinerary_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "events";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       event_guides: {
         Row: {
           id: string;

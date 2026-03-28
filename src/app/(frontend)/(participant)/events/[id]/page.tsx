@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import BookingButton from "@/components/events/BookingButton";
 import DifficultyBadge from "@/components/events/DifficultyBadge";
 import EventGallery from "@/components/events/EventGallery";
+import EventItinerary from "@/components/events/EventItinerary";
 import LiveBookingCount from "@/components/events/LiveBookingCount";
 import MobileBookingBar from "@/components/events/MobileBookingBar";
 import OrganizerCard from "@/components/events/OrganizerCard";
@@ -276,6 +277,15 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
     }
   }
 
+  // Fetch itinerary entries
+  const { data: itineraryRows } = await supabase
+    .from("event_itinerary")
+    .select("id, time, title, sort_order")
+    .eq("event_id", id)
+    .order("sort_order", { ascending: true });
+
+  const itineraryEntries = itineraryRows ?? [];
+
   // Fetch event route (if attached)
   const { data: eventRoute } = await supabase
     .from("event_routes")
@@ -467,6 +477,8 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
               </p>
             </div>
           )}
+
+          <EventItinerary entries={itineraryEntries} />
 
           <EventGallery
             photos={(photos || []).map((p) => ({
