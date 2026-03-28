@@ -274,30 +274,58 @@ export async function POST(request: Request) {
   let bookingRecord: any;
 
   if (mode === "self") {
-    // Create new booking
+    // Create new booking (or reactivate a cancelled one)
     // E-wallet bookings expire in 30 minutes if unpaid; free/cash/paused don't expire
     const expiresAt =
       isEwallet && paymentStatus === "pending"
         ? new Date(Date.now() + 30 * 60 * 1000).toISOString()
         : null;
 
-    const { data: booking, error } = await supabase
+    // Check if a cancelled booking exists for this user+event (unique constraint)
+    const { data: cancelledBooking } = await supabase
       .from("bookings")
-      .insert({
-        event_id: eventId,
-        user_id: user.id,
-        payment_method:
-          isFree || isPaymentPaused ? null : (paymentMethod as "gcash" | "maya" | "cash"),
-        qr_code: qrCode,
-        status: bookingStatus,
-        payment_status: paymentStatus,
-        event_distance_id: eventDistanceId,
-        participant_notes: participantNotes,
-        waiver_accepted_at: waiverAcceptedAt,
-        expires_at: expiresAt,
-      })
-      .select()
+      .select("id")
+      .eq("event_id", eventId)
+      .eq("user_id", user.id)
+      .eq("status", "cancelled")
       .single();
+
+    const bookingPayload = {
+      event_id: eventId,
+      user_id: user.id,
+      payment_method:
+        isFree || isPaymentPaused ? null : (paymentMethod as "gcash" | "maya" | "cash"),
+      qr_code: qrCode,
+      status: bookingStatus,
+      payment_status: paymentStatus,
+      event_distance_id: eventDistanceId,
+      participant_notes: participantNotes,
+      waiver_accepted_at: waiverAcceptedAt,
+      expires_at: expiresAt,
+      payment_proof_url: null,
+      payment_verified_at: null,
+      payment_verified_by: null,
+      payment_reminder_sent_at: null,
+    };
+
+    let booking: any;
+    let error: any;
+
+    if (cancelledBooking) {
+      // Reactivate the cancelled booking with fresh data
+      const result = await supabase
+        .from("bookings")
+        .update(bookingPayload)
+        .eq("id", cancelledBooking.id)
+        .select()
+        .single();
+      booking = result.data;
+      error = result.error;
+    } else {
+      const result = await supabase.from("bookings").insert(bookingPayload).select().single();
+      booking = result.data;
+      error = result.error;
+    }
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
