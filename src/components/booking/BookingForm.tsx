@@ -203,10 +203,7 @@ export default function BookingForm({
       return;
     }
 
-    if (!paymentPaused && isEwallet && !proofFile) {
-      setError("Please upload your payment screenshot");
-      return;
-    }
+    // Proof is optional at booking time — user can upload within 30 min
 
     setLoading(true);
     setError("");
@@ -342,7 +339,6 @@ export default function BookingForm({
               ? [{ label: "Distance", done: !!selectedDistanceId }]
               : []),
             ...(paymentPaused || isFree ? [] : [{ label: "Payment", done: !!paymentMethod }]),
-            ...(!paymentPaused && isEwallet ? [{ label: "Proof", done: !!proofFile }] : []),
             ...(hasWaiver ? [{ label: "Waiver", done: waiverAccepted }] : []),
           ];
           const completed = steps.filter((s) => s.done).length;
@@ -688,7 +684,9 @@ export default function BookingForm({
                     : isCash
                       ? "Reserve Spot"
                       : isEwallet
-                        ? "Submit Booking & Proof"
+                        ? proofFile
+                          ? "Submit Booking & Proof"
+                          : "Book Now"
                         : "Confirm Booking"}
             </Button>
           </div>
