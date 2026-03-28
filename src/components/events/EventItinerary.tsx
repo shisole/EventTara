@@ -30,14 +30,14 @@ function groupByDay(entries: ItineraryEntry[]): DayGroup[] {
         currentDay = day;
         groups.push({ day, entries: [] });
       }
-      groups.at(-1).entries.push({ id: entry.id, time, title: entry.title });
+      groups.at(-1)?.entries.push({ id: entry.id, time, title: entry.title });
     } else {
       // No day prefix — put in a default group
       if (groups.length === 0 || currentDay !== "") {
         currentDay = "";
         groups.push({ day: "", entries: [] });
       }
-      groups.at(-1).entries.push({
+      groups.at(-1)?.entries.push({
         id: entry.id,
         time: entry.time,
         title: entry.title,
