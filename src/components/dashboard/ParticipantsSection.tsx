@@ -139,8 +139,8 @@ export default function ParticipantsSection({
 
       {/* Offline / reserved slots */}
       {!isCompleted && (
-        <div className="mb-4 flex items-center gap-3">
-          <div className="flex items-center gap-2">
+        <div className="mb-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-4 py-3">
+          <div className="flex items-center gap-3">
             <label
               htmlFor="offlineSlots"
               className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap"
@@ -153,13 +153,13 @@ export default function ParticipantsSection({
               min={0}
               value={offlineSlots}
               onChange={(e) => handleOfflineChange(Number(e.target.value))}
-              className="w-20 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-1.5 text-sm text-gray-900 dark:text-gray-100 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors"
+              className="w-20 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-lime-500 focus:ring-2 focus:ring-lime-200 dark:focus:ring-lime-800 outline-none transition-colors"
             />
             {savingOffline && (
               <span className="text-xs text-gray-400 dark:text-gray-500">Saving...</span>
             )}
           </div>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
+          <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
             Participants registered or paid outside the platform. Counts toward capacity.
           </p>
         </div>
