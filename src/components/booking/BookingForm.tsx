@@ -84,6 +84,8 @@ export default function BookingForm({
     qr_code: string | null;
     payment_status: string;
     payment_method: string | null;
+    expires_at: string | null;
+    payment_proof_url: string | null;
     companions?: { id: string; full_name: string; qr_code: string | null }[];
   } | null>(null);
   const [companions, setCompanions] = useState<Companion[]>(
@@ -324,6 +326,8 @@ export default function BookingForm({
               })
             : undefined
         }
+        expiresAt={booking.expires_at}
+        hasProof={!!booking.payment_proof_url}
       />
     );
   }
@@ -709,7 +713,9 @@ export default function BookingForm({
                   : isCash
                     ? "Reserve Spot"
                     : isEwallet
-                      ? "Submit Booking & Proof"
+                      ? proofFile
+                        ? "Submit Booking & Proof"
+                        : "Book Now"
                       : "Confirm Booking"}
           </Button>
         )}

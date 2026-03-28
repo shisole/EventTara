@@ -87,7 +87,13 @@ function CancelBookingButton({ bookingId }: { bookingId: string }) {
   );
 }
 
-function ReuploadButton({ bookingId }: { bookingId: string }) {
+function ReuploadButton({
+  bookingId,
+  label = "Re-upload Proof",
+}: {
+  bookingId: string;
+  label?: string;
+}) {
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -115,7 +121,7 @@ function ReuploadButton({ bookingId }: { bookingId: string }) {
         onClick={() => inputRef.current?.click()}
         disabled={uploading}
       >
-        {uploading ? "Uploading..." : "Re-upload Proof"}
+        {uploading ? "Uploading..." : label}
       </Button>
       <input
         ref={inputRef}
@@ -241,11 +247,18 @@ export default function UpcomingBookings({ bookings }: { bookings: Booking[] }) 
                   👥 {b.companions.length} companion{b.companions.length > 1 ? "s" : ""} booked
                 </p>
               )}
-              {b.paymentStatus === "pending" && b.paymentMethod !== "cash" && (
-                <p className="text-sm text-yellow-600 dark:text-yellow-400">
-                  Waiting for payment verification
-                </p>
-              )}
+              {b.paymentStatus === "pending" &&
+                b.paymentMethod !== "cash" &&
+                b.paymentMethod !== "free" && (
+                  <div className="space-y-2">
+                    <p className="text-sm text-yellow-600 dark:text-yellow-400">
+                      {b.paymentProofUrl
+                        ? "Waiting for payment verification"
+                        : "Upload payment proof to complete booking"}
+                    </p>
+                    {!b.paymentProofUrl && <ReuploadButton bookingId={b.id} label="Upload Proof" />}
+                  </div>
+                )}
               {b.paymentStatus === "pending" && b.paymentMethod === "cash" && (
                 <p className="text-sm text-yellow-600 dark:text-yellow-400">
                   Pay cash on event day

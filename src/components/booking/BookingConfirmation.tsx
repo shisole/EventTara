@@ -3,9 +3,10 @@
 import confetti from "canvas-confetti";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui";
+import { cn } from "@/lib/utils";
 import { formatEventDate } from "@/lib/utils/format-date";
 
 interface CompanionConfirmation {
@@ -33,6 +34,125 @@ interface BookingConfirmationProps {
   contactUrl?: string | null;
   clubSlug?: string | null;
   rentalItems?: RentalConfirmation[];
+  expiresAt?: string | null;
+  hasProof?: boolean;
+}
+
+function CountdownTimer({ expiresAt }: { expiresAt: string }) {
+  const [timeLeft, setTimeLeft] = useState("");
+  const [isUrgent, setIsUrgent] = useState(false);
+
+  useEffect(() => {
+    const update = () => {
+      const diff = new Date(expiresAt).getTime() - Date.now();
+      if (diff <= 0) {
+        setTimeLeft("Expired");
+        setIsUrgent(true);
+        return;
+      }
+      const mins = Math.floor(diff / 60000);
+      const secs = Math.floor((diff % 60000) / 1000);
+      setTimeLeft(`${mins}:${secs.toString().padStart(2, "0")}`);
+      setIsUrgent(mins < 5);
+    };
+
+    update();
+    const interval = setInterval(update, 1000);
+    return () => clearInterval(interval);
+  }, [expiresAt]);
+
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 font-mono font-semibold tabular-nums",
+        timeLeft === "Expired"
+          ? "text-red-600 dark:text-red-400"
+          : isUrgent
+            ? "text-red-600 dark:text-red-400"
+            : "text-amber-600 dark:text-amber-400",
+      )}
+    >
+      <svg
+        className="w-4 h-4"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2}
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z"
+        />
+      </svg>
+      {timeLeft}
+    </span>
+  );
+}
+
+function ProofUploadButton({ bookingId }: { bookingId: string }) {
+  const [uploading, setUploading] = useState(false);
+  const [uploaded, setUploaded] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleUpload = async (file: File) => {
+    setUploading(true);
+    const formData = new FormData();
+    formData.append("payment_proof", file);
+
+    try {
+      const res = await fetch(`/api/bookings/${bookingId}/proof`, {
+        method: "PATCH",
+        body: formData,
+      });
+      if (res.ok) {
+        setUploaded(true);
+      }
+    } catch {
+      // silent
+    }
+    setUploading(false);
+  };
+
+  if (uploaded) {
+    return (
+      <div className="flex items-center gap-2 text-sm font-medium text-green-600 dark:text-green-400">
+        <svg
+          className="w-4 h-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+        Proof uploaded!
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <Button
+        variant="primary"
+        size="sm"
+        onClick={() => inputRef.current?.click()}
+        disabled={uploading}
+      >
+        {uploading ? "Uploading..." : "Upload Payment Screenshot"}
+      </Button>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) void handleUpload(file);
+        }}
+      />
+    </>
+  );
 }
 
 export default function BookingConfirmation({
@@ -49,6 +169,8 @@ export default function BookingConfirmation({
   contactUrl,
   clubSlug,
   rentalItems,
+  expiresAt,
+  hasProof,
 }: BookingConfirmationProps) {
   const isPendingEwallet =
     paymentStatus === "pending" && paymentMethod !== "cash" && !paymentPaused;
@@ -193,29 +315,71 @@ export default function BookingConfirmation({
         </>
       ) : isPendingEwallet ? (
         <>
-          <div className="text-5xl">{isFriendMode ? "👥" : "✉️"}</div>
+          <div className="text-5xl">{isFriendMode ? "👥" : hasProof ? "✉️" : "⏳"}</div>
           <h2 className="text-2xl font-heading font-bold">
-            {isFriendMode ? "Friends Registered!" : "Proof Submitted!"}
+            {isFriendMode
+              ? "Friends Registered!"
+              : hasProof
+                ? "Proof Submitted!"
+                : "Booking Reserved!"}
           </h2>
           <p className="text-gray-600 dark:text-gray-400">
-            {isFriendMode ? (
-              <>
-                Payment proof for your companions at{" "}
-                <span className="font-semibold">{eventTitle}</span> has been submitted. The club
-                admin will verify it shortly.
-              </>
+            {hasProof ? (
+              isFriendMode ? (
+                <>
+                  Payment proof for your companions at{" "}
+                  <span className="font-semibold">{eventTitle}</span> has been submitted. The club
+                  admin will verify it shortly.
+                </>
+              ) : (
+                <>
+                  Your payment proof for <span className="font-semibold">{eventTitle}</span> has
+                  been submitted. The club admin will verify it shortly.
+                </>
+              )
             ) : (
               <>
-                Your payment proof for <span className="font-semibold">{eventTitle}</span> has been
-                submitted. The club admin will verify it shortly.
+                Your spot for <span className="font-semibold">{eventTitle}</span> is reserved.
+                Upload your payment screenshot to secure your booking.
               </>
             )}
           </p>
-          <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4">
-            <p className="text-sm text-yellow-700 dark:text-yellow-300">
-              You&apos;ll receive a confirmation email and QR code once your payment is verified.
-            </p>
-          </div>
+
+          {/* Countdown timer for unpaid e-wallet bookings */}
+          {expiresAt && !hasProof && (
+            <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
+                  Time remaining to upload proof
+                </p>
+                <CountdownTimer expiresAt={expiresAt} />
+              </div>
+              <p className="text-xs text-amber-600 dark:text-amber-400">
+                Your booking will be automatically cancelled if no proof is uploaded before the
+                timer expires.
+              </p>
+              <ProofUploadButton bookingId={bookingId} />
+            </div>
+          )}
+
+          {/* No expiry but no proof — still allow upload */}
+          {!expiresAt && !hasProof && (
+            <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 space-y-3">
+              <p className="text-sm text-amber-700 dark:text-amber-300">
+                Upload your payment screenshot to complete your booking.
+              </p>
+              <ProofUploadButton bookingId={bookingId} />
+            </div>
+          )}
+
+          {hasProof && (
+            <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4">
+              <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                You&apos;ll receive a confirmation email and QR code once your payment is verified.
+              </p>
+            </div>
+          )}
+
           {companions.length > 0 && (
             <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
               <p className="text-sm font-medium mb-2">Companions registered:</p>
