@@ -40,8 +40,11 @@ export default function HeroCarousel({ slides }: HeroCarouselProps) {
     for (const [index, video] of videoRefs.current) {
       if (index === activeIndex) {
         video.currentTime = 0;
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        video.play().catch(() => {});
+        void video.play().catch(() => {
+          // Retry once after a short delay (handles race with browser readiness)
+          // eslint-disable-next-line @typescript-eslint/no-empty-function
+          setTimeout(() => void video.play().catch(() => {}), 200);
+        });
       } else {
         video.pause();
       }
@@ -78,9 +81,10 @@ export default function HeroCarousel({ slides }: HeroCarouselProps) {
                   else videoRefs.current.delete(i);
                 }}
                 src={toProxyUrl(slide.videoUrl!)}
-                autoPlay={i === 0}
+                autoPlay
                 muted
                 playsInline
+                preload="auto"
                 loop={count === 1}
                 className="absolute inset-0 h-full w-full object-cover"
                 onEnded={() => {
