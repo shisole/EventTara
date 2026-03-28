@@ -34,6 +34,7 @@ export default function ItineraryManager({ eventId, initialEntries }: ItineraryM
   const [pasteStep, setPasteStep] = useState<"paste" | "preview">("paste");
   const [parsedEntries, setParsedEntries] = useState<ParsedEntry[]>([]);
   const [pasteSaving, setPasteSaving] = useState(false);
+  const [pasteSavingIndex, setPasteSavingIndex] = useState(-1);
   const [pasteError, setPasteError] = useState("");
 
   useEffect(() => {
@@ -166,16 +167,21 @@ export default function ItineraryManager({ eventId, initialEntries }: ItineraryM
   }
 
   async function handlePasteSave() {
-    const validEntries = parsedEntries.filter((e) => e.title.trim());
-    if (validEntries.length === 0) return;
+    const validIndices = parsedEntries
+      .map((e, i) => (e.title.trim() ? i : -1))
+      .filter((i) => i !== -1);
+    if (validIndices.length === 0) return;
 
     setPasteSaving(true);
+    setPasteSavingIndex(-1);
     setPasteError("");
 
     let failCount = 0;
 
     try {
-      for (const parsed of validEntries) {
+      for (const idx of validIndices) {
+        const parsed = parsedEntries[idx];
+        setPasteSavingIndex(idx);
         const existingEntry = entries.find((e) => e.time === parsed.time.trim());
 
         try {
@@ -213,6 +219,7 @@ export default function ItineraryManager({ eventId, initialEntries }: ItineraryM
       }
     } finally {
       setPasteSaving(false);
+      setPasteSavingIndex(-1);
     }
 
     if (failCount > 0) {
@@ -411,16 +418,22 @@ export default function ItineraryManager({ eventId, initialEntries }: ItineraryM
                     const isUpdate =
                       entry.time.trim() && entries.some((ex) => ex.time === entry.time.trim());
                     const isUnparsed = !entry.time;
+                    const isSaved = pasteSaving && i < pasteSavingIndex;
+                    const isSaving = pasteSaving && i === pasteSavingIndex;
                     return (
                       <div
                         key={i}
                         className={cn(
-                          "flex items-center gap-2 rounded-xl border p-2",
-                          isUnparsed
-                            ? "border-amber-300 dark:border-amber-600 bg-amber-50 dark:bg-amber-950/20"
-                            : isUpdate
-                              ? "border-amber-200 dark:border-amber-700 bg-white dark:bg-gray-800"
-                              : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800",
+                          "flex items-center gap-2 rounded-xl border p-2 transition-colors",
+                          isSaved
+                            ? "border-teal-300 dark:border-teal-700 bg-teal-50 dark:bg-teal-950/20 opacity-60"
+                            : isSaving
+                              ? "border-teal-400 dark:border-teal-500 bg-teal-50 dark:bg-teal-950/30"
+                              : isUnparsed
+                                ? "border-amber-300 dark:border-amber-600 bg-amber-50 dark:bg-amber-950/20"
+                                : isUpdate
+                                  ? "border-amber-200 dark:border-amber-700 bg-white dark:bg-gray-800"
+                                  : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800",
                         )}
                       >
                         <Input
@@ -428,23 +441,34 @@ export default function ItineraryManager({ eventId, initialEntries }: ItineraryM
                           onChange={(e) => updateParsedEntry(i, "time", e.target.value)}
                           placeholder="Time"
                           className="w-24 text-sm"
+                          disabled={pasteSaving}
                         />
                         <Input
                           value={entry.title}
                           onChange={(e) => updateParsedEntry(i, "title", e.target.value)}
                           placeholder="Title"
                           className="flex-1 text-sm"
+                          disabled={pasteSaving}
                         />
-                        {isUpdate && (
+                        {isSaved ? (
+                          <span className="text-xs text-teal-600 dark:text-teal-400 whitespace-nowrap">
+                            saved
+                          </span>
+                        ) : isSaving ? (
+                          <span className="text-xs text-teal-600 dark:text-teal-400 whitespace-nowrap animate-pulse">
+                            saving...
+                          </span>
+                        ) : isUpdate ? (
                           <span className="text-xs text-amber-600 dark:text-amber-400 whitespace-nowrap">
                             update
                           </span>
-                        )}
+                        ) : null}
                         <button
                           type="button"
                           onClick={() => removeParsedEntry(i)}
                           className="text-sm text-red-500 hover:text-red-700 dark:hover:text-red-400 px-1"
                           aria-label="Remove entry"
+                          disabled={pasteSaving}
                         >
                           ×
                         </button>
@@ -491,7 +515,9 @@ export default function ItineraryManager({ eventId, initialEntries }: ItineraryM
                       pasteSaving || parsedEntries.filter((e) => e.title.trim()).length === 0
                     }
                   >
-                    {pasteSaving ? "Saving..." : "Add to Itinerary"}
+                    {pasteSaving
+                      ? `Saving ${pasteSavingIndex + 1}/${parsedEntries.filter((e) => e.title.trim()).length}...`
+                      : "Add to Itinerary"}
                   </Button>
                 </>
               )}
