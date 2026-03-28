@@ -554,6 +554,15 @@ export default function BookingForm({
               />
             )}
 
+            {isEwallet && (
+              <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-3">
+                <p className="text-sm text-amber-700 dark:text-amber-300">
+                  <strong>Book now, pay later!</strong> You can reserve your spot first and upload
+                  your payment proof within 30 minutes.
+                </p>
+              </div>
+            )}
+
             {isEwallet && <PaymentProofUpload file={proofFile} onFileChange={setProofFile} />}
 
             {isCash && (
