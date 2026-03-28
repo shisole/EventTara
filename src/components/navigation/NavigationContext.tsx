@@ -67,6 +67,48 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
     }
   }, [pathname]);
 
+  // Global click listener — catch all internal <a> clicks so every Link
+  // triggers the navigation loader without needing NavLink everywhere.
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      // Only handle left-clicks without modifiers
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      if (e.defaultPrevented) return;
+
+      // Walk up from the target to find the nearest <a>
+      const target: HTMLElement | null = e.target instanceof HTMLElement ? e.target : null;
+      if (!target) return;
+      const anchor = target.closest("a");
+      if (!anchor) return;
+
+      const href = anchor.getAttribute("href");
+      if (!href) return;
+
+      // Skip external links, hash links, mailto, tel, blob, data, javascript
+      if (
+        href.startsWith("http") ||
+        href.startsWith("#") ||
+        href.startsWith("mailto:") ||
+        href.startsWith("tel:") ||
+        href.startsWith("blob:") ||
+        href.startsWith("data:") ||
+        href.startsWith("javascript:")
+      )
+        return;
+
+      // Skip links with target="_blank" or download attribute
+      if (anchor.target === "_blank" || anchor.hasAttribute("download")) return;
+
+      // Skip if navigating to the same page
+      if (href === pathname || href === `${pathname}/`) return;
+
+      startNavigation();
+    }
+
+    document.addEventListener("click", handleClick, { capture: true });
+    return () => document.removeEventListener("click", handleClick, { capture: true });
+  }, [pathname, startNavigation]);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {

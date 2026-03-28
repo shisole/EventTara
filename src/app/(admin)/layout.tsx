@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import "./globals.css";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import ThemeProvider from "@/components/layout/ThemeProvider";
+import { NavigationProvider } from "@/components/navigation/NavigationContext";
+import NavigationLoader from "@/components/navigation/NavigationLoader";
 import { isAdminUser } from "@/lib/admin/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -42,17 +44,20 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     >
       <body className="font-sans min-h-dvh flex flex-col">
         <ThemeProvider>
-          <div className="flex min-h-dvh">
-            <AdminSidebar />
-            <main className="flex-1 min-w-0 bg-gray-50 dark:bg-gray-950">
-              <div className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 px-6 py-4">
-                <h1 className="font-heading font-bold text-lg text-gray-900 dark:text-white pl-10 md:pl-0">
-                  EventTara Admin
-                </h1>
-              </div>
-              <div className="p-4 sm:p-6">{children}</div>
-            </main>
-          </div>
+          <NavigationProvider>
+            <NavigationLoader />
+            <div className="flex min-h-dvh">
+              <AdminSidebar />
+              <main className="flex-1 min-w-0 bg-gray-50 dark:bg-gray-950">
+                <div className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 px-6 py-4">
+                  <h1 className="font-heading font-bold text-lg text-gray-900 dark:text-white pl-10 md:pl-0">
+                    EventTara Admin
+                  </h1>
+                </div>
+                <div className="p-4 sm:p-6">{children}</div>
+              </main>
+            </div>
+          </NavigationProvider>
         </ThemeProvider>
       </body>
     </html>
