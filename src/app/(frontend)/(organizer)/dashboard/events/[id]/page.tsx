@@ -70,7 +70,7 @@ export default async function ManageEventPage({ params }: { params: Promise<{ id
   const pendingPaymentCount = (bookings || []).filter(
     (b: any) => b.payment_status === "pending" && !b.participant_cancelled,
   ).length;
-  const totalParticipants = activeBookings + totalCompanions;
+  const totalParticipants = activeBookings + totalCompanions + (event.offline_participants ?? 0);
 
   // Get check-ins
   const { data: checkins } = await supabase
@@ -214,6 +214,8 @@ export default async function ManageEventPage({ params }: { params: Promise<{ id
             companionsByBooking={companionsByBooking}
             checkedInUserIds={checkedInUserIds}
             distances={(distances || []) as any}
+            offlineParticipants={event.offline_participants ?? 0}
+            maxParticipants={event.max_participants}
           />
         </div>
 

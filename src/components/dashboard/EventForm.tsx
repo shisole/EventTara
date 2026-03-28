@@ -65,6 +65,7 @@ interface EventFormProps {
     location: string;
     coordinates?: { lat: number; lng: number } | null;
     max_participants: number;
+    offline_participants?: number;
     price: number;
     cover_image_url: string | null;
     status?: string;

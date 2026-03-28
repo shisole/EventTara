@@ -60,6 +60,7 @@ export interface Database {
           location: string;
           coordinates: { lat: number; lng: number } | null;
           max_participants: number;
+          offline_participants: number;
           price: number;
           status: "draft" | "published" | "completed" | "cancelled";
           cover_image_url: string | null;
@@ -84,6 +85,7 @@ export interface Database {
           location: string;
           coordinates?: { lat: number; lng: number } | null;
           max_participants?: number;
+          offline_participants?: number;
           price?: number;
           status?: "draft" | "published" | "completed" | "cancelled";
           cover_image_url?: string | null;
@@ -108,6 +110,7 @@ export interface Database {
           location?: string;
           coordinates?: { lat: number; lng: number } | null;
           max_participants?: number;
+          offline_participants?: number;
           price?: number;
           status?: "draft" | "published" | "completed" | "cancelled";
           cover_image_url?: string | null;
