@@ -7,9 +7,23 @@ import { createServiceClient } from "@/lib/supabase/server";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://eventtara.com";
 
+function isAuthorized(request: Request): boolean {
+  // Support both: Vercel Cron (Authorization: Bearer) and manual (x-cron-secret header)
+  const bearer = request.headers.get("authorization")?.replace("Bearer ", "");
+  const header = request.headers.get("x-cron-secret");
+  return (bearer || header) === process.env.CRON_SECRET;
+}
+
+export async function GET(request: Request) {
+  return handleExpireBookings(request);
+}
+
 export async function POST(request: Request) {
-  const secret = request.headers.get("x-cron-secret");
-  if (secret !== process.env.CRON_SECRET) {
+  return handleExpireBookings(request);
+}
+
+async function handleExpireBookings(request: Request) {
+  if (!isAuthorized(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

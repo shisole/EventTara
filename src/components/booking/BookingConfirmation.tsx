@@ -38,9 +38,10 @@ interface BookingConfirmationProps {
   hasProof?: boolean;
 }
 
-function CountdownTimer({ expiresAt }: { expiresAt: string }) {
+function CountdownTimer({ expiresAt, onExpire }: { expiresAt: string; onExpire?: () => void }) {
   const [timeLeft, setTimeLeft] = useState("");
   const [isUrgent, setIsUrgent] = useState(false);
+  const expiredRef = useRef(false);
 
   useEffect(() => {
     const update = () => {
@@ -48,6 +49,10 @@ function CountdownTimer({ expiresAt }: { expiresAt: string }) {
       if (diff <= 0) {
         setTimeLeft("Expired");
         setIsUrgent(true);
+        if (!expiredRef.current) {
+          expiredRef.current = true;
+          onExpire?.();
+        }
         return;
       }
       const mins = Math.floor(diff / 60000);
@@ -59,7 +64,7 @@ function CountdownTimer({ expiresAt }: { expiresAt: string }) {
     update();
     const interval = setInterval(update, 1000);
     return () => clearInterval(interval);
-  }, [expiresAt]);
+  }, [expiresAt, onExpire]);
 
   return (
     <span
@@ -261,6 +266,9 @@ export default function BookingConfirmation({
   const isPendingCash = paymentStatus === "pending" && paymentMethod === "cash";
   const isFriendMode = mode === "friend";
   const hasFired = useRef(false);
+  const [isExpired, setIsExpired] = useState(
+    () => !!expiresAt && new Date(expiresAt).getTime() <= Date.now(),
+  );
 
   useEffect(() => {
     if (hasFired.current) return;
@@ -397,6 +405,20 @@ export default function BookingConfirmation({
             </div>
           )}
         </>
+      ) : isPendingEwallet && isExpired && !hasProof ? (
+        <>
+          <div className="text-5xl">⏰</div>
+          <h2 className="text-2xl font-heading font-bold">Booking Expired</h2>
+          <p className="text-gray-600 dark:text-gray-400">
+            The payment window for <span className="font-semibold">{eventTitle}</span> has closed.
+            This booking will be cancelled automatically.
+          </p>
+          <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-xl p-4">
+            <p className="text-sm text-red-700 dark:text-red-300">
+              You can re-book the event if spots are still available.
+            </p>
+          </div>
+        </>
       ) : isPendingEwallet ? (
         <>
           <div className="text-5xl">{isFriendMode ? "👥" : hasProof ? "✉️" : "⏳"}</div>
@@ -436,7 +458,7 @@ export default function BookingConfirmation({
                 <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
                   Time remaining to upload proof
                 </p>
-                <CountdownTimer expiresAt={expiresAt} />
+                <CountdownTimer expiresAt={expiresAt} onExpire={() => setIsExpired(true)} />
               </div>
               <p className="text-xs text-amber-600 dark:text-amber-400">
                 Your booking will be automatically cancelled if no proof is uploaded before the

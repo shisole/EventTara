@@ -400,11 +400,27 @@ export default function UpcomingBookings({ bookings }: { bookings: Booking[] }) 
             )}
           </div>
 
-          {/* B: Proof upload wrapped in amber alert box with timer (A) */}
+          {/* Proof upload or expired state */}
           {b.paymentStatus === "pending" &&
             b.paymentMethod !== "cash" &&
             b.paymentMethod !== "free" &&
-            !b.paymentProofUrl && (
+            !b.paymentProofUrl &&
+            (b.expiresAt && new Date(b.expiresAt).getTime() <= Date.now() ? (
+              <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-xl p-4 space-y-2">
+                <p className="text-sm font-medium text-red-700 dark:text-red-300">
+                  Booking expired
+                </p>
+                <p className="text-xs text-red-600 dark:text-red-400">
+                  The payment window has closed. This booking will be cancelled automatically. You
+                  can re-book the event if spots are still available.
+                </p>
+                <Link href={`/events/${b.eventId}`}>
+                  <Button size="sm" variant="outline" className="mt-1">
+                    View Event
+                  </Button>
+                </Link>
+              </div>
+            ) : (
               <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 space-y-3">
                 <div className="flex items-center justify-between gap-2">
                   <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
@@ -419,7 +435,7 @@ export default function UpcomingBookings({ bookings }: { bookings: Booking[] }) 
                 )}
                 <ProofUploader bookingId={b.id} />
               </div>
-            )}
+            ))}
 
           {/* D: Proof uploaded — waiting for verification */}
           {b.paymentStatus === "pending" &&

@@ -1,4 +1,14 @@
 {
+  "crons": [
+    {
+      "path": "/api/cron/expire-bookings",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/payment-reminders",
+      "schedule": "*/10 * * * *"
+    }
+  ],
   "redirects": [
     {
       "source": "/:path(.*)",
