@@ -54,20 +54,39 @@ export default function BookingButton({
   }
 
   if (userBooking) {
-    const statusLabel =
-      userBooking.status === "confirmed" || userBooking.status === "reserved"
-        ? "Already Booked"
-        : "Booking Pending";
+    const isConfirmed = userBooking.status === "confirmed" || userBooking.status === "reserved";
+    const needsPayment = !isConfirmed && userBooking.payment_status === "pending";
+
     return (
       <div className="space-y-3">
-        <Button disabled className="w-full" size="lg">
-          {statusLabel}
-        </Button>
-        <Link href="/my-events" className="block">
-          <Button variant="outline" className="w-full" size="sm">
-            View My Booking
-          </Button>
-        </Link>
+        {needsPayment ? (
+          <>
+            <div className="w-full rounded-xl bg-amber-100 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-700 px-4 py-3 text-center">
+              <p className="text-sm font-semibold text-amber-800 dark:text-amber-200">
+                Payment Pending
+              </p>
+              <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">
+                Upload your proof to confirm your spot
+              </p>
+            </div>
+            <Link href="/my-events" className="block">
+              <Button className="w-full" size="sm">
+                Upload Payment Proof
+              </Button>
+            </Link>
+          </>
+        ) : (
+          <>
+            <Button disabled className="w-full" size="lg">
+              {isConfirmed ? "Already Booked" : "Booking Pending"}
+            </Button>
+            <Link href="/my-events" className="block">
+              <Button variant="outline" className="w-full" size="sm">
+                View My Booking
+              </Button>
+            </Link>
+          </>
+        )}
         {spotsLeft > 0 && (
           <Link href={`/events/${eventId}/book?for=friend`} className="block">
             <Button variant="secondary" className="w-full" size="sm">

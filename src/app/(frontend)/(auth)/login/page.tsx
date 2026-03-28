@@ -33,6 +33,7 @@ function LoginForm() {
   const [oauthGoogle, setOauthGoogle] = useState(false);
   const [oauthStrava, setOauthStrava] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [showMoreOptions, setShowMoreOptions] = useState(false);
 
   useEffect(() => {
     void fetch("/api/feature-flags")
@@ -278,35 +279,56 @@ function LoginForm() {
           </Button>
         )}
 
-        {oauthStrava ? (
-          <Button disabled className="w-full bg-[#FC4C02]/60 cursor-not-allowed" size="lg">
-            <StravaIcon className="w-5 h-5 mr-2" />
-            Continue with Strava
-            <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium">
-              Coming Soon
-            </span>
-          </Button>
-        ) : (
-          <Button
-            className="w-full bg-[#FC4C02] hover:bg-[#E34402] text-white"
-            size="lg"
-            onClick={() => {
-              const clientId = process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID;
-              if (!clientId) return;
-              const params = new URLSearchParams({
-                client_id: clientId,
-                redirect_uri: `${globalThis.location.origin}/auth/strava/callback`,
-                response_type: "code",
-                scope: STRAVA_SCOPES.join(","),
-                state: JSON.stringify({ flow: "login", returnUrl: next }),
-                approval_prompt: "auto",
-              });
-              globalThis.location.href = `${STRAVA_AUTH_URL}?${params.toString()}`;
-            }}
+        {!showMoreOptions && (
+          <button
+            type="button"
+            onClick={() => setShowMoreOptions(true)}
+            className="w-full text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-medium py-1"
           >
-            <StravaIcon className="w-5 h-5 mr-2" />
-            Continue with Strava
-          </Button>
+            More sign-in options
+          </button>
+        )}
+
+        {showMoreOptions && (
+          <>
+            {oauthStrava ? (
+              <Button disabled className="w-full bg-[#FC4C02]/60 cursor-not-allowed" size="lg">
+                <StravaIcon className="w-5 h-5 mr-2" />
+                Continue with Strava
+                <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium">
+                  Coming Soon
+                </span>
+              </Button>
+            ) : (
+              <Button
+                className="w-full bg-[#FC4C02] hover:bg-[#E34402] text-white"
+                size="lg"
+                onClick={() => {
+                  const clientId = process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID;
+                  if (!clientId) return;
+                  const params = new URLSearchParams({
+                    client_id: clientId,
+                    redirect_uri: `${globalThis.location.origin}/auth/strava/callback`,
+                    response_type: "code",
+                    scope: STRAVA_SCOPES.join(","),
+                    state: JSON.stringify({ flow: "login", returnUrl: next }),
+                    approval_prompt: "auto",
+                  });
+                  globalThis.location.href = `${STRAVA_AUTH_URL}?${params.toString()}`;
+                }}
+              >
+                <StravaIcon className="w-5 h-5 mr-2" />
+                Continue with Strava
+              </Button>
+            )}
+
+            <button
+              onClick={handleGuestContinue}
+              className="w-full text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 underline"
+            >
+              Continue as Guest
+            </button>
+          </>
         )}
       </div>
 
@@ -393,23 +415,15 @@ function LoginForm() {
         </fieldset>
       </form>
 
-      <div className="text-center space-y-3">
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          Don&apos;t have an account?{" "}
-          <Link
-            href={next === "/events" ? "/signup" : `/signup?next=${encodeURIComponent(next)}`}
-            className="text-lime-600 dark:text-lime-400 hover:text-lime-600 dark:hover:text-lime-400 font-medium"
-          >
-            Sign Up
-          </Link>
-        </p>
-        <button
-          onClick={handleGuestContinue}
-          className="text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 underline"
+      <p className="text-center text-sm text-gray-500 dark:text-gray-400">
+        Don&apos;t have an account?{" "}
+        <Link
+          href={next === "/events" ? "/signup" : `/signup?next=${encodeURIComponent(next)}`}
+          className="text-lime-600 dark:text-lime-400 hover:text-lime-600 dark:hover:text-lime-400 font-medium"
         >
-          Continue as Guest
-        </button>
-      </div>
+          Sign Up
+        </Link>
+      </p>
     </div>
   );
 }

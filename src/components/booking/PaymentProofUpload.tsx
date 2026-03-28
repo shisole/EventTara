@@ -46,7 +46,8 @@ export default function PaymentProofUpload({ file, onFileChange }: PaymentProofU
   return (
     <div className="space-y-2">
       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-        Payment Screenshot
+        Payment Screenshot{" "}
+        <span className="text-gray-400 font-normal">(optional — upload now or within 30 min)</span>
       </label>
 
       {preview ? (

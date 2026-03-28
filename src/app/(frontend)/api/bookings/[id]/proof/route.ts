@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { createNotifications } from "@/lib/notifications/create";
 import { uploadToR2 } from "@/lib/r2";
 import { createClient } from "@/lib/supabase/server";
 
@@ -60,6 +61,41 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  // Notify club moderators+ about the re-upload
+  const { data: event } = await supabase
+    .from("events")
+    .select("title, club_id")
+    .eq("id", booking.event_id)
+    .single();
+
+  if (event) {
+    const { data: clubMods } = await supabase
+      .from("club_members")
+      .select("user_id")
+      .eq("club_id", event.club_id)
+      .in("role", ["owner", "admin", "moderator"]);
+
+    if (clubMods && clubMods.length > 0) {
+      const { data: userProfile } = await supabase
+        .from("users")
+        .select("full_name")
+        .eq("id", user.id)
+        .single();
+
+      createNotifications(
+        supabase,
+        clubMods.map((m) => ({
+          userId: m.user_id,
+          type: "payment_proof_uploaded" as const,
+          title: "Payment Proof Re-uploaded",
+          body: `${userProfile?.full_name ?? "A participant"} re-uploaded payment proof for ${event.title}`,
+          href: `/dashboard/clubs/${event.club_id}`,
+          actorId: user.id,
+        })),
+      ).catch(() => null);
+    }
   }
 
   return NextResponse.json({ message: "Proof uploaded", payment_proof_url: proofUrl });

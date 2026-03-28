@@ -407,6 +407,8 @@ export interface Database {
           participant_notes: string | null;
           organizer_notes: string | null;
           waiver_accepted_at: string | null;
+          expires_at: string | null;
+          payment_reminder_sent_at: string | null;
         };
         Insert: {
           id?: string;
@@ -429,6 +431,8 @@ export interface Database {
           participant_notes?: string | null;
           organizer_notes?: string | null;
           waiver_accepted_at?: string | null;
+          expires_at?: string | null;
+          payment_reminder_sent_at?: string | null;
         };
         Update: {
           id?: string;
@@ -451,6 +455,8 @@ export interface Database {
           participant_notes?: string | null;
           organizer_notes?: string | null;
           waiver_accepted_at?: string | null;
+          expires_at?: string | null;
+          payment_reminder_sent_at?: string | null;
         };
         Relationships: [];
       };
@@ -967,7 +973,11 @@ export interface Database {
             | "review_request"
             | "event_published"
             | "forum_reply"
-            | "forum_mention";
+            | "forum_mention"
+            | "booking_expired"
+            | "payment_reminder"
+            | "payment_proof_uploaded"
+            | "booking_cancelled";
           title: string;
           body: string;
           href: string | null;
@@ -991,7 +1001,11 @@ export interface Database {
             | "review_request"
             | "event_published"
             | "forum_reply"
-            | "forum_mention";
+            | "forum_mention"
+            | "booking_expired"
+            | "payment_reminder"
+            | "payment_proof_uploaded"
+            | "booking_cancelled";
           title: string;
           body: string;
           href?: string | null;
@@ -1015,7 +1029,11 @@ export interface Database {
             | "review_request"
             | "event_published"
             | "forum_reply"
-            | "forum_mention";
+            | "forum_mention"
+            | "booking_expired"
+            | "payment_reminder"
+            | "payment_proof_uploaded"
+            | "booking_cancelled";
           title?: string;
           body?: string;
           href?: string | null;

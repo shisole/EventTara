@@ -21,7 +21,7 @@ export default async function MyEventsPage() {
   const { data: bookingData } = await supabase
     .from("bookings")
     .select(
-      "id, qr_code, payment_status, payment_method, payment_proof_url, events(id, title, type, date, end_date, location, price)",
+      "id, qr_code, payment_status, payment_method, payment_proof_url, expires_at, events(id, title, type, date, end_date, location, price)",
     )
     .eq("user_id", user.id)
     .in("status", ["confirmed", "pending"])
@@ -68,6 +68,7 @@ export default async function MyEventsPage() {
     companions: companionsByBooking[b.id] || [],
     checkedIn: upcomingCheckinSet.has(b.events.id),
     userId: user.id,
+    expiresAt: b.expires_at || null,
   }));
 
   const pastEventIds = pastBookings.map((b: any) => b.events.id);

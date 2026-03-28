@@ -3,9 +3,10 @@
 import confetti from "canvas-confetti";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui";
+import { cn } from "@/lib/utils";
 import { formatEventDate } from "@/lib/utils/format-date";
 
 interface CompanionConfirmation {
@@ -33,6 +34,214 @@ interface BookingConfirmationProps {
   contactUrl?: string | null;
   clubSlug?: string | null;
   rentalItems?: RentalConfirmation[];
+  expiresAt?: string | null;
+  hasProof?: boolean;
+}
+
+function CountdownTimer({ expiresAt, onExpire }: { expiresAt: string; onExpire?: () => void }) {
+  const [timeLeft, setTimeLeft] = useState("");
+  const [isUrgent, setIsUrgent] = useState(false);
+  const expiredRef = useRef(false);
+
+  useEffect(() => {
+    const update = () => {
+      const diff = new Date(expiresAt).getTime() - Date.now();
+      if (diff <= 0) {
+        setTimeLeft("Expired");
+        setIsUrgent(true);
+        if (!expiredRef.current) {
+          expiredRef.current = true;
+          onExpire?.();
+        }
+        return;
+      }
+      const mins = Math.floor(diff / 60000);
+      const secs = Math.floor((diff % 60000) / 1000);
+      setTimeLeft(`${mins}:${secs.toString().padStart(2, "0")}`);
+      setIsUrgent(mins < 5);
+    };
+
+    update();
+    const interval = setInterval(update, 1000);
+    return () => clearInterval(interval);
+  }, [expiresAt, onExpire]);
+
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 font-mono font-semibold tabular-nums",
+        timeLeft === "Expired"
+          ? "text-red-600 dark:text-red-400"
+          : isUrgent
+            ? "text-red-600 dark:text-red-400"
+            : "text-amber-600 dark:text-amber-400",
+      )}
+    >
+      <svg
+        className="w-4 h-4"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2}
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z"
+        />
+      </svg>
+      {timeLeft}
+    </span>
+  );
+}
+
+const MAX_PROOF_SIZE = 5 * 1024 * 1024; // 5MB
+const ACCEPTED_PROOF_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+
+function ProofUploadButton({ bookingId }: { bookingId: string }) {
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [dragOver, setDragOver] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploaded, setUploaded] = useState(false);
+  const [error, setError] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const validateAndSet = (f: File) => {
+    setError("");
+    if (!ACCEPTED_PROOF_TYPES.has(f.type)) {
+      setError("Only JPG, PNG, and WebP images are accepted.");
+      return;
+    }
+    if (f.size > MAX_PROOF_SIZE) {
+      setError("File must be under 5MB.");
+      return;
+    }
+    setFile(f);
+    setPreview(URL.createObjectURL(f));
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const f = e.dataTransfer.files[0];
+    if (f) validateAndSet(f);
+  };
+
+  const handleSubmit = async () => {
+    if (!file) return;
+    setUploading(true);
+    const formData = new FormData();
+    formData.append("payment_proof", file);
+
+    try {
+      const res = await fetch(`/api/bookings/${bookingId}/proof`, {
+        method: "PATCH",
+        body: formData,
+      });
+      if (res.ok) {
+        setUploaded(true);
+      } else {
+        setError("Upload failed. Please try again.");
+      }
+    } catch {
+      setError("Upload failed. Please try again.");
+    }
+    setUploading(false);
+  };
+
+  const clear = () => {
+    setFile(null);
+    if (preview) URL.revokeObjectURL(preview);
+    setPreview(null);
+    setError("");
+  };
+
+  if (uploaded) {
+    return (
+      <div className="flex items-center justify-center gap-2 text-sm font-medium text-green-600 dark:text-green-400">
+        <svg
+          className="w-4 h-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+        Proof uploaded! Waiting for verification.
+      </div>
+    );
+  }
+
+  if (preview) {
+    return (
+      <div className="space-y-3">
+        <div className="relative">
+          <img
+            src={preview}
+            alt="Payment proof preview"
+            className="w-full rounded-xl border border-gray-200 dark:border-gray-700"
+          />
+          <button
+            type="button"
+            onClick={clear}
+            className="absolute top-2 right-2 bg-black/60 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm hover:bg-black/80"
+          >
+            ✕
+          </button>
+        </div>
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={handleSubmit}
+          disabled={uploading}
+          className="w-full"
+        >
+          {uploading ? "Uploading..." : "Submit Proof"}
+        </Button>
+        {error && <p className="text-sm text-red-500">{error}</p>}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      <div
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragOver(true);
+        }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={handleDrop}
+        onClick={() => inputRef.current?.click()}
+        className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${
+          dragOver
+            ? "border-lime-500 bg-lime-50 dark:bg-lime-950"
+            : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500"
+        }`}
+      >
+        <p className="text-2xl mb-1">📸</p>
+        <p className="text-sm text-gray-600 dark:text-gray-400">
+          Drag & drop your payment screenshot here
+        </p>
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+          or tap to browse (JPG, PNG, WebP — max 5MB)
+        </p>
+      </div>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) validateAndSet(f);
+        }}
+      />
+      {error && <p className="text-sm text-red-500">{error}</p>}
+    </div>
+  );
 }
 
 export default function BookingConfirmation({
@@ -49,12 +258,17 @@ export default function BookingConfirmation({
   contactUrl,
   clubSlug,
   rentalItems,
+  expiresAt,
+  hasProof,
 }: BookingConfirmationProps) {
   const isPendingEwallet =
     paymentStatus === "pending" && paymentMethod !== "cash" && !paymentPaused;
   const isPendingCash = paymentStatus === "pending" && paymentMethod === "cash";
   const isFriendMode = mode === "friend";
   const hasFired = useRef(false);
+  const [isExpired, setIsExpired] = useState(
+    () => !!expiresAt && new Date(expiresAt).getTime() <= Date.now(),
+  );
 
   useEffect(() => {
     if (hasFired.current) return;
@@ -191,31 +405,87 @@ export default function BookingConfirmation({
             </div>
           )}
         </>
+      ) : isPendingEwallet && isExpired && !hasProof ? (
+        <>
+          <div className="text-5xl">⏰</div>
+          <h2 className="text-2xl font-heading font-bold">Booking Expired</h2>
+          <p className="text-gray-600 dark:text-gray-400">
+            The payment window for <span className="font-semibold">{eventTitle}</span> has closed.
+            This booking will be cancelled automatically.
+          </p>
+          <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-xl p-4">
+            <p className="text-sm text-red-700 dark:text-red-300">
+              You can re-book the event if spots are still available.
+            </p>
+          </div>
+        </>
       ) : isPendingEwallet ? (
         <>
-          <div className="text-5xl">{isFriendMode ? "👥" : "✉️"}</div>
+          <div className="text-5xl">{isFriendMode ? "👥" : hasProof ? "✉️" : "⏳"}</div>
           <h2 className="text-2xl font-heading font-bold">
-            {isFriendMode ? "Friends Registered!" : "Proof Submitted!"}
+            {isFriendMode
+              ? "Friends Registered!"
+              : hasProof
+                ? "Proof Submitted!"
+                : "Booking Reserved!"}
           </h2>
           <p className="text-gray-600 dark:text-gray-400">
-            {isFriendMode ? (
-              <>
-                Payment proof for your companions at{" "}
-                <span className="font-semibold">{eventTitle}</span> has been submitted. The club
-                admin will verify it shortly.
-              </>
+            {hasProof ? (
+              isFriendMode ? (
+                <>
+                  Payment proof for your companions at{" "}
+                  <span className="font-semibold">{eventTitle}</span> has been submitted. The club
+                  admin will verify it shortly.
+                </>
+              ) : (
+                <>
+                  Your payment proof for <span className="font-semibold">{eventTitle}</span> has
+                  been submitted. The club admin will verify it shortly.
+                </>
+              )
             ) : (
               <>
-                Your payment proof for <span className="font-semibold">{eventTitle}</span> has been
-                submitted. The club admin will verify it shortly.
+                Your spot for <span className="font-semibold">{eventTitle}</span> is reserved.
+                Upload your payment screenshot to secure your booking.
               </>
             )}
           </p>
-          <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4">
-            <p className="text-sm text-yellow-700 dark:text-yellow-300">
-              You&apos;ll receive a confirmation email and QR code once your payment is verified.
-            </p>
-          </div>
+
+          {/* Countdown timer for unpaid e-wallet bookings */}
+          {expiresAt && !hasProof && (
+            <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
+                  Time remaining to upload proof
+                </p>
+                <CountdownTimer expiresAt={expiresAt} onExpire={() => setIsExpired(true)} />
+              </div>
+              <p className="text-xs text-amber-600 dark:text-amber-400">
+                Your booking will be automatically cancelled if no proof is uploaded before the
+                timer expires.
+              </p>
+              <ProofUploadButton bookingId={bookingId} />
+            </div>
+          )}
+
+          {/* No expiry but no proof — still allow upload */}
+          {!expiresAt && !hasProof && (
+            <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 space-y-3">
+              <p className="text-sm text-amber-700 dark:text-amber-300">
+                Upload your payment screenshot to complete your booking.
+              </p>
+              <ProofUploadButton bookingId={bookingId} />
+            </div>
+          )}
+
+          {hasProof && (
+            <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4">
+              <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                You&apos;ll receive a confirmation email and QR code once your payment is verified.
+              </p>
+            </div>
+          )}
+
           {companions.length > 0 && (
             <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
               <p className="text-sm font-medium mb-2">Companions registered:</p>
