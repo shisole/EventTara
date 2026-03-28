@@ -172,48 +172,48 @@ export default function ItineraryManager({ eventId, initialEntries }: ItineraryM
     setPasteSaving(true);
     setPasteError("");
 
-    let currentSortOrder =
-      entries.length === 0 ? 0 : Math.max(...entries.map((e) => e.sort_order)) + 1;
     let failCount = 0;
 
-    for (const parsed of validEntries) {
-      const existingEntry = entries.find((e) => e.time === parsed.time.trim());
+    try {
+      for (const parsed of validEntries) {
+        const existingEntry = entries.find((e) => e.time === parsed.time.trim());
 
-      if (existingEntry) {
-        // Update existing entry's title
-        const res = await fetch(`/api/events/${eventId}/itinerary/${existingEntry.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title: parsed.title.trim() }),
-        });
-        if (res.ok) {
-          const json: { entry: ItineraryEntry } = await res.json();
-          setEntries((prev) => prev.map((e) => (e.id === existingEntry.id ? json.entry : e)));
-        } else {
-          failCount++;
-        }
-      } else {
-        // Add new entry
-        const res = await fetch(`/api/events/${eventId}/itinerary`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            time: parsed.time.trim(),
-            title: parsed.title.trim(),
-            sort_order: currentSortOrder,
-          }),
-        });
-        if (res.ok) {
-          const json: { entry: ItineraryEntry } = await res.json();
-          setEntries((prev) => [...prev, json.entry]);
-          currentSortOrder++;
-        } else {
+        try {
+          if (existingEntry) {
+            const res = await fetch(`/api/events/${eventId}/itinerary/${existingEntry.id}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ title: parsed.title.trim() }),
+            });
+            if (res.ok) {
+              const json: { entry: ItineraryEntry } = await res.json();
+              setEntries((prev) => prev.map((e) => (e.id === existingEntry.id ? json.entry : e)));
+            } else {
+              console.error("Failed to update itinerary entry:", await res.text());
+              failCount++;
+            }
+          } else {
+            const res = await fetch(`/api/events/${eventId}/itinerary`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ time: parsed.time.trim(), title: parsed.title.trim() }),
+            });
+            if (res.ok) {
+              const json: { entry: ItineraryEntry } = await res.json();
+              setEntries((prev) => [...prev, json.entry]);
+            } else {
+              console.error("Failed to add itinerary entry:", await res.text());
+              failCount++;
+            }
+          }
+        } catch (error_) {
+          console.error("Error saving itinerary entry:", error_);
           failCount++;
         }
       }
+    } finally {
+      setPasteSaving(false);
     }
-
-    setPasteSaving(false);
 
     if (failCount > 0) {
       setPasteError(`${failCount} ${failCount === 1 ? "entry" : "entries"} failed to save.`);
