@@ -89,9 +89,38 @@ function CancelBookingButton({ bookingId }: { bookingId: string }) {
   );
 }
 
-function CountdownTimer({ expiresAt }: { expiresAt: string }) {
+function AutoCancelExpired({ bookingId }: { bookingId: string }) {
+  const [cancelled, setCancelled] = useState(false);
+
+  useEffect(() => {
+    let ignore = false;
+    fetch(`/api/bookings/${bookingId}/cancel`, { method: "POST" })
+      .then((res) => {
+        if (!ignore && res.ok) setCancelled(true);
+      })
+      .catch(() => null);
+    return () => {
+      ignore = true;
+    };
+  }, [bookingId]);
+
+  if (!cancelled) {
+    return (
+      <p className="text-xs text-red-600 dark:text-red-400 animate-pulse">Cancelling booking...</p>
+    );
+  }
+
+  return (
+    <p className="text-xs text-red-600 dark:text-red-400">
+      This booking has been cancelled. You can re-book if spots are available.
+    </p>
+  );
+}
+
+function CountdownTimer({ expiresAt, onExpire }: { expiresAt: string; onExpire?: () => void }) {
   const [timeLeft, setTimeLeft] = useState("");
   const [isUrgent, setIsUrgent] = useState(false);
+  const expiredRef = useRef(false);
 
   useEffect(() => {
     const update = () => {
@@ -99,6 +128,10 @@ function CountdownTimer({ expiresAt }: { expiresAt: string }) {
       if (diff <= 0) {
         setTimeLeft("Expired");
         setIsUrgent(true);
+        if (!expiredRef.current) {
+          expiredRef.current = true;
+          onExpire?.();
+        }
         return;
       }
       const mins = Math.floor(diff / 60000);
@@ -110,7 +143,7 @@ function CountdownTimer({ expiresAt }: { expiresAt: string }) {
     update();
     const interval = setInterval(update, 1000);
     return () => clearInterval(interval);
-  }, [expiresAt]);
+  }, [expiresAt, onExpire]);
 
   return (
     <span
@@ -338,6 +371,209 @@ function CheckInOnlineButton({
   );
 }
 
+function BookingCard({
+  b,
+  expandedQR,
+  onToggleQR,
+  onReview,
+}: {
+  b: Booking;
+  expandedQR: string | null;
+  onToggleQR: (id: string) => void;
+  onReview: (eventId: string, eventTitle: string) => void;
+}) {
+  const isEwalletPending =
+    b.paymentStatus === "pending" &&
+    b.paymentMethod !== "cash" &&
+    b.paymentMethod !== "free" &&
+    !b.paymentProofUrl;
+
+  const [expired, setExpired] = useState(
+    () => isEwalletPending && !!b.expiresAt && new Date(b.expiresAt).getTime() <= Date.now(),
+  );
+
+  return (
+    <Card className="p-5 space-y-4">
+      {/* Header: event info + QR toggle */}
+      <div className="flex items-start justify-between">
+        <div className="space-y-1">
+          <div className="flex gap-2 items-center flex-wrap">
+            <UIBadge variant={b.eventType}>{getActivityLabel(b.eventType)}</UIBadge>
+            {b.paymentStatus && b.paymentMethod && !expired && (
+              <PaymentStatusBadge status={b.paymentStatus} />
+            )}
+            {expired && (
+              <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-700 dark:bg-red-950 dark:text-red-400">
+                Cancelled
+              </span>
+            )}
+          </div>
+          <Link href={`/events/${b.eventId}`}>
+            <h3 className="font-heading font-bold text-lg hover:text-lime-600 dark:hover:text-lime-400">
+              {b.eventTitle}
+            </h3>
+          </Link>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            📅 {formatEventDate(b.eventDate, b.eventEndDate, { short: true })}
+          </p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">📍 {b.eventLocation}</p>
+          <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+            {b.eventPrice > 0 ? `₱${b.eventPrice.toLocaleString()}` : "Free"}
+          </p>
+          {b.companions && b.companions.length > 0 && (
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              👥 {b.companions.length} companion{b.companions.length > 1 ? "s" : ""} booked
+            </p>
+          )}
+        </div>
+        {b.qrCode && !expired && (
+          <button
+            onClick={() => onToggleQR(b.id)}
+            className="text-sm text-lime-600 dark:text-lime-400 font-medium hover:text-lime-600"
+          >
+            {expandedQR === b.id ? "Hide QR" : "Show QR"}
+          </button>
+        )}
+      </div>
+
+      {/* Expired — auto-cancel and show message */}
+      {expired && (
+        <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-xl p-4 space-y-2">
+          <p className="text-sm font-medium text-red-700 dark:text-red-300">Booking expired</p>
+          <AutoCancelExpired bookingId={b.id} />
+          <Link href={`/events/${b.eventId}`}>
+            <Button size="sm" variant="outline" className="mt-1">
+              Re-book Event
+            </Button>
+          </Link>
+        </div>
+      )}
+
+      {/* Proof upload with timer */}
+      {isEwalletPending && !expired && (
+        <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
+              Upload proof to keep your booking
+            </p>
+            {b.expiresAt && (
+              <CountdownTimer expiresAt={b.expiresAt} onExpire={() => setExpired(true)} />
+            )}
+          </div>
+          {b.expiresAt && (
+            <p className="text-xs text-amber-600 dark:text-amber-400">
+              Your booking will be automatically cancelled when the timer expires.
+            </p>
+          )}
+          <ProofUploader bookingId={b.id} />
+        </div>
+      )}
+
+      {/* Proof uploaded — waiting for verification */}
+      {b.paymentStatus === "pending" &&
+        b.paymentMethod !== "cash" &&
+        b.paymentMethod !== "free" &&
+        b.paymentProofUrl &&
+        !expired && (
+          <div className="bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 rounded-xl p-3">
+            <p className="text-sm text-yellow-700 dark:text-yellow-300 flex items-center gap-2">
+              <svg
+                className="w-4 h-4 shrink-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              Proof submitted — waiting for admin verification
+            </p>
+          </div>
+        )}
+
+      {!expired && b.paymentStatus === "pending" && b.paymentMethod === "cash" && (
+        <p className="text-sm text-yellow-600 dark:text-yellow-400">💵 Pay cash on event day</p>
+      )}
+
+      {!expired && b.paymentStatus === "rejected" && (
+        <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-xl p-4 space-y-3">
+          <p className="text-sm font-medium text-red-700 dark:text-red-300">
+            Payment rejected — please re-upload proof
+          </p>
+          <ProofUploader bookingId={b.id} />
+        </div>
+      )}
+
+      {/* Actions */}
+      {!expired && (
+        <div className="flex items-center gap-3">
+          <CheckInOnlineButton booking={b} onCheckedIn={() => onReview(b.eventId, b.eventTitle)} />
+        </div>
+      )}
+
+      {/* Cancel button — separated at bottom */}
+      {!b.checkedIn && !expired && (
+        <div className="pt-2 border-t border-gray-100 dark:border-gray-800">
+          <CancelBookingButton bookingId={b.id} />
+        </div>
+      )}
+
+      {/* QR codes */}
+      {expandedQR === b.id && b.qrCode && !expired && (
+        <div className="mt-4 space-y-3">
+          <div className="flex justify-center">
+            <div className="bg-white dark:bg-gray-900 p-4 rounded-xl border dark:border-gray-700">
+              <p className="text-xs text-gray-500 dark:text-gray-400 text-center mb-2 font-medium">
+                Your QR Code
+              </p>
+              <QRCodeSVG value={b.qrCode} size={160} />
+              <p className="text-xs text-gray-400 dark:text-gray-500 text-center mt-2">
+                Show at check-in
+              </p>
+            </div>
+          </div>
+          {b.companions && b.companions.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs text-gray-500 dark:text-gray-400 text-center font-medium">
+                Companions (booked for friends)
+              </p>
+              {b.companions.map((comp, i) => (
+                <div key={i} className="flex justify-center">
+                  <div className="bg-white dark:bg-gray-900 p-4 rounded-xl border dark:border-gray-700">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 text-center mb-2 font-medium">
+                      👤 {comp.full_name}
+                    </p>
+                    {comp.qr_code ? (
+                      <>
+                        <QRCodeSVG value={comp.qr_code} size={140} />
+                        <p className="text-xs text-gray-400 dark:text-gray-500 text-center mt-2">
+                          Show at check-in
+                        </p>
+                      </>
+                    ) : b.eventPrice === 0 ? (
+                      <p className="text-xs text-lime-600 dark:text-lime-400 text-center">
+                        Confirmed
+                      </p>
+                    ) : (
+                      <p className="text-xs text-gray-400 text-center">
+                        QR code pending verification
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </Card>
+  );
+}
+
 export default function UpcomingBookings({ bookings }: { bookings: Booking[] }) {
   const [expandedQR, setExpandedQR] = useState<string | null>(null);
   const [reviewEvent, setReviewEvent] = useState<{
@@ -360,185 +596,13 @@ export default function UpcomingBookings({ bookings }: { bookings: Booking[] }) 
   return (
     <div className="space-y-4">
       {bookings.map((b) => (
-        <Card key={b.id} className="p-5 space-y-4">
-          {/* Header: event info + QR toggle */}
-          <div className="flex items-start justify-between">
-            <div className="space-y-1">
-              <div className="flex gap-2 items-center flex-wrap">
-                <UIBadge variant={b.eventType}>{getActivityLabel(b.eventType)}</UIBadge>
-                {b.paymentStatus && b.paymentMethod && (
-                  <PaymentStatusBadge status={b.paymentStatus} />
-                )}
-              </div>
-              <Link href={`/events/${b.eventId}`}>
-                <h3 className="font-heading font-bold text-lg hover:text-lime-600 dark:hover:text-lime-400">
-                  {b.eventTitle}
-                </h3>
-              </Link>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                📅 {formatEventDate(b.eventDate, b.eventEndDate, { short: true })}
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">📍 {b.eventLocation}</p>
-              <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                {b.eventPrice > 0 ? `₱${b.eventPrice.toLocaleString()}` : "Free"}
-              </p>
-              {b.companions && b.companions.length > 0 && (
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  👥 {b.companions.length} companion{b.companions.length > 1 ? "s" : ""} booked
-                </p>
-              )}
-            </div>
-            {b.qrCode && (
-              <button
-                onClick={() => {
-                  setExpandedQR(expandedQR === b.id ? null : b.id);
-                }}
-                className="text-sm text-lime-600 dark:text-lime-400 font-medium hover:text-lime-600"
-              >
-                {expandedQR === b.id ? "Hide QR" : "Show QR"}
-              </button>
-            )}
-          </div>
-
-          {/* Proof upload or expired state */}
-          {b.paymentStatus === "pending" &&
-            b.paymentMethod !== "cash" &&
-            b.paymentMethod !== "free" &&
-            !b.paymentProofUrl &&
-            (b.expiresAt && new Date(b.expiresAt).getTime() <= Date.now() ? (
-              <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-xl p-4 space-y-2">
-                <p className="text-sm font-medium text-red-700 dark:text-red-300">
-                  Booking expired
-                </p>
-                <p className="text-xs text-red-600 dark:text-red-400">
-                  The payment window has closed. This booking will be cancelled automatically. You
-                  can re-book the event if spots are still available.
-                </p>
-                <Link href={`/events/${b.eventId}`}>
-                  <Button size="sm" variant="outline" className="mt-1">
-                    View Event
-                  </Button>
-                </Link>
-              </div>
-            ) : (
-              <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 space-y-3">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
-                    Upload proof to keep your booking
-                  </p>
-                  {b.expiresAt && <CountdownTimer expiresAt={b.expiresAt} />}
-                </div>
-                {b.expiresAt && (
-                  <p className="text-xs text-amber-600 dark:text-amber-400">
-                    Your booking will be automatically cancelled when the timer expires.
-                  </p>
-                )}
-                <ProofUploader bookingId={b.id} />
-              </div>
-            ))}
-
-          {/* D: Proof uploaded — waiting for verification */}
-          {b.paymentStatus === "pending" &&
-            b.paymentMethod !== "cash" &&
-            b.paymentMethod !== "free" &&
-            b.paymentProofUrl && (
-              <div className="bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 rounded-xl p-3">
-                <p className="text-sm text-yellow-700 dark:text-yellow-300 flex items-center gap-2">
-                  <svg
-                    className="w-4 h-4 shrink-0"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  Proof submitted — waiting for admin verification
-                </p>
-              </div>
-            )}
-
-          {b.paymentStatus === "pending" && b.paymentMethod === "cash" && (
-            <p className="text-sm text-yellow-600 dark:text-yellow-400">💵 Pay cash on event day</p>
-          )}
-
-          {b.paymentStatus === "rejected" && (
-            <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-xl p-4 space-y-3">
-              <p className="text-sm font-medium text-red-700 dark:text-red-300">
-                Payment rejected — please re-upload proof
-              </p>
-              <ProofUploader bookingId={b.id} />
-            </div>
-          )}
-
-          {/* Actions */}
-          <div className="flex items-center gap-3">
-            <CheckInOnlineButton
-              booking={b}
-              onCheckedIn={() => {
-                setReviewEvent({ id: b.eventId, title: b.eventTitle });
-              }}
-            />
-          </div>
-
-          {/* C: Cancel button — separated at bottom, subdued */}
-          {!b.checkedIn && (
-            <div className="pt-2 border-t border-gray-100 dark:border-gray-800">
-              <CancelBookingButton bookingId={b.id} />
-            </div>
-          )}
-          {expandedQR === b.id && b.qrCode && (
-            <div className="mt-4 space-y-3">
-              <div className="flex justify-center">
-                <div className="bg-white dark:bg-gray-900 p-4 rounded-xl border dark:border-gray-700">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 text-center mb-2 font-medium">
-                    Your QR Code
-                  </p>
-                  <QRCodeSVG value={b.qrCode} size={160} />
-                  <p className="text-xs text-gray-400 dark:text-gray-500 text-center mt-2">
-                    Show at check-in
-                  </p>
-                </div>
-              </div>
-              {b.companions && b.companions.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 text-center font-medium">
-                    Companions (booked for friends)
-                  </p>
-                  {b.companions.map((comp, i) => (
-                    <div key={i} className="flex justify-center">
-                      <div className="bg-white dark:bg-gray-900 p-4 rounded-xl border dark:border-gray-700">
-                        <p className="text-xs text-gray-500 dark:text-gray-400 text-center mb-2 font-medium">
-                          👤 {comp.full_name}
-                        </p>
-                        {comp.qr_code ? (
-                          <>
-                            <QRCodeSVG value={comp.qr_code} size={140} />
-                            <p className="text-xs text-gray-400 dark:text-gray-500 text-center mt-2">
-                              Show at check-in
-                            </p>
-                          </>
-                        ) : b.eventPrice === 0 ? (
-                          <p className="text-xs text-lime-600 dark:text-lime-400 text-center">
-                            Confirmed
-                          </p>
-                        ) : (
-                          <p className="text-xs text-gray-400 text-center">
-                            QR code pending verification
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </Card>
+        <BookingCard
+          key={b.id}
+          b={b}
+          expandedQR={expandedQR}
+          onToggleQR={(id) => setExpandedQR(expandedQR === id ? null : id)}
+          onReview={(eventId, eventTitle) => setReviewEvent({ id: eventId, title: eventTitle })}
+        />
       ))}
 
       {reviewEvent && (
