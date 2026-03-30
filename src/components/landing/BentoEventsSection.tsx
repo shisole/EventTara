@@ -32,40 +32,36 @@ export default async function BentoEventsSection() {
   const now = new Date().toISOString();
   const today = now.split("T")[0];
 
-  // Try featured events first
-  const { data: featuredEvents } = await supabase
-    .from("events")
-    .select("*, bookings(count), clubs(name)")
-    .eq("status", "published")
-    .eq("is_featured", true)
-    .gte("date", now)
-    .order("date", { ascending: true })
-    .limit(10);
+  // Fetch featured, upcoming, and total count in parallel to reduce server latency
+  const [{ data: featuredEvents }, { data: upcomingEvents }, { count: totalUpcoming }] =
+    await Promise.all([
+      supabase
+        .from("events")
+        .select("*, bookings(count), clubs(name)")
+        .eq("status", "published")
+        .eq("is_featured", true)
+        .gte("date", now)
+        .order("date", { ascending: true })
+        .limit(10),
+      supabase
+        .from("events")
+        .select("*, bookings(count), clubs(name)")
+        .eq("status", "published")
+        .gte("date", now)
+        .order("date", { ascending: true })
+        .limit(10),
+      supabase
+        .from("events")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "published")
+        .gte("date", now),
+    ]);
 
-  // Fallback to upcoming if no featured
-  let events = featuredEvents;
-  let initialTab = "featured";
-
-  if (!featuredEvents || featuredEvents.length === 0) {
-    const { data: upcomingEvents } = await supabase
-      .from("events")
-      .select("*, bookings(count), clubs(name)")
-      .eq("status", "published")
-      .gte("date", now)
-      .order("date", { ascending: true })
-      .limit(10);
-    events = upcomingEvents;
-    initialTab = "upcoming";
-  }
+  // Use featured if available, otherwise fall back to upcoming
+  const events = featuredEvents && featuredEvents.length > 0 ? featuredEvents : upcomingEvents;
+  const initialTab = featuredEvents && featuredEvents.length > 0 ? "featured" : "upcoming";
 
   if (!events || events.length === 0) return <ComingSoonPlaceholder />;
-
-  // Count total upcoming for mobile "+N more" card
-  const { count: totalUpcoming } = await supabase
-    .from("events")
-    .select("id", { count: "exact", head: true })
-    .eq("status", "published")
-    .gte("date", now);
 
   const enrichments = await fetchEventEnrichments(supabase, events);
   const cards = events.map((event: any) => mapEventToCard(event, today, enrichments));
