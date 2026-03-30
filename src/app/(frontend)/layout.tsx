@@ -116,7 +116,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   let initialActiveBorder: { id: string; tier: BorderTier; color: string | null } | null = null;
 
   if (currentUser) {
-    const [userData, memberships] = await Promise.all([
+    // Parallelize all user queries to reduce server latency
+    const [userData, memberships, allBorders] = await Promise.all([
       supabase.from("users").select("role, active_border_id").eq("id", currentUser.id).single(),
       supabase
         .from("club_members")
@@ -124,16 +125,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         .eq("user_id", currentUser.id)
         .in("role", ["owner", "admin", "moderator"])
         .limit(1),
+      // Fetch border in parallel — query is fast and avoids a sequential RTT
+      supabase.from("avatar_borders").select("id, tier, border_color").limit(50),
     ]);
     initialRole = userData.data?.role ?? null;
     initialCanManage = (memberships.data?.length ?? 0) > 0;
 
-    if (userData.data?.active_border_id) {
-      const { data: border } = await supabase
-        .from("avatar_borders")
-        .select("tier, border_color")
-        .eq("id", userData.data.active_border_id)
-        .single();
+    if (userData.data?.active_border_id && allBorders.data) {
+      const border = allBorders.data.find((b) => b.id === userData.data.active_border_id);
       if (border) {
         initialActiveBorder = {
           id: userData.data.active_border_id,
