@@ -19,7 +19,7 @@ import ReviewList from "@/components/reviews/ReviewList";
 import ReviewPromptTrigger from "@/components/reviews/ReviewPromptTrigger";
 import SelfCheckinPrompt from "@/components/reviews/SelfCheckinPrompt";
 import EventRouteSection from "@/components/strava/EventRouteSection";
-import { Breadcrumbs, DemoBadge, UIBadge } from "@/components/ui";
+import { Breadcrumbs, DemoBadge, LazySection, Skeleton, UIBadge } from "@/components/ui";
 import { isPaymentPauseEnabled } from "@/lib/cms/cached";
 import { ACTIVITY_TYPE_LABELS } from "@/lib/constants/activity-types";
 import { resolvePresetImage } from "@/lib/constants/avatars";
@@ -478,14 +478,18 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
             </div>
           )}
 
-          <EventItinerary entries={itineraryEntries} />
+          <LazySection fallback={<Skeleton className="h-32 rounded-xl" />} minHeight={50}>
+            <EventItinerary entries={itineraryEntries} />
+          </LazySection>
 
-          <EventGallery
-            photos={(photos || []).map((p) => ({
-              ...p,
-              image_url: cdnUrl(p.image_url) ?? p.image_url,
-            }))}
-          />
+          <LazySection fallback={<Skeleton className="h-48 rounded-xl" />} minHeight={100}>
+            <EventGallery
+              photos={(photos || []).map((p) => ({
+                ...p,
+                image_url: cdnUrl(p.image_url) ?? p.image_url,
+              }))}
+            />
+          </LazySection>
 
           <div className="flex items-center justify-between">
             <Link
@@ -563,38 +567,52 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
           {event.coordinates &&
             typeof event.coordinates === "object" &&
             "lat" in event.coordinates && (
-              <EventLocationMap
-                lat={(event.coordinates as { lat: number; lng: number }).lat}
-                lng={(event.coordinates as { lat: number; lng: number }).lng}
-                label={event.location}
-              />
+              <LazySection fallback={<Skeleton className="h-64 rounded-xl" />} minHeight={256}>
+                <EventLocationMap
+                  lat={(event.coordinates as { lat: number; lng: number }).lat}
+                  lng={(event.coordinates as { lat: number; lng: number }).lng}
+                  label={event.location}
+                />
+              </LazySection>
             )}
           {eventRoute?.summary_polyline && (
-            <EventRouteSection
-              name={eventRoute.name}
-              polyline={eventRoute.summary_polyline}
-              distance={eventRoute.distance}
-              elevationGain={eventRoute.elevation_gain}
-              source={eventRoute.source}
-            />
+            <LazySection fallback={<Skeleton className="h-64 rounded-xl" />} minHeight={256}>
+              <EventRouteSection
+                name={eventRoute.name}
+                polyline={eventRoute.summary_polyline}
+                distance={eventRoute.distance}
+                elevationGain={eventRoute.elevation_gain}
+                source={eventRoute.source}
+              />
+            </LazySection>
           )}
 
           {/* Reviews Section */}
-          <div>
-            <h2 className="text-xl font-heading font-bold mb-4">Reviews</h2>
-            {canReview && (
-              <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm dark:shadow-gray-950/20 p-5 mb-6">
-                <ReviewForm eventId={id} />
+          <LazySection
+            fallback={
+              <div className="space-y-4">
+                <Skeleton className="h-6 w-32 rounded" />
+                <Skeleton className="h-24 rounded-xl" />
               </div>
-            )}
-            {canSelfCheckin && <SelfCheckinPrompt eventId={id} eventTitle={event.title} />}
-            <ReviewList
-              reviews={eventReviews}
-              averageRating={avgRating}
-              currentUserId={authUser?.id}
-              eventId={id}
-            />
-          </div>
+            }
+            minHeight={200}
+          >
+            <div>
+              <h2 className="text-xl font-heading font-bold mb-4">Reviews</h2>
+              {canReview && (
+                <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm dark:shadow-gray-950/20 p-5 mb-6">
+                  <ReviewForm eventId={id} />
+                </div>
+              )}
+              {canSelfCheckin && <SelfCheckinPrompt eventId={id} eventTitle={event.title} />}
+              <ReviewList
+                reviews={eventReviews}
+                averageRating={avgRating}
+                currentUserId={authUser?.id}
+                eventId={id}
+              />
+            </div>
+          </LazySection>
         </div>
 
         {/* Sidebar */}

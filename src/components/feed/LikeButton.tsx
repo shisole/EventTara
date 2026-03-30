@@ -63,7 +63,7 @@ export default function LikeButton({
       type="button"
       onClick={handleToggle}
       disabled={loading}
-      className="inline-flex items-center gap-1.5 group"
+      className="inline-flex items-center gap-1.5 group min-h-[44px] min-w-[44px] justify-center"
     >
       <span
         className={cn(
