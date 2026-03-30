@@ -66,11 +66,11 @@ export default function ClubDashboardMobileNav() {
         {/* Back button */}
         <Link
           href="/dashboard"
-          className="flex flex-col items-center justify-center gap-0.5 px-2 py-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+          className="flex flex-col items-center justify-center gap-0.5 px-3 py-3 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
           aria-label="Back to dashboard"
         >
           <ChevronLeftIcon className="w-5 h-5" />
-          <span className="text-[10px]">Back</span>
+          <span className="text-xs">Back</span>
         </Link>
 
         {/* Divider */}
@@ -87,14 +87,14 @@ export default function ClubDashboardMobileNav() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex-1 flex flex-col items-center justify-center gap-0.5 py-2 transition-colors",
+                "flex-1 flex flex-col items-center justify-center gap-0.5 py-3 transition-colors",
                 isActive
                   ? "text-lime-600 dark:text-lime-400"
                   : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300",
               )}
             >
               <Icon className="w-5 h-5" />
-              <span className="text-[10px] font-medium">{item.label}</span>
+              <span className="text-xs font-medium">{item.label}</span>
             </Link>
           );
         })}

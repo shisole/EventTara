@@ -169,7 +169,7 @@ export default function ClubEventsTable({ events, clubSlug }: ClubEventsTablePro
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className={cn(
-              "text-sm rounded-lg border px-2.5 py-1.5 transition-colors",
+              "text-sm rounded-lg border px-3 py-2 transition-colors",
               "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700",
               "dark:text-white focus:outline-none focus:ring-2 focus:ring-lime-500/40 focus:border-lime-500",
             )}
@@ -188,7 +188,7 @@ export default function ClubEventsTable({ events, clubSlug }: ClubEventsTablePro
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
             className={cn(
-              "text-sm rounded-lg border px-2.5 py-1.5 transition-colors",
+              "text-sm rounded-lg border px-3 py-2 transition-colors",
               "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700",
               "dark:text-white focus:outline-none focus:ring-2 focus:ring-lime-500/40 focus:border-lime-500",
             )}
@@ -212,7 +212,7 @@ export default function ClubEventsTable({ events, clubSlug }: ClubEventsTablePro
                 setStatusFilter("all");
                 setTypeFilter("all");
               }}
-              className="text-xs text-teal-600 dark:text-teal-400 hover:underline font-medium"
+              className="text-sm text-teal-600 dark:text-teal-400 hover:underline font-medium px-2 py-1"
             >
               Clear
             </button>

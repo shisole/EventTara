@@ -46,7 +46,7 @@ export default function ShareButton({ activityId, userName, text }: ShareButtonP
     <button
       type="button"
       onClick={handleShare}
-      className="inline-flex items-center gap-1.5 group relative"
+      className="inline-flex items-center gap-1.5 group relative min-h-[44px] min-w-[44px] justify-center"
     >
       <ShareIcon
         className={cn(
