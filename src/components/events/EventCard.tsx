@@ -104,7 +104,7 @@ export default function EventCard({
           {(is_demo || members_only) && (
             <div className="absolute top-3 right-3 z-10 flex flex-col items-end gap-1.5">
               {members_only && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-amber-500/90 text-white backdrop-blur-sm shadow-sm">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold uppercase bg-amber-500/90 text-white backdrop-blur-sm shadow-sm">
                   <svg className="h-2.5 w-2.5" viewBox="0 0 20 20" fill="currentColor">
                     <path
                       fillRule="evenodd"
@@ -170,13 +170,13 @@ export default function EventCard({
                     {visible.map((km) => (
                       <span
                         key={km}
-                        className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500 text-white shadow-sm"
+                        className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-500 text-white shadow-sm"
                       >
                         {km} km
                       </span>
                     ))}
                     {overflow > 0 && (
-                      <span className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/70 text-white shadow-sm">
+                      <span className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/70 text-white shadow-sm">
                         +{overflow}
                       </span>
                     )}
@@ -184,7 +184,7 @@ export default function EventCard({
                 );
               })()}
             {hasRoute && (
-              <span className="hidden sm:inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#FC4C02] text-white shadow-sm">
+              <span className="hidden sm:inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-semibold bg-[#FC4C02] text-white shadow-sm">
                 <svg
                   className="h-2.5 w-2.5"
                   viewBox="0 0 24 24"
@@ -305,7 +305,7 @@ export default function EventCard({
               </svg>
               <span className="truncate">{location}</span>
               {distance != null && (
-                <span className="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300">
+                <span className="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300">
                   {distance < 1 ? "<1km" : `~${Math.round(distance)}km`}
                 </span>
               )}

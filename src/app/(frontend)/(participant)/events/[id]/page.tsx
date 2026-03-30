@@ -1,35 +1,23 @@
 import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
 import BookingButton from "@/components/events/BookingButton";
 import DifficultyBadge from "@/components/events/DifficultyBadge";
-import EventGallery from "@/components/events/EventGallery";
-import EventItinerary from "@/components/events/EventItinerary";
 import LiveBookingCount from "@/components/events/LiveBookingCount";
 import MobileBookingBar from "@/components/events/MobileBookingBar";
 import OrganizerCard from "@/components/events/OrganizerCard";
 import ShareButtons from "@/components/events/ShareButtons";
-import WeatherCard from "@/components/events/WeatherCard";
-import GuideCard from "@/components/guides/GuideCard";
-import { ChevronRightIcon, GoogleDriveIcon, LocationPinIcon } from "@/components/icons";
-import EventLocationMap from "@/components/maps/EventLocationMap";
-import ReviewForm from "@/components/reviews/ReviewForm";
-import ReviewList from "@/components/reviews/ReviewList";
-import ReviewPromptTrigger from "@/components/reviews/ReviewPromptTrigger";
-import SelfCheckinPrompt from "@/components/reviews/SelfCheckinPrompt";
-import EventRouteSection from "@/components/strava/EventRouteSection";
-import { Breadcrumbs, DemoBadge, UIBadge } from "@/components/ui";
+import { Breadcrumbs, DemoBadge, Skeleton, SkeletonText, UIBadge } from "@/components/ui";
 import { isPaymentPauseEnabled } from "@/lib/cms/cached";
 import { ACTIVITY_TYPE_LABELS } from "@/lib/constants/activity-types";
-import { resolvePresetImage } from "@/lib/constants/avatars";
 import { BreadcrumbTitle } from "@/lib/contexts/BreadcrumbContext";
-import { enrichReviewsWithBorders } from "@/lib/data/enrich-borders";
-import { geocodeLocation } from "@/lib/geocode";
 import { cdnUrl } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/server";
 import { formatEventDate } from "@/lib/utils/format-date";
-import { getWeatherForecast } from "@/lib/weather";
+
+import EventBelowFold from "./_components/EventBelowFold";
+import EventSidebarExtras from "./_components/EventSidebarExtras";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -70,271 +58,115 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   };
 }
 
+/** Skeleton for below-fold main content while streaming */
+function BelowFoldSkeleton() {
+  return (
+    <div className="space-y-8">
+      {/* Gallery skeleton */}
+      <div>
+        <Skeleton className="h-6 w-32 mb-4 rounded" />
+        <div className="grid grid-cols-3 gap-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-36 w-full rounded-xl" />
+          ))}
+        </div>
+      </div>
+      {/* Map skeleton */}
+      <Skeleton className="h-64 rounded-xl" />
+      {/* Reviews skeleton */}
+      <div className="space-y-4">
+        <Skeleton className="h-6 w-32 rounded" />
+        <Skeleton className="h-24 rounded-xl" />
+        <Skeleton className="h-24 rounded-xl" />
+      </div>
+    </div>
+  );
+}
+
+/** Skeleton for sidebar extras while streaming */
+function SidebarExtrasSkeleton() {
+  return (
+    <div className="space-y-8">
+      {/* Weather card skeleton */}
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md p-5 sm:p-6 space-y-3">
+        <Skeleton className="h-5 w-32 rounded" />
+        <Skeleton className="h-16 rounded-xl" />
+      </div>
+      {/* Badges skeleton */}
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md p-5 sm:p-6 space-y-3">
+        <Skeleton className="h-5 w-24 rounded" />
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-10 w-10 rounded-full" />
+          <SkeletonText className="w-2/3" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default async function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();
 
-  // Fetch event with club
-  const { data: event } = await supabase
-    .from("events")
-    .select("*, clubs(id, name, slug, logo_url)")
-    .eq("id", id)
-    .single();
+  // ── Above-fold data: fetch in parallel ──
+  const [{ data: event }, { data: distances }, { data: totalParticipants }, authResult] =
+    await Promise.all([
+      supabase.from("events").select("*, clubs(id, name, slug, logo_url)").eq("id", id).single(),
+      supabase
+        .from("event_distances")
+        .select("id, distance_km, label, price, max_participants")
+        .eq("event_id", id)
+        .order("distance_km", { ascending: true }),
+      supabase.rpc("get_total_participants", { p_event_id: id }),
+      supabase.auth.getUser(),
+    ]);
 
   if (!event || (event.status !== "published" && event.status !== "completed")) {
     notFound();
   }
 
-  // Fetch distance categories
-  const { data: distances } = await supabase
-    .from("event_distances")
-    .select("id, distance_km, label, price, max_participants")
-    .eq("event_id", id)
-    .order("distance_km", { ascending: true });
-
-  // Fetch photos
-  const { data: photos } = await supabase
-    .from("event_photos")
-    .select("*")
-    .eq("event_id", id)
-    .order("sort_order", { ascending: true });
-
-  // Fetch total participant count (bookings + companions)
-  const { data: totalParticipants } = await supabase.rpc("get_total_participants", {
-    p_event_id: id,
-  });
+  const authUser = authResult.data.user;
   const bookingCount = totalParticipants || 0;
 
-  // Fetch club event count
   const club = event.clubs as {
     id: string;
     name: string;
     slug: string;
     logo_url: string | null;
   } | null;
-  const { count: orgEventCount } = await supabase
-    .from("events")
-    .select("*", { count: "exact", head: true })
-    .eq("club_id", event.club_id)
-    .eq("status", "published");
 
-  // Fetch badges for this event
-  const { data: badgeData } = await supabase
-    .from("badges")
-    .select("id, title, image_url")
-    .eq("event_id", id);
+  // Parallel: booking state + org event count + payment pause flag
+  const [bookingResult, { count: orgEventCount }, paymentPauseFlagEnabled, membershipResult] =
+    await Promise.all([
+      authUser
+        ? supabase
+            .from("bookings")
+            .select("id, status, payment_status")
+            .eq("event_id", id)
+            .eq("user_id", authUser.id)
+            .in("status", ["pending", "confirmed"])
+            .single()
+        : Promise.resolve({ data: null }),
+      supabase
+        .from("events")
+        .select("*", { count: "exact", head: true })
+        .eq("club_id", event.club_id)
+        .eq("status", "published"),
+      isPaymentPauseEnabled(),
+      event.members_only && authUser && club
+        ? supabase
+            .from("club_members")
+            .select("id")
+            .eq("club_id", club.id)
+            .eq("user_id", authUser.id)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
+    ]);
 
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser();
-
-  // Check if user already has an active booking for this event
-  let userBooking: { id: string; status: string; payment_status: string } | null = null;
-  if (authUser) {
-    const { data: existingBooking } = await supabase
-      .from("bookings")
-      .select("id, status, payment_status")
-      .eq("event_id", id)
-      .eq("user_id", authUser.id)
-      .in("status", ["pending", "confirmed"])
-      .single();
-    userBooking = existingBooking;
-  }
-
-  // Check membership for members-only events
+  const userBooking = bookingResult.data;
   const isMembersOnly = event.members_only;
-  let isMember = false;
-  if (isMembersOnly && authUser && club) {
-    const { data: membership } = await supabase
-      .from("club_members")
-      .select("id")
-      .eq("club_id", club.id)
-      .eq("user_id", authUser.id)
-      .maybeSingle();
-    isMember = !!membership;
-  }
-
-  const eventBadges = badgeData || [];
-  let earnedBadgeIds = new Set<string>();
-
-  if (authUser && eventBadges.length > 0) {
-    const { data: userBadgeData } = await supabase
-      .from("user_badges")
-      .select("badge_id")
-      .eq("user_id", authUser.id)
-      .in(
-        "badge_id",
-        eventBadges.map((b) => b.id),
-      );
-
-    earnedBadgeIds = new Set((userBadgeData || []).map((ub) => ub.badge_id));
-  }
-
-  // Fetch event reviews
-  const { data: reviews } = await supabase
-    .from("event_reviews")
-    .select(
-      "id, rating, text, tags, created_at, user_id, users(full_name, avatar_url, username, active_border_id), event_review_photos(id, image_url, sort_order)",
-    )
-    .eq("event_id", id)
-    .order("created_at", { ascending: false });
-
-  // Enrich reviews with border data
-  const eventReviews = await enrichReviewsWithBorders(supabase, (reviews || []) as any[]);
-  const avgRating =
-    eventReviews.length > 0
-      ? eventReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / eventReviews.length
-      : 0;
-
-  // Fetch guides for hiking events
-  let eventGuides: {
-    id: string;
-    full_name: string;
-    avatar_url: string | null;
-    bio: string | null;
-    avg_rating: number | null;
-    review_count: number;
-  }[] = [];
-
-  if (event.type === "hiking") {
-    const { data: eventGuideRows } = await supabase
-      .from("event_guides")
-      .select("guide_id")
-      .eq("event_id", id);
-
-    if (eventGuideRows && eventGuideRows.length > 0) {
-      const guideIds = eventGuideRows.map((eg) => eg.guide_id);
-
-      const [{ data: guides }, { data: reviewAggs }] = await Promise.all([
-        supabase.from("guides").select("id, full_name, avatar_url, bio").in("id", guideIds),
-        supabase.from("guide_reviews").select("guide_id, rating").in("guide_id", guideIds),
-      ]);
-
-      // Aggregate reviews per guide
-      const reviewMap = new Map<string, { sum: number; count: number }>();
-      for (const r of reviewAggs || []) {
-        const entry = reviewMap.get(r.guide_id) || { sum: 0, count: 0 };
-        entry.sum += r.rating;
-        entry.count += 1;
-        reviewMap.set(r.guide_id, entry);
-      }
-
-      eventGuides = (guides || []).map((g) => {
-        const agg = reviewMap.get(g.id);
-        return {
-          id: g.id,
-          full_name: g.full_name,
-          avatar_url: g.avatar_url,
-          bio: g.bio,
-          avg_rating: agg ? agg.sum / agg.count : null,
-          review_count: agg ? agg.count : 0,
-        };
-      });
-    }
-  }
-
-  // Fetch mountains for hiking events
-  let eventMountains: {
-    mountain_id: string;
-    name: string;
-    province: string;
-    difficulty_level: number;
-    elevation_masl: number | null;
-    route_name: string | null;
-    difficulty_override: number | null;
-    sort_order: number;
-  }[] = [];
-
-  if (event.type === "hiking") {
-    const { data: emRows } = await supabase
-      .from("event_mountains")
-      .select("mountain_id, route_name, difficulty_override, sort_order")
-      .eq("event_id", id)
-      .order("sort_order");
-
-    if (emRows && emRows.length > 0) {
-      const mountainIds = emRows.map((em) => em.mountain_id);
-      const { data: mountains } = await supabase
-        .from("mountains")
-        .select("id, name, province, difficulty_level, elevation_masl")
-        .in("id", mountainIds);
-
-      const mountainMap = new Map((mountains || []).map((m) => [m.id, m]));
-
-      eventMountains = emRows.map((em) => {
-        const mountain = mountainMap.get(em.mountain_id);
-        return {
-          mountain_id: em.mountain_id,
-          name: mountain?.name ?? "",
-          province: mountain?.province ?? "",
-          difficulty_level: mountain?.difficulty_level ?? 0,
-          elevation_masl: mountain?.elevation_masl ?? null,
-          route_name: em.route_name,
-          difficulty_override: em.difficulty_override,
-          sort_order: em.sort_order,
-        };
-      });
-    }
-  }
-
-  // Fetch itinerary entries
-  const { data: itineraryRows } = await supabase
-    .from("event_itinerary")
-    .select("id, time, title, sort_order")
-    .eq("event_id", id)
-    .order("sort_order", { ascending: true });
-
-  const itineraryEntries = itineraryRows ?? [];
-
-  // Fetch event route (if attached)
-  const { data: eventRoute } = await supabase
-    .from("event_routes")
-    .select("name, summary_polyline, distance, elevation_gain, source")
-    .eq("event_id", id)
-    .single();
-
-  // Check if current user can review or self-check-in
-  let canReview = false;
-  let canSelfCheckin = false;
-  if (authUser && event.status === "completed") {
-    const hasReviewed = eventReviews.some((r: any) => r.user_id === authUser.id);
-
-    if (!hasReviewed) {
-      const { data: userCheckin } = await supabase
-        .from("event_checkins")
-        .select("id")
-        .eq("event_id", id)
-        .eq("user_id", authUser.id)
-        .single();
-
-      if (userCheckin) {
-        canReview = true;
-      } else {
-        canSelfCheckin = true;
-      }
-    }
-  }
-
-  // Gate payment_paused behind feature flag
-  const paymentPauseFlagEnabled = await isPaymentPauseEnabled();
+  const isMember = !!membershipResult.data;
   const effectivePaymentPaused = paymentPauseFlagEnabled && event.payment_paused;
-
-  // Resolve coordinates for weather forecast
-  const coords =
-    event.coordinates && typeof event.coordinates === "object" && "lat" in event.coordinates
-      ? (event.coordinates as { lat: number; lng: number })
-      : await geocodeLocation(event.location);
-
-  const forecast = coords ? await getWeatherForecast(coords.lat, coords.lng, event.date) : null;
-  const isLongRange = (() => {
-    if (!forecast) return false;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const eventDate = new Date(event.date + "T00:00:00");
-    const diff = Math.ceil((eventDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-    return diff >= 8;
-  })();
-
   const spotsLeft = event.max_participants - bookingCount;
   const formattedDate = formatEventDate(event.date, event.end_date, {
     includeTime: true,
@@ -343,7 +175,13 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://eventtara.com";
 
-  // JSON-LD Event structured data
+  // Parse coordinates for child components
+  const coords =
+    event.coordinates && typeof event.coordinates === "object" && "lat" in event.coordinates
+      ? (event.coordinates as { lat: number; lng: number })
+      : null;
+
+  // JSON-LD (no rating data needed — SEO bots will see streamed content)
   const eventJsonLd = {
     "@context": "https://schema.org",
     "@type": "Event",
@@ -356,15 +194,13 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
     location: {
       "@type": "Place",
       name: event.location,
-      ...(event.coordinates &&
-        typeof event.coordinates === "object" &&
-        "lat" in event.coordinates && {
-          geo: {
-            "@type": "GeoCoordinates",
-            latitude: (event.coordinates as { lat: number; lng: number }).lat,
-            longitude: (event.coordinates as { lat: number; lng: number }).lng,
-          },
-        }),
+      ...(coords && {
+        geo: {
+          "@type": "GeoCoordinates",
+          latitude: coords.lat,
+          longitude: coords.lng,
+        },
+      }),
     },
     ...(event.cover_image_url && { image: event.cover_image_url }),
     organizer: club
@@ -383,15 +219,6 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
       url: `${siteUrl}/events/${id}`,
       validFrom: event.created_at,
     },
-    ...(avgRating > 0 && {
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: avgRating.toFixed(1),
-        reviewCount: eventReviews.length,
-        bestRating: 5,
-        worstRating: 1,
-      },
-    }),
     url: `${siteUrl}/events/${id}`,
     maximumAttendeeCapacity: event.max_participants,
     remainingAttendeeCapacity: Math.max(spotsLeft, 0),
@@ -401,24 +228,9 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      {
-        "@type": "ListItem",
-        position: 1,
-        name: "Home",
-        item: siteUrl,
-      },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: "Events",
-        item: `${siteUrl}/events`,
-      },
-      {
-        "@type": "ListItem",
-        position: 3,
-        name: event.title,
-        item: `${siteUrl}/events/${id}`,
-      },
+      { "@type": "ListItem", position: 1, name: "Home", item: siteUrl },
+      { "@type": "ListItem", position: 2, name: "Events", item: `${siteUrl}/events` },
+      { "@type": "ListItem", position: 3, name: event.title, item: `${siteUrl}/events/${id}` },
     ],
   };
 
@@ -478,123 +290,16 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
             </div>
           )}
 
-          <EventItinerary entries={itineraryEntries} />
-
-          <EventGallery
-            photos={(photos || []).map((p) => ({
-              ...p,
-              image_url: cdnUrl(p.image_url) ?? p.image_url,
-            }))}
-          />
-
-          <div className="flex items-center justify-between">
-            <Link
-              href={`/events/${id}/photos`}
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-lime-600 dark:text-lime-400 hover:underline"
-            >
-              {(photos?.length ?? 0) > 0
-                ? `View all ${photos?.length} photo${photos?.length === 1 ? "" : "s"}`
-                : "Share your photos"}
-              <ChevronRightIcon className="w-4 h-4" />
-            </Link>
-          </div>
-
-          {event.drive_folder_url &&
-            (authUser ? (
-              <a
-                href={event.drive_folder_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="-mt-2 flex items-center gap-3 rounded-xl bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800 px-4 py-3 transition-colors hover:bg-teal-100 dark:hover:bg-teal-900/30"
-              >
-                <GoogleDriveIcon className="w-5 h-5 shrink-0" />
-                <div className="min-w-0">
-                  <span className="text-sm font-medium text-teal-700 dark:text-teal-300">
-                    View Event Media
-                  </span>
-                  <p className="text-xs text-teal-600/70 dark:text-teal-400/70">
-                    Drone shots, videos &amp; more
-                  </p>
-                </div>
-                <svg
-                  className="w-4 h-4 text-teal-500 dark:text-teal-400 ml-auto shrink-0"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2}
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"
-                  />
-                </svg>
-              </a>
-            ) : (
-              <Link
-                href="/login"
-                className="-mt-2 flex items-center gap-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 px-4 py-3 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
-              >
-                <GoogleDriveIcon className="w-5 h-5 shrink-0 opacity-40" />
-                <div className="min-w-0">
-                  <span className="text-sm font-medium text-gray-400 dark:text-gray-500">
-                    View Event Media
-                  </span>
-                  <p className="text-xs text-gray-400/70 dark:text-gray-500/70">
-                    Log in to access drone shots, videos &amp; more
-                  </p>
-                </div>
-                <svg
-                  className="w-4 h-4 text-gray-400 dark:text-gray-500 ml-auto shrink-0"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2}
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"
-                  />
-                </svg>
-              </Link>
-            ))}
-
-          {event.coordinates &&
-            typeof event.coordinates === "object" &&
-            "lat" in event.coordinates && (
-              <EventLocationMap
-                lat={(event.coordinates as { lat: number; lng: number }).lat}
-                lng={(event.coordinates as { lat: number; lng: number }).lng}
-                label={event.location}
-              />
-            )}
-          {eventRoute?.summary_polyline && (
-            <EventRouteSection
-              name={eventRoute.name}
-              polyline={eventRoute.summary_polyline}
-              distance={eventRoute.distance}
-              elevationGain={eventRoute.elevation_gain}
-              source={eventRoute.source}
-            />
-          )}
-
-          {/* Reviews Section */}
-          <div>
-            <h2 className="text-xl font-heading font-bold mb-4">Reviews</h2>
-            {canReview && (
-              <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm dark:shadow-gray-950/20 p-5 mb-6">
-                <ReviewForm eventId={id} />
-              </div>
-            )}
-            {canSelfCheckin && <SelfCheckinPrompt eventId={id} eventTitle={event.title} />}
-            <ReviewList
-              reviews={eventReviews}
-              averageRating={avgRating}
-              currentUserId={authUser?.id}
+          {/* Streamed: gallery, maps, reviews */}
+          <Suspense fallback={<BelowFoldSkeleton />}>
+            <EventBelowFold
               eventId={id}
+              eventStatus={event.status}
+              coordinates={coords}
+              location={event.location}
+              driveFolderUrl={event.drive_folder_url}
             />
-          </div>
+          </Suspense>
         </div>
 
         {/* Sidebar */}
@@ -652,19 +357,6 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
               initialCount={bookingCount}
             />
 
-            {avgRating > 0 && (
-              <div className="text-center text-sm">
-                <span className="text-yellow-400">&#9733;</span>{" "}
-                <span className="font-medium text-gray-700 dark:text-gray-300">
-                  {avgRating.toFixed(1)}
-                </span>
-                <span className="text-gray-400 dark:text-gray-500">
-                  {" "}
-                  ({eventReviews.length} review{eventReviews.length === 1 ? "" : "s"})
-                </span>
-              </div>
-            )}
-
             <div className="pt-2">
               <BookingButton
                 eventId={id}
@@ -689,128 +381,19 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
             />
           )}
 
-          {forecast && (
-            <WeatherCard forecast={forecast} eventId={event.id} isLongRange={isLongRange} />
-          )}
-
-          {eventMountains.length > 0 && (
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md p-5 sm:p-6">
-              <h3 className="font-heading font-bold mb-3 flex items-center gap-2">
-                <span className="text-lg">⛰️</span>
-                {eventMountains.length === 1
-                  ? "Mountain"
-                  : `Mountains (${eventMountains.length} peaks)`}
-              </h3>
-              {event.difficulty_level && (
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-sm text-gray-500">Overall Difficulty:</span>
-                  <DifficultyBadge level={event.difficulty_level} />
-                </div>
-              )}
-              <div className="space-y-3">
-                {eventMountains.map((m, i) => (
-                  <div
-                    key={m.mountain_id}
-                    className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800"
-                  >
-                    <span className="text-sm font-bold text-gray-400 mt-0.5">{i + 1}</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-medium text-sm">{m.name}</span>
-                        <DifficultyBadge level={m.difficulty_override ?? m.difficulty_level} />
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
-                        <span>{m.province}</span>
-                        {m.elevation_masl && (
-                          <>
-                            <span>·</span>
-                            <span>{m.elevation_masl.toLocaleString()} MASL</span>
-                          </>
-                        )}
-                        {m.route_name && (
-                          <>
-                            <span>·</span>
-                            <span>{m.route_name}</span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {eventGuides.length > 0 && (
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-5 sm:p-6">
-              <h3 className="font-heading font-bold mb-3 flex items-center gap-2">
-                <LocationPinIcon className="w-5 h-5 text-teal-600 dark:text-teal-400" />
-                Guide{eventGuides.length === 1 ? "" : "s"}
-              </h3>
-              <div className="space-y-3">
-                {eventGuides.map((guide) => (
-                  <GuideCard
-                    key={guide.id}
-                    id={guide.id}
-                    full_name={guide.full_name}
-                    avatar_url={guide.avatar_url}
-                    bio={guide.bio}
-                    avg_rating={guide.avg_rating}
-                    review_count={guide.review_count}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {eventBadges.length > 0 && (
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 p-5 sm:p-6">
-              <h3 className="font-heading font-bold mb-3 flex items-center gap-2">
-                <span>&#127942;</span> Badge{eventBadges.length === 1 ? "" : "s"}
-              </h3>
-              <div className="space-y-3">
-                {eventBadges.map((badge) => {
-                  const resolved = resolvePresetImage(badge.image_url);
-                  const earned = earnedBadgeIds.has(badge.id);
-                  return (
-                    <Link
-                      key={badge.id}
-                      href={`/badges/${badge.id}`}
-                      className="flex items-center gap-3 rounded-xl p-2 -mx-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                    >
-                      <div
-                        className={`w-10 h-10 rounded-full ${resolved?.type === "emoji" ? resolved.color : "bg-gray-100 dark:bg-gray-800"} flex items-center justify-center overflow-hidden flex-shrink-0`}
-                      >
-                        {resolved?.type === "url" ? (
-                          <Image
-                            src={resolved.url}
-                            alt={badge.title}
-                            width={40}
-                            height={40}
-                            className="object-cover"
-                          />
-                        ) : (
-                          <span className="text-xl">
-                            {resolved?.type === "emoji" ? resolved.emoji : "\u{1F3C6}"}
-                          </span>
-                        )}
-                      </div>
-                      <span className="font-medium text-sm">{badge.title}</span>
-                      {authUser && earned && (
-                        <span className="ml-auto text-xs text-teal-600 dark:text-teal-400 font-medium">
-                          Earned
-                        </span>
-                      )}
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+          {/* Streamed: weather, mountains, guides, badges */}
+          <Suspense fallback={<SidebarExtrasSkeleton />}>
+            <EventSidebarExtras
+              eventId={id}
+              eventType={event.type}
+              eventDate={event.date}
+              eventDifficultyLevel={event.difficulty_level}
+              coordinates={coords}
+              location={event.location}
+            />
+          </Suspense>
         </div>
       </div>
-
-      {canReview && <ReviewPromptTrigger eventId={id} eventTitle={event.title} />}
 
       <MobileBookingBar
         eventId={id}

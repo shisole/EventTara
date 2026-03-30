@@ -77,12 +77,12 @@ export default function FeedCard({ item, isAuthenticated, currentUserId }: FeedC
               </span>
             )}
             {item.topBadgeTitle && (
-              <span className="text-[10px] bg-golden-100 dark:bg-golden-900/30 text-golden-700 dark:text-golden-400 px-1.5 py-0.5 rounded-full font-medium truncate max-w-[120px]">
+              <span className="text-xs bg-golden-100 dark:bg-golden-900/30 text-golden-700 dark:text-golden-400 px-1.5 py-0.5 rounded-full font-medium truncate max-w-[120px]">
                 {item.topBadgeTitle}
               </span>
             )}
             {item.isFollowing && (
-              <span className="text-[10px] bg-lime-100 dark:bg-lime-900/30 text-lime-700 dark:text-lime-400 px-1.5 py-0.5 rounded-full font-medium">
+              <span className="text-xs bg-lime-100 dark:bg-lime-900/30 text-lime-700 dark:text-lime-400 px-1.5 py-0.5 rounded-full font-medium">
                 Following
               </span>
             )}

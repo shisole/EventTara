@@ -107,7 +107,7 @@ export default function CompanionFields({
             onClick={() => {
               removeCompanion(index);
             }}
-            className="mt-2 text-gray-400 hover:text-red-500 transition-colors"
+            className="mt-1 flex items-center justify-center min-h-[44px] min-w-[44px] text-gray-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20"
             aria-label="Remove companion"
           >
             <CloseFilledIcon className="h-5 w-5" />

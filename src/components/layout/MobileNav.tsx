@@ -150,7 +150,7 @@ export default function MobileNav({
               )}
             >
               <Icon className="w-6 h-6" variant={active ? "filled" : "outline"} />
-              <span className={cn("text-[11px]", active ? "font-semibold" : "font-medium")}>
+              <span className={cn("text-xs", active ? "font-semibold" : "font-medium")}>
                 {item.label}
               </span>
             </NavLink>
