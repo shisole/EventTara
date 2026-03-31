@@ -46,7 +46,7 @@ export default function ClubUpdatesSection({ events, clubMap }: ClubUpdatesSecti
                   <div className="flex items-center gap-2">
                     <span
                       className={cn(
-                        "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                        "shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold",
                         getActivitySolidColor(event.type),
                       )}
                     >
