@@ -94,7 +94,7 @@ export default async function HomePage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login");
+    redirect("/events");
   }
 
   // ── Above-fold data: bookings + memberships (parallel) ──
