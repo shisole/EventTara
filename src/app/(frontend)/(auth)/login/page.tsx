@@ -33,7 +33,6 @@ function LoginForm() {
   const [oauthGoogle, setOauthGoogle] = useState(false);
   const [oauthStrava, setOauthStrava] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [showMoreOptions, setShowMoreOptions] = useState(false);
 
   useEffect(() => {
     void fetch("/api/feature-flags")
@@ -279,17 +278,7 @@ function LoginForm() {
           </Button>
         )}
 
-        {!showMoreOptions && (
-          <button
-            type="button"
-            onClick={() => setShowMoreOptions(true)}
-            className="w-full text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-medium py-1"
-          >
-            More sign-in options
-          </button>
-        )}
-
-        {showMoreOptions && (
+        {
           <>
             {oauthStrava ? (
               <Button disabled className="w-full bg-[#FC4C02]/60 cursor-not-allowed" size="lg">
@@ -329,7 +318,7 @@ function LoginForm() {
               Continue as Guest
             </button>
           </>
-        )}
+        }
       </div>
 
       <div className="relative">
