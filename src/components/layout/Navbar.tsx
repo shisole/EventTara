@@ -151,13 +151,11 @@ export default function Navbar({
       <nav
         className={cn(
           "md:pointer-events-auto md:w-fit md:mx-auto md:rounded-2xl transition-all duration-300",
-          // Mobile: always solid background
-          "bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800",
           scrolled || pathname !== "/"
-            ? // Scrolled or non-homepage: frosted glass
-              "md:bg-white/90 md:dark:bg-gray-900/90 md:backdrop-blur-md md:border md:border-gray-200/80 md:dark:border-gray-700/80 md:shadow-lg md:shadow-black/5 md:dark:shadow-black/20"
-            : // Homepage not scrolled: transparent (desktop only)
-              "md:bg-white/5 md:dark:bg-transparent md:border-transparent md:backdrop-blur-sm md:border md:border-white/10",
+            ? // Scrolled or non-homepage: solid / frosted glass
+              "bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 md:bg-white/90 md:dark:bg-gray-900/90 md:backdrop-blur-md md:border md:border-gray-200/80 md:dark:border-gray-700/80 md:shadow-lg md:shadow-black/5 md:dark:shadow-black/20"
+            : // Homepage not scrolled: transparent
+              "bg-transparent border-b border-transparent md:bg-white/5 md:backdrop-blur-sm md:border md:border-white/10",
         )}
       >
         <div className="flex items-center justify-between md:justify-center md:gap-6 h-14 md:h-12 px-4 sm:px-6">
@@ -386,7 +384,12 @@ export default function Navbar({
             {user && <NotificationBell userId={user.id} />}
             <button
               onClick={onMenuOpen}
-              className="flex items-center justify-center w-11 h-11 rounded-lg transition-colors text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+              className={cn(
+                "flex items-center justify-center w-11 h-11 rounded-lg transition-colors",
+                heroVisible
+                  ? "text-white/90 hover:bg-white/10"
+                  : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800",
+              )}
               aria-label="Open menu"
             >
               <MenuIcon className="w-6 h-6" />
