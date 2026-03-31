@@ -162,7 +162,7 @@ export default function EventCard({
             {race_distances &&
               race_distances.length > 0 &&
               (() => {
-                const maxShow = compact ? 2 : race_distances.length;
+                const maxShow = compact ? 2 : 3;
                 const visible = race_distances.slice(0, maxShow);
                 const overflow = race_distances.length - maxShow;
                 return (

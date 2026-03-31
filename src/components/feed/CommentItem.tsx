@@ -119,7 +119,7 @@ export default function CommentItem({ comment, currentUserId, onDelete }: Commen
           >
             {comment.userName}
           </Link>
-          <span className="text-[10px] text-gray-400 dark:text-gray-500 shrink-0">
+          <span className="text-xs text-gray-400 dark:text-gray-500 shrink-0">
             {comment.pending ? "Sending..." : formatRelativeTime(comment.createdAt)}
           </span>
         </div>
@@ -128,7 +128,7 @@ export default function CommentItem({ comment, currentUserId, onDelete }: Commen
         </p>
 
         {comment.failed && (
-          <span className="text-[10px] text-red-500 dark:text-red-400">
+          <span className="text-xs text-red-500 dark:text-red-400">
             Failed to send. Please try again.
           </span>
         )}
@@ -142,14 +142,14 @@ export default function CommentItem({ comment, currentUserId, onDelete }: Commen
             onClick={handleLike}
             disabled={likeLoading}
             className={cn(
-              "inline-flex items-center gap-0.5 text-[11px] transition-colors",
+              "inline-flex items-center gap-1 min-h-[44px] min-w-[44px] justify-center text-xs transition-colors",
               liked
                 ? "text-lime-600 dark:text-lime-400"
                 : "text-gray-400 dark:text-gray-500 hover:text-lime-600 dark:hover:text-lime-400",
             )}
             aria-label={liked ? "Unlike comment" : "Like comment"}
           >
-            <HeartIcon className="w-3 h-3" variant={liked ? "filled" : "outline"} />
+            <HeartIcon className="w-4 h-4" variant={liked ? "filled" : "outline"} />
             {likeCount > 0 && <span>{likeCount}</span>}
           </button>
 
@@ -158,10 +158,10 @@ export default function CommentItem({ comment, currentUserId, onDelete }: Commen
               type="button"
               onClick={handleDelete}
               disabled={deleting}
-              className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400"
+              className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 min-h-[44px] min-w-[44px] flex items-center justify-center"
               aria-label="Delete comment"
             >
-              <TrashIcon className="w-3.5 h-3.5" />
+              <TrashIcon className="w-4 h-4" />
             </button>
           )}
         </div>
@@ -171,7 +171,7 @@ export default function CommentItem({ comment, currentUserId, onDelete }: Commen
         <button
           type="button"
           onClick={() => onDelete(comment.id)}
-          className="shrink-0 text-[10px] text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 mt-0.5"
+          className="shrink-0 text-xs text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 mt-0.5"
           aria-label="Dismiss"
         >
           Dismiss

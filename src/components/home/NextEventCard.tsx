@@ -124,7 +124,7 @@ export default function NextEventCard({ event }: NextEventCardProps) {
           <div className="flex items-center justify-between gap-2">
             <h3 className="font-heading font-bold text-base truncate">{event.title}</h3>
             {paymentPending && (
-              <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
+              <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
                 Payment Pending
               </span>
             )}

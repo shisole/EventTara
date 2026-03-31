@@ -118,10 +118,10 @@ export default async function WelcomePage() {
                         <span className="text-2xl">🏅</span>
                       )}
                     </div>
-                    <span className="text-[10px] font-medium text-gray-600 dark:text-gray-400 leading-tight line-clamp-2">
+                    <span className="text-xs font-medium text-gray-600 dark:text-gray-400 leading-tight line-clamp-2">
                       {badge.title}
                     </span>
-                    <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${rarity.pill}`}>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${rarity.pill}`}>
                       {rarity.label}
                     </span>
                   </div>

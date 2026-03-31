@@ -345,7 +345,7 @@ export default function AuthBookingModal({
       aria-labelledby="auth-modal-title"
     >
       <div
-        className={`relative w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8 transition-all duration-200 ${
+        className={`relative w-full max-w-md bg-white dark:bg-slate-800 shadow-2xl transition-all duration-200 max-sm:fixed max-sm:inset-0 max-sm:max-w-none max-sm:rounded-none max-sm:overflow-y-auto sm:rounded-2xl p-8 ${
           isVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
         }`}
         onClick={(e) => {

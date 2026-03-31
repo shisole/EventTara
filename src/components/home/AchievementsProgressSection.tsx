@@ -63,7 +63,7 @@ export default function AchievementsProgressSection({ badges }: AchievementsProg
                   <span className="truncate text-sm font-medium">{badge.title}</span>
                   <span
                     className={cn(
-                      "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                      "shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold",
                       rarityStyle.pill,
                     )}
                   >

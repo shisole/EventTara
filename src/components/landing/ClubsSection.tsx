@@ -154,7 +154,7 @@ export default async function ClubsSection() {
               </span>
               {club.is_demo && <DemoBadge className="mb-1" />}
               {club.visibility === "private" && (
-                <span className="mb-1 inline-flex items-center gap-0.5 rounded-full bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+                <span className="mb-1 inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500 dark:bg-gray-800 dark:text-gray-400">
                   <svg
                     width="10"
                     height="10"
@@ -180,13 +180,13 @@ export default async function ClubsSection() {
                     </span>
                   </div>
                   {club.topTag && (
-                    <span className="mt-1.5 inline-block max-w-full truncate rounded-full bg-lime-100 px-2 py-0.5 text-[10px] font-medium text-lime-700 dark:bg-lime-900/40 dark:text-lime-400">
+                    <span className="mt-1.5 inline-block max-w-full truncate rounded-full bg-lime-100 px-2 py-0.5 text-xs font-medium text-lime-700 dark:bg-lime-900/40 dark:text-lime-400">
                       {tagLabelMap[club.topTag] || club.topTag}
                     </span>
                   )}
                 </>
               ) : (
-                <span className="text-[11px] text-gray-400 dark:text-gray-500">
+                <span className="text-xs text-gray-400 dark:text-gray-500">
                   {club.member_count} member{club.member_count === 1 ? "" : "s"}
                 </span>
               )}

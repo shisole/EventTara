@@ -580,7 +580,7 @@ export default function BorderPickerModal({
                       )}
                     >
                       {!owned && (
-                        <div className="absolute top-1 right-1 flex items-center gap-0.5 rounded-full bg-gray-900/70 px-1.5 py-0.5 text-[9px] font-bold text-white">
+                        <div className="absolute top-1 right-1 flex items-center gap-1 rounded-full bg-gray-900/70 px-1.5 py-0.5 text-[10px] font-bold text-white">
                           <svg
                             viewBox="0 0 20 20"
                             fill="currentColor"
