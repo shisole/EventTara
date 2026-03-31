@@ -18,7 +18,7 @@ export default function StarRating({
   readonly = false,
 }: StarRatingProps) {
   return (
-    <div className={cn("flex gap-0.5", sizes[size])}>
+    <div className={cn("flex gap-1", sizes[size])}>
       {[1, 2, 3, 4, 5].map((star) => (
         <button
           key={star}

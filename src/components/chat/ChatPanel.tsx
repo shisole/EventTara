@@ -298,11 +298,11 @@ export default function ChatPanel({
               <h3 className="font-heading text-sm font-bold text-gray-900 dark:text-gray-100">
                 Coco
               </h3>
-              <span className="rounded-full bg-lime-500 px-1.5 py-0.5 text-[9px] font-bold leading-none text-gray-900">
+              <span className="rounded-full bg-lime-500 px-2 py-0.5 text-[10px] font-bold leading-none text-gray-900">
                 BETA
               </span>
             </div>
-            <p className="text-[11px] text-gray-500 dark:text-gray-400">AI-powered assistant</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">AI-powered assistant</p>
           </div>
           <div className="flex items-center gap-2">
             {/* Limit dots */}

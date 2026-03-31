@@ -158,13 +158,13 @@ export default function ProfileInventory({ userId, isOwnProfile }: ProfileInvent
                     className="h-full w-full object-contain"
                   />
                 </div>
-                <span className="text-[10px] font-medium text-gray-700 dark:text-gray-300 truncate w-full text-center leading-tight">
+                <span className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate w-full text-center leading-tight">
                   {item.name}
                 </span>
                 <div className="flex items-center gap-1">
                   <span className={cn("h-1.5 w-1.5 rounded-full", RARITY_DOT[item.rarity])} />
                   {item.equipped && (
-                    <span className="text-[9px] font-semibold text-lime-600 dark:text-lime-400">
+                    <span className="text-[10px] font-semibold text-lime-600 dark:text-lime-400">
                       Equipped
                     </span>
                   )}

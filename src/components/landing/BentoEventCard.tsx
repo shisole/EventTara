@@ -171,7 +171,7 @@ export default function BentoEventCard({ event, variant }: BentoEventCardProps) 
         <div className="absolute top-2.5 left-2.5 z-10">
           <span
             className={cn(
-              "inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide uppercase backdrop-blur-sm",
+              "inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold tracking-wide uppercase backdrop-blur-sm",
               getActivitySolidColor(event.type),
             )}
           >
@@ -182,8 +182,8 @@ export default function BentoEventCard({ event, variant }: BentoEventCardProps) 
         {(event.is_demo || event.members_only) && (
           <div className="absolute top-2.5 right-2.5 z-10 flex flex-col items-end gap-1">
             {event.members_only && (
-              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase bg-amber-500/90 text-white backdrop-blur-sm">
-                <svg className="h-2 w-2" viewBox="0 0 20 20" fill="currentColor">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-bold uppercase bg-amber-500/90 text-white backdrop-blur-sm">
+                <svg className="h-2.5 w-2.5" viewBox="0 0 20 20" fill="currentColor">
                   <path
                     fillRule="evenodd"
                     d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
