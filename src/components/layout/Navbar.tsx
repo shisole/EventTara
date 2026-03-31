@@ -13,6 +13,7 @@ import { NavLink } from "@/components/navigation/NavigationContext";
 import { CompositeAvatar, Button } from "@/components/ui";
 import type { BorderTier } from "@/lib/constants/avatar-borders";
 import { createClient } from "@/lib/supabase/client";
+import { cn } from "@/lib/utils";
 
 const BorderPickerModal = dynamic(() => import("@/components/profile/BorderPickerModal"));
 const NotificationBell = dynamic(() => import("@/components/notifications/NotificationBell"));
@@ -148,11 +149,14 @@ export default function Navbar({
   return (
     <div className="fixed top-0 md:top-3 left-0 right-0 z-50 md:px-4 md:pointer-events-none">
       <nav
-        className={`md:pointer-events-auto md:w-fit md:mx-auto md:rounded-2xl transition-all duration-300 ${
-          scrolled
-            ? "bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 md:bg-white/90 md:dark:bg-gray-900/90 md:backdrop-blur-md md:border md:border-gray-200/80 md:dark:border-gray-700/80 md:shadow-lg md:shadow-black/5 md:dark:shadow-black/20"
-            : "bg-transparent border-b border-transparent md:bg-white/5 md:backdrop-blur-sm md:border md:border-white/10"
-        }`}
+        className={cn(
+          "md:pointer-events-auto md:w-fit md:mx-auto md:rounded-2xl transition-all duration-300",
+          scrolled || pathname !== "/"
+            ? // Scrolled or non-homepage: solid / frosted glass
+              "bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 md:bg-white/90 md:dark:bg-gray-900/90 md:backdrop-blur-md md:border md:border-gray-200/80 md:dark:border-gray-700/80 md:shadow-lg md:shadow-black/5 md:dark:shadow-black/20"
+            : // Homepage not scrolled: transparent
+              "bg-transparent border-b border-transparent md:bg-white/5 md:backdrop-blur-sm md:border md:border-white/10",
+        )}
       >
         <div className="flex items-center justify-between md:justify-center md:gap-6 h-14 md:h-12 px-4 sm:px-6">
           <NavLink href="/" className="flex items-center gap-2">
@@ -380,11 +384,12 @@ export default function Navbar({
             {user && <NotificationBell userId={user.id} />}
             <button
               onClick={onMenuOpen}
-              className={`flex items-center justify-center w-11 h-11 rounded-lg transition-colors ${
+              className={cn(
+                "flex items-center justify-center w-11 h-11 rounded-lg transition-colors",
                 heroVisible
                   ? "text-white/90 hover:bg-white/10"
-                  : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-              }`}
+                  : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800",
+              )}
               aria-label="Open menu"
             >
               <MenuIcon className="w-6 h-6" />
