@@ -15,7 +15,6 @@ import {
 import { Button, OtpCodeInput } from "@/components/ui";
 import { STRAVA_AUTH_URL, STRAVA_SCOPES } from "@/lib/strava/constants";
 import { createClient } from "@/lib/supabase/client";
-import { generateUsername } from "@/lib/utils/generate-username";
 
 type ModalState = "form" | "verify-code" | "success";
 type AuthMode = "signin" | "signup";
@@ -215,13 +214,11 @@ export default function AuthBookingModal({
       }
 
       if (data.session && data.user) {
-        // Auto-confirmed — generate username and finish
-        await generateUsername(supabase, data.user.id, trimmed);
+        // Auto-confirmed — set full name, then redirect to set username
         await supabase.from("users").update({ full_name: trimmedName }).eq("id", data.user.id);
 
-        const displayName = trimmedName || trimmed;
-        setUserDisplay(displayName);
-        setState("success");
+        router.push(`/setup-username?next=${encodeURIComponent(bookingReturnUrl)}`);
+        return;
       } else {
         // Email confirmation required — show OTP screen
         setUserDisplay(trimmed);
@@ -295,7 +292,18 @@ export default function AuthBookingModal({
       }
 
       if (data.user) {
-        await generateUsername(supabase, data.user.id, userDisplay);
+        // Check if this user already has a username (returning user)
+        const { data: profile } = await supabase
+          .from("users")
+          .select("username")
+          .eq("id", data.user.id)
+          .single();
+
+        if (!profile?.username) {
+          // New user via OTP — redirect to set username, then back to booking
+          router.push(`/setup-username?next=${encodeURIComponent(bookingReturnUrl)}`);
+          return;
+        }
       }
 
       const displayName = data.user?.user_metadata?.full_name || data.user?.email || userDisplay;
