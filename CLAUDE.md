@@ -40,85 +40,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | **Reason**      | Why this change is needed |
 | **Constraints** | What must stay the same   |
 
-### Preview Format
-
-Before acting, print the filled template using this terminal UI style. Adapt fields based on request type.
-
-**Bug example:**
-
-```
-╔══════════════════════════════════════════════════╗
-║  EVENTTARA REQUEST                        [BUG]  ║
-╠══════════════════════════════════════════════════╣
-║  Location:   /events/[id] — EventCard component  ║
-║  Scope:      Single component                    ║
-║  Current:    Member count badge overflows on      ║
-║              mobile viewports                     ║
-║  Expected:   Badge truncates with ellipsis        ║
-╠══════════════════════════════════════════════════╣
-║  Priority files:                                  ║
-║    src/components/events/EventCard.tsx            ║
-║    src/components/events/EventCard.module.css     ║
-╠══════════════════════════════════════════════════╣
-║  Action plan:                                     ║
-║    1. Read EventCard component                    ║
-║    2. Fix overflow on member count badge          ║
-║    3. Verify responsive behavior                  ║
-╚══════════════════════════════════════════════════╝
-```
-
-**Feature example:**
-
-```
-╔══════════════════════════════════════════════════╗
-║  EVENTTARA REQUEST                    [FEATURE]  ║
-╠══════════════════════════════════════════════════╣
-║  Location:   /dashboard/clubs/[slug]             ║
-║  Scope:      Page-level                          ║
-║  Requires:   Export club members as CSV           ║
-║  Criteria:   Download triggers, includes name,    ║
-║              email, role, join date               ║
-╠══════════════════════════════════════════════════╣
-║  Priority files:                                  ║
-║    src/app/(frontend)/(organizer)/dashboard/...  ║
-║    src/components/dashboard/ClubMembersList.tsx   ║
-╠══════════════════════════════════════════════════╣
-║  Action plan:                                     ║
-║    1. Read ClubMembersList component              ║
-║    2. Add CSV export utility function             ║
-║    3. Add export button to members table          ║
-╚══════════════════════════════════════════════════╝
-```
-
-**Refactor/style/chore/docs example:**
-
-```
-╔══════════════════════════════════════════════════╗
-║  EVENTTARA REQUEST                   [REFACTOR]  ║
-╠══════════════════════════════════════════════════╣
-║  Location:   src/lib/email/                      ║
-║  Scope:      Cross-cutting                       ║
-║  Reason:     Email templates have duplicated      ║
-║              header/footer markup                 ║
-║  Constraint: Existing email output must not       ║
-║              change visually                      ║
-╠══════════════════════════════════════════════════╣
-║  Priority files:                                  ║
-║    src/lib/email/templates/*.ts                   ║
-║    src/lib/email/send.ts                          ║
-╠══════════════════════════════════════════════════╣
-║  Action plan:                                     ║
-║    1. Audit all email templates                   ║
-║    2. Extract shared layout component             ║
-║    3. Refactor templates to use shared layout     ║
-╚══════════════════════════════════════════════════╝
-```
-
 ### Rules
 
 1. **Always structured.** Even trivial requests, follow-ups, and explanations get the template treatment.
 2. **Ask until clear.** Ask clarifying questions one at a time until every relevant field can be confidently filled. Do not guess — ask.
-3. **Preview before acting.** Print the filled template using the terminal UI box format above for the user to review before reading files or writing code.
+3. **Preview before acting.** Print the filled template fields for the user to review before reading files or writing code.
 4. **Scope starts narrow, expands with justification.** Begin with priority files. If the fix requires touching additional files, note why in the chat before expanding.
 5. **Screenshots = fast path.** When an image is attached, identify the relevant files from the visual context immediately — no need to describe the image back.
 
