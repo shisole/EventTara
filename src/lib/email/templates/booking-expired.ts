@@ -1,3 +1,5 @@
+import { emailButton, emailLayout } from "./layout";
+
 interface BookingExpiredProps {
   userName: string;
   eventTitle: string;
@@ -9,59 +11,24 @@ export function bookingExpiredHtml({
   eventTitle,
   eventUrl,
 }: BookingExpiredProps): string {
-  return `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Booking Expired</title>
-</head>
-<body style="margin:0;padding:0;background-color:#faf5f0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#faf5f0;padding:32px 16px;">
-    <tr>
-      <td align="center">
-        <table width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
-          <!-- Header -->
-          <tr>
-            <td style="background: linear-gradient(135deg, #0891b2, #0e7490);padding:32px;text-align:center;">
-              <h1 style="color:#ffffff;margin:0;font-size:24px;font-weight:700;">EventTara</h1>
-              <p style="color:rgba(255,255,255,0.9);margin:8px 0 0;font-size:14px;">Adventure Awaits</p>
-            </td>
-          </tr>
-          <!-- Body -->
-          <tr>
-            <td style="padding:32px;">
-              <h2 style="color:#b45309;margin:0 0 8px;font-size:20px;">Booking Expired</h2>
-              <p style="color:#555;margin:0 0 24px;font-size:15px;line-height:1.5;">
-                Hey ${userName}, your booking for <strong>${eventTitle}</strong> has expired because payment was not received within 30 minutes.
-              </p>
-              <p style="color:#555;margin:0 0 24px;font-size:15px;line-height:1.5;">
-                You can rebook if spots are still available:
-              </p>
-              <table cellpadding="0" cellspacing="0">
-                <tr>
-                  <td style="background-color:#0891b2;border-radius:8px;">
-                    <a href="${eventUrl}" style="display:inline-block;padding:12px 24px;color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;">
-                      View Event
-                    </a>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-          <!-- Footer -->
-          <tr>
-            <td style="background-color:#f8f4ef;padding:24px 32px;text-align:center;border-top:1px solid #eee;">
-              <p style="color:#999;font-size:12px;margin:0;">
-                You received this email because you booked an event on EventTara.
-              </p>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`;
+  const content = `
+    <h1 style="color:#fbbf24;font-size:24px;font-weight:700;margin:0 0 16px;">
+      Booking Expired
+    </h1>
+    <p style="color:#94a3b8;font-size:16px;line-height:1.6;margin:0 0 8px;">
+      Hi <strong style="color:#f1f5f9;">${userName}</strong>, your booking for
+      <strong style="color:#f1f5f9;">${eventTitle}</strong> has expired due to
+      incomplete payment.
+    </p>
+    <p style="color:#94a3b8;font-size:16px;line-height:1.6;margin:0 0 32px;">
+      If you're still interested, you can view the event and book again.
+    </p>
+    ${emailButton("View Event", eventUrl)}
+  `;
+
+  return emailLayout({
+    title: "Booking Expired",
+    content,
+    footerText: "You received this email because you booked an event on EventTara.",
+  });
 }
