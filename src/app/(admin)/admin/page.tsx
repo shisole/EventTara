@@ -31,6 +31,12 @@ const cards = [
     href: "/admin/activity-types",
     count: "Types",
   },
+  {
+    title: "Email Blast",
+    description: "Send marketing emails about upcoming events to all users.",
+    href: "/admin/email-blast",
+    count: "Send blasts",
+  },
 ];
 
 export default function AdminOverview() {
