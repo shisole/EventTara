@@ -25,10 +25,10 @@ export default async function ProfileRedirectPage() {
     redirect("/login");
   }
 
-  // Redirect to the user's public profile page (fall back to /events if no username)
+  // Redirect to the user's public profile page (prompt username setup if missing)
   if (user.username) {
     redirect(`/profile/${user.username}`);
   }
 
-  redirect("/events");
+  redirect("/setup-username?next=/profile");
 }

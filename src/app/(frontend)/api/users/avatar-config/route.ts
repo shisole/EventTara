@@ -75,13 +75,20 @@ export async function PATCH(request: Request) {
     equipped_background_id,
     equipped_border_id,
     equipped_skin_id,
+    has_picked_avatar,
   } = body as {
     animal_id?: string | null;
     equipped_accessory_id?: string | null;
     equipped_background_id?: string | null;
     equipped_border_id?: string | null;
     equipped_skin_id?: string | null;
+    has_picked_avatar?: boolean;
   };
+
+  // Update has_picked_avatar on the users table if provided
+  if (has_picked_avatar !== undefined) {
+    await supabase.from("users").update({ has_picked_avatar }).eq("id", user.id);
+  }
 
   const { data, error } = await supabase
     .from("user_avatar_config")

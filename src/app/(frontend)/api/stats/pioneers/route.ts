@@ -9,7 +9,11 @@ export async function GET() {
   const supabase = createServiceClient();
 
   const [usersResult, clubsResult] = await Promise.all([
-    supabase.from("users").select("id", { count: "exact", head: true }).neq("role", "guest"),
+    supabase
+      .from("users")
+      .select("id", { count: "exact", head: true })
+      .neq("role", "guest")
+      .eq("is_guest", false),
     supabase.from("clubs").select("id", { count: "exact", head: true }),
   ]);
 
