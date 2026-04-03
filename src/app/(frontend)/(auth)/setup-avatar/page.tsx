@@ -173,11 +173,11 @@ function SetupAvatarForm() {
       // Pick a random animal
       const randomAnimal = animals[Math.floor(Math.random() * animals.length)];
 
-      // Save config but don't mark as picked
+      // Save config and mark as picked so the user isn't redirected back
       await fetch("/api/users/avatar-config", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ animal_id: randomAnimal.id }),
+        body: JSON.stringify({ animal_id: randomAnimal.id, has_picked_avatar: true }),
       });
 
       // Grant the random animal for free in the shop inventory
