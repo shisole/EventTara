@@ -8,7 +8,6 @@ import { CheckCircleIcon, GoogleIcon, StravaIcon } from "@/components/icons";
 import { Button, Input, OtpCodeInput } from "@/components/ui";
 import { STRAVA_AUTH_URL, STRAVA_SCOPES } from "@/lib/strava/constants";
 import { createClient } from "@/lib/supabase/client";
-import { generateUsername } from "@/lib/utils/generate-username";
 
 const CODE_LENGTH = 6;
 const emptyCode = () => Array.from<string>({ length: CODE_LENGTH }).fill("");
@@ -145,7 +144,18 @@ function LoginForm() {
       }
 
       if (data.user) {
-        await generateUsername(supabase, data.user.id, email);
+        // Check if this is a new user without a username
+        const { data: profile } = await supabase
+          .from("users")
+          .select("username")
+          .eq("id", data.user.id)
+          .single();
+
+        if (!profile?.username) {
+          // New OTP user — redirect to set username, then continue to original destination
+          router.push(`/setup-username?next=${encodeURIComponent(next)}`);
+          return;
+        }
       }
 
       setState("success");
