@@ -14,6 +14,7 @@ const navItems = [
   { href: "/admin/clubs", label: "Clubs", icon: "users" },
   { href: "/admin/activity-types", label: "Activity Types", icon: "activity" },
   { href: "/admin/qr-codes", label: "QR Codes", icon: "qrcode" },
+  { href: "/admin/email-blast", label: "Email Blast", icon: "mail" },
 ] as const;
 
 function NavIcon({ icon }: { icon: (typeof navItems)[number]["icon"] }) {
@@ -98,6 +99,18 @@ function NavIcon({ icon }: { icon: (typeof navItems)[number]["icon"] }) {
             strokeLinejoin="round"
             strokeWidth={2}
             d="M3 3h7v7H3V3zm11 0h7v7h-7V3zM3 14h7v7H3v-7zm14 3h.01M17 14h.01M14 17h.01M14 14h3v3h-3v-3zm3 3h3v3h-3v-3z"
+          />
+        </svg>
+      );
+    }
+    case "mail": {
+      return (
+        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
           />
         </svg>
       );
