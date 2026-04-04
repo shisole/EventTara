@@ -15,11 +15,12 @@ export async function GET() {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  // Return count of eligible recipients
+  // Return count of eligible recipients (real emails only, no Strava/guest accounts)
   const { count } = await supabase
     .from("users")
     .select("id", { count: "exact", head: true })
     .not("email", "is", null)
+    .not("email", "like", "strava_%@strava.eventtara.com")
     .eq("is_guest", false);
 
   return NextResponse.json({ recipientCount: count ?? 0 });
@@ -96,11 +97,12 @@ export async function POST(request: Request) {
       eventId: event.id,
     });
 
-    // Fetch all registered users with emails
+    // Fetch all registered users with real emails (exclude Strava/guest accounts)
     const { data: users } = await supabase
       .from("users")
       .select("email, full_name")
       .not("email", "is", null)
+      .not("email", "like", "strava_%@strava.eventtara.com")
       .eq("is_guest", false);
 
     if (!users?.length) {
