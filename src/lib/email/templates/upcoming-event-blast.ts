@@ -13,6 +13,7 @@ interface UpcomingEventBlastProps {
   spotsRemaining: number;
   maxParticipants: number;
   eventId: string;
+  userId: string;
 }
 
 const HYPE_HEADLINES: Record<string, { headline: string; subtext: string }> = {
@@ -66,10 +67,13 @@ export function upcomingEventBlastHtml({
   spotsRemaining,
   maxParticipants,
   eventId,
+  userId,
 }: UpcomingEventBlastProps): string {
   const typeLabel = ACTIVITY_TYPE_LABELS[eventType as ActivityType] || eventType;
   const hype = HYPE_HEADLINES[eventType] || DEFAULT_HYPE;
-  const eventUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://eventtara.com"}/events/${eventId}`;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://eventtara.com";
+  const eventUrl = `${siteUrl}/events/${eventId}`;
+  const unsubscribeUrl = `${siteUrl}/unsubscribe?uid=${userId}`;
   const priceText = price > 0 ? `PHP ${price.toLocaleString()}` : "FREE";
 
   const heroSection = coverImageUrl
@@ -127,7 +131,6 @@ export function upcomingEventBlastHtml({
   return emailLayout({
     title: hype.headline,
     content,
-    footerText:
-      "You received this email because you have an account on EventTara. Visit eventtara.com to manage your preferences.",
+    footerText: `You received this email because you have an account on EventTara. <a href="${unsubscribeUrl}" style="color:#94a3b8;text-decoration:underline;">Unsubscribe</a> from marketing emails.`,
   });
 }

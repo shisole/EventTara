@@ -15,15 +15,21 @@ export async function GET() {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  // Return count of eligible recipients (real emails only, no Strava/guest accounts)
-  const { count } = await supabase
+  // Get IDs of unsubscribed users
+  const { data: unsubs } = await supabase.from("email_unsubscribes").select("user_id");
+  const unsubIds = new Set((unsubs ?? []).map((u) => u.user_id));
+
+  // Count eligible recipients (real emails, no Strava/guest/unsubscribed)
+  const { data: allUsers } = await supabase
     .from("users")
-    .select("id", { count: "exact", head: true })
+    .select("id")
     .not("email", "is", null)
     .not("email", "like", "strava_%@strava.eventtara.com")
     .eq("is_guest", false);
 
-  return NextResponse.json({ recipientCount: count ?? 0 });
+  const recipientCount = (allUsers ?? []).filter((u) => !unsubIds.has(u.id)).length;
+
+  return NextResponse.json({ recipientCount });
 }
 
 export async function POST(request: Request) {
@@ -83,39 +89,46 @@ export async function POST(request: Request) {
       day: "numeric",
     });
 
-    // Build email HTML
-    const html = upcomingEventBlastHtml({
-      eventTitle: event.title,
-      eventDate,
-      eventLocation: event.location || "TBA",
-      eventType: event.type || "",
-      difficulty: event.difficulty_level,
-      price: event.price,
-      coverImageUrl: event.cover_image_url,
-      spotsRemaining,
-      maxParticipants: event.max_participants,
-      eventId: event.id,
-    });
-
     // Fetch all registered users with real emails (exclude Strava/guest accounts)
-    const { data: users } = await supabase
+    const { data: allUsers } = await supabase
       .from("users")
-      .select("email, full_name")
+      .select("id, email, full_name")
       .not("email", "is", null)
       .not("email", "like", "strava_%@strava.eventtara.com")
       .eq("is_guest", false);
 
-    if (!users?.length) {
+    if (!allUsers?.length) {
+      return NextResponse.json({ sent: 0, failed: 0, total: 0 });
+    }
+
+    // Filter out unsubscribed users
+    const { data: unsubs } = await supabase.from("email_unsubscribes").select("user_id");
+    const unsubIds = new Set((unsubs ?? []).map((u) => u.user_id));
+    const users = allUsers.filter((u) => !unsubIds.has(u.id));
+
+    if (users.length === 0) {
       return NextResponse.json({ sent: 0, failed: 0, total: 0 });
     }
 
     const subject = `New Climb Alert: ${event.title} — ${eventDate}`;
 
-    // Use Resend batch API — single API call instead of N individual calls
+    // Build per-user HTML (each email has a unique unsubscribe link)
     const emails = users.map((u) => ({
       to: u.email!,
       subject,
-      html,
+      html: upcomingEventBlastHtml({
+        eventTitle: event.title,
+        eventDate,
+        eventLocation: event.location || "TBA",
+        eventType: event.type || "",
+        difficulty: event.difficulty_level,
+        price: event.price,
+        coverImageUrl: event.cover_image_url,
+        spotsRemaining,
+        maxParticipants: event.max_participants,
+        eventId: event.id,
+        userId: u.id,
+      }),
     }));
 
     const result = await sendBatchEmails(emails);

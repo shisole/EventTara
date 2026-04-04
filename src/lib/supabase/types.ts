@@ -654,6 +654,24 @@ export interface Database {
         };
         Relationships: [];
       };
+      email_unsubscribes: {
+        Row: {
+          id: string;
+          user_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       chat_queries: {
         Row: {
           id: string;
