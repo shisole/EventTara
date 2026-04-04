@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { isAdminUser } from "@/lib/admin/auth";
-import { sendEmail } from "@/lib/email/send";
+import { sendBatchEmails } from "@/lib/email/send";
 import { upcomingEventBlastHtml } from "@/lib/email/templates/upcoming-event-blast";
 import { createClient } from "@/lib/supabase/server";
 
@@ -109,37 +109,20 @@ export async function POST(request: Request) {
 
     const subject = `New Climb Alert: ${event.title} — ${eventDate}`;
 
-    // Send emails in batches of 10 to avoid Resend rate limits
-    const BATCH_SIZE = 10;
-    let sent = 0;
-    let failed = 0;
+    // Use Resend batch API — single API call instead of N individual calls
+    const emails = users.map((u) => ({
+      to: u.email!,
+      subject,
+      html,
+    }));
 
-    for (let i = 0; i < users.length; i += BATCH_SIZE) {
-      const batch = users.slice(i, i + BATCH_SIZE);
-      const results = await Promise.allSettled(
-        batch.map((u) =>
-          sendEmail({
-            to: u.email!,
-            subject,
-            html,
-          }),
-        ),
-      );
-
-      for (const r of results) {
-        if (r.status === "fulfilled" && (r.value as { success: boolean }).success) {
-          sent++;
-        } else {
-          failed++;
-        }
-      }
-    }
+    const result = await sendBatchEmails(emails);
 
     console.log(
-      `[EmailBlast] Event "${event.title}": sent=${sent}, failed=${failed}, total=${users.length}`,
+      `[EmailBlast] Event "${event.title}": sent=${result.sent}, failed=${result.failed}, total=${users.length}`,
     );
 
-    return NextResponse.json({ sent, failed, total: users.length });
+    return NextResponse.json({ sent: result.sent, failed: result.failed, total: users.length });
   } catch (error) {
     console.error("[EmailBlast] Unexpected error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
