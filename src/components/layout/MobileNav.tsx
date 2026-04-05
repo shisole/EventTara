@@ -123,25 +123,19 @@ export default function MobileNav({
   const keyboardOpen = keyboardHeight > 0;
   const [hidden, setHidden] = useState(false);
   const lastScrollY = useRef(typeof globalThis === "undefined" ? 0 : window.scrollY);
-  const scrollingDown = useRef(false);
   const scrollThreshold = 10;
 
   const handleScroll = useCallback(() => {
     const currentScrollY = window.scrollY;
+    const delta = currentScrollY - lastScrollY.current;
 
-    if (currentScrollY > lastScrollY.current + scrollThreshold) {
-      if (!scrollingDown.current) {
-        scrollingDown.current = true;
-        lastScrollY.current = currentScrollY;
-      }
+    if (delta > scrollThreshold) {
       setHidden(currentScrollY > 50);
-    } else if (currentScrollY < lastScrollY.current - scrollThreshold) {
-      if (scrollingDown.current) {
-        scrollingDown.current = false;
-        lastScrollY.current = currentScrollY;
-      }
+    } else if (delta < -scrollThreshold) {
       setHidden(false);
     }
+
+    lastScrollY.current = currentScrollY;
   }, []);
 
   useEffect(() => {
