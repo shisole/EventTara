@@ -2,6 +2,7 @@
 
 import type { User } from "@supabase/supabase-js";
 import { usePathname } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   CalendarIcon,
@@ -120,6 +121,24 @@ export default function MobileNav({
   const pathname = usePathname();
   const { keyboardHeight } = useKeyboardHeight();
   const keyboardOpen = keyboardHeight > 0;
+  const [hidden, setHidden] = useState(false);
+  const lastScrollY = useRef(0);
+  const scrollThreshold = 10;
+
+  const handleScroll = useCallback(() => {
+    const currentScrollY = window.scrollY;
+    const delta = currentScrollY - lastScrollY.current;
+
+    if (Math.abs(delta) < scrollThreshold) return;
+
+    setHidden(delta > 0 && currentScrollY > 50);
+    lastScrollY.current = currentScrollY;
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [handleScroll]);
 
   // Hide on auth pages
   if (
@@ -132,8 +151,8 @@ export default function MobileNav({
   return (
     <nav
       className={cn(
-        "md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 safe-area-bottom transition-all duration-200",
-        keyboardOpen && "translate-y-full opacity-0 pointer-events-none",
+        "md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 safe-area-bottom transition-transform duration-300 ease-in-out",
+        (keyboardOpen || hidden) && "translate-y-full",
       )}
     >
       <div className="flex items-center justify-around h-16 px-1">
