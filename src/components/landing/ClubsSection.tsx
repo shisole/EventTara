@@ -152,7 +152,7 @@ export default async function ClubsSection() {
             <path d="M9 18l6-6-6-6" />
           </svg>
         </Link>
-        <div className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:flex-wrap sm:justify-center sm:overflow-x-visible sm:px-0 sm:pb-0">
+        <div className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-4 sm:mx-0 sm:flex-wrap sm:justify-center sm:overflow-x-visible sm:px-0 sm:pb-0 scrollbar-hide">
           {cards.map((club) => (
             <Link
               key={club.id}
