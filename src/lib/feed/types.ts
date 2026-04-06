@@ -1,7 +1,15 @@
 import type { BorderTier } from "@/lib/constants/avatar-borders";
 import type { BadgeCategory, BadgeRarity } from "@/lib/constants/badge-rarity";
 
-export type ActivityType = "booking" | "checkin" | "badge" | "border" | "review" | "photo";
+export type ActivityType =
+  | "booking"
+  | "checkin"
+  | "badge"
+  | "border"
+  | "review"
+  | "photo"
+  | "new_club"
+  | "new_event";
 export type EmojiType = "heart";
 
 export const EMOJI_ICON = "💚";
@@ -32,6 +40,11 @@ export interface FeedItem {
   reviewRating: number | null;
   reviewText: string | null;
   photoUrls: string[] | null;
+  /** Club/event creation fields */
+  clubSlug: string | null;
+  clubName: string | null;
+  eventId: string | null;
+  eventTitle: string | null;
   timestamp: string;
   isFollowing: boolean;
   likeCount: number;
