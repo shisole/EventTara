@@ -853,7 +853,15 @@ export interface Database {
         Row: {
           id: string;
           user_id: string;
-          activity_type: "booking" | "checkin" | "badge" | "border" | "review" | "photo";
+          activity_type:
+            | "booking"
+            | "checkin"
+            | "badge"
+            | "border"
+            | "review"
+            | "photo"
+            | "new_club"
+            | "new_event";
           activity_id: string;
           text: string;
           created_at: string;
@@ -861,7 +869,15 @@ export interface Database {
         Insert: {
           id?: string;
           user_id: string;
-          activity_type: "booking" | "checkin" | "badge" | "border" | "review" | "photo";
+          activity_type:
+            | "booking"
+            | "checkin"
+            | "badge"
+            | "border"
+            | "review"
+            | "photo"
+            | "new_club"
+            | "new_event";
           activity_id: string;
           text: string;
           created_at?: string;
@@ -869,7 +885,15 @@ export interface Database {
         Update: {
           id?: string;
           user_id?: string;
-          activity_type?: "booking" | "checkin" | "badge" | "border" | "review" | "photo";
+          activity_type?:
+            | "booking"
+            | "checkin"
+            | "badge"
+            | "border"
+            | "review"
+            | "photo"
+            | "new_club"
+            | "new_event";
           activity_id?: string;
           text?: string;
           created_at?: string;
@@ -901,7 +925,15 @@ export interface Database {
         Row: {
           id: string;
           user_id: string;
-          activity_type: "booking" | "checkin" | "badge" | "border" | "review" | "photo";
+          activity_type:
+            | "booking"
+            | "checkin"
+            | "badge"
+            | "border"
+            | "review"
+            | "photo"
+            | "new_club"
+            | "new_event";
           activity_id: string;
           emoji: "heart";
           created_at: string;
@@ -909,7 +941,15 @@ export interface Database {
         Insert: {
           id?: string;
           user_id: string;
-          activity_type: "booking" | "checkin" | "badge" | "border" | "review" | "photo";
+          activity_type:
+            | "booking"
+            | "checkin"
+            | "badge"
+            | "border"
+            | "review"
+            | "photo"
+            | "new_club"
+            | "new_event";
           activity_id: string;
           emoji: "heart";
           created_at?: string;
@@ -917,7 +957,15 @@ export interface Database {
         Update: {
           id?: string;
           user_id?: string;
-          activity_type?: "booking" | "checkin" | "badge" | "border" | "review" | "photo";
+          activity_type?:
+            | "booking"
+            | "checkin"
+            | "badge"
+            | "border"
+            | "review"
+            | "photo"
+            | "new_club"
+            | "new_event";
           activity_id?: string;
           emoji?: "heart";
           created_at?: string;
@@ -928,21 +976,45 @@ export interface Database {
         Row: {
           id: string;
           user_id: string;
-          activity_type: "booking" | "checkin" | "badge" | "border" | "review" | "photo";
+          activity_type:
+            | "booking"
+            | "checkin"
+            | "badge"
+            | "border"
+            | "review"
+            | "photo"
+            | "new_club"
+            | "new_event";
           activity_id: string;
           created_at: string;
         };
         Insert: {
           id?: string;
           user_id: string;
-          activity_type: "booking" | "checkin" | "badge" | "border" | "review" | "photo";
+          activity_type:
+            | "booking"
+            | "checkin"
+            | "badge"
+            | "border"
+            | "review"
+            | "photo"
+            | "new_club"
+            | "new_event";
           activity_id: string;
           created_at?: string;
         };
         Update: {
           id?: string;
           user_id?: string;
-          activity_type?: "booking" | "checkin" | "badge" | "border" | "review" | "photo";
+          activity_type?:
+            | "booking"
+            | "checkin"
+            | "badge"
+            | "border"
+            | "review"
+            | "photo"
+            | "new_club"
+            | "new_event";
           activity_id?: string;
           created_at?: string;
         };
