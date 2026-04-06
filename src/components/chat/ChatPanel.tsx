@@ -45,30 +45,12 @@ interface ChatPanelProps {
 
 const PANEL_MAX_HEIGHT = 460;
 
-const panelPositionClasses: Record<Corner, { mobile: string; desktop: string }> = {
-  "bottom-right": {
-    mobile: "right-4 bottom-[9.5rem] h-[min(460px,calc(100dvh-12rem))]",
-    desktop: "md:bottom-6 md:right-[5.25rem]",
-  },
-  "bottom-left": {
-    mobile: "left-4 bottom-[9.5rem] h-[min(460px,calc(100dvh-12rem))]",
-    desktop: "md:bottom-6 md:left-[5.25rem]",
-  },
-  "top-right": {
-    mobile: "right-4 top-[7.5rem] h-[min(460px,calc(100dvh-12rem))]",
-    desktop: "md:top-[4.5rem] md:right-[5.25rem]",
-  },
-  "top-left": {
-    mobile: "left-4 top-[7.5rem] h-[min(460px,calc(100dvh-12rem))]",
-    desktop: "md:top-[4.5rem] md:left-[5.25rem]",
-  },
-};
-
-const panelSlideDirection: Record<Corner, { open: string; closed: string }> = {
-  "bottom-right": { open: "translate-y-0", closed: "translate-y-2" },
-  "bottom-left": { open: "translate-y-0", closed: "translate-y-2" },
-  "top-right": { open: "translate-y-0", closed: "-translate-y-2" },
-  "top-left": { open: "translate-y-0", closed: "-translate-y-2" },
+/** Desktop panel position based on bubble corner */
+const panelDesktopClasses: Record<Corner, string> = {
+  "bottom-right": "md:top-auto md:left-auto md:right-[5.25rem] md:bottom-6",
+  "bottom-left": "md:top-auto md:right-auto md:left-[5.25rem] md:bottom-6",
+  "top-right": "md:bottom-auto md:left-auto md:right-[5.25rem] md:top-[4.5rem]",
+  "top-left": "md:bottom-auto md:right-auto md:left-[5.25rem] md:top-[4.5rem]",
 };
 
 export default function ChatPanel({
@@ -214,34 +196,38 @@ export default function ChatPanel({
   const viewportOffset = keyboard?.viewportOffset ?? 0;
   const keyboardOpen = kbHeight > 0;
 
-  // On iOS, when the keyboard opens the browser scrolls the page up.
-  // Fixed elements stay relative to the layout viewport, so bottom-based
-  // positioning breaks. Instead, use top-based positioning calculated from
-  // the visual viewport: place the panel so its bottom edge sits at the
-  // top of the keyboard (bottom of the visible area).
+  // When the keyboard opens on mobile, keep the sheet anchored to the bottom
+  // of the visible viewport and shrink it to fit. On iOS the visual viewport
+  // shifts, so we use viewportOffset + visible height to position correctly.
+  // Desktop keeps the old top-based positioning for the floating panel.
+  const isMobile = typeof globalThis !== "undefined" && window.innerWidth < 768;
   const keyboardStyle: React.CSSProperties | undefined = keyboardOpen
-    ? {
-        // Bottom of visible area = viewportOffset + visualViewport.height
-        // = viewportOffset + (window.innerHeight - kbHeight)
-        top: `${viewportOffset + (window.innerHeight - kbHeight) - PANEL_MAX_HEIGHT}px`,
-        bottom: "auto",
-        height: `${PANEL_MAX_HEIGHT}px`,
-      }
+    ? isMobile
+      ? {
+          // Mobile bottom sheet: stay at bottom, shrink height to visible area
+          bottom: `${kbHeight}px`,
+          height: `${Math.min(window.innerHeight - kbHeight - 40, window.innerHeight * 0.75)}px`,
+        }
+      : {
+          // Desktop floating panel: top-based positioning
+          top: `${viewportOffset + (window.innerHeight - kbHeight) - PANEL_MAX_HEIGHT}px`,
+          bottom: "auto",
+          height: `${PANEL_MAX_HEIGHT}px`,
+        }
     : undefined;
 
-  const position = panelPositionClasses[corner];
-  const slide = panelSlideDirection[corner];
+  const desktopClasses = panelDesktopClasses[corner];
 
   return (
     <div
-      className={`fixed z-[60] transition-all duration-200 ease-out ${
+      className={`fixed transition-all duration-300 ease-out ${
         open
-          ? `opacity-100 pointer-events-auto ${slide.open}`
-          : `opacity-0 pointer-events-none ${slide.closed}`
-      } w-[calc(100vw-2rem)] max-w-[400px] ${keyboardOpen ? "" : position.mobile} ${position.desktop} md:w-[400px] md:h-[min(500px,calc(100dvh-6rem))]`}
+          ? "opacity-100 pointer-events-auto translate-y-0"
+          : "opacity-0 pointer-events-none translate-y-full md:translate-y-2"
+      } z-[999] left-0 right-0 bottom-0 h-[75dvh] md:z-[60] md:w-[400px] md:h-[min(500px,calc(100dvh-6rem))] ${desktopClasses}`}
       style={keyboardStyle}
     >
-      <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-900">
+      <div className="flex h-full flex-col overflow-hidden rounded-t-2xl md:rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-900">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-200 bg-gradient-to-r from-lime-50 to-teal-50 px-4 py-3 dark:border-gray-700 dark:from-gray-800 dark:to-gray-800">
           <div>

@@ -3,15 +3,17 @@
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
-import { ChatIcon, CloseIcon } from "@/components/icons";
+import { ChatIcon } from "@/components/icons";
 import { type Corner, useDraggable } from "@/lib/hooks/useDraggable";
 import { useKeyboardHeight } from "@/lib/hooks/useKeyboardHeight";
+import { useScrollHidden } from "@/lib/hooks/useScrollHidden";
 
 import ChatPanel from "./ChatPanel";
 
 /** Collapse pill to circle after 5 seconds */
 const COLLAPSE_DELAY = 5_000;
 
+/** Position classes when mobile nav is visible */
 const cornerPositionClasses: Record<Corner, string> = {
   "bottom-right": "bottom-[5.5rem] right-4 md:bottom-6 md:right-6",
   "bottom-left": "bottom-[5.5rem] left-4 md:bottom-6 md:left-6",
@@ -19,10 +21,26 @@ const cornerPositionClasses: Record<Corner, string> = {
   "top-left": "top-20 left-4 md:top-6 md:left-6",
 };
 
-/** Extra bottom offset on pages with a mobile floating booking bar */
+/** Position classes when mobile nav is hidden (scrolled down) */
+const cornerHiddenNavClasses: Record<Corner, string> = {
+  "bottom-right": "bottom-4 right-4 md:bottom-6 md:right-6",
+  "bottom-left": "bottom-4 left-4 md:bottom-6 md:left-6",
+  "top-right": "top-20 right-4 md:top-6 md:right-6",
+  "top-left": "top-20 left-4 md:top-6 md:left-6",
+};
+
+/** Extra bottom offset on pages with a mobile floating booking bar (nav visible) */
 const cornerRaisedClasses: Record<Corner, string> = {
-  "bottom-right": "bottom-[8.5rem] right-4 md:bottom-6 md:right-6",
-  "bottom-left": "bottom-[8.5rem] left-4 md:bottom-6 md:left-6",
+  "bottom-right": "bottom-[10rem] right-4 md:bottom-6 md:right-6",
+  "bottom-left": "bottom-[10rem] left-4 md:bottom-6 md:left-6",
+  "top-right": "top-20 right-4 md:top-6 md:right-6",
+  "top-left": "top-20 left-4 md:top-6 md:left-6",
+};
+
+/** Raised position when mobile nav is hidden (booking bar drops to bottom-0) */
+const cornerRaisedHiddenNavClasses: Record<Corner, string> = {
+  "bottom-right": "bottom-[5.5rem] right-4 md:bottom-6 md:right-6",
+  "bottom-left": "bottom-[5.5rem] left-4 md:bottom-6 md:left-6",
   "top-right": "top-20 right-4 md:top-6 md:right-6",
   "top-left": "top-20 left-4 md:top-6 md:left-6",
 };
@@ -33,6 +51,7 @@ export default function ChatBubble() {
   const [collapsed, setCollapsed] = useState(false);
   const keyboard = useKeyboardHeight();
   const keyboardOpen = keyboard.keyboardHeight > 0;
+  const navHidden = useScrollHidden();
   const { corner, isDragging, isSnapping, dragStyle, handlers, dragRef, wasDrag } = useDraggable();
 
   const handleClose = useCallback(() => setOpen(false), []);
@@ -52,7 +71,13 @@ export default function ChatBubble() {
 
   // Raise bubble on event detail pages where the mobile booking bar is present
   const hasBookingBar = /^\/events\/[^/]+$/.test(pathname);
-  const cornerClasses = hasBookingBar ? cornerRaisedClasses : cornerPositionClasses;
+  const cornerClasses = hasBookingBar
+    ? navHidden
+      ? cornerRaisedHiddenNavClasses
+      : cornerRaisedClasses
+    : navHidden
+      ? cornerHiddenNavClasses
+      : cornerPositionClasses;
   const positionClasses = dragStyle ? "" : cornerClasses[corner];
   const transitionClasses = isDragging
     ? ""
@@ -77,32 +102,24 @@ export default function ChatBubble() {
         ref={dragRef}
         onClick={handleToggle}
         {...handlers}
-        className={`fixed z-[60] touch-none ${positionClasses} flex items-center justify-center rounded-full shadow-md ${transitionClasses} active:scale-95 ${
-          keyboardOpen ? "!hidden" : ""
-        } ${isDragging ? "cursor-grabbing scale-110 shadow-lg" : "cursor-grab"} ${
-          open
-            ? "h-12 w-12 bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
-            : collapsed
-              ? "gap-0 p-3.5 bg-lime-500 text-gray-900 hover:bg-lime-400 hover:shadow-lg dark:bg-lime-500 dark:text-gray-900 dark:hover:bg-lime-400"
-              : "animate-chat-bubble-in gap-2 bg-lime-500 pl-3.5 pr-4 py-3 text-gray-900 hover:bg-lime-400 hover:shadow-lg dark:bg-lime-500 dark:text-gray-900 dark:hover:bg-lime-400"
+        className={`fixed z-[60] touch-none ${positionClasses} flex items-center justify-center rounded-full ${transitionClasses} active:scale-95 ${
+          keyboardOpen || open ? "!hidden" : ""
+        } ${isDragging ? "cursor-grabbing scale-110" : "cursor-grab"} ${
+          collapsed
+            ? "gap-0 p-3 bg-white/12 text-white/90 shadow-[0_8px_32px_rgba(0,0,0,0.15)] backdrop-blur-xl border border-white/18 hover:bg-white/20 hover:shadow-[0_8px_32px_rgba(0,0,0,0.25)] dark:bg-white/12 dark:text-white/90 dark:hover:bg-white/20"
+            : "animate-chat-bubble-in gap-2 bg-white/12 pl-3.5 pr-4 py-3 text-white/90 shadow-[0_8px_32px_rgba(0,0,0,0.15)] backdrop-blur-xl border border-white/18 hover:bg-white/20 hover:shadow-[0_8px_32px_rgba(0,0,0,0.25)] dark:bg-white/12 dark:text-white/90 dark:hover:bg-white/20"
         }`}
         style={dragStyle}
         aria-label={open ? "Close Coco chat" : "Ask Coco"}
       >
-        {open ? (
-          <CloseIcon className="h-5 w-5" />
-        ) : (
-          <>
-            <ChatIcon className="h-5 w-5 shrink-0" variant="filled" />
-            <span
-              className={`font-heading text-sm font-bold whitespace-nowrap overflow-hidden transition-all duration-300 ease-out ${
-                collapsed ? "max-w-0 opacity-0" : "max-w-24 opacity-100"
-              }`}
-            >
-              Ask Coco!
-            </span>
-          </>
-        )}
+        <ChatIcon className="h-5 w-5 shrink-0" />
+        <span
+          className={`font-heading text-sm font-semibold whitespace-nowrap overflow-hidden transition-all duration-300 ease-out ${
+            collapsed ? "max-w-0 opacity-0" : "max-w-24 opacity-100"
+          }`}
+        >
+          Ask Coco!
+        </span>
       </button>
     </>
   );
