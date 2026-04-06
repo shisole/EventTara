@@ -92,9 +92,8 @@ export default function ChatPanel({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const locationRef = useRef<{ lat: number; lng: number } | null>(null);
-  const hasAutoSuggested = useRef(false);
 
-  // Request geolocation once on first open
+  // Request geolocation once on first open (used when user sends a message)
   useEffect(() => {
     if (!open || locationRef.current) return;
     navigator.geolocation?.getCurrentPosition(
@@ -130,54 +129,6 @@ export default function ChatPanel({
       const timer = setTimeout(() => inputRef.current?.focus(), 350);
       return () => clearTimeout(timer);
     }
-  }, [open]);
-
-  // Auto-suggest nearby events on first open when location is available
-  useEffect(() => {
-    if (!open || hasAutoSuggested.current || loading) return;
-    // Wait a bit for geolocation to resolve
-    const timer = setTimeout(() => {
-      if (!locationRef.current || hasAutoSuggested.current || remaining <= 0) return;
-      hasAutoSuggested.current = true;
-      // Fire a "nearby events" search automatically
-      void (async () => {
-        setLoading(true);
-        try {
-          const res = await fetch("/api/chat", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              message: "What events are happening near me?",
-              lat: locationRef.current!.lat,
-              lng: locationRef.current!.lng,
-            }),
-          });
-          const data: ChatResponse = await res.json();
-          if (res.ok && data.events && data.events.length > 0) {
-            setMessages((prev) => [
-              ...prev,
-              {
-                role: "assistant",
-                content: data.reply,
-                events: data.events,
-                totalCount: data.totalCount,
-                filterUrl: data.filterUrl,
-              },
-            ]);
-            if (!unlimitedChat) {
-              incrementUsed();
-              setRemaining(DAILY_LIMIT - getUsedToday());
-            }
-          }
-        } catch {
-          // Silently fail — auto-suggest is best-effort
-        } finally {
-          setLoading(false);
-        }
-      })();
-    }, 1500);
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally run once on first open
   }, [open]);
 
   const handleSend = async () => {
