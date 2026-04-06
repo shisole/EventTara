@@ -133,15 +133,31 @@ export default async function ClubsSection() {
   return (
     <section className="bg-white py-12 dark:bg-slate-800">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <p className="mb-8 text-center text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+        <Link
+          href="/clubs"
+          className="mb-8 flex items-center justify-center gap-1.5 text-sm font-semibold uppercase tracking-wider text-gray-400 transition-colors hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+        >
           Pioneer Clubs
-        </p>
-        <div className="flex flex-wrap justify-center gap-4">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M9 18l6-6-6-6" />
+          </svg>
+        </Link>
+        <div className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:flex-wrap sm:justify-center sm:overflow-x-visible sm:px-0 sm:pb-0">
           {cards.map((club) => (
             <Link
               key={club.id}
               href={`/clubs/${club.slug}`}
-              className="group flex w-36 flex-col items-center rounded-xl border border-gray-100 bg-gray-50/50 p-4 transition-all hover:border-lime-200 hover:bg-lime-50/50 hover:shadow-md dark:border-gray-800 dark:bg-gray-900/50 dark:hover:border-lime-900 dark:hover:bg-lime-950/20"
+              className="group flex w-36 shrink-0 flex-col items-center rounded-xl border border-gray-100 bg-gray-50/50 p-4 transition-all hover:border-lime-200 hover:bg-lime-50/50 hover:shadow-md sm:shrink dark:border-gray-800 dark:bg-gray-900/50 dark:hover:border-lime-900 dark:hover:bg-lime-950/20"
             >
               <Avatar
                 src={club.logo_url}
