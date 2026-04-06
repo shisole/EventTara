@@ -16,18 +16,21 @@ export function SkeletonCircle({ className }: SkeletonProps) {
   return <Skeleton className={cn("h-10 w-10 rounded-full", className)} />;
 }
 
-/** Skeleton shaped like an EventCard */
+/** Skeleton shaped like an EventCard (Airbnb-style flat layout) */
 export function SkeletonEventCard() {
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 overflow-hidden">
-      <Skeleton className="h-48 w-full rounded-none" />
-      <div className="p-4 space-y-3">
-        <Skeleton className="h-5 w-20 rounded-full" />
-        <SkeletonText className="w-3/4" />
-        <SkeletonText className="w-1/2" />
-        <div className="flex justify-between pt-2">
-          <SkeletonText className="w-20" />
-          <SkeletonText className="w-16" />
+    <div>
+      <Skeleton className="aspect-square w-full rounded-xl" />
+      <div className="pt-2.5 space-y-1.5">
+        <div className="flex items-center justify-between gap-2">
+          <SkeletonText className="w-3/5 h-[18px]" />
+          <SkeletonText className="w-10 h-[18px]" />
+        </div>
+        <SkeletonText className="w-1/3 h-3.5" />
+        <SkeletonText className="w-2/3 h-3.5" />
+        <div className="flex items-center justify-between">
+          <SkeletonText className="w-16 h-3.5" />
+          <SkeletonText className="w-20 h-3.5" />
         </div>
       </div>
     </div>
