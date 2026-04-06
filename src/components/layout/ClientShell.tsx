@@ -293,13 +293,7 @@ export default function ClientShell({
       <NavigationProvider>
         <OfflineIndicator />
         <NavigationLoader />
-        <div
-          className={`transition-all duration-300 origin-top min-h-dvh flex flex-col ${
-            drawerOpen
-              ? "scale-[0.95] opacity-50 rounded-xl overflow-hidden pointer-events-none"
-              : ""
-          }`}
-        >
+        <div className={`min-h-dvh flex flex-col ${drawerOpen ? "pointer-events-none" : ""}`}>
           {!isLighthouse && process.env.NEXT_PUBLIC_DEMO_MODE === "true" && (
             <DemoBanner isLoggedIn={!loading && !!user && !user.is_anonymous} />
           )}
