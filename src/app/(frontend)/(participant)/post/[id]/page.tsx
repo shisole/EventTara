@@ -31,6 +31,10 @@ interface RawActivity {
   reviewRating: number | null;
   reviewText: string | null;
   photoUrls: string[] | null;
+  clubSlug: string | null;
+  clubName: string | null;
+  eventId: string | null;
+  eventTitle: string | null;
   timestamp: string;
 }
 
@@ -45,13 +49,15 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
     data: { user: authUser },
   } = await supabase.auth.getUser();
 
-  // Look up the activity across all 5 tables in parallel
+  // Look up the activity across all tables in parallel
   const [
     { data: booking },
     { data: checkin },
     { data: userBadge },
     { data: userBorder },
     { data: review },
+    { data: newClub },
+    { data: newEvent },
   ] = await Promise.all([
     supabase
       .from("bookings")
@@ -78,6 +84,23 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
       .from("event_reviews")
       .select("id, user_id, rating, text, created_at, events(title, cover_image_url)")
       .eq("id", id)
+      .maybeSingle(),
+    // Club by id — resolve owner from club_members
+    supabase
+      .from("clubs")
+      .select("id, name, slug, logo_url, created_at, club_members!inner(user_id, role)")
+      .eq("id", id)
+      .eq("club_members.role", "owner")
+      .maybeSingle(),
+    // Event by id — resolve owner from club_members
+    supabase
+      .from("events")
+      .select(
+        "id, title, cover_image_url, created_at, clubs!inner(name, slug, club_members!inner(user_id, role))",
+      )
+      .eq("id", id)
+      .eq("status", "published")
+      .eq("clubs.club_members.role", "owner")
       .maybeSingle(),
   ]);
 
@@ -107,6 +130,13 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
     photoUrls: null,
   } as const;
 
+  const nullClubEvent = {
+    clubSlug: null,
+    clubName: null,
+    eventId: null,
+    eventTitle: null,
+  } as const;
+
   if (booking) {
     const event = booking.events as any;
     activity = {
@@ -119,6 +149,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
       ...nullBorder,
       ...nullReview,
       ...nullPhoto,
+      ...nullClubEvent,
       timestamp: booking.booked_at,
     };
   } else if (checkin) {
@@ -133,6 +164,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
       ...nullBorder,
       ...nullReview,
       ...nullPhoto,
+      ...nullClubEvent,
       timestamp: checkin.checked_in_at,
     };
   } else if (userBadge) {
@@ -151,6 +183,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
       ...nullBorder,
       ...nullReview,
       ...nullPhoto,
+      ...nullClubEvent,
       timestamp: userBadge.awarded_at,
     };
   } else if (userBorder) {
@@ -168,6 +201,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
       awardedBorderColor: border?.border_color || (tier ? TIER_COLORS[tier] : null),
       ...nullReview,
       ...nullPhoto,
+      ...nullClubEvent,
       timestamp: userBorder.awarded_at,
     };
   } else if (review) {
@@ -183,8 +217,52 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
       reviewRating: review.rating,
       reviewText: review.text || null,
       ...nullPhoto,
+      ...nullClubEvent,
       timestamp: review.created_at,
     };
+  } else if (newClub) {
+    const members = (newClub as any).club_members as any[];
+    const ownerId = members?.[0]?.user_id;
+    if (ownerId) {
+      activity = {
+        id: newClub.id,
+        activityType: "new_club",
+        userId: ownerId,
+        text: `created a new club: ${newClub.name}`,
+        contextImageUrl: newClub.logo_url || null,
+        ...nullBadge,
+        ...nullBorder,
+        ...nullReview,
+        ...nullPhoto,
+        clubSlug: newClub.slug,
+        clubName: newClub.name,
+        eventId: null,
+        eventTitle: null,
+        timestamp: newClub.created_at,
+      };
+    }
+  } else if (newEvent) {
+    const club = (newEvent as any).clubs;
+    const members = club?.club_members as any[];
+    const ownerId = members?.[0]?.user_id;
+    if (ownerId) {
+      activity = {
+        id: newEvent.id,
+        activityType: "new_event",
+        userId: ownerId,
+        text: `created a new event: ${newEvent.title}`,
+        contextImageUrl: newEvent.cover_image_url || null,
+        ...nullBadge,
+        ...nullBorder,
+        ...nullReview,
+        ...nullPhoto,
+        clubSlug: club?.slug || null,
+        clubName: club?.name || null,
+        eventId: newEvent.id,
+        eventTitle: newEvent.title,
+        timestamp: newEvent.created_at,
+      };
+    }
   }
 
   if (!activity) notFound();
@@ -293,6 +371,10 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
     reviewRating: activity.reviewRating,
     reviewText: activity.reviewText,
     photoUrls: activity.photoUrls ?? null,
+    clubSlug: activity.clubSlug,
+    clubName: activity.clubName,
+    eventId: activity.eventId,
+    eventTitle: activity.eventTitle,
     timestamp: activity.timestamp,
     isFollowing: !!followResult.data,
     likeCount,

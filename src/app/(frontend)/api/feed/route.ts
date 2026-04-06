@@ -25,6 +25,10 @@ interface RawActivity {
   reviewRating: number | null;
   reviewText: string | null;
   photoUrls: string[] | null;
+  clubSlug: string | null;
+  clubName: string | null;
+  eventId: string | null;
+  eventTitle: string | null;
   timestamp: string;
   repostedBy?: { userId: string; createdAt: string };
 }
@@ -52,6 +56,8 @@ export async function GET(request: Request) {
     { data: reviews },
     { data: eventPhotos },
     { data: reposts },
+    { data: newClubs },
+    { data: newEvents },
   ] = await Promise.all([
     supabase
       .from("bookings")
@@ -106,6 +112,27 @@ export async function GET(request: Request) {
       .select("id, user_id, activity_type, activity_id, created_at")
       .order("created_at", { ascending: false })
       .limit(fetchLimit),
+    // New clubs: fetch club + owner from club_members
+    supabase
+      .from("club_members")
+      .select("user_id, clubs!inner(id, name, slug, logo_url, created_at), users!inner(is_guest)")
+      .eq("role", "owner")
+      .eq("users.is_guest", false)
+      .eq("clubs.is_demo", false)
+      .order("joined_at", { ascending: false })
+      .limit(fetchLimit),
+    // New events: fetch published events + club owner
+    supabase
+      .from("events")
+      .select(
+        "id, title, cover_image_url, created_at, club_id, clubs!inner(name, slug, is_demo, club_members!inner(user_id, role))",
+      )
+      .eq("status", "published")
+      .eq("is_demo", false)
+      .eq("clubs.is_demo", false)
+      .eq("clubs.club_members.role", "owner")
+      .order("created_at", { ascending: false })
+      .limit(fetchLimit),
   ]);
 
   // Build unified activity list
@@ -134,6 +161,13 @@ export async function GET(request: Request) {
     photoUrls: null,
   } as const;
 
+  const nullClubEvent = {
+    clubSlug: null,
+    clubName: null,
+    eventId: null,
+    eventTitle: null,
+  } as const;
+
   for (const b of bookings || []) {
     const event = b.events as any;
     activities.push({
@@ -146,6 +180,7 @@ export async function GET(request: Request) {
       ...nullBorder,
       ...nullReview,
       ...nullPhoto,
+      ...nullClubEvent,
       timestamp: b.booked_at,
     });
   }
@@ -162,6 +197,7 @@ export async function GET(request: Request) {
       ...nullBorder,
       ...nullReview,
       ...nullPhoto,
+      ...nullClubEvent,
       timestamp: c.checked_in_at,
     });
   }
@@ -182,6 +218,7 @@ export async function GET(request: Request) {
       ...nullBorder,
       ...nullReview,
       ...nullPhoto,
+      ...nullClubEvent,
       timestamp: ub.awarded_at,
     });
   }
@@ -201,6 +238,7 @@ export async function GET(request: Request) {
       awardedBorderColor: border?.border_color || (tier ? TIER_COLORS[tier] : null),
       ...nullReview,
       ...nullPhoto,
+      ...nullClubEvent,
       timestamp: ab.awarded_at,
     });
   }
@@ -218,6 +256,7 @@ export async function GET(request: Request) {
       reviewRating: r.rating,
       reviewText: r.text || null,
       ...nullPhoto,
+      ...nullClubEvent,
       timestamp: r.created_at,
     });
   }
@@ -234,7 +273,52 @@ export async function GET(request: Request) {
       ...nullBorder,
       ...nullReview,
       photoUrls: [ep.image_url],
+      ...nullClubEvent,
       timestamp: ep.uploaded_at,
+    });
+  }
+
+  for (const cm of newClubs || []) {
+    const club = cm.clubs as any;
+    if (!club) continue;
+    activities.push({
+      id: club.id,
+      activityType: "new_club",
+      userId: cm.user_id,
+      text: `created a new club: ${club.name}`,
+      contextImageUrl: club.logo_url || null,
+      ...nullBadge,
+      ...nullBorder,
+      ...nullReview,
+      ...nullPhoto,
+      clubSlug: club.slug,
+      clubName: club.name,
+      eventId: null,
+      eventTitle: null,
+      timestamp: club.created_at,
+    });
+  }
+
+  for (const ev of newEvents || []) {
+    const club = ev.clubs as any;
+    const members = club?.club_members as any[];
+    const ownerId = members?.[0]?.user_id;
+    if (!ownerId) continue;
+    activities.push({
+      id: ev.id,
+      activityType: "new_event",
+      userId: ownerId,
+      text: `created a new event: ${ev.title}`,
+      contextImageUrl: ev.cover_image_url || null,
+      ...nullBadge,
+      ...nullBorder,
+      ...nullReview,
+      ...nullPhoto,
+      clubSlug: club?.slug || null,
+      clubName: club?.name || null,
+      eventId: ev.id,
+      eventTitle: ev.title,
+      timestamp: ev.created_at,
     });
   }
 
@@ -448,6 +532,10 @@ export async function GET(request: Request) {
       reviewRating: a.reviewRating,
       reviewText: a.reviewText,
       photoUrls: a.photoUrls,
+      clubSlug: a.clubSlug,
+      clubName: a.clubName,
+      eventId: a.eventId,
+      eventTitle: a.eventTitle,
       timestamp: a.timestamp,
       isFollowing: followingSet.has(a.userId),
       likeCount: like?.count || 0,

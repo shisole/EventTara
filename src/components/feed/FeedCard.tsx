@@ -130,10 +130,18 @@ export default function FeedCard({ item, isAuthenticated, currentUserId }: FeedC
           </div>
         )}
 
-        {/* Context image (non-badge/border/photo activities) */}
+        {/* New club showcase */}
+        {item.activityType === "new_club" && <ClubShowcase item={item} />}
+
+        {/* New event showcase */}
+        {item.activityType === "new_event" && <EventShowcase item={item} />}
+
+        {/* Context image (non-badge/border/photo/club/event activities) */}
         {item.activityType !== "badge" &&
           item.activityType !== "border" &&
           item.activityType !== "photo" &&
+          item.activityType !== "new_club" &&
+          item.activityType !== "new_event" &&
           item.contextImageUrl && (
             <div className="relative w-full h-40 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800">
               <Image
@@ -225,6 +233,65 @@ function BadgeShowcase({ item }: { item: FeedItem }) {
           <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${category.pill}`}>
             {category.label}
           </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ClubShowcase({ item }: { item: FeedItem }) {
+  return (
+    <div className="flex items-center gap-3 p-3 rounded-xl bg-teal-50 dark:bg-teal-950/30 border border-teal-100 dark:border-teal-900/50">
+      {item.contextImageUrl ? (
+        <div className="relative w-12 h-12 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800 shrink-0">
+          <Image
+            src={item.contextImageUrl}
+            alt={item.clubName || ""}
+            fill
+            className="object-cover"
+            sizes="48px"
+          />
+        </div>
+      ) : (
+        <div className="w-12 h-12 rounded-full bg-teal-100 dark:bg-teal-900/50 flex items-center justify-center shrink-0">
+          <span className="text-teal-600 dark:text-teal-400 text-lg font-bold">
+            {(item.clubName || "C")[0]}
+          </span>
+        </div>
+      )}
+      <div className="min-w-0">
+        <p className="font-semibold text-gray-900 dark:text-white text-sm truncate">
+          {item.clubName}
+        </p>
+        {item.clubSlug && <p className="text-xs text-teal-600 dark:text-teal-400">View club →</p>}
+      </div>
+    </div>
+  );
+}
+
+function EventShowcase({ item }: { item: FeedItem }) {
+  return (
+    <div className="rounded-xl overflow-hidden border border-forest-100 dark:border-forest-900/50">
+      {item.contextImageUrl && (
+        <div className="relative w-full h-32 bg-gray-100 dark:bg-gray-800">
+          <Image
+            src={item.contextImageUrl}
+            alt={item.eventTitle || ""}
+            fill
+            className="object-cover"
+            sizes="(max-width: 640px) 100vw, 600px"
+          />
+        </div>
+      )}
+      <div className="p-3 bg-forest-50 dark:bg-forest-950/30">
+        <p className="font-semibold text-gray-900 dark:text-white text-sm truncate">
+          {item.eventTitle}
+        </p>
+        {item.clubName && (
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">by {item.clubName}</p>
+        )}
+        {item.eventId && (
+          <p className="text-xs text-forest-600 dark:text-forest-400 mt-1">View event →</p>
         )}
       </div>
     </div>
