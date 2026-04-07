@@ -2,7 +2,6 @@
 
 import type { User } from "@supabase/supabase-js";
 import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   CalendarIcon,
@@ -17,6 +16,7 @@ import {
 } from "@/components/icons";
 import { NavLink } from "@/components/navigation/NavigationContext";
 import { useKeyboardHeight } from "@/lib/hooks/useKeyboardHeight";
+import { useScrollHidden } from "@/lib/hooks/useScrollHidden";
 import { cn } from "@/lib/utils";
 
 interface MobileNavProps {
@@ -121,28 +121,7 @@ export default function MobileNav({
   const pathname = usePathname();
   const { keyboardHeight } = useKeyboardHeight();
   const keyboardOpen = keyboardHeight > 0;
-  const [hidden, setHidden] = useState(false);
-  const lastScrollY = useRef(0);
-  const scrollThreshold = 10;
-
-  const handleScroll = useCallback(() => {
-    const currentScrollY = window.scrollY;
-    const delta = currentScrollY - lastScrollY.current;
-
-    if (delta > scrollThreshold) {
-      setHidden(currentScrollY > 50);
-      lastScrollY.current = currentScrollY;
-    } else if (delta < -scrollThreshold) {
-      setHidden(false);
-      lastScrollY.current = currentScrollY;
-    }
-  }, []);
-
-  useEffect(() => {
-    lastScrollY.current = window.scrollY;
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [handleScroll]);
+  const hidden = useScrollHidden();
 
   // Hide on auth pages
   if (

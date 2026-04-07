@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui";
 import { useKeyboardHeight } from "@/lib/hooks/useKeyboardHeight";
+import { useScrollHidden } from "@/lib/hooks/useScrollHidden";
 import { cn } from "@/lib/utils";
 
 interface Distance {
@@ -43,29 +44,7 @@ export default function MobileBookingBar({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { keyboardHeight } = useKeyboardHeight();
   const keyboardOpen = keyboardHeight > 0;
-  const [navHidden, setNavHidden] = useState(false);
-  const lastScrollY = useRef(0);
-
-  // Track nav visibility (mirrors MobileNav scroll logic)
-  const handleScroll = useCallback(() => {
-    const currentScrollY = window.scrollY;
-    const delta = currentScrollY - lastScrollY.current;
-    const scrollThreshold = 10;
-
-    if (delta > scrollThreshold) {
-      setNavHidden(currentScrollY > 50);
-      lastScrollY.current = currentScrollY;
-    } else if (delta < -scrollThreshold) {
-      setNavHidden(false);
-      lastScrollY.current = currentScrollY;
-    }
-  }, []);
-
-  useEffect(() => {
-    lastScrollY.current = window.scrollY;
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [handleScroll]);
+  const navHidden = useScrollHidden();
 
   // Close dropdown on outside click
   useEffect(() => {
