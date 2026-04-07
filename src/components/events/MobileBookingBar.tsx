@@ -81,7 +81,7 @@ export default function MobileBookingBar({
       className={cn(
         "md:hidden sticky z-40 px-4 py-3 transition-[bottom] duration-300",
         keyboardOpen && "hidden",
-        navHidden ? "bottom-0 pb-[env(safe-area-inset-bottom,0px)]" : "bottom-16",
+        navHidden ? "bottom-2 pb-[env(safe-area-inset-bottom,0px)]" : "bottom-16",
       )}
     >
       <div className="rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg dark:shadow-gray-950/40 px-2 py-2 flex items-center justify-between gap-3">

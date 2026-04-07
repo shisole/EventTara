@@ -11,6 +11,7 @@ import FeaturesSection from "@/components/landing/FeaturesSection";
 import FeedShowcaseSection from "@/components/landing/FeedShowcaseSection";
 import GamificationSection from "@/components/landing/GamificationSection";
 import HeroSection from "@/components/landing/HeroSection";
+import HomeSignupBar from "@/components/landing/HomeSignupBar";
 import HowItWorksSection from "@/components/landing/HowItWorksSection";
 import LeaderboardPreviewSection from "@/components/landing/LeaderboardPreviewSection";
 import ParallaxMountain from "@/components/landing/ParallaxMountain";
@@ -213,6 +214,7 @@ export default async function Home() {
           </ScrollReveal>
         );
       })}
+      <HomeSignupBar />
     </main>
   );
 }
