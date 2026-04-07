@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
+import SignupSheet from "@/components/landing/SignupSheet";
 import { Button } from "@/components/ui";
 import { useKeyboardHeight } from "@/lib/hooks/useKeyboardHeight";
 import { useScrollHidden } from "@/lib/hooks/useScrollHidden";
+import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
 interface Distance {
@@ -41,10 +43,27 @@ export default function MobileBookingBar({
 }: MobileBookingBarProps) {
   const [selectedDistance, setSelectedDistance] = useState<string | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [authed, setAuthed] = useState<boolean | null>(null);
+  const [signupOpen, setSignupOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { keyboardHeight } = useKeyboardHeight();
   const keyboardOpen = keyboardHeight > 0;
   const navHidden = useScrollHidden();
+
+  useEffect(() => {
+    const supabase = createClient();
+    let active = true;
+    void supabase.auth.getUser().then(({ data }) => {
+      if (active) setAuthed(!!data.user);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setAuthed(!!session?.user);
+    });
+    return () => {
+      active = false;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -81,7 +100,7 @@ export default function MobileBookingBar({
       className={cn(
         "md:hidden sticky z-40 px-4 py-3 transition-[bottom] duration-300",
         keyboardOpen && "hidden",
-        navHidden ? "bottom-0 pb-[env(safe-area-inset-bottom,0px)]" : "bottom-16",
+        navHidden ? "bottom-2 pb-[env(safe-area-inset-bottom,0px)]" : "bottom-16",
       )}
     >
       <div className="rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg dark:shadow-gray-950/40 px-2 py-2 flex items-center justify-between gap-3">
@@ -160,11 +179,20 @@ export default function MobileBookingBar({
                 </span>
               )}
             </div>
-            <Link href={`/events/${eventId}/book`} className="shrink-0">
-              <Button className="rounded-xl min-h-[48px] px-8 text-base font-semibold">
+            {authed ? (
+              <Link href={`/events/${eventId}/book`} className="shrink-0">
+                <Button className="rounded-xl min-h-[48px] px-8 text-base font-semibold">
+                  Book Now
+                </Button>
+              </Link>
+            ) : (
+              <Button
+                onClick={() => setSignupOpen(true)}
+                className="shrink-0 rounded-xl min-h-[48px] px-8 text-base font-semibold"
+              >
                 Book Now
               </Button>
-            </Link>
+            )}
           </>
         ) : ctaState === "booked" ? (
           <>
@@ -200,6 +228,11 @@ export default function MobileBookingBar({
           </>
         )}
       </div>
+      <SignupSheet
+        open={signupOpen}
+        onClose={() => setSignupOpen(false)}
+        returnUrl={`/events/${eventId}/book`}
+      />
     </div>
   );
 }

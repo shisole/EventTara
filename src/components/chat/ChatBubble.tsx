@@ -29,7 +29,7 @@ const cornerHiddenNavClasses: Record<Corner, string> = {
   "top-left": "top-20 left-4 md:top-6 md:left-6",
 };
 
-/** Extra bottom offset on pages with a mobile floating booking bar (nav visible) */
+/** Raised for event detail booking bar (single-line, nav visible) */
 const cornerRaisedClasses: Record<Corner, string> = {
   "bottom-right": "bottom-[10rem] right-4 md:bottom-6 md:right-6",
   "bottom-left": "bottom-[10rem] left-4 md:bottom-6 md:left-6",
@@ -37,10 +37,26 @@ const cornerRaisedClasses: Record<Corner, string> = {
   "top-left": "top-20 left-4 md:top-6 md:left-6",
 };
 
-/** Raised position when mobile nav is hidden (booking bar drops to bottom-0) */
+/** Raised for event detail booking bar (nav hidden) */
 const cornerRaisedHiddenNavClasses: Record<Corner, string> = {
   "bottom-right": "bottom-[5.5rem] right-4 md:bottom-6 md:right-6",
   "bottom-left": "bottom-[5.5rem] left-4 md:bottom-6 md:left-6",
+  "top-right": "top-20 right-4 md:top-6 md:right-6",
+  "top-left": "top-20 left-4 md:top-6 md:left-6",
+};
+
+/** Raised for homepage signup CTA (stacked/taller, nav visible) */
+const cornerHomeCtaClasses: Record<Corner, string> = {
+  "bottom-right": "bottom-[13rem] right-4 md:bottom-6 md:right-6",
+  "bottom-left": "bottom-[13rem] left-4 md:bottom-6 md:left-6",
+  "top-right": "top-20 right-4 md:top-6 md:right-6",
+  "top-left": "top-20 left-4 md:top-6 md:left-6",
+};
+
+/** Raised for homepage signup CTA (nav hidden) */
+const cornerHomeCtaHiddenNavClasses: Record<Corner, string> = {
+  "bottom-right": "bottom-[8.5rem] right-4 md:bottom-6 md:right-6",
+  "bottom-left": "bottom-[8.5rem] left-4 md:bottom-6 md:left-6",
   "top-right": "top-20 right-4 md:top-6 md:right-6",
   "top-left": "top-20 left-4 md:top-6 md:left-6",
 };
@@ -66,18 +82,37 @@ export default function ChatBubble() {
     return () => clearTimeout(timer);
   }, []);
 
+  // Raise bubble when a mobile floating bar is present (event detail booking bar,
+  // or the homepage signup CTA once the user has scrolled past the hero)
+  const [homeCtaVisible, setHomeCtaVisible] = useState(false);
+  useEffect(() => {
+    if (pathname !== "/") {
+      setHomeCtaVisible(false);
+      return;
+    }
+    const onScroll = () => {
+      setHomeCtaVisible(window.scrollY > window.innerHeight * 0.6);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [pathname]);
+
   // Hide on dashboard pages
   if (pathname.startsWith("/dashboard")) return null;
 
-  // Raise bubble on event detail pages where the mobile booking bar is present
-  const hasBookingBar = /^\/events\/[^/]+$/.test(pathname);
-  const cornerClasses = hasBookingBar
+  const hasEventBookingBar = /^\/events\/[^/]+$/.test(pathname);
+  const cornerClasses = homeCtaVisible
     ? navHidden
-      ? cornerRaisedHiddenNavClasses
-      : cornerRaisedClasses
-    : navHidden
-      ? cornerHiddenNavClasses
-      : cornerPositionClasses;
+      ? cornerHomeCtaHiddenNavClasses
+      : cornerHomeCtaClasses
+    : hasEventBookingBar
+      ? navHidden
+        ? cornerRaisedHiddenNavClasses
+        : cornerRaisedClasses
+      : navHidden
+        ? cornerHiddenNavClasses
+        : cornerPositionClasses;
   const positionClasses = dragStyle ? "" : cornerClasses[corner];
   const transitionClasses = isDragging
     ? ""

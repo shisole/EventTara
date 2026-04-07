@@ -1,11 +1,12 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { LockIcon } from "@/components/icons";
 import { Button } from "@/components/ui";
 
 const CODE_LENGTH = 6;
+const EXPIRY_SECONDS = 30;
 
 export interface OtpCodeInputProps {
   email: string;
@@ -29,6 +30,22 @@ export default function OtpCodeInput({
   error,
 }: OtpCodeInputProps) {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const [secondsLeft, setSecondsLeft] = useState(EXPIRY_SECONDS);
+
+  useEffect(() => {
+    setSecondsLeft(EXPIRY_SECONDS);
+    const interval = setInterval(() => {
+      setSecondsLeft((s) => (s > 0 ? s - 1 : 0));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [email]);
+
+  const handleResendClick = () => {
+    onResend();
+    setSecondsLeft(EXPIRY_SECONDS);
+  };
+
+  const expired = secondsLeft === 0;
 
   const handleChange = (index: number, value: string) => {
     if (!/^\d*$/.test(value)) return;
@@ -103,6 +120,18 @@ export default function OtpCodeInput({
         ))}
       </div>
 
+      <p
+        className={`text-center text-sm tabular-nums ${
+          expired ? "text-red-500" : "text-gray-500 dark:text-gray-400"
+        }`}
+      >
+        {expired
+          ? "Code expired — request a new one"
+          : `Expires in ${String(Math.floor(secondsLeft / 60)).padStart(2, "0")}:${String(
+              secondsLeft % 60,
+            ).padStart(2, "0")}`}
+      </p>
+
       {error && (
         <p className="text-sm text-red-500 text-center" role="alert">
           {error}
@@ -121,11 +150,11 @@ export default function OtpCodeInput({
       <div className="text-center">
         <button
           type="button"
-          onClick={onResend}
-          disabled={loading}
-          className="text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 disabled:opacity-50"
+          onClick={handleResendClick}
+          disabled={loading || !expired}
+          className="text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          Didn&apos;t get it? Resend code
+          {expired ? "Resend code" : "Didn't get it? Resend code"}
         </button>
         <span className="mx-2 text-gray-300 dark:text-gray-600">|</span>
         <button
