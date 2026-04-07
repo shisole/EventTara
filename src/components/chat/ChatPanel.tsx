@@ -242,9 +242,13 @@ export default function ChatPanel({
   const keyboardStyle: React.CSSProperties | undefined = keyboardOpen
     ? isMobile
       ? {
-          // Mobile bottom sheet: stay at bottom, shrink height to visible area
-          bottom: `${kbHeight}px`,
-          height: `${Math.min(window.innerHeight - kbHeight - 40, window.innerHeight * 0.75)}px`,
+          // Mobile bottom sheet: anchor to the visible viewport. iOS scrolls
+          // the page when focusing inputs inside fixed elements, so we must
+          // use viewportOffset (top-based) instead of bottom — otherwise the
+          // panel ends up floating well above the keyboard.
+          top: `${viewportOffset + 40}px`,
+          bottom: "auto",
+          height: `${window.innerHeight - kbHeight - 40}px`,
         }
       : {
           // Desktop floating panel: top-based positioning
