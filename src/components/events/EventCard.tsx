@@ -1,7 +1,7 @@
 import Image from "next/image";
 
 import { NavLink } from "@/components/navigation/NavigationContext";
-import { Card, DemoBadge } from "@/components/ui";
+import { DemoBadge } from "@/components/ui";
 import { getActivityLabel, getActivitySolidColor } from "@/lib/constants/activity-types";
 import { cn } from "@/lib/utils";
 import { formatEventDate } from "@/lib/utils/format-date";
@@ -70,20 +70,17 @@ export default function EventCard({
   const spotsLeft = max_participants - booking_count;
   const formattedDate = formatEventDate(date, endDate, { short: true });
   const formattedPrice = price === 0 ? "Free" : `\u20B1${price.toLocaleString()}`;
+  const hasRating =
+    avg_rating != null && avg_rating > 0 && review_count != null && review_count > 0;
 
   return (
-    <NavLink href={`/events/${id}`}>
-      <Card
-        className={cn(
-          "overflow-hidden cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700",
-          status === "past" && "opacity-60",
-        )}
-      >
-        {/* Image section */}
+    <NavLink href={`/events/${id}`} className="group block">
+      <div className={cn(status === "past" && "opacity-60")}>
+        {/* Image */}
         <div
           className={cn(
-            "relative bg-gradient-to-br from-lime-100 to-forest-100 dark:from-lime-900 dark:to-forest-900",
-            compact ? "h-32 sm:h-56" : "h-52 sm:h-56",
+            "relative aspect-square overflow-hidden rounded-xl",
+            "bg-gradient-to-br from-lime-100 to-forest-100 dark:from-lime-900 dark:to-forest-900",
           )}
         >
           {cover_image_url && (
@@ -96,13 +93,13 @@ export default function EventCard({
                   ? "(max-width: 640px) 46vw, (max-width: 1024px) 45vw, 300px"
                   : "(max-width: 640px) 92vw, (max-width: 1024px) 45vw, 300px"
               }
-              className="object-cover"
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
             />
           )}
 
-          {/* Top right badges */}
+          {/* Top-right badges */}
           {(is_demo || members_only) && (
-            <div className="absolute top-3 right-3 z-10 flex flex-col items-end gap-1.5">
+            <div className="absolute top-2.5 right-2.5 z-10 flex flex-col items-end gap-1.5">
               {members_only && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold uppercase bg-amber-500/90 text-white backdrop-blur-sm shadow-sm">
                   <svg className="h-2.5 w-2.5" viewBox="0 0 20 20" fill="currentColor">
@@ -121,7 +118,7 @@ export default function EventCard({
 
           {/* Status badge — top left */}
           {status === "happening_now" && (
-            <div className="absolute top-3 left-3">
+            <div className="absolute top-2.5 left-2.5 z-10">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-500 text-white shadow-sm">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
@@ -132,7 +129,7 @@ export default function EventCard({
             </div>
           )}
           {status === "upcoming" && (
-            <div className="absolute top-3 left-3">
+            <div className="absolute top-2.5 left-2.5 z-10">
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-lime-500 text-gray-900">
                 Upcoming
               </span>
@@ -140,7 +137,7 @@ export default function EventCard({
           )}
 
           {/* Pills — bottom left */}
-          <div className="absolute bottom-3 left-3 right-3 flex items-center gap-1.5 flex-wrap">
+          <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center gap-1.5 flex-wrap">
             <span
               className={cn(
                 "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold shadow-sm",
@@ -202,146 +199,80 @@ export default function EventCard({
           </div>
         </div>
 
-        {/* Content section */}
-        <div className={cn("space-y-1.5", compact ? "p-2.5 sm:p-4" : "p-3 sm:p-4 space-y-2")}>
-          {/* Title + Price */}
-          <div className="flex items-center justify-between gap-1">
+        {/* Content */}
+        <div className={cn("pt-2.5", compact ? "space-y-0.5" : "space-y-1")}>
+          {/* Title + Rating */}
+          <div className="flex items-start justify-between gap-2">
             <h3
               className={cn(
-                "font-heading font-bold truncate",
-                compact ? "text-sm sm:text-base" : "text-base",
+                "font-heading font-semibold leading-snug line-clamp-1",
+                compact ? "text-sm" : "text-[15px]",
               )}
             >
               {title}
             </h3>
-            <span
-              className={cn(
-                "shrink-0 font-bold text-lime-600 dark:text-lime-400",
-                compact ? "text-xs sm:text-sm" : "text-sm",
-              )}
-            >
-              {formattedPrice}
-            </span>
+            {hasRating && (
+              <span
+                className={cn(
+                  "shrink-0 flex items-center gap-0.5 font-medium text-gray-800 dark:text-gray-200",
+                  compact ? "text-xs" : "text-sm",
+                )}
+              >
+                <span className="text-yellow-400">&#9733;</span>
+                {avg_rating?.toFixed(1)}
+              </span>
+            )}
           </div>
 
           {/* Club */}
           {club_name && club_slug ? (
             <ClubLink clubSlug={club_slug} clubName={club_name} clubLogoUrl={club_logo_url} />
           ) : club_name ? (
-            <p className="text-xs text-gray-400 dark:text-gray-500">{club_name}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{club_name}</p>
           ) : null}
 
-          {/* Info — stacked when compact, 2-col grid otherwise */}
-          {compact ? (
-            <div className="space-y-1 text-xs sm:hidden">
-              <div className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 min-w-0">
-                <svg
-                  className="h-3 w-3 shrink-0"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M5.75 2a.75.75 0 01.75.75V4h7V2.75a.75.75 0 011.5 0V4h.25A2.75 2.75 0 0118 6.75v8.5A2.75 2.75 0 0115.25 18H4.75A2.75 2.75 0 012 15.25v-8.5A2.75 2.75 0 014.75 4H5V2.75A.75.75 0 015.75 2z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <span className="truncate">{formattedDate}</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 min-w-0">
-                <svg
-                  className="h-3 w-3 shrink-0"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M9.69 18.933l.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 00.281-.14c.186-.096.446-.24.757-.433.62-.384 1.445-.966 2.274-1.765C15.302 14.988 17 12.493 17 9A7 7 0 103 9c0 3.492 1.698 5.988 3.355 7.584a13.731 13.731 0 002.273 1.765 11.842 11.842 0 00.976.544l.062.029.018.008.006.003zM10 11.25a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <span className="truncate">{location}</span>
-              </div>
-            </div>
-          ) : null}
-
-          {/* 2-column info grid (hidden on mobile when compact, always shown on sm+) */}
-          <div
+          {/* Date + Location */}
+          <p
             className={cn(
-              "grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm",
-              compact && "hidden sm:grid",
+              "text-gray-500 dark:text-gray-400 truncate",
+              compact ? "text-xs" : "text-sm",
             )}
           >
-            {/* Row 1: Date | Location */}
-            <div className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 min-w-0">
-              <svg
-                className="h-3.5 w-3.5 shrink-0"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M5.75 2a.75.75 0 01.75.75V4h7V2.75a.75.75 0 011.5 0V4h.25A2.75 2.75 0 0118 6.75v8.5A2.75 2.75 0 0115.25 18H4.75A2.75 2.75 0 012 15.25v-8.5A2.75 2.75 0 014.75 4H5V2.75A.75.75 0 015.75 2z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <span className="truncate">{formattedDate}</span>
-            </div>
-            <div className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 min-w-0">
-              <svg
-                className="h-3.5 w-3.5 shrink-0"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M9.69 18.933l.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 00.281-.14c.186-.096.446-.24.757-.433.62-.384 1.445-.966 2.274-1.765C15.302 14.988 17 12.493 17 9A7 7 0 103 9c0 3.492 1.698 5.988 3.355 7.584a13.731 13.731 0 002.273 1.765 11.842 11.842 0 00.976.544l.062.029.018.008.006.003zM10 11.25a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <span className="truncate">{location}</span>
-              {distance != null && (
-                <span className="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300">
-                  {distance < 1 ? "<1km" : `~${Math.round(distance)}km`}
-                </span>
-              )}
-            </div>
-
-            {/* Row 2: Rating | Spots */}
-            <div className="hidden sm:flex items-center gap-1 min-w-0">
-              {avg_rating != null && avg_rating > 0 && review_count != null && review_count > 0 ? (
-                <>
-                  <span className="text-yellow-400">&#9733;</span>
-                  <span className="font-medium text-gray-700 dark:text-gray-300">
-                    {avg_rating.toFixed(1)}
-                  </span>
-                  <span className="text-xs text-gray-400 dark:text-gray-500">({review_count})</span>
-                </>
-              ) : (
-                <span className="text-xs text-gray-400 dark:text-gray-500">No reviews</span>
-              )}
-            </div>
-            <div className="flex items-center">
-              <span
-                className={cn(
-                  "text-xs font-medium",
-                  spotsLeft <= 0
-                    ? "text-red-500"
-                    : spotsLeft <= 5
-                      ? "text-red-500"
-                      : "text-gray-400 dark:text-gray-500",
-                )}
-              >
-                {spotsLeft <= 0 ? "Fully Booked" : `${spotsLeft} spots left`}
+            <span>{formattedDate}</span>
+            <span className={cn("mx-1.5", compact && "hidden sm:inline")}>&middot;</span>
+            <span className={cn(compact && "hidden sm:inline")}>{location}</span>
+            {distance != null && (
+              <span className="hidden sm:inline text-teal-600 dark:text-teal-400 ml-1">
+                ({distance < 1 ? "<1km" : `~${Math.round(distance)}km`})
               </span>
-            </div>
+            )}
+          </p>
+
+          {/* Price + Spots */}
+          <div className="flex items-center justify-between">
+            <span
+              className={cn(
+                "font-semibold text-gray-900 dark:text-gray-100",
+                compact ? "text-xs" : "text-sm",
+              )}
+            >
+              {formattedPrice}
+            </span>
+            <span
+              className={cn(
+                "text-xs",
+                spotsLeft <= 0
+                  ? "font-medium text-red-500"
+                  : spotsLeft <= 5
+                    ? "font-medium text-red-500"
+                    : "text-gray-400 dark:text-gray-500",
+              )}
+            >
+              {spotsLeft <= 0 ? "Fully Booked" : `${spotsLeft} spots left`}
+            </span>
           </div>
         </div>
-      </Card>
+      </div>
     </NavLink>
   );
 }
