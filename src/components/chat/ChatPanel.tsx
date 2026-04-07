@@ -71,7 +71,45 @@ export default function ChatPanel({
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [remaining, setRemaining] = useState<number>(DAILY_LIMIT);
+  const [dragY, setDragY] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const dragStartY = useRef<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const handleDragStart = (clientY: number) => {
+    dragStartY.current = clientY;
+    setDragging(true);
+  };
+  const handleDragMove = (clientY: number) => {
+    if (dragStartY.current === null) return;
+    setDragY(Math.max(0, clientY - dragStartY.current));
+  };
+  const handleDragEnd = () => {
+    if (dragStartY.current === null) return;
+    const shouldClose = dragY > 100;
+    dragStartY.current = null;
+    setDragging(false);
+    setDragY(0);
+    if (shouldClose) onClose();
+  };
+
+  useEffect(() => {
+    if (!open) {
+      setDragY(0);
+      setDragging(false);
+      dragStartY.current = null;
+    }
+  }, [open]);
+
+  // Lock body scroll while the chat panel is open (mobile bottom sheet)
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
   const inputRef = useRef<HTMLInputElement>(null);
   const locationRef = useRef<{ lat: number; lng: number } | null>(null);
 
@@ -220,14 +258,39 @@ export default function ChatPanel({
 
   return (
     <div
-      className={`fixed transition-all duration-300 ease-out ${
+      className={`fixed ${dragging ? "" : "transition-all duration-300 ease-out"} ${
         open
-          ? "opacity-100 pointer-events-auto translate-y-0"
+          ? "opacity-100 pointer-events-auto"
           : "opacity-0 pointer-events-none translate-y-full md:translate-y-2"
       } z-[999] left-0 right-0 bottom-0 h-[75dvh] md:z-[60] md:w-[400px] md:h-[min(500px,calc(100dvh-6rem))] ${desktopClasses}`}
-      style={keyboardStyle}
+      style={{
+        ...keyboardStyle,
+        ...(open ? { transform: `translateY(${dragY}px)` } : undefined),
+      }}
     >
       <div className="flex h-full flex-col overflow-hidden rounded-t-2xl md:rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-900">
+        {/* Drag handle (mobile) */}
+        {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
+        <div
+          className="md:hidden flex justify-center pt-2 pb-1 cursor-grab active:cursor-grabbing touch-none bg-gradient-to-r from-lime-50 to-teal-50 dark:from-gray-800 dark:to-gray-800"
+          onTouchStart={(e) => handleDragStart(e.touches[0].clientY)}
+          onTouchMove={(e) => handleDragMove(e.touches[0].clientY)}
+          onTouchEnd={handleDragEnd}
+          onPointerDown={(e) => {
+            if (e.pointerType === "touch") return;
+            e.currentTarget.setPointerCapture(e.pointerId);
+            handleDragStart(e.clientY);
+          }}
+          onPointerMove={(e) => {
+            if (dragStartY.current === null) return;
+            handleDragMove(e.clientY);
+          }}
+          onPointerUp={handleDragEnd}
+          onPointerCancel={handleDragEnd}
+        >
+          <div className="h-1.5 w-10 rounded-full bg-gray-300 dark:bg-gray-600" />
+        </div>
+
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-200 bg-gradient-to-r from-lime-50 to-teal-50 px-4 py-3 dark:border-gray-700 dark:from-gray-800 dark:to-gray-800">
           <div>
