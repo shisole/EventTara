@@ -4,6 +4,7 @@ import { Suspense } from "react";
 
 import BookingButton from "@/components/events/BookingButton";
 import DifficultyBadge from "@/components/events/DifficultyBadge";
+import EventDescription from "@/components/events/EventDescription";
 import LiveBookingCount from "@/components/events/LiveBookingCount";
 import MobileBookingBar from "@/components/events/MobileBookingBar";
 import OrganizerCard from "@/components/events/OrganizerCard";
@@ -283,17 +284,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
             </div>
           </div>
 
-          {event.description && (
-            <div>
-              <h2 className="text-xl font-heading font-bold mb-3">About This Event</h2>
-              <div
-                className="prose prose-sm dark:prose-invert max-w-none text-gray-600 dark:text-gray-400 prose-headings:text-gray-900 dark:prose-headings:text-gray-100 prose-strong:text-gray-900 dark:prose-strong:text-gray-100 prose-a:text-lime-600 dark:prose-a:text-lime-400"
-                dangerouslySetInnerHTML={{
-                  __html: sanitizeRichText(event.description),
-                }}
-              />
-            </div>
-          )}
+          {event.description && <EventDescription html={sanitizeRichText(event.description)} />}
 
           {/* Streamed: gallery, maps, reviews */}
           <Suspense fallback={<BelowFoldSkeleton />}>
