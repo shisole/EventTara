@@ -1,3 +1,4 @@
+import DOMPurify from "isomorphic-dompurify";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -30,8 +31,13 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
   if (!event) return { title: "Event Not Found" };
 
-  const description = event.description
-    ? event.description.slice(0, 160)
+  const plainDescription = event.description
+    ? DOMPurify.sanitize(event.description, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] })
+        .replaceAll(/\s+/g, " ")
+        .trim()
+    : "";
+  const description = plainDescription
+    ? plainDescription.slice(0, 160)
     : `Join this ${ACTIVITY_TYPE_LABELS[event.type as keyof typeof ACTIVITY_TYPE_LABELS] || event.type} adventure on EventTara!`;
 
   const images = event.cover_image_url
@@ -284,9 +290,14 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
           {event.description && (
             <div>
               <h2 className="text-xl font-heading font-bold mb-3">About This Event</h2>
-              <p className="text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
-                {event.description}
-              </p>
+              <div
+                className="prose prose-sm dark:prose-invert max-w-none text-gray-600 dark:text-gray-400 prose-headings:text-gray-900 dark:prose-headings:text-gray-100 prose-strong:text-gray-900 dark:prose-strong:text-gray-100 prose-a:text-lime-600 dark:prose-a:text-lime-400"
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(event.description, {
+                    USE_PROFILES: { html: true },
+                  }),
+                }}
+              />
             </div>
           )}
 
