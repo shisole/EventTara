@@ -34,7 +34,6 @@ export default function ItineraryManager({ eventId, initialEntries }: ItineraryM
   const [pasteStep, setPasteStep] = useState<"paste" | "preview">("paste");
   const [parsedEntries, setParsedEntries] = useState<ParsedEntry[]>([]);
   const [pasteSaving, setPasteSaving] = useState(false);
-  const [pasteSavingIndex, setPasteSavingIndex] = useState(-1);
   const [pasteError, setPasteError] = useState("");
 
   useEffect(() => {
@@ -167,66 +166,40 @@ export default function ItineraryManager({ eventId, initialEntries }: ItineraryM
   }
 
   async function handlePasteSave() {
-    const validIndices = parsedEntries
-      .map((e, i) => (e.title.trim() ? i : -1))
-      .filter((i) => i !== -1);
-    if (validIndices.length === 0) return;
+    const valid = parsedEntries
+      .filter((e) => e.title.trim())
+      .map((e) => ({ time: e.time.trim(), title: e.title.trim() }));
+    if (valid.length === 0) return;
 
     setPasteSaving(true);
-    setPasteSavingIndex(-1);
     setPasteError("");
 
-    let failCount = 0;
-
     try {
-      for (const idx of validIndices) {
-        const parsed = parsedEntries[idx];
-        setPasteSavingIndex(idx);
-        const existingEntry = entries.find((e) => e.time === parsed.time.trim());
+      const res = await fetch(`/api/events/${eventId}/itinerary`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ entries: valid }),
+      });
 
-        try {
-          if (existingEntry) {
-            const res = await fetch(`/api/events/${eventId}/itinerary/${existingEntry.id}`, {
-              method: "PATCH",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ title: parsed.title.trim() }),
-            });
-            if (res.ok) {
-              const json: { entry: ItineraryEntry } = await res.json();
-              setEntries((prev) => prev.map((e) => (e.id === existingEntry.id ? json.entry : e)));
-            } else {
-              console.error("Failed to update itinerary entry:", await res.text());
-              failCount++;
-            }
-          } else {
-            const res = await fetch(`/api/events/${eventId}/itinerary`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ time: parsed.time.trim(), title: parsed.title.trim() }),
-            });
-            if (res.ok) {
-              const json: { entry: ItineraryEntry } = await res.json();
-              setEntries((prev) => [...prev, json.entry]);
-            } else {
-              console.error("Failed to add itinerary entry:", await res.text());
-              failCount++;
-            }
-          }
-        } catch (error_) {
-          console.error("Error saving itinerary entry:", error_);
-          failCount++;
-        }
+      if (!res.ok) {
+        const json: { error?: string } = await res.json().catch(() => ({}));
+        setPasteError(json.error ?? "Failed to save entries.");
+        return;
       }
-    } finally {
-      setPasteSaving(false);
-      setPasteSavingIndex(-1);
-    }
 
-    if (failCount > 0) {
-      setPasteError(`${failCount} ${failCount === 1 ? "entry" : "entries"} failed to save.`);
-    } else {
+      const json: { entries: ItineraryEntry[] } = await res.json();
+      setEntries((prev) => {
+        const byId = new Map(prev.map((e) => [e.id, e]));
+        for (const e of json.entries) byId.set(e.id, e);
+        return [...byId.values()].sort((a, b) => a.sort_order - b.sort_order);
+      });
       setPasteOpen(false);
       router.refresh();
+    } catch (error_) {
+      console.error("Error saving itinerary entries:", error_);
+      setPasteError("Failed to save entries.");
+    } finally {
+      setPasteSaving(false);
     }
   }
 
@@ -418,8 +391,8 @@ export default function ItineraryManager({ eventId, initialEntries }: ItineraryM
                     const isUpdate =
                       entry.time.trim() && entries.some((ex) => ex.time === entry.time.trim());
                     const isUnparsed = !entry.time;
-                    const isSaved = pasteSaving && i < pasteSavingIndex;
-                    const isSaving = pasteSaving && i === pasteSavingIndex;
+                    const isSaved = false;
+                    const isSaving = pasteSaving;
                     return (
                       <div
                         key={i}
@@ -516,7 +489,7 @@ export default function ItineraryManager({ eventId, initialEntries }: ItineraryM
                     }
                   >
                     {pasteSaving
-                      ? `Saving ${pasteSavingIndex + 1}/${parsedEntries.filter((e) => e.title.trim()).length}...`
+                      ? `Saving ${parsedEntries.filter((e) => e.title.trim()).length} entries...`
                       : "Add to Itinerary"}
                   </Button>
                 </>
