@@ -49,11 +49,11 @@ const DEFAULT_HYPE = {
 
 function escapeHtml(str: string): string {
   return str
-    .replaceAll('&', "&amp;")
-    .replaceAll('<', "&lt;")
-    .replaceAll('>', "&gt;")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
-    .replaceAll('\'', "&#39;");
+    .replaceAll("'", "&#39;");
 }
 
 function difficultyStars(level: number | null): string {
