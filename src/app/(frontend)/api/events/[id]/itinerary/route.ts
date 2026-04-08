@@ -4,6 +4,8 @@ import { checkClubPermissionServer, CLUB_PERMISSIONS } from "@/lib/clubs/permiss
 import { nextSortOrder } from "@/lib/itinerary/sort";
 import { createClient } from "@/lib/supabase/server";
 
+const asString = (v: unknown): string => (typeof v === "string" ? v : "");
+
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: eventId } = await params;
   const supabase = await createClient();
@@ -49,15 +51,83 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  let time: string;
-  let title: string;
+  let body: { time?: unknown; title?: unknown; entries?: unknown };
   try {
-    const body = await request.json();
-    time = String(body.time ?? "").trim();
-    title = String(body.title ?? "").trim();
+    body = (await request.json()) as { time?: unknown; title?: unknown; entries?: unknown };
   } catch {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
+
+  // Bulk path: { entries: [{ time, title }] } — upsert by (event_id, time)
+  if (Array.isArray(body.entries)) {
+    const incoming = body.entries
+      .map((e) => {
+        const obj = (e ?? {}) as { time?: unknown; title?: unknown };
+        return { time: asString(obj.time).trim(), title: asString(obj.title).trim() };
+      })
+      .filter((e) => e.time && e.title);
+
+    if (incoming.length === 0) {
+      return NextResponse.json({ entries: [] }, { status: 200 });
+    }
+
+    const { data: existing } = await supabase
+      .from("event_itinerary")
+      .select("id, time, sort_order")
+      .eq("event_id", eventId);
+
+    const existingByTime = new Map((existing ?? []).map((e) => [e.time, e]));
+
+    const toUpdate: { id: string; title: string }[] = [];
+    const toInsert: { event_id: string; time: string; title: string; sort_order: number }[] = [];
+
+    let nextOrder = nextSortOrder(existing ?? []);
+    const seenInsertTimes = new Set<string>();
+
+    for (const e of incoming) {
+      const match = existingByTime.get(e.time);
+      if (match) {
+        toUpdate.push({ id: match.id, title: e.title });
+      } else if (!seenInsertTimes.has(e.time)) {
+        seenInsertTimes.add(e.time);
+        toInsert.push({ event_id: eventId, time: e.time, title: e.title, sort_order: nextOrder++ });
+      }
+    }
+
+    const [insertResult, ...updateResults] = await Promise.all([
+      toInsert.length > 0
+        ? supabase.from("event_itinerary").insert(toInsert).select("id, time, title, sort_order")
+        : Promise.resolve({ data: [], error: null } as const),
+      ...toUpdate.map((u) =>
+        supabase
+          .from("event_itinerary")
+          .update({ title: u.title })
+          .eq("id", u.id)
+          .eq("event_id", eventId)
+          .select("id, time, title, sort_order")
+          .single(),
+      ),
+    ]);
+
+    if (insertResult.error) {
+      return NextResponse.json({ error: insertResult.error.message }, { status: 500 });
+    }
+    const updateError = updateResults.find((r) => r.error);
+    if (updateError?.error) {
+      return NextResponse.json({ error: updateError.error.message }, { status: 500 });
+    }
+
+    const entries = [
+      ...(insertResult.data ?? []),
+      ...updateResults.map((r) => r.data).filter(Boolean),
+    ];
+
+    return NextResponse.json({ entries }, { status: 201 });
+  }
+
+  // Single-entry path (legacy)
+  const time = asString(body.time).trim();
+  const title = asString(body.title).trim();
 
   if (!time || !title) {
     return NextResponse.json({ error: "time and title are required" }, { status: 400 });
