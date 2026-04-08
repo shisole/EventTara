@@ -14,6 +14,9 @@ interface UpcomingEventBlastProps {
   maxParticipants: number;
   eventId: string;
   userId: string;
+  headline?: string;
+  subtext?: string;
+  customMessage?: string;
 }
 
 const HYPE_HEADLINES: Record<string, { headline: string; subtext: string }> = {
@@ -44,10 +47,20 @@ const DEFAULT_HYPE = {
   subtext: "A new event is coming — don't miss your chance.",
 };
 
+function escapeHtml(str: string): string {
+  return str
+    .replaceAll('&', "&amp;")
+    .replaceAll('<', "&lt;")
+    .replaceAll('>', "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll('\'', "&#39;");
+}
+
 function difficultyStars(level: number | null): string {
   if (!level) return "";
-  const filled = "&#9733;".repeat(level);
-  const empty = "&#9734;".repeat(5 - level);
+  const clamped = Math.max(0, Math.min(5, level));
+  const filled = "&#9733;".repeat(clamped);
+  const empty = "&#9734;".repeat(5 - clamped);
   return `
     <p style="margin:0 0 8px;">
       <span style="color:#a3e635;font-weight:600;">Difficulty:</span>
@@ -68,9 +81,19 @@ export function upcomingEventBlastHtml({
   maxParticipants,
   eventId,
   userId,
+  headline,
+  subtext,
+  customMessage,
 }: UpcomingEventBlastProps): string {
   const typeLabel = ACTIVITY_TYPE_LABELS[eventType as ActivityType] || eventType;
-  const hype = HYPE_HEADLINES[eventType] || DEFAULT_HYPE;
+  const defaultHype = HYPE_HEADLINES[eventType] || DEFAULT_HYPE;
+  const hype = {
+    headline: headline?.trim() || defaultHype.headline,
+    subtext: subtext?.trim() || defaultHype.subtext,
+  };
+  const customMessageHtml = customMessage?.trim()
+    ? `<p style="color:#cbd5e1;font-size:15px;line-height:1.6;margin:0 0 24px;white-space:pre-wrap;">${escapeHtml(customMessage.trim())}</p>`
+    : "";
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://eventtara.com";
   const eventUrl = `${siteUrl}/events/${eventId}`;
   const unsubscribeUrl = `${siteUrl}/unsubscribe?uid=${userId}`;
@@ -98,6 +121,8 @@ export function upcomingEventBlastHtml({
       <p style="color:#94a3b8;font-size:15px;margin:0 0 24px;text-align:center;">
         ${hype.subtext}
       </p>
+
+      ${customMessageHtml}
 
       ${emailInfoCard(`
         <p style="color:#f1f5f9;font-size:20px;font-weight:700;margin:0 0 16px;">${eventTitle}</p>
