@@ -1,4 +1,3 @@
-import DOMPurify from "isomorphic-dompurify";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -16,6 +15,7 @@ import { BreadcrumbTitle } from "@/lib/contexts/BreadcrumbContext";
 import { cdnUrl } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/server";
 import { formatEventDate } from "@/lib/utils/format-date";
+import { sanitizeRichText, stripHtml } from "@/lib/utils/sanitize-html";
 
 import EventBelowFold from "./_components/EventBelowFold";
 import EventSidebarExtras from "./_components/EventSidebarExtras";
@@ -31,11 +31,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
   if (!event) return { title: "Event Not Found" };
 
-  const plainDescription = event.description
-    ? DOMPurify.sanitize(event.description, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] })
-        .replaceAll(/\s+/g, " ")
-        .trim()
-    : "";
+  const plainDescription = event.description ? stripHtml(event.description) : "";
   const description = plainDescription
     ? plainDescription.slice(0, 160)
     : `Join this ${ACTIVITY_TYPE_LABELS[event.type as keyof typeof ACTIVITY_TYPE_LABELS] || event.type} adventure on EventTara!`;
@@ -293,9 +289,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
               <div
                 className="prose prose-sm dark:prose-invert max-w-none text-gray-600 dark:text-gray-400 prose-headings:text-gray-900 dark:prose-headings:text-gray-100 prose-strong:text-gray-900 dark:prose-strong:text-gray-100 prose-a:text-lime-600 dark:prose-a:text-lime-400"
                 dangerouslySetInnerHTML={{
-                  __html: DOMPurify.sanitize(event.description, {
-                    USE_PROFILES: { html: true },
-                  }),
+                  __html: sanitizeRichText(event.description),
                 }}
               />
             </div>
