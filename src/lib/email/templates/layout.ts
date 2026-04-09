@@ -74,7 +74,7 @@ export function emailLayout({ title, content, footerText }: EmailLayoutProps): s
 
 /** Dark-themed CTA button */
 export function emailButton(text: string, href: string): string {
-  return `<table cellpadding="0" cellspacing="0"><tr>
+  return `<table cellpadding="0" cellspacing="0" align="center"><tr>
   <td style="background-color:#a3e635;border-radius:8px;">
     <a href="${href}" style="display:inline-block;padding:14px 32px;color:#0b1120;text-decoration:none;font-size:15px;font-weight:600;">
       ${text}

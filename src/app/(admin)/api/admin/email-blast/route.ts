@@ -5,7 +5,7 @@ import { sendBatchEmails } from "@/lib/email/send";
 import { upcomingEventBlastHtml } from "@/lib/email/templates/upcoming-event-blast";
 import { createClient } from "@/lib/supabase/server";
 
-export async function GET() {
+export async function GET(request: Request) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -29,7 +29,66 @@ export async function GET() {
 
   const recipientCount = (allUsers ?? []).filter((u) => !unsubIds.has(u.id)).length;
 
-  return NextResponse.json({ recipientCount });
+  // If eventId is provided, also return preview defaults + rendered HTML
+  const url = new URL(request.url);
+  const eventId = url.searchParams.get("eventId");
+
+  if (!eventId) {
+    return NextResponse.json({ recipientCount });
+  }
+
+  const { data: event } = await supabase
+    .from("events")
+    .select(
+      "id, title, date, location, type, difficulty_level, price, cover_image_url, max_participants, offline_participants, status",
+    )
+    .eq("id", eventId)
+    .single();
+
+  if (!event) {
+    return NextResponse.json({ error: "Event not found" }, { status: 404 });
+  }
+
+  const { count: bookedCount } = await supabase
+    .from("bookings")
+    .select("id", { count: "exact", head: true })
+    .eq("event_id", event.id)
+    .in("status", ["confirmed", "pending", "reserved"]);
+
+  const totalBooked = (bookedCount ?? 0) + (event.offline_participants ?? 0);
+  const spotsRemaining = Math.max(0, event.max_participants - totalBooked);
+
+  const eventDate = new Date(event.date).toLocaleDateString("en-PH", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
+  const defaults = {
+    subject: `New Climb Alert: ${event.title} — ${eventDate}`,
+    headline: "",
+    subtext: "",
+    customMessage: "",
+    eventLocation: event.location || "TBA",
+    eventDate,
+  };
+
+  const html = upcomingEventBlastHtml({
+    eventTitle: event.title,
+    eventDate: defaults.eventDate,
+    eventLocation: defaults.eventLocation,
+    eventType: event.type || "",
+    difficulty: event.difficulty_level,
+    price: event.price,
+    coverImageUrl: event.cover_image_url,
+    spotsRemaining,
+    maxParticipants: event.max_participants,
+    eventId: event.id,
+    userId: "preview",
+  });
+
+  return NextResponse.json({ recipientCount, defaults, html });
 }
 
 export async function POST(request: Request) {
@@ -48,7 +107,15 @@ export async function POST(request: Request) {
     }
   }
 
-  const body = await request.json().catch(() => null);
+  const body = (await request.json().catch(() => null)) as {
+    eventId?: string;
+    subject?: string;
+    headline?: string;
+    subtext?: string;
+    customMessage?: string;
+    eventLocation?: string;
+    eventDate?: string;
+  } | null;
   if (!body?.eventId) {
     return NextResponse.json({ error: "eventId is required" }, { status: 400 });
   }
@@ -81,13 +148,15 @@ export async function POST(request: Request) {
     const totalBooked = (bookedCount ?? 0) + (event.offline_participants ?? 0);
     const spotsRemaining = Math.max(0, event.max_participants - totalBooked);
 
-    // Format date
-    const eventDate = new Date(event.date).toLocaleDateString("en-PH", {
+    // Format date (allow override)
+    const defaultEventDate = new Date(event.date).toLocaleDateString("en-PH", {
       weekday: "long",
       year: "numeric",
       month: "long",
       day: "numeric",
     });
+    const eventDate = body.eventDate?.trim() || defaultEventDate;
+    const eventLocation = body.eventLocation?.trim() || event.location || "TBA";
 
     // Fetch all registered users with real emails (exclude Strava/guest accounts)
     const { data: allUsers } = await supabase
@@ -110,7 +179,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ sent: 0, failed: 0, total: 0 });
     }
 
-    const subject = `New Climb Alert: ${event.title} — ${eventDate}`;
+    const subject = body.subject?.trim() || `New Climb Alert: ${event.title} — ${eventDate}`;
 
     // Build per-user HTML (each email has a unique unsubscribe link)
     const emails = users.map((u) => ({
@@ -119,7 +188,7 @@ export async function POST(request: Request) {
       html: upcomingEventBlastHtml({
         eventTitle: event.title,
         eventDate,
-        eventLocation: event.location || "TBA",
+        eventLocation,
         eventType: event.type || "",
         difficulty: event.difficulty_level,
         price: event.price,
@@ -128,6 +197,9 @@ export async function POST(request: Request) {
         maxParticipants: event.max_participants,
         eventId: event.id,
         userId: u.id,
+        headline: body.headline,
+        subtext: body.subtext,
+        customMessage: body.customMessage,
       }),
     }));
 
