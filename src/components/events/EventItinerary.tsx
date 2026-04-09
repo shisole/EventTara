@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { ChevronDownIcon } from "@/components/icons";
 
@@ -54,57 +54,80 @@ function groupByDay(entries: ItineraryEntry[]): DayGroup[] {
   return groups;
 }
 
+const COLLAPSED_MAX_HEIGHT = 320;
+
 export default function EventItinerary({ entries }: EventItineraryProps) {
+  const contentRef = useRef<HTMLDivElement>(null);
   const [expanded, setExpanded] = useState(false);
+  const [overflowing, setOverflowing] = useState(false);
+
+  const groups = groupByDay(entries);
+  const totalEntries = entries.length;
+
+  useEffect(() => {
+    const el = contentRef.current;
+    if (!el) return;
+    setOverflowing(el.scrollHeight > COLLAPSED_MAX_HEIGHT + 8);
+  }, [totalEntries]);
 
   if (entries.length === 0) return null;
 
-  const groups = groupByDay(entries);
   const hasMultipleGroups = groups.length > 1 || Boolean(groups[0]?.day);
-  const hasHiddenDays = groups.length > 1;
-  const visibleGroups = expanded || !hasHiddenDays ? groups : groups.slice(0, 1);
-  const hiddenCount = groups.length - 1;
 
   return (
     <div>
       <h2 className="text-xl font-heading font-bold mb-4 dark:text-white">Itinerary</h2>
-      <div className="space-y-6">
-        {visibleGroups.map((group, gi) => (
-          <div key={gi}>
-            {hasMultipleGroups && group.day && (
-              <h3 className="text-sm font-heading font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3">
-                {group.day}
-              </h3>
-            )}
-            <div className="relative pl-5">
-              <div className="absolute left-[7px] top-2 bottom-2 w-0.5 bg-gray-200 dark:bg-gray-700" />
-              <ol className="space-y-4">
-                {group.entries.map((entry) => (
-                  <li key={entry.id} className="relative">
-                    <div className="absolute -left-5 top-1 w-3 h-3 rounded-full bg-teal-500 border-2 border-white dark:border-gray-900 shadow-sm" />
-                    <p className="text-sm font-semibold text-teal-600 dark:text-teal-400 leading-none mb-0.5">
-                      {entry.time}
-                    </p>
-                    <p className="text-sm text-gray-800 dark:text-gray-200">{entry.title}</p>
-                  </li>
-                ))}
-              </ol>
-            </div>
+      <div className="relative">
+        <div
+          ref={contentRef}
+          style={{
+            maxHeight: !expanded && overflowing ? COLLAPSED_MAX_HEIGHT : undefined,
+          }}
+          className="overflow-hidden transition-[max-height] duration-300"
+        >
+          <div className="space-y-6">
+            {groups.map((group, gi) => (
+              <div key={gi}>
+                {hasMultipleGroups && group.day && (
+                  <h3 className="text-sm font-heading font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3">
+                    {group.day}
+                  </h3>
+                )}
+                <div className="relative pl-5">
+                  <div className="absolute left-[7px] top-2 bottom-2 w-0.5 bg-gray-200 dark:bg-gray-700" />
+                  <ol className="space-y-4">
+                    {group.entries.map((entry) => (
+                      <li key={entry.id} className="relative">
+                        <div className="absolute -left-5 top-1 w-3 h-3 rounded-full bg-teal-500 border-2 border-white dark:border-gray-900 shadow-sm" />
+                        <p className="text-sm font-semibold text-teal-600 dark:text-teal-400 leading-none mb-0.5">
+                          {entry.time}
+                        </p>
+                        <p className="text-sm text-gray-800 dark:text-gray-200">{entry.title}</p>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
+        {!expanded && overflowing && (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white dark:from-gray-950 to-transparent"
+          />
+        )}
       </div>
-      {hasHiddenDays && (
+      {overflowing && (
         <button
           type="button"
           onClick={() => {
             setExpanded((prev) => !prev);
           }}
           aria-expanded={expanded}
-          className="mt-4 w-full flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+          className="mt-3 w-full flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
         >
-          {expanded
-            ? "Show less"
-            : `Show full itinerary (${hiddenCount} more day${hiddenCount === 1 ? "" : "s"})`}
+          {expanded ? "Show less" : "Show full itinerary"}
           <ChevronDownIcon
             className={`w-4 h-4 transition-transform ${expanded ? "rotate-180" : ""}`}
           />
