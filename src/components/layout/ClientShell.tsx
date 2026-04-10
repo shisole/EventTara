@@ -120,6 +120,7 @@ export default function ClientShell({
   const hadInitialUser = useRef(!!initialUser);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [navLayout] = useState<string>(initialNavLayout);
+  const [demoBannerHeight, setDemoBannerHeight] = useState(0);
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
 
@@ -285,6 +286,9 @@ export default function ClientShell({
     globalThis.location.href = "/";
   }, [supabase]);
 
+  const handleDemoBannerChange = useCallback((_visible: boolean, height: number) => {
+    setDemoBannerHeight(height);
+  }, []);
   const handleDrawerClose = useCallback(() => setDrawerOpen(false), []);
   const handleMenuOpen = useCallback(() => setDrawerOpen(true), []);
 
@@ -295,7 +299,10 @@ export default function ClientShell({
         <NavigationLoader />
         <div className={`min-h-dvh flex flex-col ${drawerOpen ? "pointer-events-none" : ""}`}>
           {!isLighthouse && process.env.NEXT_PUBLIC_DEMO_MODE === "true" && (
-            <DemoBanner isLoggedIn={!loading && !!user && !user.is_anonymous} />
+            <DemoBanner
+              isLoggedIn={!loading && !!user && !user.is_anonymous}
+              onVisibilityChange={handleDemoBannerChange}
+            />
           )}
           <Navbar
             user={user}
@@ -307,6 +314,7 @@ export default function ClientShell({
             activityFeedEnabled={activityFeedEnabled}
             avatarShopEnabled={featureFlags?.avatar_shop_enabled === true}
             isAdmin={isAdmin}
+            demoBannerHeight={demoBannerHeight}
             onLogout={() => void handleLogout()}
             onMenuOpen={handleMenuOpen}
             onBorderChange={(borderId, tier, color) => {
@@ -314,7 +322,12 @@ export default function ClientShell({
             }}
           />
           <BreadcrumbProvider>
-            <div className="flex-1 pt-14 md:pt-20 pb-16 md:pb-0">{children}</div>
+            <div
+              className="flex-1 pt-14 md:pt-20 pb-16 md:pb-0"
+              style={demoBannerHeight > 0 ? { marginTop: demoBannerHeight } : undefined}
+            >
+              {children}
+            </div>
           </BreadcrumbProvider>
           <MobileNav user={user} canManage={canManage} activityFeedEnabled={activityFeedEnabled} />
         </div>

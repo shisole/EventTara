@@ -86,6 +86,7 @@ const DISMISS_KEY = "demo-banner-dismissed";
 
 interface DemoBannerProps {
   isLoggedIn: boolean;
+  onVisibilityChange?: (visible: boolean, height: number) => void;
 }
 
 function AccountDropdown({
@@ -150,16 +151,27 @@ function AccountDropdown({
   );
 }
 
-export default function DemoBanner({ isLoggedIn }: DemoBannerProps) {
+export default function DemoBanner({ isLoggedIn, onVisibilityChange }: DemoBannerProps) {
   const router = useRouter();
   const supabase = createClient();
+  const bannerRef = useRef<HTMLDivElement>(null);
   const [dismissed, setDismissed] = useState(() => {
     if (typeof globalThis === "undefined" || !globalThis.localStorage) return false;
     return globalThis.localStorage.getItem(DISMISS_KEY) === "true";
   });
   const [loading, setLoading] = useState<string | null>(null);
 
-  if (isLoggedIn || dismissed) return null;
+  const isVisible = !isLoggedIn && !dismissed;
+
+  useEffect(() => {
+    if (isVisible && bannerRef.current) {
+      onVisibilityChange?.(true, bannerRef.current.offsetHeight);
+    } else {
+      onVisibilityChange?.(false, 0);
+    }
+  }, [isVisible, onVisibilityChange]);
+
+  if (!isVisible) return null;
 
   const handleDemoLogin = async (account: DemoAccount) => {
     setLoading(account.email);
@@ -181,10 +193,14 @@ export default function DemoBanner({ isLoggedIn }: DemoBannerProps) {
   const handleDismiss = () => {
     localStorage.setItem(DISMISS_KEY, "true");
     setDismissed(true);
+    onVisibilityChange?.(false, 0);
   };
 
   return (
-    <div className="bg-gradient-to-r from-teal-600 to-forest-600 text-white">
+    <div
+      ref={bannerRef}
+      className="fixed top-0 left-0 right-0 z-[51] bg-gradient-to-r from-teal-600 to-forest-600 text-white"
+    >
       <div className="mx-auto max-w-7xl px-4 py-2.5 sm:px-6">
         <div className="flex items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm">

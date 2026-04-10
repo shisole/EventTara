@@ -41,6 +41,7 @@ interface NavbarProps {
   activityFeedEnabled?: boolean;
   avatarShopEnabled?: boolean;
   isAdmin?: boolean;
+  demoBannerHeight?: number;
   onLogout: () => void;
   onMenuOpen: () => void;
   onBorderChange?: (borderId: string | null, tier: BorderTier | null, color: string | null) => void;
@@ -56,6 +57,7 @@ export default function Navbar({
   activityFeedEnabled = false,
   avatarShopEnabled = false,
   isAdmin = false,
+  demoBannerHeight = 0,
   onLogout,
   onMenuOpen,
   onBorderChange,
@@ -147,7 +149,13 @@ export default function Navbar({
   const heroVisible = pathname === "/" && !scrolled;
 
   return (
-    <div className="fixed top-0 md:top-3 left-0 right-0 z-50 md:px-4 md:pointer-events-none">
+    <div
+      className={cn(
+        "fixed left-0 right-0 z-50 md:px-4 md:pointer-events-none transition-[top] duration-300",
+        demoBannerHeight === 0 && "top-0 md:top-3",
+      )}
+      style={demoBannerHeight > 0 ? { top: demoBannerHeight } : undefined}
+    >
       <nav
         className={cn(
           "md:pointer-events-auto md:w-fit md:mx-auto md:rounded-2xl transition-all duration-300",
