@@ -7,6 +7,7 @@ import { findOverlappingEvent, formatOverlapDate } from "@/lib/events/overlap";
 import { createNotification, createNotifications } from "@/lib/notifications/create";
 import { uploadToR2 } from "@/lib/r2";
 import { createClient } from "@/lib/supabase/server";
+import { sanitizeName } from "@/lib/utils/sanitize-name";
 
 interface CompanionInput {
   full_name: string;
@@ -403,7 +404,7 @@ export async function POST(request: Request) {
       return {
         id,
         booking_id: bookingId,
-        full_name: c.full_name.trim(),
+        full_name: sanitizeName(c.full_name),
         phone: c.phone || null,
         status: companionStatus,
         qr_code: generateQr ? `eventtara:checkin:${eventId}:companion:${id}` : null,
