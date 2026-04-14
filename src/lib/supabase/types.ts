@@ -861,7 +861,8 @@ export interface Database {
             | "review"
             | "photo"
             | "new_club"
-            | "new_event";
+            | "new_event"
+            | "new_user";
           activity_id: string;
           text: string;
           created_at: string;
@@ -877,7 +878,8 @@ export interface Database {
             | "review"
             | "photo"
             | "new_club"
-            | "new_event";
+            | "new_event"
+            | "new_user";
           activity_id: string;
           text: string;
           created_at?: string;
@@ -893,7 +895,8 @@ export interface Database {
             | "review"
             | "photo"
             | "new_club"
-            | "new_event";
+            | "new_event"
+            | "new_user";
           activity_id?: string;
           text?: string;
           created_at?: string;
@@ -933,7 +936,8 @@ export interface Database {
             | "review"
             | "photo"
             | "new_club"
-            | "new_event";
+            | "new_event"
+            | "new_user";
           activity_id: string;
           emoji: "heart";
           created_at: string;
@@ -949,7 +953,8 @@ export interface Database {
             | "review"
             | "photo"
             | "new_club"
-            | "new_event";
+            | "new_event"
+            | "new_user";
           activity_id: string;
           emoji: "heart";
           created_at?: string;
@@ -965,7 +970,8 @@ export interface Database {
             | "review"
             | "photo"
             | "new_club"
-            | "new_event";
+            | "new_event"
+            | "new_user";
           activity_id?: string;
           emoji?: "heart";
           created_at?: string;
@@ -984,7 +990,8 @@ export interface Database {
             | "review"
             | "photo"
             | "new_club"
-            | "new_event";
+            | "new_event"
+            | "new_user";
           activity_id: string;
           created_at: string;
         };
@@ -999,7 +1006,8 @@ export interface Database {
             | "review"
             | "photo"
             | "new_club"
-            | "new_event";
+            | "new_event"
+            | "new_user";
           activity_id: string;
           created_at?: string;
         };
@@ -1014,7 +1022,8 @@ export interface Database {
             | "review"
             | "photo"
             | "new_club"
-            | "new_event";
+            | "new_event"
+            | "new_user";
           activity_id?: string;
           created_at?: string;
         };

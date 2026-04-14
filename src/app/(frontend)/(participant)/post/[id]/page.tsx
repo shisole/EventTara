@@ -58,6 +58,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
     { data: review },
     { data: newClub },
     { data: newEvent },
+    { data: newUser },
   ] = await Promise.all([
     supabase
       .from("bookings")
@@ -101,6 +102,13 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
       .eq("id", id)
       .eq("status", "published")
       .eq("clubs.club_members.role", "owner")
+      .maybeSingle(),
+    // User by id — non-guest
+    supabase
+      .from("users")
+      .select("id, full_name, avatar_url, created_at")
+      .eq("id", id)
+      .eq("is_guest", false)
       .maybeSingle(),
   ]);
 
@@ -263,6 +271,20 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
         timestamp: newEvent.created_at,
       };
     }
+  } else if (newUser) {
+    activity = {
+      id: newUser.id,
+      activityType: "new_user",
+      userId: newUser.id,
+      text: "joined EventTara",
+      contextImageUrl: newUser.avatar_url || null,
+      ...nullBadge,
+      ...nullBorder,
+      ...nullReview,
+      ...nullPhoto,
+      ...nullClubEvent,
+      timestamp: newUser.created_at,
+    };
   }
 
   if (!activity) notFound();
