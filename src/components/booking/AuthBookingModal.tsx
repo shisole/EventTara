@@ -15,6 +15,7 @@ import {
 import { Button, OtpCodeInput } from "@/components/ui";
 import { STRAVA_AUTH_URL, STRAVA_SCOPES } from "@/lib/strava/constants";
 import { createClient } from "@/lib/supabase/client";
+import { sanitizeName } from "@/lib/utils/sanitize-name";
 
 type ModalState = "form" | "verify-code" | "success";
 type AuthMode = "signin" | "signup";
@@ -173,7 +174,7 @@ export default function AuthBookingModal({
     e.preventDefault();
     setError("");
 
-    const trimmedName = fullName.trim();
+    const trimmedName = sanitizeName(fullName);
     if (!trimmedName) {
       setError("Please enter your name.");
       return;

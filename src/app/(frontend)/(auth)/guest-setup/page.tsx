@@ -7,6 +7,7 @@ import { Button, Input } from "@/components/ui";
 import { PRESET_AVATARS } from "@/lib/constants/avatars";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import { sanitizeName } from "@/lib/utils/sanitize-name";
 
 export default function GuestSetupPage() {
   const router = useRouter();
@@ -36,7 +37,7 @@ export default function GuestSetupPage() {
 
     const { error: updateError } = await supabase.from("users").upsert({
       id: user.id,
-      full_name: displayName || "Adventurer",
+      full_name: sanitizeName(displayName) || "Adventurer",
       avatar_url: selectedAvatar,
       is_guest: true,
       role: "guest",

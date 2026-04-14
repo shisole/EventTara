@@ -15,6 +15,7 @@ import { STRAVA_AUTH_URL, STRAVA_SCOPES } from "@/lib/strava/constants";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { generateUsername } from "@/lib/utils/generate-username";
+import { sanitizeName } from "@/lib/utils/sanitize-name";
 
 const USERNAME_REGEX = /^[a-z0-9._-]{3,30}$/;
 const CODE_LENGTH = 6;
@@ -263,7 +264,7 @@ function InlineAuthForm({
   }, []);
 
   const handlePostSignup = async (userId: string) => {
-    const trimmedName = fullName.trim();
+    const trimmedName = sanitizeName(fullName);
     if (trimmedName) {
       await supabase.from("users").update({ full_name: trimmedName }).eq("id", userId);
     }
