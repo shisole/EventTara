@@ -58,6 +58,7 @@ export async function GET(request: Request) {
     { data: reposts },
     { data: newClubs },
     { data: newEvents },
+    { data: newUsers },
   ] = await Promise.all([
     supabase
       .from("bookings")
@@ -131,6 +132,13 @@ export async function GET(request: Request) {
       .eq("is_demo", false)
       .eq("clubs.is_demo", false)
       .eq("clubs.club_members.role", "owner")
+      .order("created_at", { ascending: false })
+      .limit(fetchLimit),
+    // New users: non-guest signups
+    supabase
+      .from("users")
+      .select("id, full_name, avatar_url, created_at")
+      .eq("is_guest", false)
       .order("created_at", { ascending: false })
       .limit(fetchLimit),
   ]);
@@ -319,6 +327,22 @@ export async function GET(request: Request) {
       eventId: ev.id,
       eventTitle: ev.title,
       timestamp: ev.created_at,
+    });
+  }
+
+  for (const u of newUsers || []) {
+    activities.push({
+      id: u.id,
+      activityType: "new_user",
+      userId: u.id,
+      text: "joined EventTara",
+      contextImageUrl: u.avatar_url || null,
+      ...nullBadge,
+      ...nullBorder,
+      ...nullReview,
+      ...nullPhoto,
+      ...nullClubEvent,
+      timestamp: u.created_at,
     });
   }
 

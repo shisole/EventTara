@@ -9,7 +9,8 @@ export type ActivityType =
   | "review"
   | "photo"
   | "new_club"
-  | "new_event";
+  | "new_event"
+  | "new_user";
 export type EmojiType = "heart";
 
 export const EMOJI_ICON = "💚";
