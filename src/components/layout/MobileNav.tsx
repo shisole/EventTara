@@ -134,7 +134,7 @@ export default function MobileNav({
   return (
     <nav
       className={cn(
-        "md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 safe-area-bottom transition-transform duration-300 ease-in-out",
+        "md:hidden fixed bottom-0 left-0 right-0 z-50 bg-stone-50/95 dark:bg-gray-900/95 backdrop-blur-md border-t border-stone-200 dark:border-gray-800 safe-area-bottom transition-transform duration-300 ease-in-out",
         (keyboardOpen || hidden) && "translate-y-full",
       )}
     >

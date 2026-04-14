@@ -161,7 +161,7 @@ export default function Navbar({
           "md:pointer-events-auto md:w-fit md:mx-auto md:rounded-2xl transition-all duration-300",
           scrolled || pathname !== "/"
             ? // Scrolled or non-homepage: solid / frosted glass
-              "bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 md:bg-white/90 md:dark:bg-gray-900/90 md:backdrop-blur-md md:border md:border-gray-200/80 md:dark:border-gray-700/80 md:shadow-lg md:shadow-black/5 md:dark:shadow-black/20"
+              "bg-stone-50 dark:bg-gray-900 border-b border-stone-200 dark:border-gray-800 md:bg-stone-50/90 md:dark:bg-gray-900/90 md:backdrop-blur-md md:border md:border-stone-200/80 md:dark:border-gray-700/80 md:shadow-lg md:shadow-black/5 md:dark:shadow-black/20"
             : // Homepage not scrolled: transparent
               "bg-transparent border-b border-transparent md:bg-white/5 md:backdrop-blur-sm md:border md:border-white/10",
         )}
