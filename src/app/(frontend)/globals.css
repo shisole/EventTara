@@ -4,7 +4,7 @@
 
 @layer base {
   body {
-    @apply bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-100 antialiased;
+    @apply bg-stone-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100 antialiased;
   }
 }
 
@@ -46,7 +46,7 @@
     @apply border-2 border-lime-500 text-lime-600 dark:text-lime-400 hover:bg-lime-50 dark:hover:bg-lime-950 font-semibold py-3 px-6 rounded-xl transition-colors;
   }
   .card {
-    @apply bg-white dark:bg-gray-900 rounded-2xl shadow-md dark:shadow-gray-950/30 hover:shadow-lg transition-shadow;
+    @apply bg-white dark:bg-gray-900 rounded-2xl shadow-md shadow-stone-200/50 dark:shadow-gray-950/30 hover:shadow-lg transition-shadow;
   }
 }
 
