@@ -11,6 +11,7 @@ import { STRAVA_AUTH_URL, STRAVA_SCOPES } from "@/lib/strava/constants";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { generateUsername } from "@/lib/utils/generate-username";
+import { sanitizeName } from "@/lib/utils/sanitize-name";
 
 const USERNAME_REGEX = /^[a-z0-9._-]{3,30}$/;
 
@@ -132,7 +133,7 @@ function SignupForm() {
   const metadataRef = useRef<Record<string, string>>({});
 
   const buildMetadata = () => {
-    const metadata: Record<string, string> = { full_name: fullName.trim() };
+    const metadata: Record<string, string> = { full_name: sanitizeName(fullName) };
     return metadata;
   };
 

@@ -4,6 +4,7 @@ import { isAvatarShopEnabled } from "@/lib/cms/cached";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { awardTokens } from "@/lib/tokens/award";
 import { TOKEN_REWARDS } from "@/lib/tokens/constants";
+import { sanitizeName } from "@/lib/utils/sanitize-name";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -30,7 +31,7 @@ export async function GET(request: Request) {
           {
             id: user.id,
             email: user.email ?? null,
-            full_name: preferredName ?? "User",
+            full_name: sanitizeName(preferredName ?? "User"),
             avatar_url: meta?.avatar_url ?? meta?.picture ?? null,
             role: "user",
           },
