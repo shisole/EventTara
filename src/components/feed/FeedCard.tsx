@@ -136,12 +136,16 @@ export default function FeedCard({ item, isAuthenticated, currentUserId }: FeedC
         {/* New event showcase */}
         {item.activityType === "new_event" && <EventShowcase item={item} />}
 
-        {/* Context image (non-badge/border/photo/club/event activities) */}
+        {/* New user showcase */}
+        {item.activityType === "new_user" && <NewUserShowcase item={item} />}
+
+        {/* Context image (non-badge/border/photo/club/event/user activities) */}
         {item.activityType !== "badge" &&
           item.activityType !== "border" &&
           item.activityType !== "photo" &&
           item.activityType !== "new_club" &&
           item.activityType !== "new_event" &&
+          item.activityType !== "new_user" &&
           item.contextImageUrl && (
             <div className="relative w-full h-40 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800">
               <Image
@@ -292,6 +296,29 @@ function EventShowcase({ item }: { item: FeedItem }) {
         )}
         {item.eventId && (
           <p className="text-xs text-forest-600 dark:text-forest-400 mt-1">View event →</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function NewUserShowcase({ item }: { item: FeedItem }) {
+  return (
+    <div className="flex items-center gap-3 p-3 rounded-xl bg-forest-50 dark:bg-forest-950/30 border border-forest-100 dark:border-forest-900/50">
+      <div className="w-10 h-10 rounded-full bg-forest-100 dark:bg-forest-900/50 flex items-center justify-center shrink-0">
+        <span className="text-forest-600 dark:text-forest-400 text-base">👋</span>
+      </div>
+      <div className="min-w-0">
+        <p className="font-semibold text-gray-900 dark:text-white text-sm truncate">
+          Welcome to EventTara!
+        </p>
+        {item.userUsername && (
+          <p className="text-xs text-forest-600 dark:text-forest-400">
+            @{item.userUsername} is a new adventurer
+          </p>
+        )}
+        {!item.userUsername && (
+          <p className="text-xs text-forest-600 dark:text-forest-400">New adventurer</p>
         )}
       </div>
     </div>

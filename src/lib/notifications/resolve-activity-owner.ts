@@ -12,6 +12,7 @@ const TABLE_MAP: Record<ActivityType, string | null> = {
   photo: "event_photos",
   new_club: null,
   new_event: null,
+  new_user: null,
 };
 
 /**
@@ -23,6 +24,11 @@ export async function resolveActivityOwner(
   activityType: ActivityType,
   activityId: string,
 ): Promise<string | null> {
+  // For new_user, the activity ID is the user ID itself
+  if (activityType === "new_user") {
+    return activityId;
+  }
+
   // For clubs, resolve owner via club_members
   if (activityType === "new_club") {
     const { data } = await supabase
