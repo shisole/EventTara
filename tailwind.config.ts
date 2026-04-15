@@ -23,6 +23,7 @@ const config: Config = {
           700: "#155e75",
           800: "#164e63",
           900: "#134e4a",
+          950: "#0a2f2b",
         },
         forest: {
           50: "#f0faf4",
@@ -35,6 +36,7 @@ const config: Config = {
           700: "#1e623d",
           800: "#1b4e33",
           900: "#17402b",
+          950: "#0f2b1c",
         },
         golden: {
           50: "#fffdf0",
@@ -47,6 +49,7 @@ const config: Config = {
           700: "#a96c00",
           800: "#8a5500",
           900: "#724600",
+          950: "#4a2d00",
         },
       },
       fontFamily: {
