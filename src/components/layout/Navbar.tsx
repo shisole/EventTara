@@ -354,7 +354,11 @@ export default function Navbar({
             ) : (
               <div className="flex items-center gap-3">
                 <NavLink href="/login">
-                  <Button variant="ghost" size="sm">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={heroVisible ? "text-white hover:text-white hover:bg-white/10" : ""}
+                  >
                     Sign In
                   </Button>
                 </NavLink>

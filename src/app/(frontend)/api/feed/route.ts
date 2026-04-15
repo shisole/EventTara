@@ -134,11 +134,12 @@ export async function GET(request: Request) {
       .eq("clubs.club_members.role", "owner")
       .order("created_at", { ascending: false })
       .limit(fetchLimit),
-    // New users: non-guest signups
+    // New users: non-guest signups with completed profiles
     supabase
       .from("users")
       .select("id, full_name, avatar_url, created_at")
       .eq("is_guest", false)
+      .not("username", "is", null)
       .order("created_at", { ascending: false })
       .limit(fetchLimit),
   ]);
