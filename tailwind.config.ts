@@ -35,6 +35,7 @@ const config: Config = {
           700: "#1e623d",
           800: "#1b4e33",
           900: "#17402b",
+          950: "#0f2b1c",
         },
         golden: {
           50: "#fffdf0",
