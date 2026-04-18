@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui";
 import { cn } from "@/lib/utils";
+import { sanitizeRichText } from "@/lib/utils/sanitize-html";
 
 interface WaiverModalProps {
   waiverHtml: string;
@@ -70,7 +71,7 @@ export default function WaiverModal({ waiverHtml, onAccept, onClose }: WaiverMod
             <div className="px-8 py-6">
               <div
                 className="prose prose-sm max-w-none text-gray-800 prose-headings:text-gray-900 prose-p:text-gray-700 prose-strong:text-gray-900 prose-li:text-gray-700"
-                dangerouslySetInnerHTML={{ __html: waiverHtml }}
+                dangerouslySetInnerHTML={{ __html: sanitizeRichText(waiverHtml) }}
               />
             </div>
           </div>

@@ -59,7 +59,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     .eq("id", id);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[booking-cancel POST] DB error:", error.message);
+    return NextResponse.json({ error: "Failed to cancel booking" }, { status: 500 });
   }
 
   // Cancel companions and clear QR codes

@@ -35,7 +35,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
     .order("created_at", { ascending: false });
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[club-invites GET] DB error:", error.message);
+    return NextResponse.json({ error: "Failed to fetch invites" }, { status: 500 });
   }
 
   return NextResponse.json({ invites: invites ?? [] });
@@ -90,7 +91,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
     .single();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[club-invites POST] DB error:", error.message);
+    return NextResponse.json({ error: "Failed to create invite" }, { status: 500 });
   }
 
   return NextResponse.json({ invite }, { status: 201 });
@@ -131,7 +133,8 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ s
     .eq("club_id", club.id);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[club-invites DELETE] DB error:", error.message);
+    return NextResponse.json({ error: "Failed to delete invite" }, { status: 500 });
   }
 
   return NextResponse.json({ success: true });

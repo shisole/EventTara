@@ -6,6 +6,20 @@ import { createClient } from "@/lib/supabase/server";
 const MAX_SIZE = 2 * 1024 * 1024; // 2 MB
 const MAX_VIDEO_SIZE = 20 * 1024 * 1024; // 20 MB
 
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
+
+const ALLOWED_VIDEO_TYPES = new Set(["video/mp4", "video/webm", "video/quicktime"]);
+
+const MIME_TO_EXT: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "image/gif": "gif",
+  "video/mp4": "mp4",
+  "video/webm": "webm",
+  "video/quicktime": "mov",
+};
+
 const ALLOWED_FOLDERS = new Set([
   "events/covers",
   "badges/images",
@@ -45,7 +59,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid folder" }, { status: 400 });
   }
 
-  const sizeLimit = VIDEO_FOLDERS.has(folder) ? MAX_VIDEO_SIZE : MAX_SIZE;
+  const isVideo = VIDEO_FOLDERS.has(folder);
+  const sizeLimit = isVideo ? MAX_VIDEO_SIZE : MAX_SIZE;
   if (file.size > sizeLimit) {
     const limitMB = sizeLimit / (1024 * 1024);
     return NextResponse.json(
@@ -54,12 +69,25 @@ export async function POST(request: Request) {
     );
   }
 
-  const ext = file.name.split(".").pop() || "jpg";
+  // Validate MIME type
+  const allowedTypes = isVideo
+    ? new Set([...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES])
+    : ALLOWED_IMAGE_TYPES;
+  if (!file.type || !allowedTypes.has(file.type)) {
+    return NextResponse.json(
+      {
+        error: "Invalid file type. Allowed: JPEG, PNG, WebP, GIF" + (isVideo ? ", MP4, WebM" : ""),
+      },
+      { status: 400 },
+    );
+  }
+
+  const ext = MIME_TO_EXT[file.type] || "jpg";
   const key = `${folder}/${Date.now()}.${ext}`;
   const buffer = Buffer.from(await file.arrayBuffer());
 
   try {
-    const url = await uploadToR2(key, buffer, file.type || "image/jpeg");
+    const url = await uploadToR2(key, buffer, file.type);
     return NextResponse.json({ url });
   } catch (error) {
     console.error("[upload] R2 error:", error);

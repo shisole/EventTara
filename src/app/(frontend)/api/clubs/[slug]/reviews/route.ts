@@ -68,7 +68,8 @@ export async function GET(request: Request, { params }: RouteCtx) {
     .range(offset, offset + limit - 1);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[club-reviews GET] DB error:", error.message);
+    return NextResponse.json({ error: "Failed to fetch reviews" }, { status: 500 });
   }
 
   // Redact user info for anonymous reviews
@@ -239,7 +240,8 @@ export async function POST(request: Request, { params }: RouteCtx) {
       .single();
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error("[club-reviews POST] DB error:", error.message);
+      return NextResponse.json({ error: "Failed to create review" }, { status: 500 });
     }
 
     // Insert photos if any
@@ -297,7 +299,8 @@ export async function POST(request: Request, { params }: RouteCtx) {
     .single();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[club-reviews POST guest] DB error:", error.message);
+    return NextResponse.json({ error: "Failed to create review" }, { status: 500 });
   }
 
   return NextResponse.json({ review }, { status: 201 });
@@ -402,7 +405,8 @@ export async function PATCH(request: Request, { params }: RouteCtx) {
     .single();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[club-reviews PATCH] DB error:", error.message);
+    return NextResponse.json({ error: "Failed to update review" }, { status: 500 });
   }
 
   // Replace photos if provided

@@ -60,7 +60,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
       );
     }
     console.error("[welcome-page POST]", error.message, error.code);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: "Failed to create welcome page" }, { status: 500 });
   }
 
   // Best-effort: set event_id
@@ -116,8 +116,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   const { data: welcomePage, error } = await query.maybeSingle();
 
   if (error) {
-    console.error("Welcome page fetch error:", error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[welcome-page GET] DB error:", error.message);
+    return NextResponse.json({ error: "Failed to fetch welcome page" }, { status: 500 });
   }
 
   if (!welcomePage) {
@@ -207,8 +207,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ sl
     .maybeSingle();
 
   if (error) {
-    console.error("Welcome page update error:", error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[welcome-page PATCH] DB error:", error.message);
+    return NextResponse.json({ error: "Failed to update welcome page" }, { status: 500 });
   }
 
   if (!updated) {

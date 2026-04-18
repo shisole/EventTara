@@ -34,7 +34,8 @@ export async function POST(request: Request) {
     if (error.code === "23505") {
       return NextResponse.json({ message: "Already reposted" }, { status: 200 });
     }
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[feed-reposts POST] DB error:", error.message);
+    return NextResponse.json({ error: "Failed to create repost" }, { status: 500 });
   }
 
   // Notify activity owner of the repost (fire-and-forget)

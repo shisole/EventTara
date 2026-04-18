@@ -21,8 +21,8 @@ export async function GET(request: Request) {
 
   const { data: users } = await supabase
     .from("users")
-    .select("id, full_name, email, avatar_url")
-    .or(`full_name.ilike.%${q}%,email.ilike.%${q}%`)
+    .select("id, full_name, avatar_url, username")
+    .ilike("full_name", `%${q}%`)
     .limit(10);
 
   return NextResponse.json({ users: users ?? [] });
