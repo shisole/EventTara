@@ -127,39 +127,43 @@ export async function POST(request: Request) {
   }
 
   if (parsed.search) {
-    const pattern = parsed.search.trim().replaceAll(/\s+/g, "%");
+    // Sanitize search pattern: strip characters that could break Supabase filter syntax
+    const sanitized = parsed.search.trim().replaceAll(/[(),."'\\]/g, "");
+    const pattern = sanitized.replaceAll(/\s+/g, "%");
 
-    // Also match club names (same pattern as /api/events)
-    const { data: matchingClubs } = await supabase
-      .from("clubs")
-      .select("id")
-      .ilike("name", `%${pattern}%`);
-    const clubIds = matchingClubs?.map((c) => c.id) ?? [];
+    if (pattern.length > 0) {
+      // Also match club names (same pattern as /api/events)
+      const { data: matchingClubs } = await supabase
+        .from("clubs")
+        .select("id")
+        .ilike("name", `%${pattern}%`);
+      const clubIds = matchingClubs?.map((c) => c.id) ?? [];
 
-    // Also match guide names → get their linked event IDs
-    const { data: matchingGuides } = await supabase
-      .from("guides")
-      .select("id")
-      .ilike("full_name", `%${pattern}%`);
-    let guideEventIds: string[] = [];
-    if (matchingGuides && matchingGuides.length > 0) {
-      const guideIds = matchingGuides.map((g) => g.id);
-      const { data: links } = await supabase
-        .from("event_guides")
-        .select("event_id")
-        .in("guide_id", guideIds);
-      guideEventIds = links?.map((l) => l.event_id) ?? [];
-    }
+      // Also match guide names → get their linked event IDs
+      const { data: matchingGuides } = await supabase
+        .from("guides")
+        .select("id")
+        .ilike("full_name", `%${pattern}%`);
+      let guideEventIds: string[] = [];
+      if (matchingGuides && matchingGuides.length > 0) {
+        const guideIds = matchingGuides.map((g) => g.id);
+        const { data: links } = await supabase
+          .from("event_guides")
+          .select("event_id")
+          .in("guide_id", guideIds);
+        guideEventIds = links?.map((l) => l.event_id) ?? [];
+      }
 
-    let filter = `title.ilike.%${pattern}%,location.ilike.%${pattern}%`;
-    if (clubIds.length > 0) {
-      filter += `,club_id.in.(${clubIds.join(",")})`;
+      let filter = `title.ilike.%${pattern}%,location.ilike.%${pattern}%`;
+      if (clubIds.length > 0) {
+        filter += `,club_id.in.(${clubIds.join(",")})`;
+      }
+      if (guideEventIds.length > 0) {
+        filter += `,id.in.(${guideEventIds.join(",")})`;
+      }
+      countQ = countQ.or(filter);
+      dataQ = dataQ.or(filter);
     }
-    if (guideEventIds.length > 0) {
-      filter += `,id.in.(${guideEventIds.join(",")})`;
-    }
-    countQ = countQ.or(filter);
-    dataQ = dataQ.or(filter);
   }
 
   if (parsed.duration === "single") {
@@ -347,8 +351,11 @@ export async function POST(request: Request) {
       fallbackQ = fallbackQ.eq("type", parsed.type);
     }
     if (parsed.search) {
-      const pattern = parsed.search.trim().replaceAll(/\s+/g, "%");
-      fallbackQ = fallbackQ.or(`title.ilike.%${pattern}%,location.ilike.%${pattern}%`);
+      const sanitized = parsed.search.trim().replaceAll(/[(),."'\\]/g, "");
+      const pattern = sanitized.replaceAll(/\s+/g, "%");
+      if (pattern.length > 0) {
+        fallbackQ = fallbackQ.or(`title.ilike.%${pattern}%,location.ilike.%${pattern}%`);
+      }
     }
 
     fallbackQ = fallbackQ.order("date", { ascending: true }).limit(3);

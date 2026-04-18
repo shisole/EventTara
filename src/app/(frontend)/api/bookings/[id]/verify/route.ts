@@ -60,7 +60,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       .eq("id", id);
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error("[verify] Approve error:", error.message);
+      return NextResponse.json({ error: "Failed to approve payment" }, { status: 500 });
     }
 
     // Confirm companions and generate QR codes
@@ -126,7 +127,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       .eq("id", id);
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error("[verify] Reject error:", error.message);
+      return NextResponse.json({ error: "Failed to reject payment" }, { status: 500 });
     }
 
     // Cancel all companions when booking is rejected

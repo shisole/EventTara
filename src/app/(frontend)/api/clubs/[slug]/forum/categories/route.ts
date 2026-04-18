@@ -28,7 +28,10 @@ export async function GET(_req: Request, { params }: RouteContext) {
     .eq("club_id", club.id)
     .order("sort_order", { ascending: true });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("[forum-categories GET] DB error:", error.message);
+    return NextResponse.json({ error: "Failed to fetch categories" }, { status: 500 });
+  }
   return NextResponse.json({ categories });
 }
 
@@ -78,6 +81,9 @@ export async function POST(req: Request, { params }: RouteContext) {
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("[forum-categories POST] DB error:", error.message);
+    return NextResponse.json({ error: "Failed to create category" }, { status: 500 });
+  }
   return NextResponse.json({ category }, { status: 201 });
 }

@@ -21,7 +21,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     .order("created_at", { ascending: false });
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[guide-reviews GET] DB error:", error.message);
+    return NextResponse.json({ error: "Failed to fetch reviews" }, { status: 500 });
   }
 
   return NextResponse.json({ reviews: reviews || [] });
@@ -147,7 +148,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     .single();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[guide-reviews POST] DB error:", error.message);
+    return NextResponse.json({ error: "Failed to create review" }, { status: 500 });
   }
 
   return NextResponse.json({ review });

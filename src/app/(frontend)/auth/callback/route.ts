@@ -4,12 +4,13 @@ import { isAvatarShopEnabled } from "@/lib/cms/cached";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { awardTokens } from "@/lib/tokens/award";
 import { TOKEN_REWARDS } from "@/lib/tokens/constants";
+import { safeRedirectUrl } from "@/lib/utils/safe-redirect";
 import { sanitizeName } from "@/lib/utils/sanitize-name";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/feed";
+  const next = safeRedirectUrl(searchParams.get("next"), "/feed");
 
   if (code) {
     const supabase = await createClient();
