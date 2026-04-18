@@ -35,7 +35,8 @@ export async function GET(request: Request) {
     .order("created_at", { ascending: true });
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[feed-comments GET] DB error:", error.message);
+    return NextResponse.json({ error: "Failed to fetch comments" }, { status: 500 });
   }
 
   if (!rows || rows.length === 0) {
@@ -141,7 +142,8 @@ export async function POST(request: Request) {
     .single();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[feed-comments POST] DB error:", error.message);
+    return NextResponse.json({ error: "Failed to create comment" }, { status: 500 });
   }
 
   // Fetch the commenter's profile

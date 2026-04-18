@@ -56,7 +56,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     .eq("id", id);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[booking-participant PATCH] DB error:", error.message);
+    return NextResponse.json({ error: "Failed to update participant status" }, { status: 500 });
   }
 
   return NextResponse.json({

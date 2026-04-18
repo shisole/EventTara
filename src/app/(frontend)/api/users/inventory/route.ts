@@ -19,7 +19,8 @@ export async function GET() {
     .order("purchased_at", { ascending: false });
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[user-inventory GET] DB error:", error.message);
+    return NextResponse.json({ error: "Failed to fetch inventory" }, { status: 500 });
   }
 
   return NextResponse.json({ inventory: data });

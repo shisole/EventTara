@@ -46,7 +46,8 @@ export async function DELETE() {
   const { error } = await supabase.from("strava_connections").delete().eq("user_id", user.id);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[strava-disconnect DELETE] DB error:", error.message);
+    return NextResponse.json({ error: "Failed to disconnect Strava" }, { status: 500 });
   }
 
   // Delete stored Strava activities — required by Strava API Agreement on deauthorization

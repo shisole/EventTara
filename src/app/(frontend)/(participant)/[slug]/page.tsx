@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+import { sanitizeRichText } from "@/lib/utils/sanitize-html";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -65,7 +66,7 @@ export default async function CMSPage({ params }: Props) {
       {page.content_html && (
         <div
           className="prose prose-gray dark:prose-invert max-w-none prose-headings:font-heading prose-h3:text-lg prose-h3:font-semibold prose-a:text-teal-600 dark:prose-a:text-teal-400 prose-a:underline-offset-2 prose-li:marker:text-lime-500 prose-strong:text-gray-900 dark:prose-strong:text-white"
-          dangerouslySetInnerHTML={{ __html: page.content_html }}
+          dangerouslySetInnerHTML={{ __html: sanitizeRichText(page.content_html) }}
         />
       )}
     </main>

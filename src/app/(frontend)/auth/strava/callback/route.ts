@@ -8,6 +8,7 @@ import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { type Json } from "@/lib/supabase/types";
 import { awardTokens } from "@/lib/tokens/award";
 import { TOKEN_REWARDS } from "@/lib/tokens/constants";
+import { safeRedirectUrl } from "@/lib/utils/safe-redirect";
 
 interface OAuthState {
   flow: "login" | "connect";
@@ -113,7 +114,7 @@ export async function GET(request: Request) {
       .single();
 
     if (existingConnection && existingConnection.user_id !== currentUser.id) {
-      const returnUrl = state.returnUrl || "/profile/" + currentUser.id;
+      const returnUrl = safeRedirectUrl(state.returnUrl, "/profile/" + currentUser.id);
       return NextResponse.redirect(`${origin}${returnUrl}?error=strava_already_linked`);
     }
 
@@ -162,7 +163,7 @@ export async function GET(request: Request) {
       }
     });
 
-    const returnUrl = state.returnUrl || "/profile/" + currentUser.id;
+    const returnUrl = safeRedirectUrl(state.returnUrl, "/profile/" + currentUser.id);
     return NextResponse.redirect(`${origin}${returnUrl}?strava=connected`);
   }
 

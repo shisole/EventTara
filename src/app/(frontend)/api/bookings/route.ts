@@ -329,7 +329,8 @@ export async function POST(request: Request) {
     }
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error("[bookings POST] DB error:", error.message);
+      return NextResponse.json({ error: "Failed to create booking" }, { status: 500 });
     }
 
     bookingId = booking.id;

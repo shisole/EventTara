@@ -62,7 +62,8 @@ export async function PATCH(request: Request) {
     .eq("id", user.id);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[active-border PATCH] DB error:", error.message);
+    return NextResponse.json({ error: "Failed to update active border" }, { status: 500 });
   }
 
   return NextResponse.json({ active_border_id: border_id });

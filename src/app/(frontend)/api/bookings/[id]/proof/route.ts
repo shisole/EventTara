@@ -38,8 +38,30 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     return NextResponse.json({ error: "No file provided" }, { status: 400 });
   }
 
+  // Validate file size (max 5 MB)
+  const MAX_PROOF_SIZE = 5 * 1024 * 1024;
+  if (file.size > MAX_PROOF_SIZE) {
+    return NextResponse.json({ error: "File too large (max 5 MB)" }, { status: 400 });
+  }
+
+  // Validate MIME type
+  const ALLOWED_PROOF_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "application/pdf"]);
+  if (!file.type || !ALLOWED_PROOF_TYPES.has(file.type)) {
+    return NextResponse.json(
+      { error: "Invalid file type. Allowed: JPEG, PNG, WebP, PDF" },
+      { status: 400 },
+    );
+  }
+
+  const PROOF_MIME_TO_EXT: Record<string, string> = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+    "application/pdf": "pdf",
+  };
+
   // Upload to R2
-  const ext = file.name.split(".").pop() || "jpg";
+  const ext = PROOF_MIME_TO_EXT[file.type] || "jpg";
   const key = `payment-proofs/${booking.event_id}/${booking.id}.${ext}`;
   const buffer = Buffer.from(await file.arrayBuffer());
 
@@ -60,7 +82,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     .eq("id", id);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[proof] DB update error:", error.message);
+    return NextResponse.json({ error: "Failed to update booking" }, { status: 500 });
   }
 
   // Notify club moderators+ about the re-upload
